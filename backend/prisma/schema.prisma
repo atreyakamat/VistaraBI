@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  files     File[]
+  goals     Goal[]
+  chats     Chat[]
+
+  @@map("users")
+}
+
+model File {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName    String
+  fileType    String
+  fileSize    Int?
+  status      String   @default("uploaded") // uploaded, cleaning, cleaned, processed, error
+  rawData     Json?
+  cleanedData Json?
+  domain      String?
+  uploadedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  kpis        KPI[]
+
+  @@map("files")
+}
+
+model KPI {
+  id         String   @id @default(uuid())
+  fileId     String
+  file       File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  name       String
+  value      Float
+  category   String
+  priority   Int      @default(0)
+  formula    String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@map("kpis")
+}
+
+model Goal {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalText     String
+  targetValue  Float
+  currentValue Float?
+  deadline     DateTime
+  status       String   @default("active") // active, completed, cancelled
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  actions      Action[]
+
+  @@map("goals")
+}
+
+model Action {
+  id          String    @id @default(uuid())
+  goalId      String
+  goal        Goal      @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  completed   Boolean   @default(false)
+  priority    String    @default("medium") // low, medium, high
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("actions")
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  query     String
+  response  String   @db.Text
+  context   Json?
+  timestamp DateTime @default(now())
+
+  @@map("chats")
+}
