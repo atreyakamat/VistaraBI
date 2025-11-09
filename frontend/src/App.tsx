@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Dashboard from './pages/Dashboard'
+import UploadPage from './pages/UploadPage'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking')
-  const [aiStatus, setAiStatus] = useState<'checking' | 'online' | 'offline'>('checking')
 
   useEffect(() => {
     // Check backend health
@@ -12,12 +11,6 @@ function App() {
       .then(res => res.json())
       .then(() => setBackendStatus('online'))
       .catch(() => setBackendStatus('offline'))
-
-    // Check AI service health
-    fetch('http://localhost:8000')
-      .then(res => res.json())
-      .then(() => setAiStatus('online'))
-      .catch(() => setAiStatus('offline'))
   }, [])
 
   return (
@@ -27,10 +20,9 @@ function App() {
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-primary-600">VistaraBI</h1>
+              <h1 className="text-2xl font-bold text-blue-600">VistaraBI</h1>
               <div className="flex items-center gap-4">
                 <StatusIndicator label="Backend" status={backendStatus} />
-                <StatusIndicator label="AI Service" status={aiStatus} />
               </div>
             </div>
           </div>
@@ -38,7 +30,7 @@ function App() {
 
         {/* Main Content */}
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<UploadPage />} />
         </Routes>
       </div>
     </Router>
@@ -51,19 +43,21 @@ interface StatusIndicatorProps {
 }
 
 function StatusIndicator({ label, status }: StatusIndicatorProps) {
-  const colors = {
-    checking: 'bg-yellow-400',
-    online: 'bg-green-400',
-    offline: 'bg-red-400'
+  const getColor = () => {
+    switch (status) {
+      case 'online': return 'bg-green-500'
+      case 'offline': return 'bg-red-500'
+      default: return 'bg-yellow-500'
+    }
   }
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-gray-600">{label}:</span>
-      <div className={`w-2 h-2 rounded-full ${colors[status]}`} />
-      <span className="text-xs text-gray-500 capitalize">{status}</span>
+      <span className="text-sm text-gray-600">{label}</span>
+      <div className={`w-2 h-2 rounded-full ${getColor()}`} />
     </div>
   )
 }
 
 export default App
+

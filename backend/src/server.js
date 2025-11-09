@@ -3,15 +3,17 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import morgan from 'morgan'
 import { PrismaClient } from '@prisma/client'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import fs from 'fs'
 
 // Import routes
 import healthRoutes from './routes/health.js'
 import uploadRoutes from './routes/upload.js'
-import filesRoutes from './routes/files.js'
-import kpisRoutes from './routes/kpis.js'
-import goalsRoutes from './routes/goals.js'
-import chatRoutes from './routes/chat.js'
-import exportRoutes from './routes/export.js'
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Load environment variables
 dotenv.config()
@@ -22,6 +24,12 @@ const PORT = process.env.PORT || 5000
 
 // Initialize Prisma
 export const prisma = new PrismaClient()
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '..', 'uploads')
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
 
 // Middleware
 app.use(cors({
@@ -34,26 +42,18 @@ app.use(morgan('dev'))
 
 // Routes
 app.use('/api/health', healthRoutes)
-app.use('/api/upload', uploadRoutes)
-app.use('/api/files', filesRoutes)
-app.use('/api/kpis', kpisRoutes)
-app.use('/api/goals', goalsRoutes)
-app.use('/api/chat', chatRoutes)
-app.use('/api/export', exportRoutes)
+app.use('/api/v1/upload', uploadRoutes)
 
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'VistaraBI Backend API',
+    message: 'VistaraBI Backend API - Data Upload Module',
     version: '1.0.0',
     endpoints: {
       health: '/api/health',
-      upload: '/api/upload',
-      files: '/api/files',
-      kpis: '/api/kpis',
-      goals: '/api/goals',
-      chat: '/api/chat',
-      export: '/api/export'
+      upload: '/api/v1/upload',
+      uploadStatus: '/api/v1/upload/:id/status',
+      uploads: '/api/v1/uploads'
     }
   })
 })
@@ -74,6 +74,7 @@ app.listen(PORT, () => {
   console.log(`🚀 VistaraBI Backend running on port ${PORT}`)
   console.log(`📊 Environment: ${process.env.NODE_ENV}`)
   console.log(`🔗 API available at: http://localhost:${PORT}`)
+  console.log(`📁 Upload directory: ${uploadsDir}`)
 })
 
 // Graceful shutdown

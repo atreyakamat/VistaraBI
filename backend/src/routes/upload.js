@@ -1,60 +1,69 @@
 import express from 'express'
 import multer from 'multer'
 import path from 'path'
-import fs from 'fs'
+import { fileURLToPath } from 'url'
+import { 
+  uploadFile, 
+  getUploadStatus, 
+  getAllUploads,
+  deleteUpload 
+} from '../controllers/upload.controller.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const router = express.Router()
 
-// Configure multer for file uploads
+// Configure Multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = './uploads'
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true })
-    }
-    cb(null, uploadDir)
+    cb(null, path.join(__dirname, '..', '..', 'uploads'))
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname))
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`
+    const ext = path.extname(file.originalname)
+    cb(null, `${uniqueSuffix}${ext}`)
   }
 })
+
+// File filter - accept specific file types
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    'text/csv',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/json',
+    'application/xml',
+    'text/xml',
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain'
+  ]
+
+  const allowedExtensions = ['.csv', '.xlsx', '.xls', '.json', '.xml', '.pdf', '.docx', '.pptx', '.txt']
+  const ext = path.extname(file.originalname).toLowerCase()
+
+  if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
+    cb(null, true)
+  } else {
+    cb(new Error(`File type not supported. Allowed types: ${allowedExtensions.join(', ')}`), false)
+  }
+}
 
 const upload = multer({
-  storage: storage,
+  storage,
+  fileFilter,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE || '10485760') // 10MB default
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/pdf']
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true)
-    } else {
-      cb(new Error('Invalid file type. Only CSV, Excel, and PDF files are allowed.'))
-    }
+    fileSize: 1024 * 1024 * 1024 // 1 GB limit
   }
 })
 
-// POST /api/upload - Upload file
-router.post('/', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' })
-    }
-
-    res.json({
-      message: 'File uploaded successfully',
-      file: {
-        originalName: req.file.originalname,
-        fileName: req.file.filename,
-        size: req.file.size,
-        type: req.file.mimetype,
-        path: req.file.path
-      }
-    })
-  } catch (error) {
-    res.status(500).json({ error: error.message })
-  }
-})
+// Routes
+router.post('/', upload.single('file'), uploadFile)
+router.get('/:id/status', getUploadStatus)
+router.get('/', getAllUploads)
+router.delete('/:id', deleteUpload)
 
 export default router
+

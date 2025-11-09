@@ -18,6 +18,19 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: vistarabi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./backend
     container_name: vistarabi-backend
@@ -25,25 +38,19 @@ services:
       - "5000:5000"
     environment:
       DATABASE_URL: postgresql://vistarabi:password@postgres:5432/vistarabi
-      AI_SERVICE_URL: http://ai:8000
+      REDIS_URL: redis://redis:6379
       NODE_ENV: development
       PORT: 5000
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - ./backend/uploads:/app/uploads
     command: npm run dev
-
-  ai:
-    build: ./ai
-    container_name: vistarabi-ai
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./ai:/app
-    command: python app.py
 
   frontend:
     build: ./frontend
@@ -61,3 +68,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:

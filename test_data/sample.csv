@@ -1,0 +1,11 @@
+name,age,email,city,salary,department
+John Doe,30,john.doe@example.com,New York,75000,Engineering
+Jane Smith,28,jane.smith@example.com,San Francisco,82000,Engineering
+Bob Johnson,35,bob.johnson@example.com,Chicago,68000,Marketing
+Alice Williams,32,alice.williams@example.com,Boston,71000,Sales
+Charlie Brown,29,charlie.brown@example.com,Seattle,79000,Engineering
+Diana Prince,31,diana.prince@example.com,Austin,73000,Product
+Eve Anderson,27,eve.anderson@example.com,Denver,66000,Marketing
+Frank Miller,33,frank.miller@example.com,Portland,77000,Engineering
+Grace Lee,26,grace.lee@example.com,Miami,64000,Sales
+Henry Taylor,34,henry.taylor@example.com,Phoenix,72000,Product
