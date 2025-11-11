@@ -18,10 +18,10 @@ const worker = new Worker(
   'upload-processing',
   async (job) => {
     console.log(`Processing job ${job.id}: ${job.name}`)
-    const { uploadId, filePath, fileName, fileType } = job.data
+    const { uploadId, filePath, originalName, mimeType } = job.data
 
     try {
-      await processFile(uploadId, filePath, fileName, fileType)
+      await processFile(uploadId, filePath, originalName, mimeType)
       return { success: true }
     } catch (error) {
       console.error(`Job ${job.id} failed:`, error)

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import UploadPage from './pages/UploadPage'
+import DataViewPage from './pages/DataViewPage'
 
 function App() {
   const [backendStatus, setBackendStatus] = useState<'checking' | 'online' | 'offline'>('checking')
@@ -31,6 +32,8 @@ function App() {
         {/* Main Content */}
         <Routes>
           <Route path="/" element={<UploadPage />} />
+          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/data/:uploadId" element={<DataViewPage />} />
         </Routes>
       </div>
     </Router>

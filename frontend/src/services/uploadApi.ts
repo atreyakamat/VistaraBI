@@ -18,6 +18,30 @@ export interface Upload {
   createdAt: string
   updatedAt: string
   completedAt?: string
+  jobId?: string | number
+  message?: string
+  note?: string
+  fileKind?: string
+}
+
+export interface ExtractedData {
+  upload: {
+    id: string
+    originalName: string
+    status: string
+    totalRecords: number
+    recordsProcessed: number
+    headers: string[]
+    sheetName?: string
+  }
+  data: any[]
+  pagination: {
+    page: number
+    limit: number
+    totalRows: number
+    totalPages: number
+    hasMore: boolean
+  }
 }
 
 export const uploadApi = {
@@ -52,5 +76,12 @@ export const uploadApi = {
 
   async deleteUpload(uploadId: string): Promise<void> {
     await axios.delete(`${API_URL}/api/v1/upload/${uploadId}`)
+  },
+
+  async getUploadData(uploadId: string, page: number = 1, limit: number = 100): Promise<ExtractedData> {
+    const response = await axios.get(`${API_URL}/api/v1/upload/${uploadId}/data`, {
+      params: { page, limit }
+    })
+    return response.data
   }
 }

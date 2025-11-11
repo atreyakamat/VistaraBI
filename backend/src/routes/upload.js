@@ -6,7 +6,8 @@ import {
   uploadFile, 
   getUploadStatus, 
   getAllUploads,
-  deleteUpload 
+  deleteUpload,
+  getUploadData 
 } from '../controllers/upload.controller.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -62,6 +63,7 @@ const upload = multer({
 // Routes
 router.post('/', upload.single('file'), uploadFile)
 router.get('/:id/status', getUploadStatus)
+router.get('/:id/data', getUploadData)
 router.get('/', getAllUploads)
 router.delete('/:id', deleteUpload)
 

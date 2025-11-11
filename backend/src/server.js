@@ -6,6 +6,7 @@ import { PrismaClient } from '@prisma/client'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
+import { redisConnection } from './jobs/queue.js'
 
 // Import routes
 import healthRoutes from './routes/health.js'
@@ -21,6 +22,7 @@ dotenv.config()
 // Initialize Express app
 const app = express()
 const PORT = process.env.PORT || 5000
+const shouldStartServer = !process.env.VITEST_WORKER_ID
 
 // Initialize Prisma
 export const prisma = new PrismaClient()
@@ -69,17 +71,35 @@ app.use((err, req, res, next) => {
   })
 })
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 VistaraBI Backend running on port ${PORT}`)
-  console.log(`📊 Environment: ${process.env.NODE_ENV}`)
-  console.log(`🔗 API available at: http://localhost:${PORT}`)
-  console.log(`📁 Upload directory: ${uploadsDir}`)
-})
+// Start server unless running inside Vitest
+if (shouldStartServer) {
+  app.listen(PORT, () => {
+    console.log(`🚀 VistaraBI Backend running on port ${PORT}`)
+    console.log(`📊 Environment: ${process.env.NODE_ENV}`)
+    console.log(`🔗 API available at: http://localhost:${PORT}`)
+    console.log(`📁 Upload directory: ${uploadsDir}`)
+  })
+}
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+async function shutdown() {
   console.log('\n⏳ Shutting down gracefully...')
-  await prisma.$disconnect()
+  try {
+    await prisma.$disconnect()
+  } catch (error) {
+    console.error('Error disconnecting Prisma:', error)
+  }
+
+  if (redisConnection) {
+    try {
+      await redisConnection.quit()
+    } catch (error) {
+      console.error('Error closing Redis connection:', error)
+    }
+  }
+
   process.exit(0)
-})
+}
+
+process.on('SIGINT', shutdown)
+process.on('SIGTERM', shutdown)

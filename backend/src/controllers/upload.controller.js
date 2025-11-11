@@ -1,6 +1,29 @@
 import { prisma } from '../server.js'
 import { uploadQueue } from '../jobs/queue.js'
+import { processFile, resolveFileKind } from '../services/fileProcessor.js'
+import { getExtractedData } from '../services/excel.service.js'
 import fs from 'fs'
+import path from 'path'
+
+function formatUpload(upload) {
+  return {
+    id: upload.id,
+    fileName: upload.fileName,
+    originalName: upload.originalName,
+    fileType: upload.fileType,
+    fileSize: upload.fileSize.toString(),
+    filePath: upload.filePath,
+    status: upload.status,
+    recordsProcessed: upload.recordsProcessed,
+    totalRecords: upload.totalRecords,
+    tableName: upload.tableName,
+    errorMessage: upload.errorMessage,
+    metadata: upload.metadata,
+    createdAt: upload.createdAt,
+    updatedAt: upload.updatedAt,
+    completedAt: upload.completedAt
+  }
+}
 
 // Upload a file
 export const uploadFile = async (req, res) => {
@@ -10,6 +33,19 @@ export const uploadFile = async (req, res) => {
     }
 
     const { originalname, filename, mimetype, size, path: filePath } = req.file
+
+    const detectedKind = resolveFileKind(originalname, mimetype)
+
+    if (!detectedKind) {
+      if (filePath && fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+      }
+
+      return res.status(415).json({
+        error: 'Unsupported file type',
+        message: `Unsupported file format for ${originalname || path.basename(filePath)}`
+      })
+    }
 
     // Create upload record in database
     const upload = await prisma.upload.create({
@@ -23,21 +59,36 @@ export const uploadFile = async (req, res) => {
       }
     })
 
-    // Add job to queue for processing
-    await uploadQueue.add('process-upload', {
-      uploadId: upload.id,
-      filePath: filePath,
-      fileName: filename,
-      fileType: mimetype
-    })
+    let jobId = null
 
-    // Return upload ID immediately
+    if (uploadQueue) {
+      const job = await uploadQueue.add('process-upload', {
+        uploadId: upload.id,
+        filePath,
+        originalName: originalname,
+        mimeType: mimetype
+      })
+      jobId = job.id
+    } else {
+      ;(async () => {
+        try {
+          await processFile(upload.id, filePath, originalname, mimetype)
+        } catch (error) {
+          console.error('Background processing failed:', error)
+        }
+      })()
+    }
+
+    const uploadResponse = formatUpload(upload)
+
     res.status(202).json({
-      message: 'File uploaded successfully and queued for processing',
-      uploadId: upload.id,
-      fileName: originalname,
-      fileSize: size,
-      status: 'queued'
+      ...uploadResponse,
+      message: 'File uploaded successfully and is being processed',
+      jobId,
+      fileKind: detectedKind,
+      note: uploadQueue
+        ? 'Job queued for processing. Check status endpoint for updates.'
+        : 'Processing without queue. Check status endpoint for updates.'
     })
   } catch (error) {
     console.error('Upload error:', error)
@@ -119,7 +170,7 @@ export const deleteUpload = async (req, res) => {
       fs.unlinkSync(upload.filePath)
     }
 
-    // Delete database record
+    // Delete database record (will cascade delete data_rows)
     await prisma.upload.delete({
       where: { id }
     })
@@ -129,6 +180,25 @@ export const deleteUpload = async (req, res) => {
     console.error('Delete upload error:', error)
     res.status(500).json({ 
       error: 'Failed to delete upload',
+      message: error.message 
+    })
+  }
+}
+
+// Get extracted data from upload
+export const getUploadData = async (req, res) => {
+  try {
+    const { id } = req.params
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 100
+
+    const result = await getExtractedData(id, page, limit)
+
+    res.json(result)
+  } catch (error) {
+    console.error('Get upload data error:', error)
+    res.status(500).json({ 
+      error: 'Failed to get upload data',
       message: error.message 
     })
   }
