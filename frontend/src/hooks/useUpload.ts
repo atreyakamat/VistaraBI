@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, createContext, useContext, ReactNode, createElement } from 'react'
 import { uploadApi, Upload } from '../services/uploadApi'
 
 interface FileWithProgress {
@@ -10,7 +10,19 @@ interface FileWithProgress {
   error?: string
 }
 
-export function useUpload() {
+interface UploadContextValue {
+  files: FileWithProgress[]
+  addFiles: (newFiles: File[]) => void
+  removeFile: (fileId: string) => void
+  uploadFile: (fileId: string) => Promise<void>
+  uploadAll: () => Promise<void>
+  retryUpload: (fileId: string) => void
+  clearAll: () => void
+}
+
+const UploadContext = createContext<UploadContextValue | null>(null)
+
+function useProvideUpload(): UploadContextValue {
   const [files, setFiles] = useState<FileWithProgress[]>([])
 
   const addFiles = useCallback((newFiles: File[]) => {
@@ -141,12 +153,31 @@ export function useUpload() {
     ))
   }, [])
 
+  const clearAll = useCallback(() => {
+    setFiles([])
+  }, [])
+
   return {
     files,
     addFiles,
     removeFile,
     uploadFile,
     uploadAll,
-    retryUpload
+    retryUpload,
+    clearAll
   }
+}
+
+export function UploadProvider({ children }: { children: ReactNode }) {
+  const value = useProvideUpload()
+
+  return createElement(UploadContext.Provider, { value }, children)
+}
+
+export function useUpload() {
+  const context = useContext(UploadContext)
+  if (!context) {
+    throw new Error('useUpload must be used within an UploadProvider')
+  }
+  return context
 }

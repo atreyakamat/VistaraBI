@@ -12,12 +12,23 @@ interface FileWithProgress {
 }
 
 export default function UploadPage() {
-  const { files, addFiles, removeFile, uploadAll, retryUpload } = useUpload()
+  const { files, addFiles, removeFile, uploadAll, retryUpload, clearAll } = useUpload()
 
   const pendingCount = (files as FileWithProgress[]).filter((f: FileWithProgress) => f.uploadStatus === 'pending').length
   const uploadingCount = (files as FileWithProgress[]).filter((f: FileWithProgress) => f.uploadStatus === 'uploading' || f.uploadStatus === 'polling').length
   const completedCount = (files as FileWithProgress[]).filter((f: FileWithProgress) => f.uploadStatus === 'completed').length
   const failedCount = (files as FileWithProgress[]).filter((f: FileWithProgress) => f.uploadStatus === 'failed').length
+
+  const handleConfirmClear = () => {
+    if (uploadingCount > 0) {
+      return
+    }
+
+    const shouldClear = window.confirm('Clear uploaded file history from this session?')
+    if (shouldClear) {
+      clearAll()
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,9 +103,20 @@ export default function UploadPage() {
           {/* Right Column - File List */}
           <div>
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Files ({files.length})
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Files ({files.length})
+                </h2>
+                {files.length > 0 && (
+                  <button
+                    onClick={handleConfirmClear}
+                    disabled={uploadingCount > 0}
+                    className={`text-sm font-medium ${uploadingCount > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-700'}`}
+                  >
+                    Confirm & Clear
+                  </button>
+                )}
+              </div>
               
               {files.length === 0 ? (
                 <div className="text-center py-12">
