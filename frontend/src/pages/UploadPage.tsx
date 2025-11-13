@@ -1,4 +1,5 @@
 import { useUpload } from '../hooks/useUpload'
+import { useNavigate } from 'react-router-dom'
 import DragDropZone from '../components/DragDropZone'
 import FileListItem from '../components/FileListItem'
 
@@ -13,6 +14,7 @@ interface FileWithProgress {
 
 export default function UploadPage() {
   const { files, addFiles, removeFile, uploadAll, retryUpload, clearAll } = useUpload()
+  const navigate = useNavigate()
 
   const pendingCount = (files as FileWithProgress[]).filter((f: FileWithProgress) => f.uploadStatus === 'pending').length
   const uploadingCount = (files as FileWithProgress[]).filter((f: FileWithProgress) => f.uploadStatus === 'uploading' || f.uploadStatus === 'polling').length
@@ -27,6 +29,23 @@ export default function UploadPage() {
     const shouldClear = window.confirm('Clear uploaded file history from this session?')
     if (shouldClear) {
       clearAll()
+    }
+  }
+
+  const handleProceedToCleaning = () => {
+    const completedFiles = (files as FileWithProgress[]).filter((f: FileWithProgress) => f.uploadStatus === 'completed')
+    
+    if (completedFiles.length === 0) {
+      return
+    }
+
+    // If single file, go directly to cleaning
+    if (completedFiles.length === 1) {
+      navigate(`/clean/${completedFiles[0].uploadData.id}`)
+    } else {
+      // If multiple files, go to batch cleaning page
+      const uploadIds = completedFiles.map(f => f.uploadData.id).join(',')
+      navigate(`/clean/batch?uploads=${uploadIds}`)
     }
   }
 
@@ -107,15 +126,30 @@ export default function UploadPage() {
                 <h2 className="text-lg font-semibold text-gray-900">
                   Files ({files.length})
                 </h2>
-                {files.length > 0 && (
-                  <button
-                    onClick={handleConfirmClear}
-                    disabled={uploadingCount > 0}
-                    className={`text-sm font-medium ${uploadingCount > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-700'}`}
-                  >
-                    Confirm & Clear
-                  </button>
-                )}
+                <div className="flex gap-2">
+                  {completedCount > 0 && (
+                    <button
+                      onClick={handleProceedToCleaning}
+                      disabled={uploadingCount > 0}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        uploadingCount > 0
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-green-600 text-white hover:bg-green-700'
+                      }`}
+                    >
+                      🧹 Proceed to Cleaning ({completedCount})
+                    </button>
+                  )}
+                  {files.length > 0 && (
+                    <button
+                      onClick={handleConfirmClear}
+                      disabled={uploadingCount > 0}
+                      className={`text-sm font-medium ${uploadingCount > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-700'}`}
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
               </div>
               
               {files.length === 0 ? (

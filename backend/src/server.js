@@ -11,6 +11,7 @@ import { redisConnection } from './jobs/queue.js'
 // Import routes
 import healthRoutes from './routes/health.js'
 import uploadRoutes from './routes/upload.js'
+import cleaningRoutes from './routes/cleaning.routes.js'
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -45,6 +46,7 @@ app.use(morgan('dev'))
 // Routes
 app.use('/api/health', healthRoutes)
 app.use('/api/v1/upload', uploadRoutes)
+app.use('/api/v1/clean', cleaningRoutes)
 
 // Root endpoint
 app.get('/', (req, res) => {

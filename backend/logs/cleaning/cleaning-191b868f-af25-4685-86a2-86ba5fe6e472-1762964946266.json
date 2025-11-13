@@ -1,0 +1,90 @@
+{
+  "timestamp": "2025-11-12T16:29:06.265Z",
+  "jobId": "191b868f-af25-4685-86a2-86ba5fe6e472",
+  "uploadId": "2e260ff0-7fc7-4341-976f-8ccc5a327226",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 2000,
+    "columns": [
+      "mrr",
+      "email",
+      "phone",
+      "status",
+      "revenue",
+      "order_id",
+      "order_date",
+      "units_sold",
+      "customer_name",
+      "payment_method",
+      "discount_amount",
+      "product_category"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 1995,
+    "columns": [
+      "mrr",
+      "email",
+      "phone",
+      "status",
+      "revenue",
+      "order_id",
+      "order_date",
+      "units_sold",
+      "customer_name",
+      "payment_method",
+      "discount_amount",
+      "product_category",
+      "_outlier"
+    ]
+  },
+  "config": {
+    "imputation": {
+      "mrr": "median",
+      "email": "mode",
+      "phone": "mode",
+      "revenue": "median",
+      "order_date": "median",
+      "discount_amount": "mode"
+    },
+    "outliers": {
+      "enabled": true,
+      "columns": [],
+      "threshold": 1.5,
+      "remove": false
+    },
+    "deduplication": {
+      "enabled": true,
+      "keyColumns": []
+    },
+    "standardization": {
+      "mrr": {
+        "type": "currency",
+        "format": "NUMBER"
+      },
+      "email": {
+        "type": "email",
+        "format": "NUMBER"
+      },
+      "revenue": {
+        "type": "currency",
+        "format": "NUMBER"
+      },
+      "order_id": {
+        "type": "date",
+        "format": "ISO8601"
+      },
+      "order_date": {
+        "type": "date",
+        "format": "ISO8601"
+      },
+      "discount_amount": {
+        "type": "date",
+        "format": "ISO8601"
+      }
+    }
+  },
+  "duration": 525,
+  "status": "success",
+  "error": null
+}

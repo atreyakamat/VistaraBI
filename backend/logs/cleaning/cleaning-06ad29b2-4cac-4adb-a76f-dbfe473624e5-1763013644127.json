@@ -1,0 +1,34 @@
+{
+  "timestamp": "2025-11-13T06:00:44.110Z",
+  "jobId": "06ad29b2-4cac-4adb-a76f-dbfe473624e5",
+  "uploadId": "fb77f3d5-5af7-4d0f-a9e8-f8e765ddcf42",
+  "operation": "imputation",
+  "beforeStats": {
+    "totalRows": 2000
+  },
+  "afterStats": {
+    "totalRows": 2000,
+    "totalMissing": 532,
+    "byColumn": {
+      "email": {
+        "strategy": "mode",
+        "missingBefore": 152,
+        "missingAfter": 0,
+        "fillValue": "SARAH@ACME.COM"
+      },
+      "phone": {
+        "strategy": "mode",
+        "missingBefore": 190,
+        "missingAfter": 0,
+        "fillValue": "45000"
+      }
+    }
+  },
+  "config": {
+    "email": "mode",
+    "phone": "mode"
+  },
+  "duration": 23,
+  "status": "success",
+  "error": null
+}

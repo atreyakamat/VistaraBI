@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import UploadPage from './pages/UploadPage'
 import DataViewPage from './pages/DataViewPage'
+import CleaningConfigPage from './pages/CleaningConfigPage'
+import CleaningReportPage from './pages/CleaningReportPage'
 import { UploadProvider } from './hooks/useUpload'
 
 function App() {
@@ -36,6 +38,8 @@ function App() {
             <Route path="/" element={<UploadPage />} />
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/data/:uploadId" element={<DataViewPage />} />
+            <Route path="/clean/:uploadId" element={<CleaningConfigPage />} />
+            <Route path="/cleaning/:jobId/report" element={<CleaningReportPage />} />
           </Routes>
         </div>
       </UploadProvider>

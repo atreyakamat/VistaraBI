@@ -1,0 +1,62 @@
+{
+  "timestamp": "2025-11-12T16:29:05.850Z",
+  "jobId": "191b868f-af25-4685-86a2-86ba5fe6e472",
+  "uploadId": "2e260ff0-7fc7-4341-976f-8ccc5a327226",
+  "operation": "imputation",
+  "beforeStats": {
+    "totalRows": 2000
+  },
+  "afterStats": {
+    "totalRows": 2000,
+    "totalMissing": 0,
+    "byColumn": {
+      "mrr": {
+        "strategy": "median",
+        "missingBefore": 151,
+        "missingAfter": 0,
+        "fillValue": 610.58
+      },
+      "email": {
+        "strategy": "mode",
+        "missingBefore": 152,
+        "missingAfter": 0,
+        "fillValue": "SARAH@ACME.COM"
+      },
+      "phone": {
+        "strategy": "mode",
+        "missingBefore": 190,
+        "missingAfter": 0,
+        "fillValue": "45000"
+      },
+      "revenue": {
+        "strategy": "median",
+        "missingBefore": 33,
+        "missingAfter": 0,
+        "fillValue": 835.18
+      },
+      "order_date": {
+        "strategy": "median",
+        "missingBefore": 108,
+        "missingAfter": 0,
+        "fillValue": 2024
+      },
+      "discount_amount": {
+        "strategy": "mode",
+        "missingBefore": 240,
+        "missingAfter": 0,
+        "fillValue": "221"
+      }
+    }
+  },
+  "config": {
+    "mrr": "median",
+    "email": "mode",
+    "phone": "mode",
+    "revenue": "median",
+    "order_date": "median",
+    "discount_amount": "mode"
+  },
+  "duration": 15,
+  "status": "success",
+  "error": null
+}

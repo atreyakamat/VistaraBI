@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-11-12T17:38:41.351Z",
+  "jobId": "ec901478-f360-4140-a32d-3c78e6b24041",
+  "uploadId": "540677b3-4b0f-497c-b332-54fc2a1da956",
+  "operation": "outlier_detection",
+  "beforeStats": {
+    "totalRows": 2000
+  },
+  "afterStats": {
+    "totalRows": 2000,
+    "outlierCount": 349,
+    "removed": 0
+  },
+  "config": {
+    "enabled": true,
+    "columns": [
+      "mrr",
+      "revenue",
+      "units_sold"
+    ],
+    "threshold": 1.5,
+    "remove": false
+  },
+  "duration": 27,
+  "status": "success",
+  "error": null
+}

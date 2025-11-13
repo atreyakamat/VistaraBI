@@ -1,0 +1,57 @@
+{
+  "timestamp": "2025-11-12T16:29:32.798Z",
+  "jobId": "dd4ef21d-016e-4516-90d4-b614b0a31040",
+  "uploadId": "1fc81b03-c54b-438d-b103-380cd323a692",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 2000,
+    "columns": [
+      "mrr",
+      "email",
+      "phone",
+      "status",
+      "revenue",
+      "order_id",
+      "order_date",
+      "units_sold",
+      "customer_name",
+      "payment_method",
+      "discount_amount",
+      "product_category"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 1997,
+    "columns": [
+      "mrr",
+      "email",
+      "phone",
+      "status",
+      "revenue",
+      "order_id",
+      "order_date",
+      "units_sold",
+      "customer_name",
+      "payment_method",
+      "discount_amount",
+      "product_category",
+      "_outlier"
+    ]
+  },
+  "config": {
+    "imputation": {},
+    "outliers": {
+      "enabled": true,
+      "threshold": 1.5,
+      "remove": false
+    },
+    "deduplication": {
+      "enabled": true,
+      "keyColumns": []
+    },
+    "standardization": {}
+  },
+  "duration": 241,
+  "status": "success",
+  "error": null
+}

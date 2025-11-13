@@ -1,0 +1,79 @@
+{
+  "timestamp": "2025-11-12T16:29:06.080Z",
+  "jobId": "191b868f-af25-4685-86a2-86ba5fe6e472",
+  "uploadId": "2e260ff0-7fc7-4341-976f-8ccc5a327226",
+  "operation": "standardization",
+  "beforeStats": {
+    "totalRows": 1995
+  },
+  "afterStats": {
+    "totalRows": 1995,
+    "byColumn": {
+      "mrr": {
+        "type": "currency",
+        "format": "NUMBER",
+        "standardizedCount": 1845,
+        "errorCount": 0
+      },
+      "email": {
+        "type": "email",
+        "format": "NUMBER",
+        "standardizedCount": 518,
+        "errorCount": 220
+      },
+      "revenue": {
+        "type": "currency",
+        "format": "NUMBER",
+        "standardizedCount": 1962,
+        "errorCount": 0
+      },
+      "order_id": {
+        "type": "date",
+        "format": "ISO8601",
+        "standardizedCount": 1976,
+        "errorCount": 19
+      },
+      "order_date": {
+        "type": "date",
+        "format": "ISO8601",
+        "standardizedCount": 693,
+        "errorCount": 0
+      },
+      "discount_amount": {
+        "type": "date",
+        "format": "ISO8601",
+        "standardizedCount": 1754,
+        "errorCount": 241
+      }
+    }
+  },
+  "config": {
+    "mrr": {
+      "type": "currency",
+      "format": "NUMBER"
+    },
+    "email": {
+      "type": "email",
+      "format": "NUMBER"
+    },
+    "revenue": {
+      "type": "currency",
+      "format": "NUMBER"
+    },
+    "order_id": {
+      "type": "date",
+      "format": "ISO8601"
+    },
+    "order_date": {
+      "type": "date",
+      "format": "ISO8601"
+    },
+    "discount_amount": {
+      "type": "date",
+      "format": "ISO8601"
+    }
+  },
+  "duration": 36,
+  "status": "success",
+  "error": null
+}

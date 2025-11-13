@@ -8,22 +8,23 @@ datasource db {
 }
 
 model Upload {
-  id                String      @id @default(uuid())
+  id                String        @id @default(uuid())
   fileName          String
   originalName      String
   fileType          String
   fileSize          BigInt
   filePath          String
-  status            String      @default("queued") // queued, processing, completed, failed
-  recordsProcessed  Int         @default(0)
-  totalRecords      Int         @default(0)
+  status            String        @default("queued") // queued, processing, completed, failed
+  recordsProcessed  Int           @default(0)
+  totalRecords      Int           @default(0)
   tableName         String?
-  errorMessage      String?     @db.Text
+  errorMessage      String?       @db.Text
   metadata          Json?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
   completedAt       DateTime?
   dataRows          DataRow[]
+  cleaningJobs      CleaningJob[]
 
   @@map("uploads")
 }
@@ -38,4 +39,52 @@ model DataRow {
 
   @@index([uploadId])
   @@map("data_rows")
+}
+
+model CleaningJob {
+  id                String        @id @default(uuid())
+  uploadId          String
+  upload            Upload        @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  status            String        @default("running") // running, completed, failed
+  config            Json          // Cleaning configuration
+  stats             Json?         // Pipeline statistics
+  cleanedTableName  String?       // Reference to cleaned data
+  error             String?       @db.Text
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  completedAt       DateTime?
+  cleaningLogs      CleaningLog[]
+
+  @@index([uploadId])
+  @@map("cleaning_jobs")
+}
+
+model CleaningLog {
+  id          String       @id @default(uuid())
+  jobId       String
+  job         CleaningJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  uploadId    String
+  operation   String       // imputation, outlier_detection, deduplication, standardization
+  beforeStats Json
+  afterStats  Json
+  config      Json
+  duration    Int          // Duration in milliseconds
+  status      String       // success, error
+  error       String?      @db.Text
+  createdAt   DateTime     @default(now())
+
+  @@index([jobId])
+  @@index([uploadId])
+  @@map("cleaning_logs")
+}
+
+model CleanedData {
+  id        String   @id @default(uuid())
+  tableName String   @unique
+  data      Json     // Array of cleaned rows
+  rowCount  Int
+  columns   Json     // Array of column names
+  createdAt DateTime @default(now())
+
+  @@map("cleaned_data")
 }

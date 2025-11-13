@@ -1,0 +1,49 @@
+{
+  "timestamp": "2025-11-12T17:38:41.442Z",
+  "jobId": "ec901478-f360-4140-a32d-3c78e6b24041",
+  "uploadId": "540677b3-4b0f-497c-b332-54fc2a1da956",
+  "operation": "standardization",
+  "beforeStats": {
+    "totalRows": 1995
+  },
+  "afterStats": {
+    "totalRows": 1995,
+    "byColumn": {
+      "email": {
+        "type": "email",
+        "format": "lowercase",
+        "standardizedCount": 518,
+        "errorCount": 220
+      },
+      "phone": {
+        "type": "phone",
+        "format": "E164",
+        "standardizedCount": 1319,
+        "errorCount": 676
+      },
+      "order_date": {
+        "type": "date",
+        "format": "ISO8601",
+        "standardizedCount": 619,
+        "errorCount": 0
+      }
+    }
+  },
+  "config": {
+    "email": {
+      "type": "email",
+      "format": "lowercase"
+    },
+    "phone": {
+      "type": "phone",
+      "format": "E164"
+    },
+    "order_date": {
+      "type": "date",
+      "format": "ISO8601"
+    }
+  },
+  "duration": 47,
+  "status": "success",
+  "error": null
+}

@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-11-12T11:05:57.502Z",
+  "jobId": "68813503-0c34-4560-ba47-65c6d3883161",
+  "uploadId": "be8125a3-c3cb-436d-acfc-dbb1f29a13b6",
+  "operation": "outlier_detection",
+  "beforeStats": {
+    "totalRows": 500
+  },
+  "afterStats": {
+    "totalRows": 500,
+    "outlierCount": 25,
+    "removed": 0
+  },
+  "config": {
+    "enabled": true,
+    "threshold": 1.5,
+    "remove": false
+  },
+  "duration": 3,
+  "status": "success",
+  "error": null
+}

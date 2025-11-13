@@ -2,11 +2,19 @@ import { Queue } from 'bullmq'
 import Redis from 'ioredis'
 
 // Redis queue - optional for development
-// Set REDIS_ENABLED=false in .env to disable queue functionality
+// Set REDIS_ENABLED=true in .env to enable queue functionality
 let uploadQueue = null
 let redisConnection = null
 
-const REDIS_ENABLED = process.env.REDIS_ENABLED !== 'false'
+function isRedisEnabled() {
+  const raw = process.env.REDIS_ENABLED
+  if (!raw) {
+    return false
+  }
+  return raw.toLowerCase() === 'true'
+}
+
+const REDIS_ENABLED = isRedisEnabled()
 
 if (REDIS_ENABLED) {
   try {
@@ -39,7 +47,7 @@ if (REDIS_ENABLED) {
     }
   }
 } else {
-  console.log('ℹ️  Redis disabled via REDIS_ENABLED=false')
+  console.log('ℹ️  Redis disabled (set REDIS_ENABLED=true to enable queue processing)')
 }
 
 export { uploadQueue, redisConnection }

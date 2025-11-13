@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-11-12T16:29:32.655Z",
+  "jobId": "dd4ef21d-016e-4516-90d4-b614b0a31040",
+  "uploadId": "1fc81b03-c54b-438d-b103-380cd323a692",
+  "operation": "deduplication",
+  "beforeStats": {
+    "totalRows": 2000
+  },
+  "afterStats": {
+    "totalRows": 1997,
+    "originalCount": 2000,
+    "duplicateCount": 3,
+    "uniqueCount": 1997,
+    "duplicateIndices": [
+      452,
+      501,
+      803
+    ]
+  },
+  "config": {
+    "enabled": true,
+    "keyColumns": []
+  },
+  "duration": 23,
+  "status": "success",
+  "error": null
+}

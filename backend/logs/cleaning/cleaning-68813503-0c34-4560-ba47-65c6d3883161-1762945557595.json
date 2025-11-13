@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-11-12T11:05:57.595Z",
+  "jobId": "68813503-0c34-4560-ba47-65c6d3883161",
+  "uploadId": "be8125a3-c3cb-436d-acfc-dbb1f29a13b6",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 500,
+    "columns": [
+      "email",
+      "phone",
+      "status",
+      "revenue",
+      "order_id",
+      "order_date",
+      "units_sold",
+      "customer_name",
+      "discount_amount",
+      "product_category"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 497,
+    "columns": [
+      "email",
+      "phone",
+      "status",
+      "revenue",
+      "order_id",
+      "order_date",
+      "units_sold",
+      "customer_name",
+      "discount_amount",
+      "product_category",
+      "_outlier"
+    ]
+  },
+  "config": {
+    "imputation": {},
+    "outliers": {
+      "enabled": true,
+      "threshold": 1.5,
+      "remove": false
+    },
+    "deduplication": {
+      "enabled": true,
+      "keyColumns": []
+    },
+    "standardization": {}
+  },
+  "duration": 156,
+  "status": "success",
+  "error": null
+}

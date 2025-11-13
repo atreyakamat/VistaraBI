@@ -1,0 +1,342 @@
+{
+  "timestamp": "2025-11-12T17:37:58.454Z",
+  "jobId": "787821c5-5567-49b0-9e9b-f4843e38be13",
+  "uploadId": "088d8c00-6ad3-4c2f-b512-46f838aa82e3",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 2000,
+    "columns": [
+      "mrr",
+      "email",
+      "phone",
+      "status",
+      "revenue",
+      "order_id",
+      "order_date",
+      "units_sold",
+      "customer_name",
+      "payment_method",
+      "discount_amount",
+      "product_category"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 1995,
+    "columns": [
+      "mrr",
+      "email",
+      "phone",
+      "status",
+      "revenue",
+      "order_id",
+      "order_date",
+      "units_sold",
+      "customer_name",
+      "payment_method",
+      "discount_amount",
+      "product_category",
+      "_outlier"
+    ]
+  },
+  "config": {
+    "imputation": {
+      "mrr": "median",
+      "email": "mode",
+      "phone": "mode",
+      "revenue": "median",
+      "order_date": "forward-fill",
+      "discount_amount": "mode"
+    },
+    "outliers": {
+      "enabled": true,
+      "columns": [
+        "mrr",
+        "revenue",
+        "units_sold"
+      ],
+      "threshold": 1.5,
+      "remove": false
+    },
+    "deduplication": {
+      "enabled": true,
+      "keyColumns": []
+    },
+    "standardization": {
+      "email": {
+        "type": "email",
+        "format": "lowercase"
+      },
+      "phone": {
+        "type": "phone",
+        "format": "E164"
+      },
+      "order_date": {
+        "type": "date",
+        "format": "ISO8601"
+      }
+    },
+    "detectionLog": [
+      {
+        "column": "mrr",
+        "dataType": "numeric",
+        "missingCount": 151,
+        "missingRatio": 0.0755,
+        "nonNullCount": 1849,
+        "uniqueValues": 1831,
+        "cardinalityRatio": 0.9903,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          "242.69",
+          "849.7",
+          "511.97",
+          "405.16",
+          "833.42"
+        ]
+      },
+      {
+        "column": "email",
+        "dataType": "email",
+        "missingCount": 152,
+        "missingRatio": 0.076,
+        "nonNullCount": 1848,
+        "uniqueValues": 15,
+        "cardinalityRatio": 0.0081,
+        "recommendedImputation": "mode",
+        "standardizationType": "email",
+        "recommendedFormat": "lowercase",
+        "hasVariance": false,
+        "reasoning": "88% values match email patterns. Will standardize to lowercase",
+        "sampleValues": [
+          "ROBERT@EMAIL.COM",
+          "SARAH@ACME.COM",
+          "robert@email.com",
+          "michael@company.org",
+          "john@acme.com"
+        ]
+      },
+      {
+        "column": "phone",
+        "dataType": "phone",
+        "missingCount": 190,
+        "missingRatio": 0.095,
+        "nonNullCount": 1810,
+        "uniqueValues": 10,
+        "cardinalityRatio": 0.0055,
+        "recommendedImputation": "mode",
+        "standardizationType": "phone",
+        "recommendedFormat": "E164",
+        "hasVariance": false,
+        "reasoning": "73% values match phone patterns. Will standardize to +CC-XXXXX-XXXXX format",
+        "sampleValues": [
+          "+91-98765-43210",
+          "9876543210",
+          "(098) 765-43210",
+          "(555) 123-4567",
+          "91-9876543210"
+        ]
+      },
+      {
+        "column": "status",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 2000,
+        "uniqueValues": 12,
+        "cardinalityRatio": 0.006,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 12 unique values in 2000 rows (1% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "Processing",
+          "SHIPPED",
+          "completed",
+          "Completed",
+          "cancelled"
+        ]
+      },
+      {
+        "column": "revenue",
+        "dataType": "numeric",
+        "missingCount": 33,
+        "missingRatio": 0.0165,
+        "nonNullCount": 1967,
+        "uniqueValues": 1956,
+        "cardinalityRatio": 0.9944,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          "782.77",
+          "946.85",
+          "131.11",
+          "914.79",
+          "50.83"
+        ]
+      },
+      {
+        "column": "order_id",
+        "dataType": "text_id",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 2000,
+        "uniqueValues": 1995,
+        "cardinalityRatio": 0.9975,
+        "recommendedImputation": null,
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% unique values suggests ID/unique text. Will NOT impute (cannot infer missing IDs)",
+        "sampleValues": [
+          "ORD-000001",
+          "ORD-000002",
+          "ORD-000003",
+          "ORD-000004",
+          "ORD-000005"
+        ]
+      },
+      {
+        "column": "order_date",
+        "dataType": "date",
+        "missingCount": 108,
+        "missingRatio": 0.054,
+        "nonNullCount": 1892,
+        "uniqueValues": 655,
+        "cardinalityRatio": 0.3462,
+        "recommendedImputation": "forward-fill",
+        "standardizationType": "date",
+        "recommendedFormat": "ISO8601",
+        "hasVariance": false,
+        "reasoning": "100% values match date patterns. Using FORWARD-FILL to maintain temporal sequence",
+        "sampleValues": [
+          "10/06/2024",
+          "2024-03-04",
+          "2024-11-23",
+          "2024-01-25",
+          "2024-07-10"
+        ]
+      },
+      {
+        "column": "units_sold",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 2000,
+        "uniqueValues": 20,
+        "cardinalityRatio": 0.01,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          "7",
+          "8",
+          "18",
+          "12",
+          "3"
+        ]
+      },
+      {
+        "column": "customer_name",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 2000,
+        "uniqueValues": 10,
+        "cardinalityRatio": 0.005,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 10 unique values in 2000 rows (1% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "SARAH JONES",
+          "Lisa Johnson",
+          "david lee",
+          "Robert Taylor",
+          "JOHN SMITH"
+        ]
+      },
+      {
+        "column": "payment_method",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 2000,
+        "uniqueValues": 10,
+        "cardinalityRatio": 0.005,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 10 unique values in 2000 rows (1% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "paypal",
+          "DEBIT CARD",
+          "PAYPAL",
+          "bank transfer",
+          "Credit Card"
+        ]
+      },
+      {
+        "column": "discount_amount",
+        "dataType": "categorical",
+        "missingCount": 240,
+        "missingRatio": 0.12,
+        "nonNullCount": 1760,
+        "uniqueValues": 620,
+        "cardinalityRatio": 0.3523,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Mixed data type detected, treating as categorical. Using MODE (most frequent value)",
+        "sampleValues": [
+          "23",
+          "33",
+          "128",
+          "$480",
+          "$120"
+        ]
+      },
+      {
+        "column": "product_category",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 2000,
+        "uniqueValues": 6,
+        "cardinalityRatio": 0.003,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 6 unique values in 2000 rows (0% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "FURNITURE",
+          "Books",
+          "Sports",
+          "Electronics",
+          "clothing"
+        ]
+      },
+      {
+        "column": "ALL_COLUMNS",
+        "dataType": "duplicate_check",
+        "finding": "Found 3 duplicates in 1000 sampled rows",
+        "recommendation": "Enable deduplication"
+      }
+    ]
+  },
+  "duration": 884,
+  "status": "success",
+  "error": null
+}

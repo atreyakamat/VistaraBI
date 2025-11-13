@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { uploadApi, ExtractedData } from '../services/uploadApi'
+import CleaningPanel from '../components/CleaningPanel'
 
 export default function DataViewPage() {
   const { uploadId } = useParams<{ uploadId: string }>()
@@ -156,6 +157,11 @@ export default function DataViewPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Cleaning Panel */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <CleaningPanel uploadId={uploadId!} />
       </div>
 
       {/* Data Table */}
