@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-11-20T03:58:46.634Z",
+  "jobId": "ae871ed7-b06b-47f9-94c0-c39ed207a338",
+  "uploadId": "d6fbac81-9333-40ac-8b06-b82618d9e8e6",
+  "operation": "standardization",
+  "beforeStats": {
+    "totalRows": 11399
+  },
+  "afterStats": {
+    "totalRows": 11399,
+    "byColumn": {
+      "Order_Date": {
+        "type": "date",
+        "format": "ISO8601",
+        "standardizedCount": 5214,
+        "errorCount": 6185
+      }
+    }
+  },
+  "config": {
+    "Order_Date": {
+      "type": "date",
+      "format": "ISO8601"
+    }
+  },
+  "duration": 223,
+  "status": "success",
+  "error": null
+}

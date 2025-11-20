@@ -1,0 +1,196 @@
+{
+  "order_value": [
+    "total_sale",
+    "total_sales",
+    "sale_amount",
+    "sales_amount",
+    "order_amount",
+    "order_total",
+    "transaction_amount",
+    "revenue",
+    "total_revenue",
+    "sales_value",
+    "amount",
+    "total",
+    "sale",
+    "sales",
+    "price",
+    "total_price"
+  ],
+  "quantity": [
+    "qty",
+    "units",
+    "units_sold",
+    "quantity_sold",
+    "items",
+    "item_count",
+    "product_quantity",
+    "num_units",
+    "number_of_units",
+    "count",
+    "amount_sold"
+  ],
+  "order_id": [
+    "order_number",
+    "orderno",
+    "order_no",
+    "transaction_id",
+    "txn_id",
+    "sale_id",
+    "invoice_id",
+    "invoice_number",
+    "receipt_id",
+    "receipt_number",
+    "reference_id",
+    "ref_id"
+  ],
+  "customer_id": [
+    "customer_number",
+    "cust_id",
+    "client_id",
+    "buyer_id",
+    "account_id",
+    "member_id",
+    "user_id",
+    "patron_id",
+    "customer_code",
+    "cust_code"
+  ],
+  "product_cost": [
+    "cost",
+    "cogs",
+    "cost_of_goods",
+    "unit_cost",
+    "wholesale_price",
+    "purchase_price",
+    "product_price",
+    "base_cost",
+    "item_cost"
+  ],
+  "category": [
+    "product_category",
+    "item_category",
+    "type",
+    "product_type",
+    "product_group",
+    "group",
+    "department",
+    "segment",
+    "classification",
+    "class"
+  ],
+  "order_date": [
+    "date",
+    "transaction_date",
+    "sale_date",
+    "purchase_date",
+    "invoice_date",
+    "created_at",
+    "created_date",
+    "timestamp",
+    "order_time",
+    "datetime"
+  ],
+  "inventory": [
+    "stock",
+    "stock_level",
+    "inventory_level",
+    "on_hand",
+    "available_stock",
+    "inventory_quantity",
+    "qty_on_hand",
+    "current_stock"
+  ],
+  "cogs": [
+    "cost_of_goods_sold",
+    "cost_of_sales",
+    "direct_cost",
+    "product_cost",
+    "total_cost"
+  ],
+  "product_id": [
+    "sku",
+    "item_id",
+    "product_code",
+    "item_code",
+    "barcode",
+    "product_number",
+    "item_number"
+  ],
+  "product_name": [
+    "item_name",
+    "product",
+    "item",
+    "description",
+    "product_description",
+    "item_description"
+  ],
+  "store_id": [
+    "store",
+    "location_id",
+    "location",
+    "branch_id",
+    "branch",
+    "outlet_id",
+    "outlet",
+    "shop_id"
+  ],
+  "region": [
+    "territory",
+    "area",
+    "zone",
+    "market",
+    "district",
+    "location_region"
+  ],
+  "payment_method": [
+    "payment_type",
+    "payment_mode",
+    "pay_method",
+    "tender_type",
+    "payment_channel"
+  ],
+  "discount": [
+    "discount_amount",
+    "discount_value",
+    "promo_amount",
+    "promotion_amount",
+    "rebate",
+    "markdown"
+  ],
+  "tax": [
+    "tax_amount",
+    "sales_tax",
+    "vat",
+    "gst",
+    "tax_value"
+  ],
+  "shipping_cost": [
+    "shipping",
+    "delivery_fee",
+    "freight",
+    "shipping_fee",
+    "delivery_cost",
+    "transport_cost"
+  ],
+  "customer_name": [
+    "customer",
+    "buyer_name",
+    "client_name",
+    "purchaser",
+    "buyer"
+  ],
+  "customer_email": [
+    "email",
+    "email_address",
+    "customer_mail",
+    "contact_email"
+  ],
+  "customer_phone": [
+    "phone",
+    "phone_number",
+    "contact_number",
+    "mobile",
+    "telephone"
+  ]
+}

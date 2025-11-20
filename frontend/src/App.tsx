@@ -4,6 +4,8 @@ import UploadPage from './pages/UploadPage'
 import DataViewPage from './pages/DataViewPage'
 import CleaningConfigPage from './pages/CleaningConfigPage'
 import CleaningReportPage from './pages/CleaningReportPage'
+import DomainDetectionPage from './pages/DomainDetectionPage'
+import KpiSelectionPage from './pages/KpiSelectionPage'
 import { UploadProvider } from './hooks/useUpload'
 
 function App() {
@@ -40,6 +42,8 @@ function App() {
             <Route path="/data/:uploadId" element={<DataViewPage />} />
             <Route path="/clean/:uploadId" element={<CleaningConfigPage />} />
             <Route path="/cleaning/:jobId/report" element={<CleaningReportPage />} />
+            <Route path="/domain/:jobId" element={<DomainDetectionPage />} />
+            <Route path="/kpi/:domainJobId" element={<KpiSelectionPage />} />
           </Routes>
         </div>
       </UploadProvider>

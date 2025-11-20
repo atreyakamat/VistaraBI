@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-11-17T04:41:26.102Z",
+  "jobId": "d90bf6f5-a48f-49d8-b126-d9d921d80d91",
+  "uploadId": "9f4afe28-2f96-47b4-b825-3d34cfa27ad1",
+  "operation": "imputation",
+  "beforeStats": {
+    "totalRows": 1000
+  },
+  "afterStats": {
+    "totalRows": 1000,
+    "totalMissing": 0,
+    "byColumn": {
+      "region": {
+        "strategy": "mode",
+        "missingBefore": 105,
+        "missingAfter": 0,
+        "fillValue": "Europe"
+      },
+      "payment_status": {
+        "strategy": "mode",
+        "missingBefore": 88,
+        "missingAfter": 0,
+        "fillValue": "Paid"
+      },
+      "subscription_tier": {
+        "strategy": "mode",
+        "missingBefore": 121,
+        "missingAfter": 0,
+        "fillValue": "Basic"
+      }
+    }
+  },
+  "config": {
+    "region": "mode",
+    "payment_status": "mode",
+    "subscription_tier": "mode"
+  },
+  "duration": 9,
+  "status": "success",
+  "error": null
+}

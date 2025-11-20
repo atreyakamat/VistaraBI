@@ -1,0 +1,184 @@
+{
+  "subscription_amount": [
+    "mrr",
+    "monthly_revenue",
+    "subscription_fee",
+    "subscription_price",
+    "plan_price",
+    "plan_amount",
+    "monthly_fee",
+    "subscription_value",
+    "recurring_revenue",
+    "subscription_cost",
+    "amount",
+    "price",
+    "revenue"
+  ],
+  "account_id": [
+    "customer_id",
+    "client_id",
+    "company_id",
+    "organization_id",
+    "tenant_id",
+    "user_id",
+    "subscriber_id",
+    "account_number",
+    "account_code"
+  ],
+  "subscription_status": [
+    "status",
+    "subscription_state",
+    "account_status",
+    "plan_status",
+    "state",
+    "billing_status",
+    "payment_status",
+    "subscription_type"
+  ],
+  "subscription_id": [
+    "subscription_number",
+    "subscription_code",
+    "plan_id",
+    "contract_id",
+    "membership_id",
+    "sub_id"
+  ],
+  "subscription_start_date": [
+    "start_date",
+    "signup_date",
+    "activation_date",
+    "created_at",
+    "created_date",
+    "join_date",
+    "onboarding_date",
+    "subscription_date"
+  ],
+  "subscription_end_date": [
+    "end_date",
+    "expiry_date",
+    "expiration_date",
+    "cancellation_date",
+    "churn_date",
+    "cancel_date",
+    "termination_date"
+  ],
+  "marketing_spend": [
+    "marketing_cost",
+    "marketing_expense",
+    "ad_spend",
+    "advertising_cost",
+    "marketing_budget",
+    "campaign_cost",
+    "acquisition_cost_marketing"
+  ],
+  "sales_spend": [
+    "sales_cost",
+    "sales_expense",
+    "sales_budget",
+    "selling_expense",
+    "acquisition_cost_sales"
+  ],
+  "user_id": [
+    "userid",
+    "username",
+    "email",
+    "user_email",
+    "login_id",
+    "member_id",
+    "customer_id"
+  ],
+  "activity_date": [
+    "last_active",
+    "last_activity_date",
+    "last_login",
+    "login_date",
+    "activity_timestamp",
+    "event_date",
+    "usage_date"
+  ],
+  "plan_name": [
+    "plan",
+    "subscription_plan",
+    "tier",
+    "plan_tier",
+    "pricing_tier",
+    "package",
+    "product"
+  ],
+  "billing_period": [
+    "billing_cycle",
+    "payment_frequency",
+    "billing_frequency",
+    "subscription_period",
+    "term"
+  ],
+  "trial_end_date": [
+    "trial_expiry",
+    "trial_expiration",
+    "free_trial_end",
+    "trial_expires_at"
+  ],
+  "paid_date": [
+    "payment_date",
+    "invoice_date",
+    "billing_date",
+    "transaction_date",
+    "charge_date"
+  ],
+  "upgrade_date": [
+    "plan_upgrade_date",
+    "tier_change_date",
+    "upsell_date"
+  ],
+  "downgrade_date": [
+    "plan_downgrade_date",
+    "tier_reduction_date"
+  ],
+  "company_name": [
+    "company",
+    "organization",
+    "business_name",
+    "account_name",
+    "client_name",
+    "customer_name"
+  ],
+  "employee_count": [
+    "employees",
+    "company_size",
+    "team_size",
+    "staff_count",
+    "headcount"
+  ],
+  "industry": [
+    "vertical",
+    "sector",
+    "business_type",
+    "company_type"
+  ],
+  "feature_usage": [
+    "usage",
+    "feature_count",
+    "features_used",
+    "activity_count",
+    "engagement_score"
+  ],
+  "login_count": [
+    "logins",
+    "session_count",
+    "visits",
+    "access_count"
+  ],
+  "support_tickets": [
+    "tickets",
+    "support_cases",
+    "issues",
+    "help_requests",
+    "customer_service_tickets"
+  ],
+  "nps_score": [
+    "net_promoter_score",
+    "satisfaction_score",
+    "customer_satisfaction",
+    "csat"
+  ]
+}

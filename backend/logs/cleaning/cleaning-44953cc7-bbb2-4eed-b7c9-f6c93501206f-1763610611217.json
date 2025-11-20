@@ -1,0 +1,30 @@
+{
+  "timestamp": "2025-11-20T03:50:11.217Z",
+  "jobId": "44953cc7-bbb2-4eed-b7c9-f6c93501206f",
+  "uploadId": "a7686f94-3bd2-4fca-ae76-5347adc37dc8",
+  "operation": "outlier_detection",
+  "beforeStats": {
+    "totalRows": 11399
+  },
+  "afterStats": {
+    "totalRows": 11399,
+    "outlierCount": 3238,
+    "removed": 0
+  },
+  "config": {
+    "enabled": true,
+    "columns": [
+      "Delivery_person_Age",
+      "Restaurant_latitude",
+      "Restaurant_longitude",
+      "Delivery_person_Ratings",
+      "Delivery_location_latitude",
+      "Delivery_location_longitude"
+    ],
+    "threshold": 1.5,
+    "remove": false
+  },
+  "duration": 240,
+  "status": "success",
+  "error": null
+}

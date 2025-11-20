@@ -1,0 +1,501 @@
+{
+  "timestamp": "2025-11-20T03:58:49.299Z",
+  "jobId": "ae871ed7-b06b-47f9-94c0-c39ed207a338",
+  "uploadId": "d6fbac81-9333-40ac-8b06-b82618d9e8e6",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 11399,
+    "columns": [
+      "ID",
+      "City",
+      "Name:",
+      "Weather",
+      "Festival",
+      "Order_Date",
+      "Time_Orderd",
+      "Type_of_order",
+      "Type_of_vehicle",
+      "Time_Order_picked",
+      "Vehicle_condition",
+      "Delivery_person_ID",
+      "Delivery_person_Age",
+      "Restaurant_latitude",
+      "multiple_deliveries",
+      "Restaurant_longitude",
+      "Road_traffic_density",
+      "Delivery_person_Ratings",
+      "Delivery_location_latitude",
+      "Delivery_location_longitude"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 11399,
+    "columns": [
+      "ID",
+      "City",
+      "Name:",
+      "Weather",
+      "Festival",
+      "Order_Date",
+      "Time_Orderd",
+      "Type_of_order",
+      "Type_of_vehicle",
+      "Time_Order_picked",
+      "Vehicle_condition",
+      "Delivery_person_ID",
+      "Delivery_person_Age",
+      "Restaurant_latitude",
+      "multiple_deliveries",
+      "Restaurant_longitude",
+      "Road_traffic_density",
+      "Delivery_person_Ratings",
+      "Delivery_location_latitude",
+      "Delivery_location_longitude",
+      "_outlier",
+      "_error_Order_Date"
+    ]
+  },
+  "config": {
+    "imputation": {},
+    "outliers": {
+      "enabled": true,
+      "columns": [
+        "Delivery_person_Age",
+        "Restaurant_latitude",
+        "Restaurant_longitude",
+        "Delivery_person_Ratings",
+        "Delivery_location_latitude",
+        "Delivery_location_longitude"
+      ],
+      "threshold": 1.5,
+      "remove": false
+    },
+    "deduplication": {
+      "enabled": false,
+      "keyColumns": []
+    },
+    "standardization": {
+      "Order_Date": {
+        "type": "date",
+        "format": "ISO8601"
+      }
+    },
+    "detectionLog": [
+      {
+        "column": "ID",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 1,
+        "cardinalityRatio": 0.0001,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          0
+        ]
+      },
+      {
+        "column": "City",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 4,
+        "cardinalityRatio": 0.0004,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          0,
+          2,
+          3,
+          "Semi-2"
+        ]
+      },
+      {
+        "column": "Name:",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 1,
+        "cardinalityRatio": 0.0001,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 1 unique values in 11399 rows (0% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "object"
+        ]
+      },
+      {
+        "column": "Weather",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 7,
+        "cardinalityRatio": 0.0006,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          7,
+          6,
+          3,
+          1,
+          4
+        ]
+      },
+      {
+        "column": "Festival",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 3,
+        "cardinalityRatio": 0.0003,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "99% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          1,
+          2,
+          "NaN"
+        ]
+      },
+      {
+        "column": "Order_Date",
+        "dataType": "date",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 44,
+        "cardinalityRatio": 0.0039,
+        "recommendedImputation": "forward-fill",
+        "standardizationType": "date",
+        "recommendedFormat": "ISO8601",
+        "hasVariance": false,
+        "reasoning": "100% values match date patterns. Using FORWARD-FILL to maintain temporal sequence",
+        "sampleValues": [
+          "30-03-2022",
+          "29-03-2022",
+          "10/3/2022",
+          "2/4/2022",
+          "27-03-2022"
+        ]
+      },
+      {
+        "column": "Time_Orderd",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 177,
+        "cardinalityRatio": 0.0155,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 177 unique values in 11399 rows (2% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "NaN",
+          "20:30",
+          "19:35",
+          "17:15",
+          "18:25"
+        ]
+      },
+      {
+        "column": "Type_of_order",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 4,
+        "cardinalityRatio": 0.0004,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          1,
+          3,
+          2,
+          0
+        ]
+      },
+      {
+        "column": "Type_of_vehicle",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 4,
+        "cardinalityRatio": 0.0004,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          1,
+          2,
+          3,
+          "bicycle"
+        ]
+      },
+      {
+        "column": "Time_Order_picked",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 193,
+        "cardinalityRatio": 0.0169,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 193 unique values in 11399 rows (2% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "15:05",
+          "20:35",
+          "19:45",
+          "17:20",
+          "18:40"
+        ]
+      },
+      {
+        "column": "Vehicle_condition",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 4,
+        "cardinalityRatio": 0.0004,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          3,
+          0,
+          1,
+          2
+        ]
+      },
+      {
+        "column": "Delivery_person_ID",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 1297,
+        "cardinalityRatio": 0.1138,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Mixed data type detected, treating as categorical. Using MODE (most frequent value)",
+        "sampleValues": [
+          "COIMBRES13DEL01",
+          "BANGRES15DEL01",
+          "JAPRES09DEL03",
+          "JAPRES07DEL03",
+          "CHENRES19DEL01"
+        ]
+      },
+      {
+        "column": "Delivery_person_Age",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 23,
+        "cardinalityRatio": 0.002,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "96% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          "NaN",
+          28,
+          23,
+          21,
+          31
+        ]
+      },
+      {
+        "column": "Restaurant_latitude",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 492,
+        "cardinalityRatio": 0.0432,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          11.003669,
+          12.975377,
+          26.911378,
+          26.766536,
+          12.986047
+        ]
+      },
+      {
+        "column": "multiple_deliveries",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 5,
+        "cardinalityRatio": 0.0004,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "98% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          1,
+          0,
+          "NaN",
+          2,
+          3
+        ]
+      },
+      {
+        "column": "Restaurant_longitude",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 434,
+        "cardinalityRatio": 0.0381,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          76.976494,
+          77.696664,
+          75.789034,
+          75.837333,
+          80.218114
+        ]
+      },
+      {
+        "column": "Road_traffic_density",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 5,
+        "cardinalityRatio": 0.0004,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          4,
+          1,
+          3,
+          2,
+          0
+        ]
+      },
+      {
+        "column": "Delivery_person_Ratings",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 29,
+        "cardinalityRatio": 0.0025,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "96% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          "NaN",
+          4.6,
+          4.5,
+          4.8,
+          4.7
+        ]
+      },
+      {
+        "column": "Delivery_location_latitude",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 3572,
+        "cardinalityRatio": 0.3134,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          11.043669,
+          13.085377,
+          27.001378,
+          26.856536,
+          13.096047
+        ]
+      },
+      {
+        "column": "Delivery_location_longitude",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 11399,
+        "uniqueValues": 3572,
+        "cardinalityRatio": 0.3134,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          77.016494,
+          77.806664,
+          75.879034,
+          75.927333,
+          80.328114
+        ]
+      },
+      {
+        "column": "ALL_COLUMNS",
+        "dataType": "duplicate_check",
+        "finding": "Found 0 duplicates in 1000 sampled rows",
+        "recommendation": "No duplicates detected"
+      }
+    ]
+  },
+  "duration": 3912,
+  "status": "success",
+  "error": null
+}

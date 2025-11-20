@@ -42,18 +42,19 @@ model DataRow {
 }
 
 model CleaningJob {
-  id                String        @id @default(uuid())
+  id                String                @id @default(uuid())
   uploadId          String
-  upload            Upload        @relation(fields: [uploadId], references: [id], onDelete: Cascade)
-  status            String        @default("running") // running, completed, failed
-  config            Json          // Cleaning configuration
-  stats             Json?         // Pipeline statistics
-  cleanedTableName  String?       // Reference to cleaned data
-  error             String?       @db.Text
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  upload            Upload                @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  status            String                @default("running") // running, completed, failed
+  config            Json                  // Cleaning configuration
+  stats             Json?                 // Pipeline statistics
+  cleanedTableName  String?               // Reference to cleaned data
+  error             String?               @db.Text
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
   completedAt       DateTime?
   cleaningLogs      CleaningLog[]
+  domainJobs        DomainDetectionJob[]
 
   @@index([uploadId])
   @@map("cleaning_jobs")
@@ -88,3 +89,65 @@ model CleanedData {
 
   @@map("cleaned_data")
 }
+
+model DomainDetectionJob {
+  id              String              @id @default(uuid())
+  cleaningJobId   String
+  cleaningJob     CleaningJob         @relation(fields: [cleaningJobId], references: [id], onDelete: Cascade)
+  detectedDomain  String              // retail, ecommerce, saas, healthcare, manufacturing, logistics, financial, education
+  confidence      Float               // 0-100
+  decision        String              // auto_detect, show_top_3, manual_select, user_selected
+  primaryMatches  Json                // Array of matched primary columns
+  keywordMatches  Json                // Array of matched keywords
+  allScores       Json                // Scores for all domains
+  status          String              @default("pending") // pending, completed, confirmed
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  kpiJobs         KpiExtractionJob[]
+
+  @@index([cleaningJobId])
+  @@map("domain_detection_jobs")
+}
+
+model KpiExtractionJob {
+  id                    String         @id @default(uuid())
+  domainJobId           String
+  domainJob             DomainDetectionJob @relation(fields: [domainJobId], references: [id], onDelete: Cascade)
+  cleaningJobId         String
+  domain                String         // retail, ecommerce, saas, etc.
+  totalKpisInLibrary    Int            // Total KPIs in library for domain
+  feasibleCount         Int            // KPIs that can be calculated
+  infeasibleCount       Int            // KPIs that cannot be calculated
+  completenessAverage   Float          // Average completeness score
+  top10Kpis             Json           // Top 10 ranked KPIs
+  allFeasibleKpis       Json           // All feasible KPIs with scores
+  unresolvedColumns     Json           // Columns that couldn't be mapped
+  canonicalMapping      Json           // Mapping of canonical names to actual columns
+  status                String         @default("pending") // pending, completed, confirmed
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  selectedKpis          SelectedKpi[]
+
+  @@index([domainJobId])
+  @@index([cleaningJobId])
+  @@map("kpi_extraction_jobs")
+}
+
+model SelectedKpi {
+  id                String            @id @default(uuid())
+  kpiJobId          String
+  kpiJob            KpiExtractionJob  @relation(fields: [kpiJobId], references: [id], onDelete: Cascade)
+  kpiId             String            // retail_revenue_001, etc.
+  name              String            // Total Revenue
+  formula           String            // SUM(order_value)
+  requiredColumns   Json              // Array of required column names
+  mappedColumns     Json              // Mapping of canonical to actual columns
+  priority          Int               // 1-5
+  category          String            // Financial, Sales, etc.
+  createdAt         DateTime          @default(now())
+
+  @@index([kpiJobId])
+  @@map("selected_kpis")
+}
+
+

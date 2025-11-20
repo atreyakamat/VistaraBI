@@ -613,38 +613,54 @@ export default function CleaningReportPage() {
           </div>
         </div>
 
-        {/* Download Actions */}
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl shadow-xl p-8 border-2 border-green-200">
+        {/* Continue to Domain Detection */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl shadow-xl p-8 border-2 border-purple-200">
           <div className="flex items-center mb-6">
-            <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-              <span className="text-white text-xl">⬇️</span>
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+              <span className="text-white text-xl">🎯</span>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Download Cleaned Data</h2>
+            <h2 className="text-2xl font-bold text-gray-800">Next Step: Domain Detection</h2>
           </div>
-          <p className="text-gray-600 mb-6">Your data has been cleaned and is ready for download in multiple formats.</p>
+          <p className="text-gray-600 mb-6">
+            Your data has been cleaned successfully! Continue to automatically detect your business domain 
+            and unlock domain-specific KPI insights.
+          </p>
           <div className="flex gap-4 flex-wrap">
-            <a
-              href={cleaningApi.getDownloadUrl(job.id, 'csv')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 inline-flex items-center font-medium shadow-lg hover:shadow-xl transition-all"
+            <button
+              onClick={() => navigate(`/domain/${job.id}`)}
+              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-lg hover:from-purple-700 hover:to-indigo-800 inline-flex items-center font-bold shadow-lg hover:shadow-xl transition-all text-lg"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
-              Download CSV
-            </a>
-            <a
-              href={cleaningApi.getDownloadUrl(job.id, 'json')}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-lg hover:from-blue-700 hover:to-indigo-800 inline-flex items-center font-medium shadow-lg hover:shadow-xl transition-all"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Download JSON
-            </a>
+              Continue to Domain Detection
+            </button>
+            
+            {/* Optional: Keep download as secondary action */}
+            <div className="flex gap-2">
+              <a
+                href={cleaningApi.getDownloadUrl(job.id, 'csv')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 inline-flex items-center text-sm font-medium transition-all"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                CSV
+              </a>
+              <a
+                href={cleaningApi.getDownloadUrl(job.id, 'json')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 inline-flex items-center text-sm font-medium transition-all"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                JSON
+              </a>
+            </div>
           </div>
         </div>
       </div>

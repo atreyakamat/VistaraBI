@@ -1,0 +1,133 @@
+{
+  "timestamp": "2025-11-17T04:41:26.202Z",
+  "jobId": "d90bf6f5-a48f-49d8-b126-d9d921d80d91",
+  "uploadId": "9f4afe28-2f96-47b4-b825-3d34cfa27ad1",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 1000,
+    "columns": [
+      "region",
+      "customer_id",
+      "payment_status",
+      "subscription_tier"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 1000,
+    "columns": [
+      "region",
+      "customer_id",
+      "payment_status",
+      "subscription_tier",
+      "_outlier"
+    ]
+  },
+  "config": {
+    "imputation": {
+      "region": "mode",
+      "payment_status": "mode",
+      "subscription_tier": "mode"
+    },
+    "outliers": {
+      "enabled": true,
+      "columns": [],
+      "threshold": 1.5,
+      "remove": false
+    },
+    "deduplication": {
+      "enabled": false,
+      "keyColumns": []
+    },
+    "standardization": {},
+    "detectionLog": [
+      {
+        "column": "region",
+        "dataType": "categorical",
+        "missingCount": 105,
+        "missingRatio": 0.105,
+        "nonNullCount": 895,
+        "uniqueValues": 5,
+        "cardinalityRatio": 0.0056,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 5 unique values in 895 rows (1% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "MEA",
+          "Europe",
+          "LATAM",
+          "North America",
+          "APAC"
+        ]
+      },
+      {
+        "column": "customer_id",
+        "dataType": "text_id",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 1000,
+        "cardinalityRatio": 1,
+        "recommendedImputation": null,
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% unique values suggests ID/unique text. Will NOT impute (cannot infer missing IDs)",
+        "sampleValues": [
+          "CUST-00019",
+          "CUST-00020",
+          "CUST-00021",
+          "CUST-00022",
+          "CUST-00023"
+        ]
+      },
+      {
+        "column": "payment_status",
+        "dataType": "categorical",
+        "missingCount": 88,
+        "missingRatio": 0.088,
+        "nonNullCount": 912,
+        "uniqueValues": 2,
+        "cardinalityRatio": 0.0022,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 2 unique values in 912 rows (0% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "Paid",
+          "Pending"
+        ]
+      },
+      {
+        "column": "subscription_tier",
+        "dataType": "categorical",
+        "missingCount": 121,
+        "missingRatio": 0.121,
+        "nonNullCount": 879,
+        "uniqueValues": 3,
+        "cardinalityRatio": 0.0034,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 3 unique values in 879 rows (0% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "Basic",
+          "Premium",
+          "Enterprise"
+        ]
+      },
+      {
+        "column": "ALL_COLUMNS",
+        "dataType": "duplicate_check",
+        "finding": "Found 0 duplicates in 1000 sampled rows",
+        "recommendation": "No duplicates detected"
+      }
+    ]
+  },
+  "duration": 162,
+  "status": "success",
+  "error": null
+}

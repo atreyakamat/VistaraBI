@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-11-20T03:46:50.986Z",
+  "jobId": "9bdc4b42-2d3b-4f72-973d-c8eaa71abb98",
+  "uploadId": "b7e31629-b72f-4009-bff7-3a32d51aa73b",
+  "operation": "deduplication",
+  "beforeStats": {
+    "totalRows": 2000
+  },
+  "afterStats": {
+    "totalRows": 1992,
+    "originalCount": 2000,
+    "duplicateCount": 8,
+    "uniqueCount": 1992,
+    "duplicateIndices": [
+      52,
+      202,
+      352,
+      502,
+      651,
+      802,
+      952,
+      1101
+    ]
+  },
+  "config": {
+    "enabled": true,
+    "keyColumns": []
+  },
+  "duration": 46,
+  "status": "success",
+  "error": null
+}

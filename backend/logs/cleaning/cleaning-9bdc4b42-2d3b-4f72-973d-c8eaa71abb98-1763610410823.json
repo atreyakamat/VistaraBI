@@ -1,0 +1,62 @@
+{
+  "timestamp": "2025-11-20T03:46:50.822Z",
+  "jobId": "9bdc4b42-2d3b-4f72-973d-c8eaa71abb98",
+  "uploadId": "b7e31629-b72f-4009-bff7-3a32d51aa73b",
+  "operation": "imputation",
+  "beforeStats": {
+    "totalRows": 2000
+  },
+  "afterStats": {
+    "totalRows": 2000,
+    "totalMissing": 0,
+    "byColumn": {
+      "arr": {
+        "strategy": "forward-fill",
+        "missingBefore": 214,
+        "missingAfter": 0,
+        "fillValue": "forward-fill"
+      },
+      "mrr": {
+        "strategy": "median",
+        "missingBefore": 109,
+        "missingAfter": 0,
+        "fillValue": 2907.02
+      },
+      "signup_date": {
+        "strategy": "forward-fill",
+        "missingBefore": 86,
+        "missingAfter": 0,
+        "fillValue": "forward-fill"
+      },
+      "seats_active": {
+        "strategy": "median",
+        "missingBefore": 67,
+        "missingAfter": 0,
+        "fillValue": 90
+      },
+      "contact_email": {
+        "strategy": "mode",
+        "missingBefore": 120,
+        "missingAfter": 0,
+        "fillValue": "CONTACT@ACME.COM"
+      },
+      "contact_phone": {
+        "strategy": "mode",
+        "missingBefore": 221,
+        "missingAfter": 0,
+        "fillValue": "9876543210"
+      }
+    }
+  },
+  "config": {
+    "arr": "forward-fill",
+    "mrr": "median",
+    "signup_date": "forward-fill",
+    "seats_active": "median",
+    "contact_email": "mode",
+    "contact_phone": "mode"
+  },
+  "duration": 40,
+  "status": "success",
+  "error": null
+}

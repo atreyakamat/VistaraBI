@@ -1,0 +1,11 @@
+patient_id,diagnosis,provider_id,visit_date,treatment_type,outcome,cost,appointment
+PAT001,Hypertension,DOC001,2024-01-15,Medication,Stable,150.00,Follow-up
+PAT002,Diabetes Type 2,DOC002,2024-01-18,Insulin Therapy,Improving,300.00,Regular
+PAT003,Asthma,DOC001,2024-01-20,Inhaler Prescription,Stable,120.00,Follow-up
+PAT004,Migraine,DOC003,2024-02-05,Pain Management,Improved,200.00,Emergency
+PAT005,Arthritis,DOC002,2024-02-12,Physical Therapy,Improving,450.00,Regular
+PAT006,Bronchitis,DOC001,2024-02-18,Antibiotics,Recovered,180.00,Walk-in
+PAT007,Depression,DOC004,2024-03-01,Counseling,Improving,250.00,Regular
+PAT008,Flu,DOC003,2024-03-10,Rest & Fluids,Recovered,100.00,Walk-in
+PAT009,Hypertension,DOC002,2024-03-15,Medication Adjustment,Stable,175.00,Follow-up
+PAT010,Pneumonia,DOC001,2024-03-22,Hospital Admission,Recovering,2500.00,Emergency

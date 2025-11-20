@@ -1,0 +1,199 @@
+{
+  "timestamp": "2025-11-17T04:40:24.834Z",
+  "jobId": "22997bd4-5c06-4858-ae3e-cc995fb70668",
+  "uploadId": "c52fef61-d6b6-4f0d-b427-3f56deff83a1",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 1000,
+    "columns": [
+      "email",
+      "phone",
+      "amount",
+      "category",
+      "record_id",
+      "signup_date"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 1000,
+    "columns": [
+      "email",
+      "phone",
+      "amount",
+      "category",
+      "record_id",
+      "signup_date",
+      "_outlier",
+      "_error_signup_date",
+      "_error_email"
+    ]
+  },
+  "config": {
+    "imputation": {},
+    "outliers": {
+      "enabled": true,
+      "columns": [],
+      "threshold": 1.5,
+      "remove": false
+    },
+    "deduplication": {
+      "enabled": false,
+      "keyColumns": []
+    },
+    "standardization": {
+      "phone": {
+        "type": "phone",
+        "format": "E164"
+      },
+      "signup_date": {
+        "type": "date",
+        "format": "ISO8601"
+      },
+      "amount": {
+        "type": "currency",
+        "format": "NUMBER"
+      },
+      "email": {
+        "type": "email",
+        "format": ""
+      }
+    },
+    "detectionLog": [
+      {
+        "column": "email",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 5,
+        "cardinalityRatio": 0.005,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 5 unique values in 1000 rows (1% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "invalid-email",
+          "SARAH@ACME.COM",
+          "  CONTACT@TEST.IO  ",
+          "john@acme.com",
+          "michael @ company.org"
+        ]
+      },
+      {
+        "column": "phone",
+        "dataType": "phone",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 7,
+        "cardinalityRatio": 0.007,
+        "recommendedImputation": "mode",
+        "standardizationType": "phone",
+        "recommendedFormat": "E164",
+        "hasVariance": false,
+        "reasoning": "71% values match phone patterns. Will standardize to +CC-XXXXX-XXXXX format",
+        "sampleValues": [
+          "91-9876543210",
+          "(098) 765-43210",
+          "9876543210",
+          "invalid-phone",
+          "+1-800-555-1234"
+        ]
+      },
+      {
+        "column": "amount",
+        "dataType": "text_id",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 986,
+        "cardinalityRatio": 0.986,
+        "recommendedImputation": null,
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "99% unique values suggests ID/unique text. Will NOT impute (cannot infer missing IDs)",
+        "sampleValues": [
+          "4520",
+          "2459",
+          "1677.00",
+          "1508",
+          "$7,093"
+        ]
+      },
+      {
+        "column": "category",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 5,
+        "cardinalityRatio": 0.005,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 5 unique values in 1000 rows (1% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "Books",
+          "SPORTS",
+          "electronics",
+          "  home goods  ",
+          "FURNITURE"
+        ]
+      },
+      {
+        "column": "record_id",
+        "dataType": "text_id",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 1000,
+        "cardinalityRatio": 1,
+        "recommendedImputation": null,
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "100% unique values suggests ID/unique text. Will NOT impute (cannot infer missing IDs)",
+        "sampleValues": [
+          "REC-00001",
+          "REC-00002",
+          "REC-00003",
+          "REC-00004",
+          "REC-00005"
+        ]
+      },
+      {
+        "column": "signup_date",
+        "dataType": "date",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 796,
+        "cardinalityRatio": 0.796,
+        "recommendedImputation": "forward-fill",
+        "standardizationType": "date",
+        "recommendedFormat": "ISO8601",
+        "hasVariance": false,
+        "reasoning": "100% values match date patterns. Using FORWARD-FILL to maintain temporal sequence",
+        "sampleValues": [
+          "26-11-2024",
+          "2023-01-30",
+          "11/02/2023",
+          "02/11/2023",
+          "09/22/2023"
+        ]
+      },
+      {
+        "column": "ALL_COLUMNS",
+        "dataType": "duplicate_check",
+        "finding": "Found 0 duplicates in 1000 sampled rows",
+        "recommendation": "No duplicates detected"
+      }
+    ]
+  },
+  "duration": 276,
+  "status": "success",
+  "error": null
+}

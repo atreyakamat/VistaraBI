@@ -1,0 +1,162 @@
+{
+  "timestamp": "2025-11-17T04:40:51.873Z",
+  "jobId": "fabe4878-4212-4a4a-a680-2d37f13dae47",
+  "uploadId": "fb33fd8d-2eda-4787-85b5-08f64c71ac77",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 1000,
+    "columns": [
+      "mrr",
+      "plan",
+      "email",
+      "account_id",
+      "company_name"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 950,
+    "columns": [
+      "mrr",
+      "plan",
+      "email",
+      "account_id",
+      "company_name",
+      "_outlier"
+    ]
+  },
+  "config": {
+    "imputation": {},
+    "outliers": {
+      "enabled": true,
+      "columns": [
+        "mrr"
+      ],
+      "threshold": 1.5,
+      "remove": false
+    },
+    "deduplication": {
+      "enabled": true,
+      "keyColumns": []
+    },
+    "standardization": {
+      "email": {
+        "type": "email",
+        "format": "lowercase"
+      }
+    },
+    "detectionLog": [
+      {
+        "column": "mrr",
+        "dataType": "numeric",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 948,
+        "cardinalityRatio": 0.948,
+        "recommendedImputation": "median",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": true,
+        "reasoning": "100% values are numeric. Using MEDIAN for outlier resistance",
+        "sampleValues": [
+          "526.31",
+          "2857.61",
+          "4654.8",
+          "1982.71",
+          "4766.83"
+        ]
+      },
+      {
+        "column": "plan",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 3,
+        "cardinalityRatio": 0.003,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 3 unique values in 1000 rows (0% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "Basic",
+          "Pro",
+          "Enterprise"
+        ]
+      },
+      {
+        "column": "email",
+        "dataType": "email",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 950,
+        "cardinalityRatio": 0.95,
+        "recommendedImputation": "mode",
+        "standardizationType": "email",
+        "recommendedFormat": "lowercase",
+        "hasVariance": false,
+        "reasoning": "100% values match email patterns. Will standardize to lowercase",
+        "sampleValues": [
+          "contact0@innovatex.com",
+          "contact1@dataflow.com",
+          "contact2@cloudserve.com",
+          "contact3@cloudserve.com",
+          "contact4@megasoft.com"
+        ]
+      },
+      {
+        "column": "account_id",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 950,
+        "cardinalityRatio": 0.95,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Mixed data type detected, treating as categorical. Using MODE (most frequent value)",
+        "sampleValues": [
+          "ACC-00001",
+          "ACC-00002",
+          "ACC-00003",
+          "ACC-00004",
+          "ACC-00005"
+        ]
+      },
+      {
+        "column": "company_name",
+        "dataType": "categorical",
+        "missingCount": 0,
+        "missingRatio": 0,
+        "nonNullCount": 1000,
+        "uniqueValues": 5,
+        "cardinalityRatio": 0.005,
+        "recommendedImputation": "mode",
+        "standardizationType": null,
+        "recommendedFormat": null,
+        "hasVariance": false,
+        "reasoning": "Only 5 unique values in 1000 rows (1% cardinality). Low cardinality suggests categorical data, using MODE",
+        "sampleValues": [
+          "MegaSoft",
+          "InnovateX",
+          "TechCorp",
+          "CloudServe",
+          "DataFlow"
+        ]
+      },
+      {
+        "column": "ALL_COLUMNS",
+        "dataType": "duplicate_check",
+        "finding": "Found 50 duplicates in 1000 sampled rows",
+        "recommendation": "Enable deduplication"
+      }
+    ]
+  },
+  "duration": 172,
+  "status": "success",
+  "error": null
+}

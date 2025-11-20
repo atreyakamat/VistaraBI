@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-11-17T04:40:51.791Z",
+  "jobId": "fabe4878-4212-4a4a-a680-2d37f13dae47",
+  "uploadId": "fb33fd8d-2eda-4787-85b5-08f64c71ac77",
+  "operation": "standardization",
+  "beforeStats": {
+    "totalRows": 950
+  },
+  "afterStats": {
+    "totalRows": 950,
+    "byColumn": {
+      "email": {
+        "type": "email",
+        "format": "lowercase",
+        "standardizedCount": 0,
+        "errorCount": 0
+      }
+    }
+  },
+  "config": {
+    "email": {
+      "type": "email",
+      "format": "lowercase"
+    }
+  },
+  "duration": 4,
+  "status": "success",
+  "error": null
+}

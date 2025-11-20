@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-11-20T03:46:50.934Z",
+  "jobId": "9bdc4b42-2d3b-4f72-973d-c8eaa71abb98",
+  "uploadId": "b7e31629-b72f-4009-bff7-3a32d51aa73b",
+  "operation": "outlier_detection",
+  "beforeStats": {
+    "totalRows": 2000
+  },
+  "afterStats": {
+    "totalRows": 2000,
+    "outlierCount": 256,
+    "removed": 0
+  },
+  "config": {
+    "enabled": true,
+    "columns": [
+      "mrr",
+      "seats_active",
+      "seats_purchased"
+    ],
+    "threshold": 1.5,
+    "remove": false
+  },
+  "duration": 21,
+  "status": "success",
+  "error": null
+}
