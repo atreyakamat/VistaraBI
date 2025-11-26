@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { pool } from '../config/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -75,8 +76,7 @@ class KpiExtractionService {
       const cleaningJob = await prisma.cleaningJob.findUnique({
         where: { id: cleaningJobId },
         include: {
-          upload: true,
-          domainJobs: true
+          upload: true
         }
       });
 
@@ -114,8 +114,9 @@ class KpiExtractionService {
       const kpiJob = await prisma.kpiExtractionJob.create({
         data: {
           id: uuidv4(),
+          projectId: cleaningJob.projectId,
           domainJobId: domainJobId,
-          cleaningJobId: cleaningJobId,
+          cleaningJobIds: [cleaningJobId], // Store as array for schema compatibility
           domain: domain,
           totalKpisInLibrary: extraction.totalKpisInLibrary,
           feasibleCount: extraction.feasibleCount,
@@ -132,15 +133,16 @@ class KpiExtractionService {
       return {
         kpiJobId: kpiJob.id,
         domain: domain,
-        top10: extraction.top10,
-        allFeasible: extraction.allFeasible,
+        totalKpisInLibrary: extraction.totalKpisInLibrary,
+        feasibleCount: extraction.feasibleCount,
+        infeasibleCount: extraction.infeasibleCount,
+        completenessAverage: extraction.completenessAverage,
+        top10Kpis: extraction.top10,
+        allFeasibleKpis: extraction.allFeasible,
+        allKpis: extraction.allKpis, // Complete list with auto/manual recommendations
+        autoSelectedIds: extraction.autoSelectedIds,
         unresolvedColumns: extraction.unresolvedColumns,
-        summary: {
-          totalKpisInLibrary: extraction.totalKpisInLibrary,
-          feasibleCount: extraction.feasibleCount,
-          infeasibleCount: extraction.infeasibleCount,
-          completenessAverage: extraction.completenessAverage
-        }
+        canonicalMapping: extraction.canonicalMapping
       };
 
     } catch (error) {
@@ -150,27 +152,124 @@ class KpiExtractionService {
   }
 
   /**
+   * Extract KPIs from unified view (for multi-file projects)
+   */
+  async extractKPIsFromView(viewName, domain, projectId, domainJobId) {
+    try {
+      console.log(`[KPI Extraction] Extracting from unified view: ${viewName}`);
+      console.log(`[KPI Extraction] Domain: ${domain}, Project: ${projectId}`);
+
+      // Query the unified view to get columns and sample data
+      const columnsResult = await pool.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = $1
+        ORDER BY ordinal_position
+      `, [viewName]);
+
+      if (columnsResult.rows.length === 0) {
+        throw new Error(`View ${viewName} not found or has no columns`);
+      }
+
+      const columns = columnsResult.rows.map(r => r.column_name);
+      console.log(`[KPI Extraction] View columns (${columns.length}):`, columns);
+
+      // Get sample data from the view (limit to avoid memory issues)
+      const dataResult = await pool.query(`SELECT * FROM "${viewName}" LIMIT 1000`);
+      const rows = dataResult.rows;
+      console.log(`[KPI Extraction] Retrieved ${rows.length} rows from view`);
+
+      // Extract KPIs using the core logic
+      const extraction = this._extractKpisFromData(columns, rows, domain);
+
+      // Create KPI extraction job
+      const kpiJob = await prisma.kpiExtractionJob.create({
+        data: {
+          id: uuidv4(),
+          projectId: projectId,
+          domainJobId: domainJobId,
+          cleaningJobIds: [],
+          domain: domain,
+          totalKpisInLibrary: extraction.totalKpisInLibrary,
+          feasibleCount: extraction.feasibleCount,
+          infeasibleCount: extraction.infeasibleCount,
+          completenessAverage: extraction.completenessAverage,
+          top10Kpis: extraction.top10,
+          allFeasibleKpis: extraction.allFeasible,
+          unresolvedColumns: extraction.unresolvedColumns,
+          canonicalMapping: extraction.canonicalMapping,
+          status: 'completed'
+        }
+      });
+
+      console.log(`[KPI Extraction] Created job ${kpiJob.id} with ${extraction.feasibleCount} feasible KPIs`);
+
+      return {
+        kpiJobId: kpiJob.id,
+        domain: domain,
+        totalKpisInLibrary: extraction.totalKpisInLibrary,
+        feasibleCount: extraction.feasibleCount,
+        infeasibleCount: extraction.infeasibleCount,
+        completenessAverage: extraction.completenessAverage,
+        top10Kpis: extraction.top10,
+        allFeasibleKpis: extraction.allFeasible,
+        allKpis: extraction.allKpis,
+        autoSelectedIds: extraction.autoSelectedIds,
+        unresolvedColumns: extraction.unresolvedColumns,
+        canonicalMapping: extraction.canonicalMapping
+      };
+
+    } catch (error) {
+      console.error('[KPI Extraction] Failed:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Core extraction logic
    * @private
    */
   _extractKpisFromData(columns, rows, domain) {
+    console.log(`[KPI Extraction] Starting for domain: ${domain}`);
+    console.log(`[KPI Extraction] Dataset columns (${columns.length}):`, columns);
+
     // Step 1: Resolve synonyms
     const { canonicalMapping, unresolved } = this._resolveSynonyms(columns, domain);
+    console.log(`[KPI Extraction] Resolved ${Object.keys(canonicalMapping).length} columns`);
+    console.log('[KPI Extraction] Canonical mapping:', canonicalMapping);
+    console.log('[KPI Extraction] Unresolved columns:', unresolved);
 
     // Step 2: Get KPI library for domain
     const kpiLibrary = kpiLibraries[domain] || [];
+    console.log(`[KPI Extraction] Total KPIs in library: ${kpiLibrary.length}`);
 
     // Filter to priority 3-5 only (as per requirements)
     const highPriorityKpis = kpiLibrary.filter(kpi => kpi.priority >= 3);
+    console.log(`[KPI Extraction] High priority KPIs (3-5): ${highPriorityKpis.length}`);
 
-    // Step 3: Check feasibility
+    // Step 3: Check feasibility for ALL KPIs
     const { feasible, infeasible } = this._checkFeasibility(canonicalMapping, highPriorityKpis);
+    console.log(`[KPI Extraction] Feasible: ${feasible.length}, Infeasible: ${infeasible.length}`);
 
-    // Step 4: Rank KPIs
+    // Step 4: Rank feasible KPIs
     const ranked = this._rankKpis(feasible, canonicalMapping, columns);
 
-    // Step 5: Select top-10
-    const top10 = ranked.slice(0, 10);
+    // Step 5: AUTO-SELECT ALL FEASIBLE KPIs (changed from top-10 only)
+    const autoSelected = ranked; // Select ALL feasible KPIs
+    console.log(`[KPI Extraction] Auto-selected ALL ${autoSelected.length} feasible KPIs`);
+
+    // Step 6: All feasible KPIs are now auto-selected
+    const recommended = ranked.map(kpi => ({ ...kpi, autoSelected: true, reason: 'Feasible with available data' }));
+    
+    // Add infeasible KPIs with reasons
+    const infeasibleWithReasons = infeasible.map(kpi => ({
+      ...kpi,
+      feasible: false,
+      autoSelected: false,
+      reason: `Missing data: ${kpi.missing_columns.join(', ')}`
+    }));
+
+    const allKpis = [...recommended, ...infeasibleWithReasons];
 
     return {
       totalKpisInLibrary: highPriorityKpis.length,
@@ -179,8 +278,10 @@ class KpiExtractionService {
       completenessAverage: feasible.length > 0 
         ? feasible.reduce((sum, kpi) => sum + kpi.completeness, 0) / feasible.length 
         : 0,
-      top10: top10,
+      top10: autoSelected,
       allFeasible: ranked,
+      allKpis: allKpis, // Complete list with recommendations
+      autoSelectedIds: autoSelected.map(kpi => kpi.kpi_id),
       unresolvedColumns: unresolved,
       canonicalMapping: canonicalMapping
     };
@@ -188,6 +289,7 @@ class KpiExtractionService {
 
   /**
    * Resolve column synonyms
+   * Enhanced algorithm with flexible matching
    * @private
    */
   _resolveSynonyms(datasetColumns, domain) {
@@ -195,18 +297,80 @@ class KpiExtractionService {
     const canonicalMapping = {};
     const unresolved = [];
 
+    // Helper: Normalize column name for matching
+    const normalize = (str) => {
+      return str
+        .toLowerCase()
+        .trim()
+        .replace(/[_\s-]+/g, '') // Remove separators
+        .replace(/[^a-z0-9]/g, ''); // Remove special chars
+    };
+
     for (const userColumn of datasetColumns) {
+      const userColNormalized = normalize(userColumn);
       const userColLower = userColumn.toLowerCase().trim();
       let found = false;
 
-      // Check each canonical name
-      for (const [canonical, aliases] of Object.entries(synonymMap)) {
-        const aliasesLower = aliases.map(a => a.toLowerCase().trim());
-        
-        if (aliasesLower.includes(userColLower)) {
+      // Step 1: Check if user column matches canonical name directly
+      for (const canonical of Object.keys(synonymMap)) {
+        if (normalize(canonical) === userColNormalized) {
           canonicalMapping[canonical] = userColumn;
           found = true;
           break;
+        }
+      }
+
+      if (found) continue;
+
+      // Step 2: Check against synonym aliases
+      for (const [canonical, aliases] of Object.entries(synonymMap)) {
+        for (const alias of aliases) {
+          const aliasNormalized = normalize(alias);
+          
+          // Exact match after normalization
+          if (aliasNormalized === userColNormalized) {
+            canonicalMapping[canonical] = userColumn;
+            found = true;
+            break;
+          }
+          
+          // Partial match (contains)
+          if (!found && aliasNormalized.length > 3 && userColNormalized.includes(aliasNormalized)) {
+            canonicalMapping[canonical] = userColumn;
+            found = true;
+            break;
+          }
+          
+          // Reverse partial match
+          if (!found && userColNormalized.length > 3 && aliasNormalized.includes(userColNormalized)) {
+            canonicalMapping[canonical] = userColumn;
+            found = true;
+            break;
+          }
+        }
+        if (found) break;
+      }
+
+      // Step 3: Common generic columns (date, id, name)
+      if (!found) {
+        if (userColNormalized.includes('date') || userColNormalized.includes('time')) {
+          if (!canonicalMapping['order_date'] && domain === 'retail') {
+            canonicalMapping['order_date'] = userColumn;
+            found = true;
+          } else if (!canonicalMapping['signup_date'] && domain === 'saas') {
+            canonicalMapping['signup_date'] = userColumn;
+            found = true;
+          }
+        } else if (userColNormalized.includes('id') && userColNormalized.includes('order')) {
+          if (!canonicalMapping['order_id']) {
+            canonicalMapping['order_id'] = userColumn;
+            found = true;
+          }
+        } else if (userColNormalized.includes('id') && userColNormalized.includes('customer')) {
+          if (!canonicalMapping['customer_id']) {
+            canonicalMapping['customer_id'] = userColumn;
+            found = true;
+          }
         }
       }
 
@@ -230,10 +394,12 @@ class KpiExtractionService {
       const required = kpi.columns_needed || [];
       let foundCount = 0;
       const missing = [];
+      const available = [];
 
       for (const requiredCol of required) {
         if (canonicalMapping[requiredCol]) {
           foundCount++;
+          available.push(requiredCol);
         } else {
           missing.push(requiredCol);
         }
@@ -243,7 +409,8 @@ class KpiExtractionService {
 
       const kpiWithMetadata = {
         ...kpi,
-        completeness: completeness,
+        completeness: parseFloat(completeness.toFixed(4)),
+        available_columns: available,
         missing_columns: missing,
         columns_mapped: {}
       };
@@ -267,34 +434,52 @@ class KpiExtractionService {
 
   /**
    * Rank KPIs by priority and completeness
+   * Formula: score = priority × (1 + completeness) + recency_bonus
    * @private
    */
   _rankKpis(feasibleKpis, canonicalMapping, allColumns) {
-    // Check if date column exists for recency bonus
-    const hasDateColumn = allColumns.some(col => 
-      col.toLowerCase().includes('date') || 
-      col.toLowerCase().includes('time') ||
-      canonicalMapping['order_date'] !== undefined
+    // Enhanced date/time column detection
+    const hasDateColumn = allColumns.some(col => {
+      const colLower = col.toLowerCase();
+      return colLower.includes('date') || 
+             colLower.includes('time') || 
+             colLower.includes('timestamp') ||
+             colLower.includes('created') ||
+             colLower.includes('updated');
+    }) || Object.keys(canonicalMapping).some(key => 
+      key.includes('date') || key.includes('time') || key.includes('timestamp')
     );
 
     const scored = feasibleKpis.map(kpi => {
       // Base score: priority × (1 + completeness)
-      let score = kpi.priority * (1 + kpi.completeness);
+      const priorityWeight = kpi.priority || 3; // Default to medium if missing
+      let score = priorityWeight * (1 + kpi.completeness);
 
-      // Recency bonus if time-based KPI and date column exists
-      if (kpi.time_grain && hasDateColumn) {
+      // Recency bonus: +0.1 if KPI uses time dimension and date exists
+      const requiresDate = kpi.time_grain !== undefined || 
+                          (kpi.columns_needed && kpi.columns_needed.some(col => 
+                            col.includes('date') || col.includes('time')
+                          ));
+      
+      if (requiresDate && hasDateColumn) {
         score += 0.1;
       }
 
       return {
         ...kpi,
-        score: score,
+        score: parseFloat(score.toFixed(2)),
+        has_date_column: hasDateColumn,
+        requires_date: requiresDate,
         feasible: true
       };
     });
 
-    // Sort by score descending
-    scored.sort((a, b) => b.score - a.score);
+    // Multi-level sorting: score (primary), priority (secondary), completeness (tertiary)
+    scored.sort((a, b) => {
+      if (Math.abs(b.score - a.score) > 0.01) return b.score - a.score;
+      if (b.priority !== a.priority) return b.priority - a.priority;
+      return b.completeness - a.completeness;
+    });
 
     // Add rank
     return scored.map((kpi, index) => ({
@@ -306,7 +491,7 @@ class KpiExtractionService {
   /**
    * Select KPIs for dashboard
    */
-  async selectKpis(kpiJobId, selectedKpiIds) {
+  async selectKpis(kpiJobId, selectedKpiIds, manualKpis = []) {
     try {
       const kpiJob = await prisma.kpiExtractionJob.findUnique({
         where: { id: kpiJobId }
@@ -316,7 +501,12 @@ class KpiExtractionService {
         throw new Error('KPI extraction job not found');
       }
 
-      // Save selected KPIs
+      // Delete existing selected KPIs to avoid duplicates
+      await prisma.selectedKpi.deleteMany({
+        where: { kpiJobId: kpiJobId }
+      });
+
+      // Save auto-detected selected KPIs
       for (const kpiId of selectedKpiIds) {
         const kpiDef = kpiJob.allFeasibleKpis.find(k => k.kpi_id === kpiId);
         
@@ -336,6 +526,25 @@ class KpiExtractionService {
           });
         }
       }
+      
+      // Save manual KPIs
+      if (manualKpis && manualKpis.length > 0) {
+        for (const mkpi of manualKpis) {
+          await prisma.selectedKpi.create({
+            data: {
+              id: mkpi.id || uuidv4(),
+              kpiJobId: kpiJobId,
+              kpiId: mkpi.id || `manual_${uuidv4()}`,
+              name: mkpi.name,
+              formula: `Manual KPI: ${mkpi.name}`,
+              requiredColumns: JSON.stringify([mkpi.column]),
+              mappedColumns: JSON.stringify({ [mkpi.column]: mkpi.column }),
+              priority: 3,
+              category: 'Custom'
+            }
+          });
+        }
+      }
 
       // Update job status
       await prisma.kpiExtractionJob.update({
@@ -347,6 +556,8 @@ class KpiExtractionService {
         status: 'confirmed',
         kpiJobId: kpiJobId,
         selectedCount: selectedKpiIds.length,
+        manualKpiCount: manualKpis?.length || 0,
+        totalKpiCount: selectedKpiIds.length + (manualKpis?.length || 0),
         nextStep: 'module_5_dashboard_creation'
       };
 
@@ -391,17 +602,57 @@ class KpiExtractionService {
   getDefaultKpiLibrary(domain) {
     const libraries = {
       retail: [
+        // Core Revenue Metrics
         {
           kpi_id: 'retail_revenue_001',
           domain: 'retail',
           name: 'Total Revenue',
           category: 'Financial',
           priority: 5,
-          formula_expr: 'SUM(order_value)',
-          columns_needed: ['order_value'],
+          formula_expr: 'SUM(total_amount)',
+          columns_needed: ['total_amount'],
           time_grain: 'day',
           aggregation_type: 'sum',
           description: 'Total revenue from all transactions',
+          unit: 'currency'
+        },
+        {
+          kpi_id: 'retail_profit_001',
+          domain: 'retail',
+          name: 'Total Profit',
+          category: 'Financial',
+          priority: 5,
+          formula_expr: 'SUM(profit)',
+          columns_needed: ['profit'],
+          time_grain: 'day',
+          aggregation_type: 'sum',
+          description: 'Total profit from all sales',
+          unit: 'currency'
+        },
+        {
+          kpi_id: 'retail_margin_001',
+          domain: 'retail',
+          name: 'Gross Margin %',
+          category: 'Financial',
+          priority: 5,
+          formula_expr: '(SUM(profit) / SUM(total_amount)) * 100',
+          columns_needed: ['profit', 'total_amount'],
+          time_grain: 'day',
+          aggregation_type: 'ratio',
+          description: 'Profit margin percentage',
+          unit: 'percent'
+        },
+        {
+          kpi_id: 'retail_aov_001',
+          domain: 'retail',
+          name: 'Average Order Value',
+          category: 'Financial',
+          priority: 5,
+          formula_expr: 'AVG(total_amount)',
+          columns_needed: ['total_amount'],
+          time_grain: 'day',
+          aggregation_type: 'avg',
+          description: 'Average value per order',
           unit: 'currency'
         },
         {
@@ -418,36 +669,90 @@ class KpiExtractionService {
           unit: 'count'
         },
         {
-          kpi_id: 'retail_aov_001',
-          domain: 'retail',
-          name: 'Average Order Value',
-          category: 'Financial',
-          priority: 4,
-          formula_expr: 'AVG(order_value)',
-          columns_needed: ['order_value'],
-          time_grain: 'day',
-          aggregation_type: 'avg',
-          description: 'Average value per order',
-          unit: 'currency'
-        },
-        {
           kpi_id: 'retail_orders_001',
           domain: 'retail',
-          name: 'Orders Count',
+          name: 'Total Orders',
           category: 'Sales',
           priority: 5,
-          formula_expr: 'COUNT_DISTINCT(order_id)',
-          columns_needed: ['order_id'],
+          formula_expr: 'COUNT_DISTINCT(sale_id)',
+          columns_needed: ['sale_id'],
           time_grain: 'day',
           aggregation_type: 'count',
           description: 'Total number of orders',
           unit: 'count'
         },
+        
+        // Customer Metrics
+        {
+          kpi_id: 'retail_clv_001',
+          domain: 'retail',
+          name: 'Customer Lifetime Value',
+          category: 'Customer',
+          priority: 5,
+          formula_expr: 'AVG(lifetime_value)',
+          columns_needed: ['lifetime_value'],
+          time_grain: 'month',
+          aggregation_type: 'avg',
+          description: 'Average customer lifetime value',
+          unit: 'currency'
+        },
+        {
+          kpi_id: 'retail_cac_001',
+          domain: 'retail',
+          name: 'Customer Acquisition Cost',
+          category: 'Customer',
+          priority: 5,
+          formula_expr: 'AVG(acquisition_cost)',
+          columns_needed: ['acquisition_cost'],
+          time_grain: 'month',
+          aggregation_type: 'avg',
+          description: 'Average cost to acquire a customer',
+          unit: 'currency'
+        },
+        {
+          kpi_id: 'retail_clv_cac_001',
+          domain: 'retail',
+          name: 'CLV to CAC Ratio',
+          category: 'Customer',
+          priority: 5,
+          formula_expr: 'AVG(lifetime_value) / AVG(acquisition_cost)',
+          columns_needed: ['lifetime_value', 'acquisition_cost'],
+          time_grain: 'month',
+          aggregation_type: 'ratio',
+          description: 'Return on customer acquisition investment',
+          unit: 'ratio'
+        },
+        {
+          kpi_id: 'retail_active_customers_001',
+          domain: 'retail',
+          name: 'Active Customers',
+          category: 'Customer',
+          priority: 4,
+          formula_expr: 'COUNT_DISTINCT(customer_id WHERE status=active)',
+          columns_needed: ['customer_id', 'status'],
+          time_grain: 'day',
+          aggregation_type: 'count',
+          description: 'Number of active customers',
+          unit: 'count'
+        },
+        {
+          kpi_id: 'retail_churn_001',
+          domain: 'retail',
+          name: 'Customer Churn Rate',
+          category: 'Customer',
+          priority: 4,
+          formula_expr: '(COUNT(status=churned) / COUNT(customer_id)) * 100',
+          columns_needed: ['status', 'customer_id'],
+          time_grain: 'month',
+          aggregation_type: 'ratio',
+          description: 'Percentage of customers churned',
+          unit: 'percent'
+        },
         {
           kpi_id: 'retail_customers_001',
           domain: 'retail',
-          name: 'Customers Count',
-          category: 'Sales',
+          name: 'Total Customers',
+          category: 'Customer',
           priority: 4,
           formula_expr: 'COUNT_DISTINCT(customer_id)',
           columns_needed: ['customer_id'],
@@ -456,69 +761,140 @@ class KpiExtractionService {
           description: 'Total unique customers',
           unit: 'count'
         },
+        
+        // Product Metrics
         {
-          kpi_id: 'retail_profit_001',
+          kpi_id: 'retail_category_revenue_001',
           domain: 'retail',
-          name: 'Gross Profit',
-          category: 'Financial',
+          name: 'Revenue by Category',
+          category: 'Product',
           priority: 4,
-          formula_expr: 'SUM(order_value - product_cost)',
-          columns_needed: ['order_value', 'product_cost'],
-          time_grain: 'day',
-          aggregation_type: 'sum',
-          description: 'Total profit before expenses',
-          unit: 'currency'
-        },
-        {
-          kpi_id: 'retail_margin_001',
-          domain: 'retail',
-          name: 'Gross Margin %',
-          category: 'Financial',
-          priority: 4,
-          formula_expr: '(SUM(order_value - product_cost) / SUM(order_value)) * 100',
-          columns_needed: ['order_value', 'product_cost'],
-          time_grain: 'day',
-          aggregation_type: 'ratio',
-          description: 'Profit margin percentage',
-          unit: 'percent'
-        },
-        {
-          kpi_id: 'retail_inventory_001',
-          domain: 'retail',
-          name: 'Inventory Turnover',
-          category: 'Operations',
-          priority: 4,
-          formula_expr: 'SUM(cogs) / AVG(inventory)',
-          columns_needed: ['cogs', 'inventory'],
-          time_grain: 'month',
-          aggregation_type: 'ratio',
-          description: 'Rate of inventory sold and replaced',
-          unit: 'ratio'
-        },
-        {
-          kpi_id: 'retail_repeat_001',
-          domain: 'retail',
-          name: 'Repeat Purchase Rate',
-          category: 'Sales',
-          priority: 4,
-          formula_expr: 'COUNT_DISTINCT(customers_with_2+_orders) / COUNT_DISTINCT(all_customers)',
-          columns_needed: ['customer_id', 'order_id'],
-          time_grain: 'month',
-          aggregation_type: 'ratio',
-          description: 'Percentage of repeat customers',
-          unit: 'percent'
-        },
-        {
-          kpi_id: 'retail_category_001',
-          domain: 'retail',
-          name: 'Sales by Category',
-          category: 'Sales',
-          priority: 3,
-          formula_expr: 'SUM(order_value) BY category',
-          columns_needed: ['order_value', 'category'],
+          formula_expr: 'SUM(total_amount) BY category',
+          columns_needed: ['total_amount', 'category'],
           time_grain: 'day',
           aggregation_type: 'sum',
           description: 'Revenue breakdown by product category',
+          unit: 'currency'
+        },
+        {
+          kpi_id: 'retail_category_profit_001',
+          domain: 'retail',
+          name: 'Profit by Category',
+          category: 'Product',
+          priority: 4,
+          formula_expr: 'SUM(profit) BY category',
+          columns_needed: ['profit', 'category'],
+          time_grain: 'day',
+          aggregation_type: 'sum',
+          description: 'Profit breakdown by product category',
+          unit: 'currency'
+        },
+        {
+          kpi_id: 'retail_product_margin_001',
+          domain: 'retail',
+          name: 'Average Product Margin',
+          category: 'Product',
+          priority: 4,
+          formula_expr: 'AVG(margin_percent)',
+          columns_needed: ['margin_percent'],
+          time_grain: 'day',
+          aggregation_type: 'avg',
+          description: 'Average profit margin across products',
+          unit: 'percent'
+        },
+        {
+          kpi_id: 'retail_top_products_001',
+          domain: 'retail',
+          name: 'Top Products by Revenue',
+          category: 'Product',
+          priority: 4,
+          formula_expr: 'SUM(total_amount) BY product_id ORDER BY DESC LIMIT 10',
+          columns_needed: ['total_amount', 'product_id'],
+          time_grain: 'day',
+          aggregation_type: 'sum',
+          description: 'Top 10 products by revenue',
+          unit: 'currency'
+        },
+        
+        // Operational Metrics
+        {
+          kpi_id: 'retail_return_rate_001',
+          domain: 'retail',
+          name: 'Return Rate',
+          category: 'Operations',
+          priority: 4,
+          formula_expr: '(COUNT(returned=yes) / COUNT(sale_id)) * 100',
+          columns_needed: ['returned', 'sale_id'],
+          time_grain: 'day',
+          aggregation_type: 'ratio',
+          description: 'Percentage of orders returned',
+          unit: 'percent'
+        },
+        {
+          kpi_id: 'retail_discounts_001',
+          domain: 'retail',
+          name: 'Total Discounts Given',
+          category: 'Operations',
+          priority: 3,
+          formula_expr: 'SUM(discount_amount)',
+          columns_needed: ['discount_amount'],
+          time_grain: 'day',
+          aggregation_type: 'sum',
+          description: 'Total discount amount given',
+          unit: 'currency'
+        },
+        {
+          kpi_id: 'retail_shipping_001',
+          domain: 'retail',
+          name: 'Average Shipping Cost',
+          category: 'Operations',
+          priority: 3,
+          formula_expr: 'AVG(shipping_cost)',
+          columns_needed: ['shipping_cost'],
+          time_grain: 'day',
+          aggregation_type: 'avg',
+          description: 'Average shipping cost per order',
+          unit: 'currency'
+        },
+        {
+          kpi_id: 'retail_payment_method_001',
+          domain: 'retail',
+          name: 'Sales by Payment Method',
+          category: 'Operations',
+          priority: 3,
+          formula_expr: 'COUNT(sale_id) BY payment_method',
+          columns_needed: ['sale_id', 'payment_method'],
+          time_grain: 'day',
+          aggregation_type: 'count',
+          description: 'Order distribution by payment method',
+          unit: 'count'
+        },
+        
+        // Segment Analysis
+        {
+          kpi_id: 'retail_segment_revenue_001',
+          domain: 'retail',
+          name: 'Revenue by Customer Segment',
+          category: 'Customer',
+          priority: 4,
+          formula_expr: 'SUM(total_amount) BY segment',
+          columns_needed: ['total_amount', 'segment'],
+          time_grain: 'day',
+          aggregation_type: 'sum',
+          description: 'Revenue by customer segment',
+          unit: 'currency'
+        },
+        {
+          kpi_id: 'retail_country_revenue_001',
+          domain: 'retail',
+          name: 'Revenue by Country',
+          category: 'Geographic',
+          priority: 3,
+          formula_expr: 'SUM(total_amount) BY country',
+          columns_needed: ['total_amount', 'country'],
+          time_grain: 'day',
+          aggregation_type: 'sum',
+          description: 'Revenue by country',
           unit: 'currency'
         }
       ],
@@ -673,13 +1049,37 @@ class KpiExtractionService {
   getDefaultSynonymMap(domain) {
     const maps = {
       retail: {
-        order_value: ['total sale', 'amount', 'revenue', 'net_revenue', 'order_total', 'transaction_amount', 'sales', 'sale_amount'],
-        quantity: ['qty', 'units', 'units_sold', 'quantity_ordered', 'item_count', 'count'],
-        order_id: ['order id', 'orderno', 'order_no', 'transaction_id', 'txn_id', 'sale_id'],
-        customer_id: ['customer id', 'customerid', 'cust_id', 'customer_number'],
-        product_cost: ['cost', 'cogs', 'product_cost', 'unit_cost'],
-        category: ['product_category', 'type', 'category', 'product_type'],
-        order_date: ['date', 'order_date', 'transaction_date', 'sale_date']
+        total_amount: ['total_amount', 'order_value', 'total sale', 'amount', 'revenue', 'net_revenue', 'order_total', 'transaction_amount', 'sales', 'sale_amount'],
+        profit: ['profit', 'gross_profit', 'net_profit', 'profit_amount'],
+        cost_amount: ['cost_amount', 'total_cost', 'cogs', 'cost_of_goods'],
+        quantity: ['quantity', 'qty', 'units', 'units_sold', 'quantity_ordered', 'item_count', 'count'],
+        sale_id: ['sale_id', 'order_id', 'orderno', 'order_no', 'transaction_id', 'txn_id'],
+        customer_id: ['customer_id', 'customerid', 'cust_id', 'customer_number'],
+        product_id: ['product_id', 'productid', 'prod_id', 'item_id'],
+        category: ['category', 'product_category', 'type', 'product_type'],
+        sale_date: ['sale_date', 'order_date', 'date', 'transaction_date'],
+        unit_price: ['unit_price', 'price', 'item_price'],
+        status: ['status', 'order_status', 'sale_status'],
+        payment_method: ['payment_method', 'payment_type', 'payment'],
+        shipping_cost: ['shipping_cost', 'shipping', 'delivery_cost'],
+        discount_amount: ['discount_amount', 'discount', 'discount_value'],
+        returned: ['returned', 'return_status', 'is_returned'],
+        lifetime_value: ['lifetime_value', 'ltv', 'clv', 'customer_value'],
+        acquisition_cost: ['acquisition_cost', 'cac', 'customer_acquisition_cost'],
+        segment: ['segment', 'customer_segment', 'customer_type'],
+        country: ['country', 'location', 'region'],
+        margin_percent: ['margin_percent', 'profit_margin', 'margin']
+      },
+      ecommerce: {
+        total_amount: ['total_amount', 'order_value', 'revenue', 'sales'],
+        profit: ['profit', 'gross_profit'],
+        quantity: ['quantity', 'qty', 'units'],
+        sale_id: ['sale_id', 'order_id'],
+        customer_id: ['customer_id'],
+        product_id: ['product_id'],
+        category: ['category'],
+        lifetime_value: ['lifetime_value', 'ltv', 'clv'],
+        acquisition_cost: ['acquisition_cost', 'cac']
       },
       saas: {
         subscription_value: ['mrr', 'arr', 'subscription_value', 'monthly_revenue', 'subscription_amount'],
@@ -691,7 +1091,6 @@ class KpiExtractionService {
         plan: ['plan', 'tier', 'subscription_plan', 'package'],
         cac: ['cac', 'customer_acquisition_cost', 'acquisition_cost']
       },
-      ecommerce: {},
       healthcare: {},
       manufacturing: {},
       logistics: {},

@@ -1,0 +1,11 @@
+customer_id,name,email,segment,country,join_date,lifetime_value,total_orders,acquisition_cost,status
+C001,John Doe,john@example.com,Premium,USA,2023-01-15,2259.93,5,150.00,active
+C002,Jane Smith,jane@example.com,Standard,UK,2023-02-20,1749.93,4,120.00,active
+C003,Bob Johnson,bob@example.com,Premium,Canada,2023-03-10,1279.96,3,150.00,active
+C004,Alice Brown,alice@example.com,Standard,USA,2023-04-05,1599.97,2,100.00,active
+C005,Charlie Wilson,charlie@example.com,Premium,UK,2023-05-12,1379.98,2,150.00,active
+C006,Diana Prince,diana@example.com,Standard,Australia,2023-06-18,449.97,1,100.00,active
+C007,Ethan Hunt,ethan@example.com,Premium,USA,2023-07-22,209.97,2,150.00,active
+C008,Fiona Green,fiona@example.com,Standard,Canada,2023-08-30,89.99,1,100.00,active
+C009,George Martin,george@example.com,Premium,UK,2023-09-14,199.96,1,150.00,active
+C010,Hannah Lee,hannah@example.com,Standard,USA,2023-10-25,174.95,1,100.00,churned

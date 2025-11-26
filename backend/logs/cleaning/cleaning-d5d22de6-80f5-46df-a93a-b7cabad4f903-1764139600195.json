@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-11-26T06:46:40.194Z",
+  "jobId": "d5d22de6-80f5-46df-a93a-b7cabad4f903",
+  "uploadId": "fe4eb7df-8f40-443a-9720-54b803e1c5dc",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 10,
+    "columns": [
+      "cost",
+      "name",
+      "price",
+      "stock",
+      "category",
+      "supplier",
+      "product_id",
+      "margin_percent"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 10,
+    "columns": [
+      "cost",
+      "name",
+      "price",
+      "stock",
+      "category",
+      "supplier",
+      "product_id",
+      "margin_percent"
+    ]
+  },
+  "config": {},
+  "duration": 5,
+  "status": "success",
+  "error": null
+}

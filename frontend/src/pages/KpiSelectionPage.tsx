@@ -54,28 +54,41 @@ const KpiSelectionPage: React.FC = () => {
         setLoading(true);
         setError(null);
 
+        console.log('Extracting KPIs with:', { cleaningJobId, domainJobId });
+
         const response = await fetch('http://localhost:5001/api/v1/kpi/extract', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            cleaningJobId: parseInt(cleaningJobId),
-            domainJobId: parseInt(domainJobId),
+            cleaningJobId: cleaningJobId,
+            domainJobId: domainJobId,
           }),
         });
 
+        console.log('Response status:', response.status);
+
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to extract KPIs');
+          console.error('Error response:', errorData);
+          throw new Error(errorData.error || errorData.message || 'Failed to extract KPIs');
         }
 
-        const data = await response.json();
+        const result = await response.json();
+        console.log('API Response:', result);
+        
+        const data = result.data || result;
+        console.log('KPI Data:', data);
+        
         setKpiData(data);
         
         // Pre-select top 10 KPIs
-        const top10Ids = new Set<string>(data.top10Kpis.map((kpi: KpiDefinition) => kpi.kpi_id));
-        setSelectedKpis(top10Ids);
+        if (data.top10Kpis && data.top10Kpis.length > 0) {
+          const top10Ids = new Set<string>(data.top10Kpis.map((kpi: KpiDefinition) => kpi.kpi_id));
+          setSelectedKpis(top10Ids);
+          console.log('Auto-selected KPIs:', Array.from(top10Ids));
+        }
         
       } catch (err: any) {
         console.error('KPI extraction error:', err);
@@ -124,13 +137,49 @@ const KpiSelectionPage: React.FC = () => {
         throw new Error(errorData.message || 'Failed to save KPI selection');
       }
 
-      // TODO: Navigate to Module 5 (Dashboard Creation)
-      // For now, show success message
-      alert(`Successfully selected ${selectedKpis.size} KPIs! Dashboard creation coming soon.`);
+      const selectionResult = await response.json();
+      console.log('KPI selection saved:', selectionResult);
+
+      // Generate dashboard with selected KPIs
+      console.log('Generating dashboard...');
+      const dashboardResponse = await fetch('http://localhost:5001/api/dashboard/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          datasetId: cleaningJobId, // Using cleaning job ID as dataset ID
+          options: {
+            kpiJobId: kpiData!.kpiJobId,
+            selectedKpiIds: Array.from(selectedKpis),
+            domainJobId: domainJobId,
+          },
+        }),
+      });
+
+      if (!dashboardResponse.ok) {
+        const errorData = await dashboardResponse.json();
+        throw new Error(errorData.error || 'Failed to generate dashboard');
+      }
+
+      const dashboardResult = await dashboardResponse.json();
+      console.log('Dashboard generated:', dashboardResult);
+
+      // Navigate to Module 5 (Dashboard View)
+      // Use cleaningJobId (not generated dashboard ID) for GET /api/dashboard/:datasetId
+      navigate(`/dashboard/${cleaningJobId}`, {
+        state: {
+          kpiJobId: kpiData!.kpiJobId,
+          cleaningJobId: cleaningJobId,
+          domainJobId: domainJobId,
+          selectedKpiIds: Array.from(selectedKpis),
+          dashboardId: dashboardResult.data?.id, // Store generated ID in state
+        }
+      });
       
     } catch (err: any) {
-      console.error('KPI selection error:', err);
-      setError(err.message || 'Failed to save KPI selection');
+      console.error('KPI selection/dashboard generation error:', err);
+      setError(err.message || 'Failed to save KPI selection and generate dashboard');
     } finally {
       setSubmitting(false);
     }
@@ -449,11 +498,11 @@ const KpiSelectionPage: React.FC = () => {
             {submitting ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
+                Generating Dashboard...
               </>
             ) : (
               <>
-                Confirm {selectedKpis.size} KPI{selectedKpis.size !== 1 ? 's' : ''} & Continue →
+                Generate Dashboard ({selectedKpis.size} KPI{selectedKpis.size !== 1 ? 's' : ''}) →
               </>
             )}
           </button>

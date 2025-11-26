@@ -6,6 +6,14 @@ import CleaningConfigPage from './pages/CleaningConfigPage'
 import CleaningReportPage from './pages/CleaningReportPage'
 import DomainDetectionPage from './pages/DomainDetectionPage'
 import KpiSelectionPage from './pages/KpiSelectionPage'
+import DashboardViewPage from './pages/DashboardViewPage'
+import ProjectUploadPage from './pages/ProjectUploadPage'
+import ProjectResultsPage from './pages/ProjectResultsPage'
+import ProjectCleaningPage from './pages/ProjectCleaningPage'
+import ProjectDomainDetectionPage from './pages/ProjectDomainDetectionPage'
+import ProjectRelationshipsPage from './pages/ProjectRelationshipsPage'
+import ProjectKpiSelectionPage from './pages/ProjectKpiSelectionPage'
+import ProjectDashboardPage from './pages/ProjectDashboardPage'
 import { UploadProvider } from './hooks/useUpload'
 
 function App() {
@@ -39,11 +47,21 @@ function App() {
           <Routes>
             <Route path="/" element={<UploadPage />} />
             <Route path="/upload" element={<UploadPage />} />
+            <Route path="/project/upload" element={<ProjectUploadPage />} />
+            <Route path="/project/:projectId/results" element={<ProjectResultsPage />} />
+            <Route path="/project/:projectId/clean" element={<ProjectCleaningPage />} />
+            <Route path="/project/:projectId/domain" element={<ProjectDomainDetectionPage />} />
+            <Route path="/project/:projectId/relationships" element={<ProjectRelationshipsPage />} />
+            <Route path="/project/:projectId/kpi" element={<ProjectKpiSelectionPage />} />
+            <Route path="/project/:projectId/domain" element={<ProjectDomainDetectionPage />} />
+            <Route path="/project/:projectId/kpi" element={<ProjectKpiSelectionPage />} />
+            <Route path="/project/:projectId/dashboard" element={<ProjectDashboardPage />} />
             <Route path="/data/:uploadId" element={<DataViewPage />} />
             <Route path="/clean/:uploadId" element={<CleaningConfigPage />} />
             <Route path="/cleaning/:jobId/report" element={<CleaningReportPage />} />
             <Route path="/domain/:jobId" element={<DomainDetectionPage />} />
             <Route path="/kpi/:domainJobId" element={<KpiSelectionPage />} />
+            <Route path="/dashboard/:datasetId" element={<DashboardViewPage />} />
           </Routes>
         </div>
       </UploadProvider>

@@ -1,0 +1,11 @@
+product_id,product_name,category,subcategory,price,cost,supplier
+P001,Laptop Pro X1,Electronics,Computers,1299.99,850.00,TechSupply Co
+P002,Wireless Mouse,Electronics,Accessories,29.99,12.00,TechSupply Co
+P003,Office Desk,Furniture,Office,499.99,280.00,FurniWorld
+P004,Ergonomic Chair,Furniture,Office,349.99,180.00,FurniWorld
+P005,Monitor 27inch,Electronics,Displays,399.99,220.00,TechSupply Co
+P006,Keyboard Mech,Electronics,Accessories,89.99,35.00,TechSupply Co
+P007,Bookshelf,Furniture,Storage,199.99,95.00,FurniWorld
+P008,Desk Lamp,Electronics,Lighting,59.99,22.00,LightCorp
+P009,Notebook Set,Office Supplies,Stationery,19.99,8.00,PaperPro
+P010,Pen Pack,Office Supplies,Stationery,9.99,3.50,PaperPro

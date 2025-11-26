@@ -24,6 +24,11 @@ class ImputationService {
 
     // Process each column in config
     for (const [column, strategy] of Object.entries(config)) {
+      // Skip null strategies (e.g., for ID columns)
+      if (strategy === null || strategy === undefined) {
+        continue;
+      }
+
       const missingCount = this._countMissing(result, column);
       if (missingCount === 0) continue;
 

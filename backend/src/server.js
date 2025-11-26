@@ -14,6 +14,9 @@ import uploadRoutes from './routes/upload.js'
 import cleaningRoutes from './routes/cleaning.routes.js'
 import domainRoutes from './routes/domain.routes.js'
 import kpiRoutes from './routes/kpi.routes.js'
+import dashboardRoutes from './routes/dashboardRoutes.js'
+import projectRoutes from './routes/projectRoutes.js'
+import testRoutes from './routes/testRoutes.js'
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -51,6 +54,9 @@ app.use('/api/v1/upload', uploadRoutes)
 app.use('/api/v1/clean', cleaningRoutes)
 app.use('/api/v1/domain', domainRoutes)
 app.use('/api/v1/kpi', kpiRoutes)
+app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/projects', projectRoutes)
+app.use('/api/test', testRoutes)
 
 // Root endpoint
 app.get('/', (req, res) => {

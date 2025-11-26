@@ -7,8 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Project {
+  id                String        @id @default(uuid())
+  name              String
+  description       String?       @db.Text
+  status            String        @default("active") // active, completed, archived
+  fileCount         Int           @default(0)
+  totalRecords      Int           @default(0)
+  combinedDomain    String?       // Detected domain across all files
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  uploads           Upload[]
+  cleaningJobs      CleaningJob[]
+  domainJobs        DomainDetectionJob[]
+  kpiJobs           KpiExtractionJob[]
+
+  @@map("projects")
+}
+
 model Upload {
   id                String        @id @default(uuid())
+  projectId         String
+  project           Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   fileName          String
   originalName      String
   fileType          String
@@ -26,6 +46,7 @@ model Upload {
   dataRows          DataRow[]
   cleaningJobs      CleaningJob[]
 
+  @@index([projectId])
   @@map("uploads")
 }
 
@@ -43,6 +64,8 @@ model DataRow {
 
 model CleaningJob {
   id                String                @id @default(uuid())
+  projectId         String
+  project           Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
   uploadId          String
   upload            Upload                @relation(fields: [uploadId], references: [id], onDelete: Cascade)
   status            String                @default("running") // running, completed, failed
@@ -54,8 +77,8 @@ model CleaningJob {
   updatedAt         DateTime              @updatedAt
   completedAt       DateTime?
   cleaningLogs      CleaningLog[]
-  domainJobs        DomainDetectionJob[]
 
+  @@index([projectId])
   @@index([uploadId])
   @@map("cleaning_jobs")
 }
@@ -92,8 +115,9 @@ model CleanedData {
 
 model DomainDetectionJob {
   id              String              @id @default(uuid())
-  cleaningJobId   String
-  cleaningJob     CleaningJob         @relation(fields: [cleaningJobId], references: [id], onDelete: Cascade)
+  projectId       String
+  project         Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  cleaningJobIds  Json                // Array of cleaning job IDs analyzed together
   detectedDomain  String              // retail, ecommerce, saas, healthcare, manufacturing, logistics, financial, education
   confidence      Float               // 0-100
   decision        String              // auto_detect, show_top_3, manual_select, user_selected
@@ -105,15 +129,17 @@ model DomainDetectionJob {
   updatedAt       DateTime            @updatedAt
   kpiJobs         KpiExtractionJob[]
 
-  @@index([cleaningJobId])
+  @@index([projectId])
   @@map("domain_detection_jobs")
 }
 
 model KpiExtractionJob {
   id                    String         @id @default(uuid())
+  projectId             String
+  project               Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   domainJobId           String
   domainJob             DomainDetectionJob @relation(fields: [domainJobId], references: [id], onDelete: Cascade)
-  cleaningJobId         String
+  cleaningJobIds        Json           // Array of cleaning job IDs used for KPI extraction
   domain                String         // retail, ecommerce, saas, etc.
   totalKpisInLibrary    Int            // Total KPIs in library for domain
   feasibleCount         Int            // KPIs that can be calculated
@@ -128,8 +154,8 @@ model KpiExtractionJob {
   updatedAt             DateTime       @updatedAt
   selectedKpis          SelectedKpi[]
 
+  @@index([projectId])
   @@index([domainJobId])
-  @@index([cleaningJobId])
   @@map("kpi_extraction_jobs")
 }
 
@@ -148,6 +174,51 @@ model SelectedKpi {
 
   @@index([kpiJobId])
   @@map("selected_kpis")
+}
+
+model Dashboard {
+  id          String   @id @default(uuid())
+  projectId   String
+  title       String
+  description String?  @db.Text
+  config      Json     // Stores KPIs, charts, metadata
+  status      String   @default("active") // active, archived
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("dashboards")
+}
+
+model Relationship {
+  id               String   @id @default(uuid())
+  projectId        String
+  sourceTable      String
+  sourceColumn     String
+  targetTable      String
+  targetColumn     String
+  relationshipType String   @default("one-to-many") // one-to-one, one-to-many, many-to-many
+  matchRate        Float    // 0.0 to 1.0
+  status           String   @default("active") // active, inactive
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("relationships")
+}
+
+model UnifiedView {
+  id          String   @id @default(uuid())
+  projectId   String
+  name        String
+  description String?  @db.Text
+  viewQuery   String   @db.Text // SQL query to create the view
+  status      String   @default("active") // active, inactive
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId])
+  @@map("unified_views")
 }
 
 

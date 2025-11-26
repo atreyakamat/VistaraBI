@@ -63,7 +63,7 @@ export const getKpiLibrary = async (req, res) => {
 
 export const selectKpis = async (req, res) => {
   try {
-    const { kpiJobId, selectedKpiIds } = req.body;
+    const { kpiJobId, selectedKpiIds, manualKpis } = req.body;
 
     if (!kpiJobId || !selectedKpiIds || !Array.isArray(selectedKpiIds)) {
       return res.status(400).json({ 
@@ -71,7 +71,7 @@ export const selectKpis = async (req, res) => {
       });
     }
 
-    const selection = await kpiExtractionService.selectKpis(kpiJobId, selectedKpiIds);
+    const selection = await kpiExtractionService.selectKpis(kpiJobId, selectedKpiIds, manualKpis);
 
     return res.status(200).json({
       success: true,

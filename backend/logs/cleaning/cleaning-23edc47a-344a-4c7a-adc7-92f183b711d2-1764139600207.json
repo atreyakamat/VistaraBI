@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-11-26T06:46:40.207Z",
+  "jobId": "23edc47a-344a-4c7a-adc7-92f183b711d2",
+  "uploadId": "7670f3b6-6b47-45b3-baac-9e343c379d5b",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 20,
+    "columns": [
+      "profit",
+      "status",
+      "sale_id",
+      "quantity",
+      "returned",
+      "sale_date",
+      "product_id",
+      "unit_price",
+      "cost_amount",
+      "customer_id",
+      "total_amount",
+      "shipping_cost",
+      "payment_method",
+      "discount_amount"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 20,
+    "columns": [
+      "profit",
+      "status",
+      "sale_id",
+      "quantity",
+      "returned",
+      "sale_date",
+      "product_id",
+      "unit_price",
+      "cost_amount",
+      "customer_id",
+      "total_amount",
+      "shipping_cost",
+      "payment_method",
+      "discount_amount"
+    ]
+  },
+  "config": {},
+  "duration": 7,
+  "status": "success",
+  "error": null
+}

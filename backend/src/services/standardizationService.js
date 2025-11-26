@@ -68,6 +68,8 @@ class StandardizationService {
         return this._standardizeDate(value, format);
       case 'currency':
         return this._standardizeCurrency(value, format);
+      case 'text':
+        return this._standardizeText(value, format);
       default:
         throw new Error(`Unknown standardization type: ${type}`);
     }
@@ -75,7 +77,7 @@ class StandardizationService {
 
   /**
    * Standardize phone number
-   * Format options: 'E164' (+1234567890), 'NATIONAL' ((123) 456-7890), 'DIGITS' (1234567890)
+   * Format options: 'E164' (+1234567890), 'NATIONAL' ((123) 456-7890), 'DIGITS' (1234567890), 'INTL_DASH' (+91-98765-43210)
    */
   _standardizePhone(value, format = 'E164') {
     const str = String(value);
@@ -85,26 +87,45 @@ class StandardizationService {
       throw new Error('Phone number too short');
     }
 
+    // Handle Indian phone numbers (10 digits -> add 91 country code)
+    let phoneDigits = digits;
+    if (digits.length === 10) {
+      phoneDigits = '91' + digits; // Assume India
+    } else if (digits.length === 11 && digits[0] === '1') {
+      // US number with country code
+      phoneDigits = digits;
+    } else if (digits.length > 12) {
+      // Trim to last 12 digits
+      phoneDigits = digits.slice(-12);
+    }
+
     switch (format) {
       case 'E164':
-        // International format: +1234567890
-        return `+${digits}`;
+        // International format: +919876543210
+        return `+${phoneDigits}`;
+      
+      case 'INTL_DASH':
+        // International with dashes: +91-98765-43210
+        const cc = phoneDigits.slice(0, 2);
+        const part1 = phoneDigits.slice(2, 7);
+        const part2 = phoneDigits.slice(7, 12);
+        return `+${cc}-${part1}-${part2}`;
       
       case 'NATIONAL':
         // US format: (123) 456-7890
-        if (digits.length === 10) {
-          return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-        } else if (digits.length === 11 && digits[0] === '1') {
-          return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+        if (phoneDigits.length === 10) {
+          return `(${phoneDigits.slice(0, 3)}) ${phoneDigits.slice(3, 6)}-${phoneDigits.slice(6)}`;
+        } else if (phoneDigits.length === 11 && phoneDigits[0] === '1') {
+          return `(${phoneDigits.slice(1, 4)}) ${phoneDigits.slice(4, 7)}-${phoneDigits.slice(7)}`;
         }
-        return `(${digits.slice(-10, -7)}) ${digits.slice(-7, -4)}-${digits.slice(-4)}`;
+        return `(${phoneDigits.slice(-10, -7)}) ${phoneDigits.slice(-7, -4)}-${phoneDigits.slice(-4)}`;
       
       case 'DIGITS':
         // Plain digits
-        return digits;
+        return phoneDigits;
       
       default:
-        return `+${digits}`;
+        return `+${phoneDigits}`;
     }
   }
 
@@ -187,30 +208,102 @@ class StandardizationService {
   /**
    * Standardize currency
    * Format options: 'USD' ($1,234.56), 'EUR' (1.234,56 €), 'NUMBER' (1234.56)
+   * Handles parentheses for negatives, European format (1.234,56), etc.
    */
   _standardizeCurrency(value, format = 'NUMBER') {
     const str = String(value).trim();
     
-    // Remove currency symbols and parse
-    const cleaned = str.replace(/[$€£¥,\s]/g, '');
+    // Handle negatives in parentheses: (500) -> -500
+    let isNegative = false;
+    let cleaned = str;
+    if (str.startsWith('(') && str.endsWith(')')) {
+      isNegative = true;
+      cleaned = str.slice(1, -1);
+    }
+
+    // Remove currency symbols
+    cleaned = cleaned.replace(/[$€£¥₹]/g, '').trim();
+
+    // Handle European format (1.234,56 -> 1234.56)
+    if (cleaned.includes(',') && cleaned.includes('.')) {
+      const lastComma = cleaned.lastIndexOf(',');
+      const lastDot = cleaned.lastIndexOf('.');
+      if (lastComma > lastDot) {
+        // European: 1.234,56
+        cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+      } else {
+        // American: 1,234.56
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    } else if (cleaned.includes(',')) {
+      // Only commas: could be thousands separator or decimal
+      const parts = cleaned.split(',');
+      if (parts.length === 2 && parts[1].length === 2) {
+        // Likely European decimal: 1234,56
+        cleaned = cleaned.replace(',', '.');
+      } else {
+        // Thousands separator: 1,234,567
+        cleaned = cleaned.replace(/,/g, '');
+      }
+    }
+
     const num = parseFloat(cleaned);
     
     if (isNaN(num)) {
       throw new Error('Invalid currency value');
     }
 
+    const finalNum = isNegative ? -num : num;
+
     switch (format) {
       case 'USD':
-        return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return `$${finalNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       
       case 'EUR':
-        return `${num.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+        return `${finalNum.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
       
       case 'NUMBER':
-        return parseFloat(num.toFixed(2));
+        return parseFloat(finalNum.toFixed(2));
       
       default:
-        return parseFloat(num.toFixed(2));
+        return parseFloat(finalNum.toFixed(2));
+    }
+  }
+
+  /**
+   * Standardize text
+   * Format options: 'lower', 'upper', 'title', 'sentence'
+   * Trims whitespace and collapses multiple spaces
+   */
+  _standardizeText(value, format = 'title') {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    let text = String(value).trim();
+    
+    // Collapse multiple spaces into single space
+    text = text.replace(/\s+/g, ' ');
+
+    switch (format) {
+      case 'lower':
+        return text.toLowerCase();
+      
+      case 'upper':
+        return text.toUpperCase();
+      
+      case 'title':
+        // Capitalize first letter of each word
+        return text.replace(/\w\S*/g, (word) => {
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        });
+      
+      case 'sentence':
+        // Capitalize first letter of first word only
+        return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+      
+      default:
+        return text;
     }
   }
 

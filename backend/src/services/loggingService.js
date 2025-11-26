@@ -177,6 +177,79 @@ class LoggingService {
   }
 
   /**
+   * Create comprehensive JSON log file per blueprint specification
+   * @param {Object} data - Complete pipeline data
+   * @returns {string} Path to generated JSON file
+   */
+  async createComprehensiveLog(data) {
+    const {
+      cleaningJobId,
+      uploadId,
+      datasetName,
+      startedAt,
+      completedAt,
+      beforeStats,
+      afterStats,
+      operations = []
+    } = data;
+
+    const duration = completedAt 
+      ? Math.floor((new Date(completedAt) - new Date(startedAt)) / 1000)
+      : 0;
+
+    const comprehensiveLog = {
+      cleaning_job_id: cleaningJobId,
+      upload_id: uploadId,
+      dataset_name: datasetName,
+      started_at: new Date(startedAt).toISOString(),
+      completed_at: completedAt ? new Date(completedAt).toISOString() : null,
+      total_duration_seconds: duration,
+      before: {
+        total_rows: beforeStats.totalRows || 0,
+        total_columns: beforeStats.columns?.length || 0,
+        null_count: beforeStats.nullCount || 0,
+        duplicate_rows: beforeStats.duplicateRows || 0,
+        flagged_outliers: beforeStats.flaggedOutliers || 0
+      },
+      operations: operations.map((op, index) => ({
+        sequence: index + 1,
+        timestamp: op.timestamp || new Date().toISOString(),
+        operation: op.operation,
+        column: op.column || null,
+        data_type: op.dataType || null,
+        method: op.method || null,
+        parameters: op.parameters || {},
+        rows_affected: op.rowsAffected || 0,
+        outliers_flagged: op.outliersFlagged || 0,
+        outlier_values: op.outlierValues || [],
+        duplicates_removed: op.duplicatesRemoved || 0,
+        strategy: op.strategy || null,
+        status: op.status || 'completed'
+      })),
+      after: {
+        total_rows: afterStats.totalRows || 0,
+        total_columns: afterStats.columns?.length || 0,
+        null_count: afterStats.nullCount || 0,
+        duplicate_rows: afterStats.duplicateRows || 0,
+        flagged_outliers: afterStats.flaggedOutliers || 0
+      }
+    };
+
+    try {
+      await this.init();
+      const filename = `comprehensive-cleaning-${cleaningJobId}-${Date.now()}.json`;
+      const filepath = path.join(this.logDir, filename);
+      
+      await fs.writeFile(filepath, JSON.stringify(comprehensiveLog, null, 2));
+      
+      return filepath;
+    } catch (err) {
+      console.error('Failed to create comprehensive log:', err);
+      throw err;
+    }
+  }
+
+  /**
    * Delete old logs
    * @param {number} days - Delete logs older than this many days
    */
@@ -196,6 +269,27 @@ class LoggingService {
       console.log(`Deleted logs older than ${days} days`);
     } catch (err) {
       console.error('Failed to cleanup old logs:', err);
+    }
+  }
+
+  /**
+   * General purpose logging methods
+   */
+  info(message, data = {}) {
+    console.log(`[INFO] ${message}`, data);
+  }
+
+  error(message, data = {}) {
+    console.error(`[ERROR] ${message}`, data);
+  }
+
+  warn(message, data = {}) {
+    console.warn(`[WARN] ${message}`, data);
+  }
+
+  debug(message, data = {}) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(`[DEBUG] ${message}`, data);
     }
   }
 }

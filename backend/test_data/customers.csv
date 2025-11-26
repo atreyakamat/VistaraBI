@@ -1,0 +1,11 @@
+customer_id,name,email,segment,city,country,join_date
+C001,John Smith,john.smith@example.com,Premium,New York,USA,2023-01-15
+C002,Sarah Johnson,sarah.j@example.com,Standard,Los Angeles,USA,2023-02-20
+C003,Michael Chen,m.chen@example.com,Premium,San Francisco,USA,2023-03-10
+C004,Emily Davis,emily.d@example.com,Standard,Chicago,USA,2023-04-05
+C005,David Wilson,d.wilson@example.com,Enterprise,Boston,USA,2023-05-12
+C006,Lisa Anderson,lisa.a@example.com,Premium,Seattle,USA,2023-06-18
+C007,James Brown,j.brown@example.com,Standard,Miami,USA,2023-07-22
+C008,Maria Garcia,maria.g@example.com,Premium,Houston,USA,2023-08-30
+C009,Robert Taylor,r.taylor@example.com,Enterprise,Phoenix,USA,2023-09-14
+C010,Jennifer Lee,jennifer.l@example.com,Standard,Denver,USA,2023-10-08

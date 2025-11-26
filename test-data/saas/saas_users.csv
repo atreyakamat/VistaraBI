@@ -1,0 +1,101 @@
+user_id,email,company_name,industry,signup_date,last_login,total_logins,feature_usage_score,churn_risk,account_age_days
+USER001,admin@techcorp.com,TechCorp Industries,Technology,2024-01-15,2024-11-24,156,92,Low,314
+USER002,manager@startupco.io,StartupCo,SaaS,2024-02-20,2024-11-23,89,78,Medium,278
+USER003,exec@enterprise.com,Enterprise Solutions,Enterprise,2024-01-08,2024-11-24,203,95,Low,321
+USER004,owner@smallbiz.net,Small Biz Inc,Retail,2024-03-12,2024-11-20,45,65,High,258
+USER005,ceo@megacorp.com,MegaCorp Global,Finance,2024-01-25,2024-11-24,187,98,Low,304
+USER006,director@agency.co,Creative Agency,Marketing,2024-04-05,2024-11-22,72,74,Medium,233
+USER007,vp@consulting.com,Business Consulting,Consulting,2024-02-14,2024-11-23,124,85,Low,283
+USER008,founder@tinystartup.io,Tiny Startup,Technology,2024-05-22,2024-11-19,38,58,High,186
+USER009,cto@innovation.net,Innovation Labs,Research,2024-01-30,2024-11-24,195,94,Low,299
+USER010,pm@productco.com,ProductCo,SaaS,2024-03-18,2024-11-21,67,71,Medium,251
+USER011,admin@solutions.biz,Solutions Partners,Consulting,2024-02-08,2024-11-23,145,88,Low,289
+USER012,manager@freelance.io,Freelance Hub,Services,2024-04-30,2024-10-15,23,42,High,208
+USER013,exec@growth.com,Growth Ventures,VC,2024-01-20,2024-11-24,178,91,Low,309
+USER014,lead@marketing.co,Marketing Masters,Marketing,2024-05-15,2024-11-22,61,69,Medium,193
+USER015,coo@operations.net,Operations Pro,Logistics,2024-01-12,2024-11-23,167,89,Low,317
+USER016,dev@coders.io,Coders Guild,Technology,2024-03-25,2024-11-20,49,63,High,244
+USER017,president@finance.com,FinanceFirst,Finance,2024-02-05,2024-11-24,189,93,Low,292
+USER018,analyst@data.co,DataAnalytics Inc,Analytics,2024-04-18,2024-11-21,58,68,Medium,220
+USER019,director@media.net,Media Group,Media,2024-01-28,2024-11-24,201,96,Low,301
+USER020,owner@shop.com,Shop Local,Retail,2024-03-08,2024-10-08,31,48,High,261
+USER021,vp@enterprise.io,Enterprise Edge,Enterprise,2024-02-22,2024-11-23,152,87,Low,275
+USER022,manager@team.co,Team Dynamics,HR,2024-05-02,2024-11-22,76,73,Medium,206
+USER023,ceo@scaling.com,Scaling Solutions,SaaS,2024-01-18,2024-11-24,171,90,Low,311
+USER024,lead@sales.net,Sales Champions,Sales,2024-04-12,2024-11-19,42,61,High,226
+USER025,founder@unicorn.io,Unicorn Startup,Technology,2024-02-10,2024-11-24,198,97,Low,287
+USER026,admin@nonprofit.org,Nonprofit Network,Nonprofit,2024-03-28,2024-11-21,69,72,Medium,241
+USER027,exec@logistics.com,Logistics Leaders,Logistics,2024-01-22,2024-11-23,161,86,Low,307
+USER028,dev@apps.io,App Makers,Technology,2024-05-08,2024-11-20,35,56,High,200
+USER029,cto@platform.net,Platform Tech,SaaS,2024-02-16,2024-11-24,183,92,Low,281
+USER030,manager@services.co,Service Pros,Services,2024-04-20,2024-11-22,63,70,Medium,218
+USER031,owner@startup.io,New Startup,Technology,2024-01-26,2024-11-15,28,45,Trial,303
+USER032,lead@micro.com,Micro Business,Retail,2024-03-14,2024-11-21,54,66,High,255
+USER033,ceo@ventures.net,Venture Capital,VC,2024-02-28,2024-11-24,193,94,Low,269
+USER034,pm@product.io,Product Innovators,SaaS,2024-05-12,2024-11-22,57,67,Medium,196
+USER035,director@consulting.biz,Consulting Elite,Consulting,2024-01-10,2024-11-23,174,89,Low,319
+USER036,analyst@research.com,Research Labs,Research,2024-03-22,2024-11-20,46,62,High,247
+USER037,vp@insurance.net,Insurance Pro,Insurance,2024-02-18,2024-11-24,169,88,Low,279
+USER038,manager@marketing.io,Marketing Boost,Marketing,2024-04-26,2024-11-10,25,40,Trial,212
+USER039,exec@content.com,Content Creators,Media,2024-01-14,2024-11-24,207,95,Low,315
+USER040,founder@ecommerce.co,Ecommerce Hub,Ecommerce,2024-03-06,2024-11-21,52,65,Medium,263
+USER041,cto@security.net,Security Systems,Cybersecurity,2024-02-12,2024-11-23,181,91,Low,285
+USER042,lead@design.io,Design Studio,Design,2024-05-04,2024-11-22,73,74,Medium,204
+USER043,president@realestate.com,RealEstate Pro,RealEstate,2024-01-16,2024-11-24,165,87,Low,313
+USER044,owner@cafe.net,Cafe Chain,Hospitality,2024-04-08,2024-10-20,19,38,High,230
+USER045,ceo@healthcare.io,HealthTech,Healthcare,2024-02-24,2024-11-24,177,90,Low,273
+USER046,admin@education.com,EduTech Platform,Education,2024-03-30,2024-11-22,71,73,Medium,239
+USER047,director@manufacturing.net,Manufacturing Co,Manufacturing,2024-01-24,2024-11-23,163,86,Low,305
+USER048,manager@retail.io,Retail Chain,Retail,2024-05-16,2024-11-21,39,59,High,192
+USER049,exec@aviation.com,Aviation Systems,Aviation,2024-02-02,2024-11-24,205,96,Low,295
+USER050,vp@travel.net,Travel Agency,Travel,2024-04-14,2024-11-22,66,71,Medium,224
+USER051,cto@blockchain.io,Blockchain Tech,Blockchain,2024-01-06,2024-11-23,179,90,Low,323
+USER052,founder@gaming.com,Gaming Studio,Gaming,2024-03-20,2024-11-20,48,64,High,249
+USER053,ceo@autotech.net,AutoTech,Automotive,2024-02-26,2024-11-24,191,93,Low,271
+USER054,pm@social.io,Social Platform,Social Media,2024-05-06,2024-11-22,60,69,Medium,202
+USER055,director@energy.com,Energy Solutions,Energy,2024-01-04,2024-11-23,175,89,Low,325
+USER056,analyst@finance.net,Financial Analytics,Finance,2024-04-22,2024-11-12,22,41,Trial,216
+USER057,president@legal.io,Legal Services,Legal,2024-02-14,2024-11-24,187,92,Low,283
+USER058,manager@hr.com,HR Solutions,HR,2024-03-16,2024-11-21,68,72,Medium,253
+USER059,exec@construction.net,Construction Co,Construction,2024-01-20,2024-11-23,173,88,Low,309
+USER060,owner@boutique.io,Fashion Boutique,Fashion,2024-05-10,2024-11-22,55,67,High,198
+USER061,cto@iot.com,IoT Innovations,IoT,2024-02-06,2024-11-24,185,91,Low,291
+USER062,lead@advertising.net,Ad Agency,Advertising,2024-04-16,2024-11-21,64,70,Medium,222
+USER063,ceo@biotech.io,BioTech Labs,Biotech,2024-01-08,2024-11-23,199,94,Low,321
+USER064,founder@podcast.com,Podcast Network,Media,2024-03-24,2024-10-10,27,44,High,245
+USER065,vp@telecom.net,Telecom Services,Telecom,2024-02-20,2024-11-24,189,92,Low,277
+USER066,admin@community.io,Community Platform,Social,2024-05-14,2024-11-22,62,69,Medium,194
+USER067,director@pharma.com,Pharma Research,Pharmaceutical,2024-01-12,2024-11-23,170,88,Low,317
+USER068,manager@agriculture.net,AgriTech,Agriculture,2024-04-10,2024-11-21,41,60,High,228
+USER069,exec@sports.io,Sports Management,Sports,2024-02-22,2024-11-24,181,91,Low,275
+USER070,coo@supply.com,Supply Chain Co,Supply Chain,2024-03-26,2024-11-22,70,73,Medium,243
+USER071,cto@robotics.net,Robotics Inc,Robotics,2024-01-18,2024-11-23,166,87,Low,311
+USER072,founder@wellness.io,Wellness App,Health,2024-05-18,2024-11-08,18,36,Trial,190
+USER073,ceo@architecture.com,Architecture Firm,Architecture,2024-02-08,2024-11-24,176,89,Low,289
+USER074,pm@events.net,Event Planning,Events,2024-03-12,2024-11-21,74,74,Medium,257
+USER075,director@publishing.io,Publishing House,Publishing,2024-01-28,2024-11-23,168,87,Low,301
+USER076,analyst@insurance.com,Insurance Analytics,Insurance,2024-04-02,2024-11-20,44,61,High,236
+USER077,president@transport.net,Transport Co,Transportation,2024-02-16,2024-11-24,194,94,Low,281
+USER078,manager@fitness.io,Fitness Studios,Fitness,2024-05-20,2024-11-22,56,68,Medium,188
+USER079,exec@security.com,Security Consulting,Security,2024-01-10,2024-11-23,172,88,Low,319
+USER080,owner@bakery.net,Bakery Chain,Food,2024-03-08,2024-11-21,50,64,High,261
+USER081,cto@space.io,Space Tech,Aerospace,2024-02-28,2024-11-24,190,93,Low,269
+USER082,lead@branding.com,Brand Studio,Branding,2024-04-24,2024-10-18,20,39,High,214
+USER083,ceo@renewable.net,Renewable Energy,Energy,2024-01-14,2024-11-23,164,86,Low,315
+USER084,founder@mobile.io,Mobile Apps,Technology,2024-03-18,2024-11-22,53,66,Medium,251
+USER085,vp@cloud.com,Cloud Services,Cloud,2024-02-04,2024-11-24,203,96,Low,293
+USER086,admin@charity.net,Charity Foundation,Nonprofit,2024-05-12,2024-11-21,59,68,Medium,196
+USER087,director@fashion.io,Fashion Design,Fashion,2024-01-22,2024-11-23,159,85,Low,307
+USER088,manager@hotel.com,Hotel Chain,Hospitality,2024-04-06,2024-11-20,37,57,High,232
+USER089,exec@fintech.net,FinTech Solutions,FinTech,2024-02-18,2024-11-24,186,92,Low,279
+USER090,coo@warehouse.io,Warehouse Mgmt,Logistics,2024-03-28,2024-11-22,69,72,Medium,241
+USER091,cto@ai.com,AI Research,AI,2024-01-02,2024-11-23,210,97,Low,327
+USER092,founder@food.net,Food Delivery,Food,2024-05-08,2024-11-14,16,34,Trial,200
+USER093,ceo,greentech.io,GreenTech,CleanTech,2024-02-12,2024-11-24,180,90,Low,285
+USER094,pm@streaming.com,Streaming Service,Entertainment,2024-04-18,2024-11-21,65,70,Medium,220
+USER095,director@wine.net,Wine Distribution,Beverage,2024-01-26,2024-11-23,162,86,Low,303
+USER096,analyst@stock.io,Stock Trading,Finance,2024-03-14,2024-11-20,47,63,High,255
+USER097,president@dental.com,Dental Practice,Healthcare,2024-02-24,2024-11-24,175,89,Low,273
+USER098,manager@spa.net,Spa Network,Wellness,2024-05-22,2024-11-22,58,68,Medium,186
+USER099,exec@mining.io,Mining Operations,Mining,2024-01-16,2024-11-23,167,87,Low,313
+USER100,owner@coffeeshop.com,Coffee Chain,Food,2024-04-28,2024-10-22,21,40,High,210

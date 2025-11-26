@@ -7,19 +7,27 @@ import cleaningService from '../services/cleaningService.js';
 /**
  * Start cleaning pipeline
  * POST /api/v1/clean
+ * Supports both single file (uploadId) and multi-file (projectId)
  */
 export const startCleaning = async (req, res, next) => {
   try {
-    const { uploadId, config } = req.body;
+    const { uploadId, projectId, config } = req.body;
 
-    if (!uploadId) {
+    if (!uploadId && !projectId) {
       return res.status(400).json({ 
         success: false, 
-        error: 'uploadId is required' 
+        error: 'Either uploadId or projectId is required' 
       });
     }
 
-    const result = await cleaningService.startCleaning(uploadId, config || {});
+    let result;
+    if (projectId) {
+      // Multi-file cleaning for entire project
+      result = await cleaningService.startProjectCleaning(projectId, config || {});
+    } else {
+      // Single file cleaning
+      result = await cleaningService.startCleaning(uploadId, config || {});
+    }
 
     res.status(200).json({
       success: true,

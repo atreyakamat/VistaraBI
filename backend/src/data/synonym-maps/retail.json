@@ -1,6 +1,7 @@
 {
   "order_value": [
     "total_sale",
+    "totalsale",
     "total_sales",
     "sale_amount",
     "sales_amount",
@@ -31,6 +32,7 @@
     "amount_sold"
   ],
   "order_id": [
+    "orderid",
     "order_number",
     "orderno",
     "order_no",
@@ -45,6 +47,7 @@
     "ref_id"
   ],
   "customer_id": [
+    "customerid",
     "customer_number",
     "cust_id",
     "client_id",
@@ -57,6 +60,8 @@
     "cust_code"
   ],
   "product_cost": [
+    "unitprice",
+    "unit_price",
     "cost",
     "cogs",
     "cost_of_goods",

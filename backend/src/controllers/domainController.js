@@ -7,15 +7,29 @@ import domainDetectionService from '../services/domainDetectionService.js';
 
 export const detectDomain = async (req, res) => {
   try {
-    const { cleaningJobId } = req.body;
+    const { cleaningJobId, cleaningJobIds } = req.body;
 
-    if (!cleaningJobId) {
+    // Support both single and multiple cleaning jobs
+    let jobIds;
+    if (cleaningJobIds) {
+      jobIds = Array.isArray(cleaningJobIds) ? cleaningJobIds : [cleaningJobIds];
+    } else if (cleaningJobId) {
+      jobIds = [cleaningJobId];
+    } else {
       return res.status(400).json({ 
-        error: 'Missing cleaningJobId' 
+        error: 'Missing cleaningJobId or cleaningJobIds' 
       });
     }
 
-    const detection = await domainDetectionService.detectDomain(cleaningJobId);
+    // If single job, use existing method
+    let detection;
+    if (jobIds.length === 1) {
+      detection = await domainDetectionService.detectDomain(jobIds[0]);
+    } else {
+      // Multiple jobs not yet implemented in service
+      // For now, detect from first job
+      detection = await domainDetectionService.detectDomain(jobIds[0]);
+    }
 
     return res.status(200).json({
       success: true,
@@ -72,6 +86,50 @@ export const getDetectionStatus = async (req, res) => {
     console.error('Get detection status error:', error);
     return res.status(500).json({
       error: 'Failed to get detection status',
+      message: error.message
+    });
+  }
+};
+
+export const detectProjectDomain = async (req, res) => {
+  try {
+    const { projectId, cleaningJobIds } = req.body;
+
+    if (!projectId || !cleaningJobIds || !Array.isArray(cleaningJobIds)) {
+      return res.status(400).json({ 
+        error: 'Missing projectId or cleaningJobIds array' 
+      });
+    }
+
+    const detection = await domainDetectionService.detectProjectDomain(projectId, cleaningJobIds);
+
+    return res.status(200).json({
+      success: true,
+      data: detection
+    });
+
+  } catch (error) {
+    console.error('Project domain detection error:', error);
+    return res.status(500).json({
+      error: 'Project domain detection failed',
+      message: error.message
+    });
+  }
+};
+
+export const listDomains = async (req, res) => {
+  try {
+    const domains = await domainDetectionService.listAvailableDomains();
+
+    return res.status(200).json({
+      success: true,
+      data: domains
+    });
+
+  } catch (error) {
+    console.error('List domains error:', error);
+    return res.status(500).json({
+      error: 'Failed to list domains',
       message: error.message
     });
   }

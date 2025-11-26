@@ -3,7 +3,7 @@
  */
 
 import express from 'express';
-import { detectDomain, confirmDomain, getDetectionStatus } from '../controllers/domainController.js';
+import { detectDomain, confirmDomain, getDetectionStatus, detectProjectDomain, listDomains } from '../controllers/domainController.js';
 
 const router = express.Router();
 
@@ -13,6 +13,13 @@ const router = express.Router();
  * Body: { cleaningJobId }
  */
 router.post('/detect', detectDomain);
+
+/**
+ * POST /api/v1/domain/detect-project
+ * Detect domain across multiple files in a project
+ * Body: { projectId, cleaningJobIds }
+ */
+router.post('/detect-project', detectProjectDomain);
 
 /**
  * POST /api/v1/domain/confirm
@@ -26,5 +33,11 @@ router.post('/confirm', confirmDomain);
  * Get domain detection job status
  */
 router.get('/:domainJobId/status', getDetectionStatus);
+
+/**
+ * GET /api/v1/domain/list
+ * Get list of all available domains
+ */
+router.get('/list', listDomains);
 
 export default router;

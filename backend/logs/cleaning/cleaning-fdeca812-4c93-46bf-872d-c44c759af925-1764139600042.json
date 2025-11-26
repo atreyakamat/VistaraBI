@@ -1,0 +1,40 @@
+{
+  "timestamp": "2025-11-26T06:46:40.042Z",
+  "jobId": "fdeca812-4c93-46bf-872d-c44c759af925",
+  "uploadId": "3f6e0604-105b-46c4-8101-71307d55a1c6",
+  "operation": "pipeline_complete",
+  "beforeStats": {
+    "totalRows": 10,
+    "columns": [
+      "name",
+      "email",
+      "status",
+      "country",
+      "segment",
+      "join_date",
+      "customer_id",
+      "total_orders",
+      "lifetime_value",
+      "acquisition_cost"
+    ]
+  },
+  "afterStats": {
+    "totalRows": 10,
+    "columns": [
+      "name",
+      "email",
+      "status",
+      "country",
+      "segment",
+      "join_date",
+      "customer_id",
+      "total_orders",
+      "lifetime_value",
+      "acquisition_cost"
+    ]
+  },
+  "config": {},
+  "duration": 56,
+  "status": "success",
+  "error": null
+}

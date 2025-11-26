@@ -23,6 +23,7 @@ class CleaningService {
   async startCleaning(uploadId, config = {}) {
     const jobId = uuidv4();
     const startTime = Date.now();
+    let jobCreated = false; // Track if job was successfully created
 
     try {
       // Validate upload exists
@@ -35,15 +36,26 @@ class CleaningService {
         throw new Error('Upload not found');
       }
 
+      // Handle 'auto' imputation strategy by auto-configuring
+      if (config.imputation && config.imputation.strategy === 'auto') {
+        console.log('Auto-configuration requested, detecting optimal strategies...');
+        const autoConfig = await this.autoConfigurePipeline(uploadId);
+        // Merge auto-detected imputation config with user config
+        config.imputation = autoConfig.imputation;
+        console.log('Auto-detected imputation config:', config.imputation);
+      }
+
       // Create cleaning job
       const job = await prisma.cleaningJob.create({
         data: {
           id: jobId,
+          projectId: upload.projectId,
           uploadId,
           status: 'running',
           config
         }
       });
+      jobCreated = true; // Mark job as successfully created
 
       // Load data
       let rows = upload.dataRows.map(row => row.data);
@@ -124,14 +136,20 @@ class CleaningService {
     } catch (error) {
       console.error('Cleaning pipeline failed:', error);
 
-      // Update job status
-      await prisma.cleaningJob.update({
-        where: { id: jobId },
-        data: {
-          status: 'failed',
-          error: error.message
+      // Only update job status if job was successfully created
+      if (jobCreated) {
+        try {
+          await prisma.cleaningJob.update({
+            where: { id: jobId },
+            data: {
+              status: 'failed',
+              error: error.message
+            }
+          });
+        } catch (updateError) {
+          console.error('Failed to update job status:', updateError);
         }
-      });
+      }
 
       // Log error
       await loggingService.log({
@@ -603,6 +621,70 @@ class CleaningService {
    */
   _isEmailLike(str) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+  }
+
+  /**
+   * Start cleaning pipeline for entire project (multiple files)
+   * @param {string} projectId - Project ID
+   * @param {Object} config - Cleaning configuration
+   * @returns {Object} Project cleaning results
+   */
+  async startProjectCleaning(projectId, config = {}) {
+    const startTime = Date.now();
+
+    try {
+      // Validate project exists
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: { uploads: true }
+      });
+
+      if (!project) {
+        throw new Error('Project not found');
+      }
+
+      if (project.uploads.length === 0) {
+        throw new Error('No files in project');
+      }
+
+      // Clean each file in the project
+      const cleaningResults = [];
+      for (const upload of project.uploads) {
+        try {
+          const result = await this.startCleaning(upload.id, config);
+          cleaningResults.push({
+            uploadId: upload.id,
+            fileName: upload.originalName,
+            jobId: result.jobId,
+            status: 'success',
+            stats: result.stats
+          });
+        } catch (error) {
+          cleaningResults.push({
+            uploadId: upload.id,
+            fileName: upload.originalName,
+            status: 'failed',
+            error: error.message
+          });
+        }
+      }
+
+      const duration = Date.now() - startTime;
+      const successCount = cleaningResults.filter(r => r.status === 'success').length;
+
+      return {
+        projectId,
+        filesProcessed: cleaningResults.length,
+        successCount,
+        failedCount: cleaningResults.length - successCount,
+        duration,
+        results: cleaningResults
+      };
+
+    } catch (error) {
+      console.error('Project cleaning error:', error);
+      throw error;
+    }
   }
 }
 

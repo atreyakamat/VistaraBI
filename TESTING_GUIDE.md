@@ -1,285 +1,308 @@
-# VistaraBI Module 3 Testing Guide
+# VistaraBI Multi-File Intelligence Pipeline - Testing Guide
 
-## Quick Start Testing (5 minutes)
+## 🚀 System Status
 
-### Prerequisites
-- Backend running on port 5001 ✅
-- Frontend running on port 3000 ✅
-- PostgreSQL database connected ✅
-
-### Test Scenario 1: SaaS Domain Detection (High Confidence)
-
-**File:** `test-data/saas_test.csv`
-
-**Steps:**
-1. Open http://localhost:3000
-2. Click "Upload File" or drag-and-drop `saas_test.csv`
-3. Wait for upload completion (10 records)
-4. Click "Continue to Cleaning"
-5. Auto-detection runs automatically
-6. Verify data types detected:
-   - `subscription_id`: text
-   - `mrr`: numeric
-   - `arr`: numeric
-   - `churn`: boolean/numeric
-7. Click "Start Cleaning"
-8. Wait for cleaning completion (~2 seconds)
-9. View cleaning report:
-   - Records processed: 10
-   - Missing values imputed: 0
-   - Duplicates removed: 0
-   - Outliers detected: 0
-10. **Click "Continue to Domain Detection"** (purple button)
-11. Wait for domain detection (~100ms)
-
-**Expected Result:**
-- ✅ **Domain:** SaaS
-- ✅ **Confidence:** 90%+
-- ✅ **Decision:** Auto-detect (green UI)
-- ✅ **Primary Matches:** subscription_id, mrr, arr, churn, customer_id
-- ✅ **Keyword Matches:** Multiple matches shown
-- ✅ **UI:** Green gradient with confidence badge
-- ✅ **Button:** "Continue with SaaS Domain"
-
-12. Click "Continue with SaaS Domain"
-13. Verify success message: "Domain 'SaaS' confirmed successfully! (Module 4 KPI Extraction coming soon)"
+✅ **Backend**: Running on http://localhost:5001  
+✅ **Frontend**: Running on http://localhost:3000  
+✅ **Database**: PostgreSQL connected  
+✅ **Test Data**: 3 CSV files ready  
 
 ---
 
-### Test Scenario 2: Retail Domain Detection (High Confidence)
+## 📁 Test Data Files
 
-**File:** `test-data/retail_test.csv`
+Location: `C:\Projects\VistaraBI\backend\test_data\`
 
-**Steps:**
-1. Upload `retail_test.csv` (10 records)
-2. Continue to cleaning
-3. Start cleaning
-4. View report
-5. Click "Continue to Domain Detection"
+1. **customers.csv** (10 records)
+   - Columns: customer_id, name, email, segment, city, country, join_date
+   - Primary Key: customer_id (C001-C010)
 
-**Expected Result:**
-- ✅ **Domain:** Retail (🏪)
-- ✅ **Confidence:** 85%+
-- ✅ **Decision:** Auto-detect
-- ✅ **Primary Matches:** product_id, sku, category, inventory, units_sold
-- ✅ **UI:** Green gradient
+2. **products.csv** (10 records)
+   - Columns: product_id, product_name, category, subcategory, price, cost, supplier
+   - Primary Key: product_id (P001-P010)
 
----
-
-### Test Scenario 3: Healthcare Domain Detection (High Confidence)
-
-**File:** `test-data/healthcare_test.csv`
-
-**Steps:**
-1. Upload `healthcare_test.csv` (10 records)
-2. Continue to cleaning
-3. Start cleaning
-4. View report
-5. Click "Continue to Domain Detection"
-
-**Expected Result:**
-- ✅ **Domain:** Healthcare (🏥)
-- ✅ **Confidence:** 88%+
-- ✅ **Decision:** Auto-detect
-- ✅ **Primary Matches:** patient_id, diagnosis, provider_id, visit_date
-- ✅ **UI:** Green gradient
+3. **sales.csv** (20 records)
+   - Columns: order_id, customer_id, product_id, order_date, quantity, unit_price, discount, total_amount, shipping_cost, payment_method
+   - Foreign Keys: 
+     - customer_id → customers.customer_id
+     - product_id → products.product_id
 
 ---
 
-### Test Scenario 4: Medium Confidence (Top-3 Selection)
+## 🔄 Complete Pipeline Flow
 
-**File:** Create mixed domain file:
-```csv
-product_id,subscription_id,price,mrr,category,tier
-PROD001,SUB001,299.99,299,Electronics,Premium
-PROD002,SUB002,49.99,99,Clothing,Standard
-```
+### 1. **Upload** (`/project/upload`)
+**What happens:**
+- Upload multiple CSV files
+- Create project with metadata
+- Files stored in uploads directory
+- Records parsed and stored in database
 
-**Expected Result:**
-- ✅ **Confidence:** 65-84%
-- ✅ **Decision:** show_top_3
-- ✅ **UI:** Yellow/orange gradient
-- ✅ **Options:** Radio buttons for top 3 domains
-- ✅ **Button:** "Continue with Selected Domain"
+**Expected:**
+- Project created with ID
+- 3 files uploaded successfully
+- Total: 40 records (10+10+20)
 
 ---
 
-### Test Scenario 5: Low Confidence (Manual Selection)
+### 2. **Clean** (`/project/:id/clean`)
+**What happens:**
+- Clean all files in parallel
+- Apply imputation for missing values
+- Detect and flag outliers
+- Remove duplicate rows
+- Generate cleaning report for each file
 
-**File:** Create generic file:
-```csv
-id,name,value,status
-1,Item A,100,Active
-2,Item B,200,Inactive
-```
+**Configuration Options:**
+- ✅ Auto Imputation (median for numbers, mode for categories)
+- ✅ Outlier Detection (IQR method)
+- ✅ Deduplication (keep first)
 
-**Expected Result:**
-- ✅ **Confidence:** <65%
-- ✅ **Decision:** manual_select
-- ✅ **UI:** Gray/blue gradient
-- ✅ **Options:** Dropdown with all 8 domains
-- ✅ **Button:** "Select a Domain"
-
----
-
-## API Testing with cURL
-
-### Test Domain Detection API
-
-```bash
-# 1. Upload file
-curl -X POST http://localhost:5001/api/v1/upload \
-  -F "file=@test-data/saas_test.csv"
-
-# Response: { "uploadId": "abc123", ... }
-
-# 2. Start cleaning
-curl -X POST http://localhost:5001/api/v1/clean \
-  -H "Content-Type: application/json" \
-  -d '{
-    "uploadId": "abc123",
-    "config": {
-      "dataTypes": {"subscription_id": "text", "mrr": "numeric", "arr": "numeric"},
-      "imputationStrategy": {"mrr": "MEDIAN"},
-      "enableOutlierDetection": true,
-      "enableDeduplication": true,
-      "enableStandardization": true
-    }
-  }'
-
-# Response: { "jobId": "def456", "status": "running" }
-
-# 3. Wait for cleaning to complete, then detect domain
-curl -X POST http://localhost:5001/api/v1/domain/detect \
-  -H "Content-Type: application/json" \
-  -d '{"cleaningJobId": "def456"}'
-
-# Expected response:
-{
-  "success": true,
-  "data": {
-    "domainJobId": "xyz789",
-    "domain": "saas",
-    "confidence": 90,
-    "decision": "auto_detect",
-    "primaryMatches": ["subscription_id", "mrr", "arr", "churn", "customer_id"],
-    "keywordMatches": ["subscription_id (subscription)", "mrr (mrr)", "arr (arr)"],
-    "top3Alternatives": [
-      {"domain": "financial", "score": 65},
-      {"domain": "retail", "score": 40}
-    ]
-  }
-}
-
-# 4. Confirm domain
-curl -X POST http://localhost:5001/api/v1/domain/confirm \
-  -H "Content-Type: application/json" \
-  -d '{
-    "domainJobId": "xyz789",
-    "selectedDomain": "saas"
-  }'
-
-# Expected response:
-{
-  "success": true,
-  "data": {
-    "status": "confirmed",
-    "domain": "saas",
-    "cleaningJobId": "def456",
-    "uploadId": "abc123"
-  }
-}
-```
+**Expected:**
+- All 3 files show "✅ Complete"
+- Cleaning reports with before/after stats
+- Navigate to domain detection
 
 ---
 
-## Verification Checklist
+### 3. **Domain Detection** (`/project/:id/domain`)
+**What happens:**
+- Aggregate columns from ALL files
+- Score against domain signatures
+- Detect: E-Commerce, Retail, SaaS, etc.
+- Show confidence percentage
 
-### Backend Verification
-- [x] Server running on port 5001
-- [x] Domain routes registered (`/api/v1/domain/*`)
-- [x] Database migration applied (domain_detection_jobs table exists)
-- [x] No console errors on startup
+**Expected Domain:**
+- **E-Commerce** or **Retail** (70-90% confidence)
+- Keywords matched: customer_id, product_id, order_id, payment_method, shipping
 
-### Frontend Verification
-- [x] DomainDetectionPage component exists
-- [x] Route `/domain/:jobId` registered in App.tsx
-- [x] CleaningReportPage has "Continue to Domain Detection" button
-- [x] Download buttons moved to secondary position
+**Action:**
+- Confirm domain → Navigate to relationships
 
-### Database Verification
+---
+
+### 4. **Relationship Detection** (`/project/:id/relationships`)
+**What happens:**
+- Analyze column names and data types
+- Find matching columns across tables
+- Validate referential integrity
+- Calculate match rates
+- Auto-select high-confidence relationships
+
+**Expected Results:**
+- **2 Relationships Found:**
+
+  1. **sales.customer_id → customers.customer_id**
+     - Match Rate: 100%
+     - Status: Valid
+     - Type: Foreign Key
+
+  2. **sales.product_id → products.product_id**
+     - Match Rate: 100%
+     - Status: Valid
+     - Type: Foreign Key
+
+**Visual Display:**
+- Cards showing table connections
+- Match rate percentages
+- Checkboxes to select/deselect
+
+**Action:**
+- Select both relationships → Click "Create Unified View"
+
+---
+
+### 5. **Unified View Creation** (Background)
+**What happens:**
+- Generate SQL view with LEFT JOINs
+- Combine tables based on relationships
+- Store view definition in database
+
+**Generated View Example:**
 ```sql
--- Check table exists
-SELECT * FROM domain_detection_jobs;
-
--- Check schema
-\d domain_detection_jobs
+CREATE VIEW unified_view_<timestamp> AS
+SELECT 
+  sales.*,
+  customers.name AS customer_name,
+  customers.segment AS customer_segment,
+  customers.city AS customer_city,
+  products.product_name,
+  products.category AS product_category,
+  products.price AS product_price
+FROM sales
+LEFT JOIN customers ON sales.customer_id = customers.customer_id
+LEFT JOIN products ON sales.product_id = products.product_id
 ```
 
-### File Structure Verification
+**Expected:**
+- View created successfully
+- Navigate to KPI selection
+
+---
+
+### 6. **KPI Selection** (`/project/:id/kpi`)
+**What happens:**
+- Extract KPIs from unified view
+- Include cross-table metrics
+- Categorize by type (aggregation, trend, dimension)
+
+**Expected KPIs (Cross-Table):**
+- 💰 Revenue by Customer Segment
+- 📊 Sales by Product Category
+- 🏆 Top Customers by Order Value
+- 📦 Products by Units Sold
+- 💳 Revenue by Payment Method
+- 🌍 Sales by City
+
+**Action:**
+- Select desired KPIs → Click "Generate Dashboard"
+
+---
+
+### 7. **Dashboard** (`/project/:id/dashboard`)
+**What happens:**
+- Create visualizations for selected KPIs
+- Apply Power BI design system
+- Show cross-table insights
+
+**Expected Visualizations:**
+- KPI cards with values
+- Bar charts (horizontal)
+- Pie charts for distributions
+- Line charts for trends
+- Tables for detailed data
+
+**Power BI Styling:**
+- Color palette: #01B8AA (teal), #FD625E (coral), #F2C80F (gold)
+- Typography: Segoe UI
+- Clean white cards with shadows
+- Gradient headers
+
+---
+
+## 🧪 Testing Steps
+
+### Step-by-Step Test:
+
+1. **Open Browser:**
+   ```
+   http://localhost:3000/project/upload
+   ```
+
+2. **Upload Files:**
+   - Project Name: "E-Commerce Analytics Test"
+   - Description: "Testing multi-file intelligence"
+   - Select all 3 CSV files from test_data folder
+   - Click "Upload Files"
+
+3. **Clean Data:**
+   - Review cleaning options (all enabled by default)
+   - Click "Clean 3 Files"
+   - Wait ~5-10 seconds for completion
+   - Verify all show ✅ Complete
+   - Click "Continue to Domain Detection"
+
+4. **Confirm Domain:**
+   - Check detected domain (E-Commerce/Retail)
+   - Review confidence score
+   - Click "Confirm and Continue"
+
+5. **Select Relationships:**
+   - Verify 2 relationships detected
+   - Check both are selected (green checkboxes)
+   - Review match rates (should be 100%)
+   - Click "Create Unified View (2 relationships)"
+
+6. **Select KPIs:**
+   - Browse available KPIs
+   - Select cross-table metrics
+   - Click "Generate Dashboard"
+
+7. **View Dashboard:**
+   - Check KPI cards display values
+   - Verify charts render correctly
+   - Test interactivity (if implemented)
+
+---
+
+## ✅ Success Criteria
+
+- [ ] All files upload without errors
+- [ ] Cleaning completes for all 3 files
+- [ ] Domain detected with >50% confidence
+- [ ] 2 relationships found with 100% match rates
+- [ ] Unified view created successfully
+- [ ] Cross-table KPIs extracted
+- [ ] Dashboard displays with Power BI styling
+- [ ] No console errors in browser
+- [ ] Backend logs show no errors
+
+---
+
+## 🐛 Troubleshooting
+
+**Upload fails:**
+- Check backend is running on port 5001
+- Verify database connection
+- Check file permissions in uploads directory
+
+**Cleaning hangs:**
+- Check backend console for errors
+- Verify cleaning service is imported correctly
+- Check database has cleaning_jobs table
+
+**No relationships detected:**
+- Verify column names match (customer_id, product_id)
+- Check data types are consistent
+- Ensure referential integrity (IDs exist in both tables)
+
+**Dashboard doesn't load:**
+- Check if KPIs were extracted
+- Verify unified view was created
+- Check browser console for errors
+
+---
+
+## 📊 Expected Data Flow
+
 ```
-backend/
-├── src/
-│   ├── controllers/
-│   │   └── domainController.js ✅
-│   ├── routes/
-│   │   └── domain.routes.js ✅
-│   └── services/
-│       └── domainDetectionService.js ✅
-
-frontend/
-├── src/
-│   ├── pages/
-│   │   └── DomainDetectionPage.tsx ✅
-│   └── services/
-│       └── domainApi.ts ✅
-
-test-data/
-├── saas_test.csv ✅
-├── retail_test.csv ✅
-└── healthcare_test.csv ✅
+Upload (40 records)
+  ↓
+Clean (40 records processed)
+  ↓
+Domain Detection (E-Commerce 75%)
+  ↓
+Relationship Detection (2 found)
+  ↓
+Unified View (20 orders + customer + product data)
+  ↓
+KPI Extraction (6-10 KPIs)
+  ↓
+Dashboard (Charts + Cards)
 ```
 
 ---
 
-## Troubleshooting
+## 🎯 Key Features to Verify
 
-### Issue: Domain detection returns 500 error
-**Solution:** Check backend console for Prisma errors. Ensure migration was applied.
-
-### Issue: Confidence always low
-**Solution:** Verify test data has correct domain-specific columns (check `domainDetectionService.js` signature columns).
-
-### Issue: UI not showing domain detection page
-**Solution:** Check React Router configuration in `App.tsx`. Ensure route `/domain/:jobId` exists.
-
-### Issue: "Continue to Domain Detection" button missing
-**Solution:** Verify `CleaningReportPage.tsx` was updated. Check for compilation errors.
+1. **Multi-file upload** - Multiple files in one project ✓
+2. **Parallel cleaning** - All files cleaned simultaneously ✓
+3. **Aggregated domain** - Domain detected across all files ✓
+4. **Automatic FK detection** - Relationships found without manual config ✓
+5. **Unified view** - SQL view with JOINs created ✓
+6. **Cross-table KPIs** - Metrics combining multiple tables ✓
+7. **Power BI design** - Professional styling throughout ✓
 
 ---
 
-## Performance Benchmarks
+## 📝 Notes
 
-| Operation | Expected Time | Acceptable Range |
-|-----------|---------------|------------------|
-| Domain Detection | <100ms | 50-200ms |
-| UI Render | <50ms | 20-100ms |
-| Confidence Calculation | <10ms | 5-20ms |
-| Database Insert | <50ms | 20-100ms |
-
----
-
-## Success Criteria
-
-✅ **Module 3 is complete if:**
-1. All 3 test files (SaaS, Retail, Healthcare) detect correctly with ≥85% confidence
-2. UI renders all 3 flows (auto-detect, top-3, manual) based on confidence
-3. Domain confirmation saves to database successfully
-4. No console errors in backend or frontend
-5. Flow transitions smoothly: Upload → Clean → Detect Domain → Confirm
+- Test data intentionally has 100% referential integrity for clean testing
+- Real-world data may have partial matches (70-95%)
+- Pipeline is designed to handle failures gracefully
+- Each stage can be retried independently
+- Progress is saved at each step
 
 ---
 
-**Testing Complete!** 🎉
-
-If all scenarios pass, Module 3 is production-ready.
+**Happy Testing! 🚀**
