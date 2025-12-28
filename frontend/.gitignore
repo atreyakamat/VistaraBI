@@ -1,9 +1,0 @@
-.DS_Store
-node_modules
-dist
-dist-ssr
-*.local
-.env
-.env.local
-coverage
-*.log
