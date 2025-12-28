@@ -1,0 +1,10 @@
+export { default as Hero } from './Hero';
+export { default as SocialProof } from './SocialProof';
+export { default as ProblemSolution } from './ProblemSolution';
+export { default as CoreEngine } from './CoreEngine';
+export { default as FeatureGrid } from './FeatureGrid';
+export { default as DashboardPreview } from './DashboardPreview';
+export { default as AISection } from './AISection';
+export { default as Security } from './Security';
+export { default as FinalCTA } from './FinalCTA';
+export { default as Footer } from './Footer';
