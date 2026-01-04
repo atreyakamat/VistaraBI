@@ -13,6 +13,7 @@ import QualityDashboard from "@/components/app/QualityDashboard";
 import DomainBadge from "@/components/app/DomainBadge";
 import DomainExplanation from "@/components/app/DomainExplanation";
 import DomainSelection from "@/components/app/DomainSelection";
+import AIGuidedSelection from "@/components/app/AIGuidedSelection";
 import { SourceStatus, QualityScore, QualityGrade, RiskLevel, DataType, DomainType, DomainStatus } from "@/lib/prisma";
 
 interface Project {
@@ -77,6 +78,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
     const [domainData, setDomainData] = useState<any>(null);
     const [showDomainExplanation, setShowDomainExplanation] = useState(false);
     const [showDomainSelection, setShowDomainSelection] = useState(false);
+    const [showAIGuidedSelection, setShowAIGuidedSelection] = useState(false);
 
     useEffect(() => {
         fetchProject();
@@ -140,9 +142,13 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
             // Fetch domain detection (Module 3 Phase 3A)
             const domainRes = await fetch(`/api/projects/${id}/domain`);
+            console.log('[Domain] Fetched domain response:', domainRes.status);
             if (domainRes.ok) {
                 const domainResult = await domainRes.json();
+                console.log('[Domain] Domain data:', domainResult);
                 setDomainData(domainResult.domain);
+            } else {
+                console.log('[Domain] Failed to fetch domain:', await domainRes.text());
             }
         } catch (err) {
             console.error("Error fetching project:", err);
@@ -310,6 +316,23 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
         }
     };
 
+    const handleTriggerDomainDetection = async () => {
+        try {
+            console.log('[Domain] Manually triggering domain detection...');
+            const res = await fetch(`/api/projects/${id}/detect-domain`, { method: 'POST' });
+            console.log('[Domain] Trigger response:', res.status);
+            if (res.ok) {
+                const result = await res.json();
+                console.log('[Domain] Detection result:', result);
+                setDomainData(result.domain);
+            } else {
+                console.error('[Domain] Detection failed:', await res.text());
+            }
+        } catch (error) {
+            console.error('[Domain] Error triggering detection:', error);
+        }
+    };
+
     const handleDeleteProject = async () => {
         if (!confirm("Delete this project? All data will be permanently removed.")) return;
 
@@ -387,14 +410,30 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                                     domain={domainData?.detectedDomain || null}
                                     confidence={domainData?.confidence || 0}
                                     status={domainData?.status || 'MANUAL_REQUIRED'}
-                                    onClick={() => setShowDomainExplanation(true)}
+                                    onClick={() => domainData?.detectedDomain ? setShowDomainExplanation(true) : setShowDomainSelection(true)}
                                     compact
                                 />
+                                {!domainData?.detectedDomain && (
+                                    <button
+                                        onClick={handleTriggerDomainDetection}
+                                        className="px-3 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all"
+                                        title="Auto-detect domain from your data"
+                                    >
+                                        🔍 Detect
+                                    </button>
+                                )}
                                 <button
                                     onClick={() => setShowDomainSelection(true)}
                                     className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all"
                                 >
                                     {domainData?.detectedDomain ? 'Change Domain' : 'Select Domain'}
+                                </button>
+                                <button
+                                    onClick={() => setShowAIGuidedSelection(true)}
+                                    className="px-3 py-2 text-sm font-medium bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg transition-all"
+                                    title="Get AI-powered domain suggestions"
+                                >
+                                    🧠 AI Assist
                                 </button>
                             </>
                         )}
@@ -537,6 +576,20 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                         currentDomain={domainData?.detectedDomain || null}
                         onClose={() => setShowDomainSelection(false)}
                         onConfirm={handleConfirmDomainSelection}
+                    />
+                )}
+
+                {/* AI Guided Selection Modal (Module 3 Phase 3C) */}
+                {showAIGuidedSelection && (
+                    <AIGuidedSelection
+                        projectId={id}
+                        phase3ADomain={domainData?.detectedDomain || null}
+                        phase3AConfidence={domainData?.confidence || 0}
+                        onSelectDomain={async (domain) => {
+                            await handleSelectDomain(domain);
+                            setShowAIGuidedSelection(false);
+                        }}
+                        onClose={() => setShowAIGuidedSelection(false)}
                     />
                 )}
             </main>

@@ -197,6 +197,23 @@ export interface DomainHistory {
     changedAt: Date;
 }
 
+// AI Domain Reasoning (Module 3 Phase 3C)
+export interface AIDomainReasoning {
+    id: string;
+    projectId: string;
+    primaryDomain: DomainType | null;
+    primaryConfidence: number;
+    secondaryDomain: DomainType | null;
+    secondaryConfidence: number;
+    reasoning: string;
+    keySignals: string[];
+    phase3AConfidence: number;
+    fusedConfidence: number;
+    ollamaModel: string;
+    processingTimeMs: number;
+    createdAt: Date;
+}
+
 
 
 // ============ STORAGE (GLOBAL TO SURVIVE HMR) ============
@@ -216,6 +233,7 @@ interface DbStore {
     domainDetections: Map<string, DomainDetection>;
     domainGovernances: Map<string, DomainGovernance>;
     domainHistories: Map<string, DomainHistory>;
+    aiDomainReasonings: Map<string, AIDomainReasoning>;
     initialized: boolean;
 }
 
@@ -244,6 +262,7 @@ function getStore(): DbStore {
             domainDetections: new Map(),
             domainGovernances: new Map(),
             domainHistories: new Map(),
+            aiDomainReasonings: new Map(),
             initialized: false,
         };
     }
@@ -281,6 +300,7 @@ const transformationAudits = store.transformationAudits;
 const domainDetections = store.domainDetections;
 const domainGovernances = store.domainGovernances;
 const domainHistories = store.domainHistories;
+const aiDomainReasonings = store.aiDomainReasonings;
 
 // ============ DATABASE API ============
 
@@ -839,6 +859,48 @@ const db = {
 
         create: async ({ data }: { data: any }) => {
             domainHistories.set(data.id, data);
+            return data;
+        },
+    },
+
+    // AI Domain Reasoning (Module 3 Phase 3C)
+    aiDomainReasoning: {
+        findUnique: async ({ where }: { where: { id?: string; projectId?: string } }) => {
+            if (where.id) {
+                return aiDomainReasonings.get(where.id) || null;
+            }
+            if (where.projectId) {
+                for (const reasoning of aiDomainReasonings.values()) {
+                    if (reasoning.projectId === where.projectId) {
+                        return reasoning;
+                    }
+                }
+            }
+            return null;
+        },
+
+        upsert: async ({ where, data }: { where: { projectId: string }; data: any }) => {
+            // Find existing by projectId
+            let existingId: string | null = null;
+            for (const [id, reasoning] of aiDomainReasonings.entries()) {
+                if (reasoning.projectId === where.projectId) {
+                    existingId = id;
+                    break;
+                }
+            }
+
+            if (existingId) {
+                const updated = { ...aiDomainReasonings.get(existingId), ...data };
+                aiDomainReasonings.set(existingId, updated);
+                return updated;
+            } else {
+                aiDomainReasonings.set(data.id, data);
+                return data;
+            }
+        },
+
+        create: async ({ data }: { data: any }) => {
+            aiDomainReasonings.set(data.id, data);
             return data;
         },
     },
