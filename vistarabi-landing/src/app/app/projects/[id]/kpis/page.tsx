@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -13,6 +13,8 @@ interface DiscoveredKPI {
     matchedColumns: string[];
     formulaExpression: string;
     category: string;
+    isComputable: boolean;
+    isDerived?: boolean;
 }
 
 interface ApprovedKPI {
@@ -29,19 +31,23 @@ const CATEGORY_ICONS: Record<string, string> = {
     retention: '🔄', engagement: '🔥', growth: '📈', profitability: '💎',
     operations: '⚙️', efficiency: '⚡', quality: '✅', performance: '🏆',
     cost: '💵', risk: '⚠️', liquidity: '💧', marketing: '📣', product: '📦',
+    derived: '🔮',
 };
 
 export default function KPIWorkspacePage() {
     const params = useParams();
-    const router = useRouter();
     const projectId = params.id as string;
 
     const [project, setProject] = useState<any>(null);
     const [discoveredKPIs, setDiscoveredKPIs] = useState<DiscoveredKPI[]>([]);
+    const [aiKPIs, setAiKPIs] = useState<DiscoveredKPI[]>([]);
     const [blueprint, setBlueprint] = useState<{ kpis: ApprovedKPI[]; isLocked: boolean; version: number } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiRequested, setAiRequested] = useState(false);
     const [adding, setAdding] = useState<string | null>(null);
     const [finalizing, setFinalizing] = useState(false);
+    const [activeTab, setActiveTab] = useState<'columns' | 'ai' | 'blueprint'>('columns');
 
     useEffect(() => {
         fetchData();
@@ -57,10 +63,12 @@ export default function KPIWorkspacePage() {
             ]);
 
             if (projRes.ok) setProject(await projRes.json());
+
             if (kpiRes.ok) {
                 const data = await kpiRes.json();
                 setDiscoveredKPIs(data.discovery?.computableKPIs || []);
             }
+
             if (bpRes.ok) {
                 const data = await bpRes.json();
                 setBlueprint(data.blueprint);
@@ -72,43 +80,53 @@ export default function KPIWorkspacePage() {
         }
     };
 
-    const addKPI = async (kpi: DiscoveredKPI) => {
-        setAdding(kpi.kpiId);
+    const requestAIKPIs = async () => {
+        setAiLoading(true);
+        setAiRequested(true);
         try {
-            const res = await fetch(`/api/projects/${projectId}/kpi-blueprint`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    kpi: {
-                        kpiId: kpi.kpiId,
-                        kpiName: kpi.kpiName,
-                        formula: kpi.formulaExpression,
-                        category: kpi.category,
-                        matchedColumns: kpi.matchedColumns,
-                        confidence: kpi.confidence,
-                    },
-                }),
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setBlueprint(data.blueprint);
+            const res = await fetch(`/api/projects/${projectId}/ai-kpis`, { method: 'POST' });
+            const data = await res.json();
+            if (data.aiKpis) {
+                setAiKPIs(data.aiKpis);
             }
         } catch (err) {
-            console.error('Add error:', err);
+            console.error('AI KPI error:', err);
         } finally {
-            setAdding(null);
+            setAiLoading(false);
         }
     };
 
-    const removeKPI = async (kpiId: string) => {
+    const toggleKPI = async (kpi: DiscoveredKPI) => {
+        if (blueprint?.isLocked) return;
+
+        const isSelected = isInBlueprint(kpi.kpiId);
+        setAdding(kpi.kpiId);
+
         try {
-            const res = await fetch(`/api/projects/${projectId}/kpi-blueprint?kpiId=${kpiId}`, { method: 'DELETE' });
-            if (res.ok) {
-                const data = await res.json();
-                setBlueprint(data.blueprint);
+            if (isSelected) {
+                const res = await fetch(`/api/projects/${projectId}/kpi-blueprint?kpiId=${kpi.kpiId}`, { method: 'DELETE' });
+                if (res.ok) setBlueprint((await res.json()).blueprint);
+            } else {
+                const res = await fetch(`/api/projects/${projectId}/kpi-blueprint`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        kpi: {
+                            kpiId: kpi.kpiId,
+                            kpiName: kpi.kpiName,
+                            formula: kpi.formulaExpression,
+                            category: kpi.category,
+                            matchedColumns: kpi.matchedColumns,
+                            confidence: kpi.confidence,
+                        },
+                    }),
+                });
+                if (res.ok) setBlueprint((await res.json()).blueprint);
             }
         } catch (err) {
-            console.error('Remove error:', err);
+            console.error('Toggle error:', err);
+        } finally {
+            setAdding(null);
         }
     };
 
@@ -118,8 +136,7 @@ export default function KPIWorkspacePage() {
         try {
             const res = await fetch(`/api/projects/${projectId}/kpi-blueprint/finalize`, { method: 'POST' });
             if (res.ok) {
-                const data = await res.json();
-                setBlueprint(data.blueprint);
+                setBlueprint((await res.json()).blueprint);
                 alert('Blueprint finalized!');
             }
         } catch (err) {
@@ -129,14 +146,69 @@ export default function KPIWorkspacePage() {
         }
     };
 
-    const isInBlueprint = (kpiId: string) => blueprint?.kpis.some(k => k.kpiId === kpiId);
+    const isInBlueprint = (kpiId: string) => blueprint?.kpis?.some(k => k.kpiId === kpiId) || false;
+
+    const renderKPICard = (kpi: DiscoveredKPI) => {
+        const selected = isInBlueprint(kpi.kpiId);
+        const isLoading = adding === kpi.kpiId;
+
+        return (
+            <motion.div
+                key={kpi.kpiId}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${selected
+                        ? 'bg-green-50 border-green-400 shadow-md'
+                        : 'bg-[var(--surface)] border-[var(--border)] hover:border-purple-300'
+                    } ${blueprint?.isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                onClick={() => !blueprint?.isLocked && !isLoading && toggleKPI(kpi)}
+            >
+                <div className="flex items-start gap-3">
+                    {/* Checkbox */}
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${selected ? 'bg-green-500 border-green-500' : 'border-gray-300'
+                        }`}>
+                        {isLoading ? (
+                            <span className="animate-spin text-white text-xs">⟳</span>
+                        ) : selected ? (
+                            <span className="text-white text-sm">✓</span>
+                        ) : null}
+                    </div>
+
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xl">{CATEGORY_ICONS[kpi.category] || '📊'}</span>
+                            <span className="font-semibold">{kpi.kpiName}</span>
+
+                            {selected && (
+                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                                    ✓ Selected
+                                </span>
+                            )}
+                            {kpi.isDerived && (
+                                <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+                                    🔮 AI Derived
+                                </span>
+                            )}
+                        </div>
+
+                        <p className="text-sm text-[var(--muted)] mt-1">{kpi.explanation}</p>
+
+                        <div className="mt-2 p-2 bg-gray-50 rounded-lg">
+                            <code className="text-xs text-gray-600">{kpi.formulaExpression}</code>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    };
 
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-                <div className="animate-pulse text-center">
-                    <div className="text-4xl mb-3">📊</div>
-                    <p className="text-[var(--muted)]">Loading KPI Workspace...</p>
+                <div className="text-center">
+                    <div className="text-5xl mb-4 animate-bounce">📊</div>
+                    <p className="text-lg font-medium">Loading your data columns...</p>
                 </div>
             </div>
         );
@@ -145,121 +217,138 @@ export default function KPIWorkspacePage() {
     return (
         <div className="min-h-screen bg-[var(--background)]">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-[var(--surface)]/80 backdrop-blur-xl border-b border-[var(--border)]">
-                <div className="max-w-7xl mx-auto px-6 py-4">
+            <header className="sticky top-0 z-50 bg-[var(--surface)]/90 backdrop-blur-xl border-b border-[var(--border)]">
+                <div className="max-w-6xl mx-auto px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <Link href={`/app/projects/${projectId}`} className="text-[var(--muted)] hover:text-[var(--foreground)]">
                                 ← Back
                             </Link>
                             <div>
-                                <h1 className="text-xl font-bold">KPI Blueprint</h1>
+                                <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-cyan-500 bg-clip-text text-transparent">
+                                    KPI Blueprint
+                                </h1>
                                 <p className="text-sm text-[var(--muted)]">{project?.name}</p>
                             </div>
                         </div>
-                        {blueprint && !blueprint.isLocked && blueprint.kpis.length > 0 && (
-                            <button
-                                onClick={finalize}
-                                disabled={finalizing}
-                                className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-medium shadow-lg disabled:opacity-50"
-                            >
-                                {finalizing ? '🔒 Finalizing...' : '🔒 Finalize Blueprint'}
-                            </button>
-                        )}
-                        {blueprint?.isLocked && (
-                            <span className="px-4 py-2 bg-green-100 text-green-700 rounded-xl font-medium">
-                                ✅ Blueprint Locked (v{blueprint.version})
+
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm text-[var(--muted)]">
+                                {blueprint?.kpis?.length || 0} selected
                             </span>
-                        )}
+                            {blueprint && !blueprint.isLocked && blueprint.kpis?.length > 0 && (
+                                <button onClick={finalize} disabled={finalizing}
+                                    className="px-5 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-medium shadow-lg disabled:opacity-50">
+                                    {finalizing ? '🔒 Finalizing...' : '🔒 Finalize'}
+                                </button>
+                            )}
+                            {blueprint?.isLocked && (
+                                <span className="px-4 py-2 bg-green-100 text-green-700 rounded-xl font-medium">✅ Locked</span>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-6 py-8">
-                <div className="grid lg:grid-cols-2 gap-8">
-                    {/* AI Recommendations */}
-                    <div>
-                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span>🧠</span> AI Recommendations
-                            <span className="text-sm font-normal text-[var(--muted)]">({discoveredKPIs.length})</span>
-                        </h2>
-                        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-                            {discoveredKPIs.length === 0 ? (
-                                <p className="text-[var(--muted)] text-center py-8">No KPIs discovered yet</p>
-                            ) : (
-                                discoveredKPIs.map(kpi => (
-                                    <motion.div
-                                        key={kpi.kpiId}
-                                        layout
-                                        className={`p-4 rounded-xl border ${isInBlueprint(kpi.kpiId) ? 'bg-green-50 border-green-200' : 'bg-[var(--surface)] border-[var(--border)]'}`}
-                                    >
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xl">{CATEGORY_ICONS[kpi.category] || '📊'}</span>
-                                                <div>
-                                                    <div className="font-medium">{kpi.kpiName}</div>
-                                                    <div className="text-xs text-[var(--muted)]">{kpi.confidence}% confidence</div>
-                                                </div>
-                                            </div>
-                                            {!blueprint?.isLocked && (
-                                                isInBlueprint(kpi.kpiId) ? (
-                                                    <button onClick={() => removeKPI(kpi.kpiId)} className="text-red-500 text-sm hover:underline">Remove</button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => addKPI(kpi)}
-                                                        disabled={adding === kpi.kpiId}
-                                                        className="px-3 py-1 bg-purple-500 text-white text-sm rounded-lg disabled:opacity-50"
-                                                    >
-                                                        {adding === kpi.kpiId ? '...' : '+ Add'}
-                                                    </button>
-                                                )
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-[var(--muted)] mt-2">{kpi.explanation}</p>
-                                    </motion.div>
-                                ))
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Selected Blueprint */}
-                    <div>
-                        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span>📋</span> Your KPI Blueprint
-                            <span className="text-sm font-normal text-[var(--muted)]">({blueprint?.kpis.length || 0})</span>
-                        </h2>
-                        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border)] p-4 min-h-[300px]">
-                            {!blueprint || blueprint.kpis.length === 0 ? (
-                                <div className="text-center py-12 text-[var(--muted)]">
-                                    <div className="text-4xl mb-3">📋</div>
-                                    <p>Add KPIs from the left panel</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    <AnimatePresence>
-                                        {blueprint.kpis.map(kpi => (
-                                            <motion.div
-                                                key={kpi.kpiId}
-                                                initial={{ opacity: 0, x: 20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: -20 }}
-                                                className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-50 to-cyan-50 rounded-lg border border-purple-200"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <span>{CATEGORY_ICONS[kpi.category] || '📊'}</span>
-                                                    <span className="font-medium">{kpi.kpiName}</span>
-                                                </div>
-                                                {!blueprint.isLocked && (
-                                                    <button onClick={() => removeKPI(kpi.kpiId)} className="text-red-500 text-xs hover:underline">×</button>
-                                                )}
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+            <main className="max-w-6xl mx-auto px-6 py-8">
+                {/* Tabs */}
+                <div className="flex gap-2 mb-6 p-1.5 bg-[var(--surface)] rounded-2xl w-fit border border-[var(--border)]">
+                    <button onClick={() => setActiveTab('columns')}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'columns' ? 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white' : 'text-[var(--muted)]'}`}>
+                        📋 Your Data Columns ({discoveredKPIs.length})
+                    </button>
+                    <button onClick={() => setActiveTab('ai')}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'ai' ? 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white' : 'text-[var(--muted)]'}`}>
+                        🔮 AI Suggestions {aiKPIs.length > 0 && `(${aiKPIs.length})`}
+                    </button>
+                    <button onClick={() => setActiveTab('blueprint')}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'blueprint' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white' : 'text-[var(--muted)]'}`}>
+                        ✅ Blueprint ({blueprint?.kpis?.length || 0})
+                    </button>
                 </div>
+
+                {/* Content */}
+                <AnimatePresence mode="wait">
+                    {activeTab === 'columns' && (
+                        <motion.div key="columns" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                            <div className="mb-4">
+                                <h2 className="text-lg font-bold">Your Data Columns</h2>
+                                <p className="text-sm text-[var(--muted)]">These are the columns from your imported files. Select which ones to use as KPIs.</p>
+                            </div>
+                            <div className="grid gap-3">
+                                {discoveredKPIs.length === 0 ? (
+                                    <div className="text-center py-12 text-[var(--muted)]">
+                                        <div className="text-4xl mb-3">📁</div>
+                                        <p>No columns found. Make sure you have data uploaded.</p>
+                                    </div>
+                                ) : (
+                                    discoveredKPIs.map(kpi => renderKPICard(kpi))
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'ai' && (
+                        <motion.div key="ai" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                            <div className="mb-4">
+                                <h2 className="text-lg font-bold">AI-Derived KPIs</h2>
+                                <p className="text-sm text-[var(--muted)]">Let Ollama AI suggest derived KPIs by analyzing your data.</p>
+                            </div>
+
+                            {!aiRequested ? (
+                                <div className="text-center py-12 bg-[var(--surface)] rounded-2xl border border-dashed border-[var(--border)]">
+                                    <div className="text-4xl mb-4">🔮</div>
+                                    <p className="text-[var(--muted)] mb-4">Click below to generate AI-derived KPIs from your data</p>
+                                    <button onClick={requestAIKPIs}
+                                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl">
+                                        ✨ Generate AI KPIs
+                                    </button>
+                                </div>
+                            ) : aiLoading ? (
+                                <div className="text-center py-12">
+                                    <div className="text-4xl mb-4 animate-pulse">🔮</div>
+                                    <p className="text-[var(--muted)]">Ollama is analyzing your data...</p>
+                                </div>
+                            ) : (
+                                <div className="grid gap-3">
+                                    {aiKPIs.length === 0 ? (
+                                        <div className="text-center py-12 text-[var(--muted)]">
+                                            <p>No AI suggestions available. Try again later.</p>
+                                        </div>
+                                    ) : (
+                                        aiKPIs.map(kpi => renderKPICard(kpi))
+                                    )}
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'blueprint' && (
+                        <motion.div key="blueprint" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                            <div className="mb-4">
+                                <h2 className="text-lg font-bold">Your KPI Blueprint</h2>
+                                <p className="text-sm text-[var(--muted)]">Selected KPIs that will power your analytics.</p>
+                            </div>
+                            {!blueprint || blueprint.kpis?.length === 0 ? (
+                                <div className="text-center py-12 bg-[var(--surface)] rounded-2xl border border-dashed border-[var(--border)]">
+                                    <div className="text-4xl mb-3">📋</div>
+                                    <p className="text-[var(--muted)]">No KPIs selected. Select from the other tabs.</p>
+                                </div>
+                            ) : (
+                                <div className="grid gap-3">
+                                    {blueprint.kpis.map(kpi => {
+                                        const fullKpi = [...discoveredKPIs, ...aiKPIs].find(k => k.kpiId === kpi.kpiId) || {
+                                            kpiId: kpi.kpiId, kpiName: kpi.kpiName, confidence: kpi.confidence,
+                                            explanation: `Formula: ${kpi.formula}`, matchedColumns: kpi.matchedColumns,
+                                            formulaExpression: kpi.formula, category: kpi.category, isComputable: true,
+                                        };
+                                        return renderKPICard(fullKpi);
+                                    })}
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </main>
         </div>
     );

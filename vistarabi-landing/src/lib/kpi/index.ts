@@ -1,15 +1,10 @@
 // KPI Discovery Orchestrator
-// Module 4 Phase 4A
+// Module 4 Phase 4A - Fixed to show actual column data
 
 import { randomUUID } from 'crypto';
 import db from '@/lib/prisma';
 import type { DomainType } from '@/lib/prisma';
 import { getGovernedDomain } from '@/lib/domain/governance';
-import { matchKPIsForDomain, getComputableKPIs, KPIMatch } from './kpi-matcher';
-
-export type { KPIDefinition } from './kpi-library';
-export { getKPIsForDomain, getAllKPIs, KPI_LIBRARY } from './kpi-library';
-export { matchKPIsForDomain, getComputableKPIs } from './kpi-matcher';
 
 export interface DiscoveredKPI {
     id: string;
@@ -34,52 +29,82 @@ export interface KPIDiscoveryResult {
     totalKPIsAnalyzed: number;
     computableKPIs: DiscoveredKPI[];
     partialKPIs: DiscoveredKPI[];
+    availableColumns: string[];
+    sampleData: Record<string, unknown>[];
     discoveredAt: Date;
 }
 
-// Gather all columns from project sources
-async function getProjectColumns(projectId: string): Promise<string[]> {
+// Gather all columns and sample data from project sources
+async function getProjectData(projectId: string): Promise<{ columns: string[]; sampleData: Record<string, unknown>[] }> {
     const sources = await db.source.findMany({ where: { projectId } });
     const allColumns: Set<string> = new Set();
+    const sampleData: Record<string, unknown>[] = [];
 
     for (const source of sources) {
         if (source.columns) {
             source.columns.forEach(col => allColumns.add(col));
         }
+        // Get first 10 rows from each source
+        if (source.data && Array.isArray(source.data)) {
+            sampleData.push(...source.data.slice(0, 10));
+        }
     }
 
-    return Array.from(allColumns);
+    return {
+        columns: Array.from(allColumns),
+        sampleData: sampleData.slice(0, 10), // Max 10 rows total for AI context
+    };
 }
 
-// Convert KPIMatch to DiscoveredKPI
-function matchToDiscoveredKPI(match: KPIMatch, projectId: string): DiscoveredKPI {
-    const matchedColNames = match.matchedColumns.map(m =>
-        `${m.columnName} → ${m.requiredColumn}`
-    );
+// Convert column to a KPI-like item for display
+function columnToKPI(column: string, projectId: string, domain: DomainType, index: number): DiscoveredKPI {
+    // Determine category based on column name
+    const lowerCol = column.toLowerCase();
+    let category = 'volume';
+    let formula = `SUM(${column})`;
 
-    const explanation = match.isComputable
-        ? `All required columns found: ${matchedColNames.join(', ')}`
-        : `Partial match. Missing: ${match.missingColumns.join(', ')}`;
+    if (lowerCol.includes('revenue') || lowerCol.includes('price') || lowerCol.includes('amount') || lowerCol.includes('sales')) {
+        category = 'revenue';
+        formula = `SUM(${column})`;
+    } else if (lowerCol.includes('cost') || lowerCol.includes('expense')) {
+        category = 'cost';
+        formula = `SUM(${column})`;
+    } else if (lowerCol.includes('count') || lowerCol.includes('qty') || lowerCol.includes('quantity')) {
+        category = 'volume';
+        formula = `SUM(${column})`;
+    } else if (lowerCol.includes('rate') || lowerCol.includes('percent') || lowerCol.includes('ratio')) {
+        category = 'performance';
+        formula = `AVG(${column})`;
+    } else if (lowerCol.includes('date') || lowerCol.includes('time')) {
+        category = 'operations';
+        formula = `COUNT(DISTINCT ${column})`;
+    } else if (lowerCol.includes('customer') || lowerCol.includes('user') || lowerCol.includes('client')) {
+        category = 'customer';
+        formula = `COUNT(DISTINCT ${column})`;
+    } else if (lowerCol.includes('id') || lowerCol.includes('order') || lowerCol.includes('transaction')) {
+        category = 'volume';
+        formula = `COUNT(${column})`;
+    }
 
     return {
         id: randomUUID(),
         projectId,
-        kpiId: match.kpi.id,
-        kpiName: match.kpi.name,
-        domain: match.kpi.domain,
-        confidence: match.confidence,
+        kpiId: `col-${column.replace(/[^a-zA-Z0-9]/g, '-')}`,
+        kpiName: column,
+        domain,
+        confidence: 100,
         matchType: 'RULE_BASED',
-        explanation,
-        matchedColumns: match.matchedColumns.map(m => m.columnName),
-        formulaExpression: match.kpi.formula,
-        category: match.kpi.category,
-        priority: match.kpi.priority,
-        isComputable: match.isComputable,
+        explanation: `Column available in your data. Suggested formula: ${formula}`,
+        matchedColumns: [column],
+        formulaExpression: formula,
+        category,
+        priority: index + 1,
+        isComputable: true,
         discoveredAt: new Date(),
     };
 }
 
-// Main discovery function
+// Main discovery function - returns actual columns as KPIs
 export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResult | null> {
     console.log('[KPI-Discovery] Starting for project:', projectId);
 
@@ -93,34 +118,26 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
     const domain = governance.activeDomain;
     console.log('[KPI-Discovery] Domain:', domain);
 
-    // Get project columns
-    const projectColumns = await getProjectColumns(projectId);
-    console.log('[KPI-Discovery] Columns found:', projectColumns.length);
+    // Get project columns and sample data
+    const { columns, sampleData } = await getProjectData(projectId);
+    console.log('[KPI-Discovery] Columns found:', columns.length);
 
-    if (projectColumns.length === 0) {
+    if (columns.length === 0) {
         console.log('[KPI-Discovery] No columns to analyze');
         return null;
     }
 
-    // Run matching
-    const matches = matchKPIsForDomain(domain, projectColumns);
-    console.log('[KPI-Discovery] KPIs matched:', matches.length);
-
-    // Convert to discovered KPIs
-    const computableKPIs = matches
-        .filter(m => m.isComputable)
-        .map(m => matchToDiscoveredKPI(m, projectId));
-
-    const partialKPIs = matches
-        .filter(m => !m.isComputable && m.confidence >= 30)
-        .map(m => matchToDiscoveredKPI(m, projectId));
+    // Convert columns to KPI format for display
+    const computableKPIs = columns.map((col, idx) => columnToKPI(col, projectId, domain, idx));
 
     const result: KPIDiscoveryResult = {
         projectId,
         domain,
-        totalKPIsAnalyzed: matches.length,
+        totalKPIsAnalyzed: columns.length,
         computableKPIs,
-        partialKPIs,
+        partialKPIs: [],
+        availableColumns: columns,
+        sampleData,
         discoveredAt: new Date(),
     };
 
@@ -130,7 +147,7 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
         data: result,
     });
 
-    console.log('[KPI-Discovery] Complete. Computable:', computableKPIs.length, 'Partial:', partialKPIs.length);
+    console.log('[KPI-Discovery] Complete. Columns as KPIs:', computableKPIs.length);
 
     return result;
 }
@@ -138,4 +155,10 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
 // Get existing discovery results
 export async function getKPIDiscovery(projectId: string): Promise<KPIDiscoveryResult | null> {
     return await db.kpiDiscovery.findUnique({ where: { projectId } });
+}
+
+// Get sample data for AI context
+export async function getSampleDataForAI(projectId: string): Promise<{ columns: string[]; rows: Record<string, unknown>[] }> {
+    const { columns, sampleData } = await getProjectData(projectId);
+    return { columns, rows: sampleData };
 }
