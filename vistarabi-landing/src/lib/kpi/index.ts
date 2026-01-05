@@ -154,7 +154,7 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
 
 // Get existing discovery results
 export async function getKPIDiscovery(projectId: string): Promise<KPIDiscoveryResult | null> {
-    return await db.kpiDiscovery.findUnique({ where: { projectId } });
+    return await db.kpiDiscovery.findUnique({ where: { projectId } }) as KPIDiscoveryResult | null;
 }
 
 // Get sample data for AI context
