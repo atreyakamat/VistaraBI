@@ -107,5 +107,22 @@ export async function manuallySelectDomain(
         await db.domainDetection.create({ data: result });
     }
 
+    // Step 5: Sync with governance
+    try {
+        const { setGovernedDomain, getGovernedDomain } = await import('./governance');
+        const gov = await getGovernedDomain(projectId);
+        if (gov) {
+            await setGovernedDomain({
+                projectId,
+                domain,
+                userId: 'user-manual',
+                reason: 'Manually selected in UI',
+                confidence: 100
+            });
+        }
+    } catch (govError) {
+        console.error('[DomainDetection] Governance sync error:', govError);
+    }
+
     return result;
 }

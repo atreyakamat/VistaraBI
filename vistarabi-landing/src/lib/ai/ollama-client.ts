@@ -1,4 +1,4 @@
-// Ollama Local LLM Client for AI Semantic Reasoning
+// Ollama Client for AI Semantic Reasoning
 // Uses locally hosted Ollama with qwen3:0.6b model
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
@@ -7,27 +7,6 @@ const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3:0.6b';
 export interface OllamaMessage {
     role: 'system' | 'user' | 'assistant';
     content: string;
-}
-
-export interface OllamaResponse {
-    model: string;
-    created_at: string;
-    message: {
-        role: string;
-        content: string;
-    };
-    done: boolean;
-    total_duration?: number;
-    eval_count?: number;
-}
-
-export interface OllamaGenerateOptions {
-    model?: string;
-    prompt?: string;
-    messages?: OllamaMessage[];
-    stream?: boolean;
-    temperature?: number;
-    max_tokens?: number;
 }
 
 // Check if Ollama is available
@@ -58,162 +37,170 @@ export async function listModels(): Promise<string[]> {
     }
 }
 
-// Generate completion using chat API
+export interface OllamaGenerateOptions {
+    model?: string;
+    messages?: OllamaMessage[];
+    temperature?: number;
+}
+
+// Generate completion using Ollama chat API
 export async function generateCompletion(options: OllamaGenerateOptions): Promise<string> {
     const {
         model = DEFAULT_MODEL,
         messages = [],
-        prompt,
         temperature = 0.3,
-        stream = false,
     } = options;
 
     console.log(`[Ollama] Generating with model: ${model}`);
 
     try {
-        // Use chat endpoint for messages
-        if (messages.length > 0) {
-            const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model,
-                    messages,
-                    stream,
-                    options: {
-                        temperature,
-                    },
-                }),
-            });
+        const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model,
+                messages,
+                stream: false,
+                options: {
+                    temperature,
+                },
+            }),
+            signal: AbortSignal.timeout(60000), // 60 second timeout
+        });
 
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`Ollama chat failed: ${error}`);
-            }
-
-            const data: OllamaResponse = await response.json();
-            return data.message?.content || '';
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`Ollama chat failed: ${error}`);
         }
 
-        // Use generate endpoint for simple prompts
-        if (prompt) {
-            const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model,
-                    prompt,
-                    stream,
-                    options: {
-                        temperature,
-                    },
-                }),
-            });
-
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`Ollama generate failed: ${error}`);
-            }
-
-            const data = await response.json();
-            return data.response || '';
-        }
-
-        return '';
+        const data = await response.json();
+        return data.message?.content || '';
     } catch (error) {
         console.error('[Ollama] Generation error:', error);
         throw error;
     }
 }
 
-// Structured domain reasoning prompt
-export function buildDomainReasoningPrompt(
-    projectName: string,
-    dataSummary: {
-        columns: string[];
-        normalizedColumns: string[];
-        sampleValues: Record<string, string[]>;
-        rowCount: number;
-        sourceCount: number;
-    }
-): OllamaMessage[] {
+// Build semantic reasoning prompt for ambiguous domain detection
+export interface SemanticReasoningContext {
+    projectName: string;
+    matchedColumns: { column: string; domain: string; keyword: string }[];
+    unmatchedColumns: string[];
+    sampleValues: Record<string, string[]>;
+    ruleBasedScores: Record<string, number>;
+    topDomain: string | null;
+    topConfidence: number;
+    totalRows: number;
+}
+
+export function buildSemanticReasoningPrompt(context: SemanticReasoningContext): OllamaMessage[] {
     const messages: OllamaMessage[] = [
         {
             role: 'system',
-            content: `You are a Business Domain Classification Expert. Your task is to analyze dataset metadata and determine what type of business the data most likely represents.
+            content: `You are a Business Domain Classification Expert for VistaraBI.
+
+Your task: Analyze ambiguous datasets where rule-based detection was WEAK or UNCERTAIN.
 
 Available business domains:
-1. ECOMMERCE - Online shopping, orders, products, carts, payments
-2. SAAS - Software subscriptions, MRR, users, plans, churn
-3. EDTECH - Education, students, courses, enrollments, grades
-4. RETAIL - Physical stores, inventory, POS, sales
-5. SERVICES - Consulting, projects, clients, invoicing, hours
-6. MANUFACTURING - Production, batches, quality, machines
-7. HEALTHCARE - Patients, appointments, diagnoses, treatments
-8. FINANCE - Accounts, transactions, loans, investments
+1. ECOMMERCE - Online shopping: orders, products, carts, SKUs, shipping, payments
+2. SAAS - Software subscriptions: MRR, ARR, users, plans, churn, licenses
+3. EDTECH - Education: students, courses, enrollments, grades, instructors
+4. RETAIL - Physical stores: inventory, POS, sales, stock, suppliers
+5. SERVICES - Consulting: projects, clients, invoices, hours, billing
+6. MANUFACTURING - Production: batches, machines, quality, yield, materials
+7. HEALTHCARE - Medical: patients, appointments, diagnoses, treatments
+8. FINANCE - Banking: accounts, transactions, loans, investments, ledger
 
-Respond in this exact JSON format:
+You will receive:
+- Columns that matched domain keywords (with which domain)
+- Columns that did NOT match any domain (these are ambiguous)
+- Sample values from ambiguous columns
+- Current rule-based confidence scores
+
+Your job:
+1. Analyze the SEMANTIC MEANING of unmatched columns
+2. Consider sample values for business context
+3. Determine the most likely domain
+4. Explain your reasoning
+
+Respond in this EXACT JSON format:
 {
-  "primary_domain": "DOMAIN_NAME",
-  "confidence": 0-100,
-  "secondary_domain": "DOMAIN_NAME or null",
-  "secondary_confidence": 0-100,
-  "reasoning": "2-3 sentences explaining why",
-  "key_signals": ["signal1", "signal2", "signal3"]
+  "recommended_domain": "DOMAIN_NAME",
+  "semantic_confidence": 0-100,
+  "alternative_domain": "DOMAIN_NAME or null",
+  "alternative_confidence": 0-100,
+  "reasoning": "2-3 sentence explanation of WHY this domain fits",
+  "semantic_signals": ["signal1", "signal2", "signal3"],
+  "ambiguous_column_insights": "What the unmatched columns likely represent"
 }
 
-Be precise and focus on column names and data patterns.`,
+Be precise. Focus on business meaning.`,
         },
         {
             role: 'user',
-            content: `Analyze this dataset and classify its business domain:
+            content: `Analyze this AMBIGUOUS dataset:
 
-Project: "${projectName}"
-Sources: ${dataSummary.sourceCount} files
-Rows: ${dataSummary.rowCount.toLocaleString()}
+PROJECT: "${context.projectName}"
+ROWS: ${context.totalRows.toLocaleString()}
 
-Column Names:
-${dataSummary.columns.slice(0, 30).join(', ')}
-
-Normalized Names:
-${dataSummary.normalizedColumns.slice(0, 30).join(', ')}
-
-Sample Values:
-${Object.entries(dataSummary.sampleValues)
-                    .slice(0, 10)
-                    .map(([col, vals]) => `${col}: ${vals.slice(0, 3).join(', ')}`)
+RULE-BASED SCORES (weak/ambiguous):
+${Object.entries(context.ruleBasedScores)
+                    .sort(([, a], [, b]) => b - a)
+                    .slice(0, 5)
+                    .map(([domain, score]) => `  ${domain}: ${score}%`)
                     .join('\n')}
 
-What business domain does this data represent? Respond with JSON only.`,
+MATCHED COLUMNS (${context.matchedColumns.length}):
+${context.matchedColumns.slice(0, 15).map(m => `  "${m.column}" → ${m.domain} (matched: ${m.keyword})`).join('\n') || '  None'}
+
+UNMATCHED/AMBIGUOUS COLUMNS (${context.unmatchedColumns.length}):
+${context.unmatchedColumns.slice(0, 20).join(', ') || 'None'}
+
+SAMPLE VALUES FROM AMBIGUOUS COLUMNS:
+${Object.entries(context.sampleValues)
+                    .slice(0, 8)
+                    .map(([col, vals]) => `  ${col}: ${vals.slice(0, 3).join(', ')}`)
+                    .join('\n')}
+
+Current rule-based top pick: ${context.topDomain || 'NONE'} at ${context.topConfidence}%
+
+What is the ACTUAL business domain? Respond with JSON only.`,
         },
     ];
 
     return messages;
 }
 
-// Parse AI response into structured format
-export interface AIDomainSuggestion {
-    primaryDomain: string | null;
-    confidence: number;
-    secondaryDomain: string | null;
-    secondaryConfidence: number;
+// Parse AI semantic response
+export interface SemanticDomainSuggestion {
+    recommendedDomain: string | null;
+    semanticConfidence: number;
+    alternativeDomain: string | null;
+    alternativeConfidence: number;
     reasoning: string;
-    keySignals: string[];
+    semanticSignals: string[];
+    ambiguousColumnInsights: string;
     rawResponse: string;
 }
 
-export function parseAIDomainResponse(response: string): AIDomainSuggestion {
+export function parseSemanticResponse(response: string): SemanticDomainSuggestion {
     try {
-        // Try to extract JSON from response
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        // Extract JSON from response (handle thinking tags)
+        let cleanResponse = response;
+
+        // Remove <think>...</think> tags if present
+        cleanResponse = cleanResponse.replace(/<think>[\s\S]*?<\/think>/g, '');
+
+        const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
             return {
-                primaryDomain: null,
-                confidence: 0,
-                secondaryDomain: null,
-                secondaryConfidence: 0,
+                recommendedDomain: null,
+                semanticConfidence: 0,
+                alternativeDomain: null,
+                alternativeConfidence: 0,
                 reasoning: 'Could not parse AI response',
-                keySignals: [],
+                semanticSignals: [],
+                ambiguousColumnInsights: '',
                 rawResponse: response,
             };
         }
@@ -221,23 +208,25 @@ export function parseAIDomainResponse(response: string): AIDomainSuggestion {
         const parsed = JSON.parse(jsonMatch[0]);
 
         return {
-            primaryDomain: parsed.primary_domain || null,
-            confidence: Math.min(100, Math.max(0, parsed.confidence || 0)),
-            secondaryDomain: parsed.secondary_domain || null,
-            secondaryConfidence: Math.min(100, Math.max(0, parsed.secondary_confidence || 0)),
+            recommendedDomain: parsed.recommended_domain || null,
+            semanticConfidence: Math.min(100, Math.max(0, parsed.semantic_confidence || 0)),
+            alternativeDomain: parsed.alternative_domain || null,
+            alternativeConfidence: Math.min(100, Math.max(0, parsed.alternative_confidence || 0)),
             reasoning: parsed.reasoning || '',
-            keySignals: parsed.key_signals || [],
+            semanticSignals: parsed.semantic_signals || [],
+            ambiguousColumnInsights: parsed.ambiguous_column_insights || '',
             rawResponse: response,
         };
     } catch (error) {
         console.error('[Ollama] Failed to parse response:', error);
         return {
-            primaryDomain: null,
-            confidence: 0,
-            secondaryDomain: null,
-            secondaryConfidence: 0,
+            recommendedDomain: null,
+            semanticConfidence: 0,
+            alternativeDomain: null,
+            alternativeConfidence: 0,
             reasoning: 'Failed to parse AI response',
-            keySignals: [],
+            semanticSignals: [],
+            ambiguousColumnInsights: '',
             rawResponse: response,
         };
     }

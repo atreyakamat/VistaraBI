@@ -1,36 +1,173 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 VistaraBI - Intelligent Business Analytics Platform
 
-## Getting Started
+A next-generation business intelligence platform that combines rule-based detection, AI semantic reasoning, and human governance to deliver domain-specific insights.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Key Features
+
+### 🎯 **Unified Domain Classification**
+- **Auto Detection**: Rule-based keyword matching across 8 business domains
+- **AI Suggestion**: Local LLM semantic reasoning (Ollama + qwen3:0.6b)
+- **Manual Selection**: User-driven domain assignment
+- **Governance Layer**: Full version history, audit trails, and domain locking
+
+### 📊 **Data Intelligence**
+- Magic byte file format detection
+- Enhanced data type inference
+- Automated data cleaning & normalization
+- Quality scoring & outlier detection
+- Relationship discovery
+
+### 🧠 **AI-Powered**
+- Local Ollama integration (privacy-first)
+- Explainable AI reasoning
+- Semantic domain understanding
+- No cloud dependencies
+
+---
+
+## 🏗️ Architecture
+
+```
+VistaraBI Platform
+├── Module 1: Data Ingestion & Type Inference
+├── Module 2: Data Purification & Quality Analysis
+├── Module 3: Domain Classification (Complete ✅)
+│   ├── Phase 3A: Rule-Based Detection
+│   ├── Phase 3B: Governance Layer
+│   └── Phase 3C: AI Semantic Reasoning
+├── Module 4: KPI Engine (Coming Soon)
+├── Module 5: Analytics & Forecasting (Coming Soon)
+└── Module 6-9: Advanced Features (Planned)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Quick Start
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
+- **Node.js** v20+
+- **npm** v10+
+- **Ollama** ([Download](https://ollama.com))
 
-## Learn More
+### Installation
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# 1. Clone repository
+git clone <repo-url>
+cd vistarabi-landing
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 2. Install dependencies
+npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 3. Setup environment
+cp .env.example .env
 
-## Deploy on Vercel
+# 4. Start Ollama
+ollama serve
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# 5. Pull AI model
+ollama pull qwen3:0.6b
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# 6. Run development server
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 📖 Documentation
+
+- [**SETUP.md**](./SETUP.md) - Complete setup guide
+- [**MODULE_3_COMPLETE.md**](./MODULE_3_COMPLETE.md) - Module 3 technical details
+- [**MODULE_3_PHASE_3C_COMPLETE.md**](./MODULE_3_PHASE_3C_COMPLETE.md) - AI reasoning layer
+- [**UNIFIED_DOMAIN_SELECTION.md**](./UNIFIED_DOMAIN_SELECTION.md) - UI/UX documentation
+- [**DOMAIN_KPI_SELECTION.md**](./DOMAIN_KPI_SELECTION.md) - KPI library
+
+---
+
+## 🎯 Domain Selection
+
+VistaraBI automatically classifies your business data into one of 8 domains:
+
+| Domain | Icon | Description |
+|--------|------|-------------|
+| E-Commerce | 🛒 | Orders, products, customers, carts |
+| SaaS | 💻 | Subscriptions, users, MRR, churn |
+| EdTech | 🎓 | Students, courses, enrollments, grades |
+| Retail | 🏪 | Inventory, POS, sales, stores |
+| Services | 🧾 | Projects, clients, billing, hours  |
+| Manufacturing | 🏭 | Production, batches, quality, yield |
+| Healthcare | 🏥 | Patients, appointments, treatments |
+| Finance | 💰 | Accounts, transactions, loans |
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 16, React 19, TailwindCSS 4, Framer Motion
+- **Backend**: Next.js API Routes, TypeScript
+- **Database**: Enhanced In-Memory Store (dev), Prisma-ready
+- **AI**: Ollama (local), qwen3:0.6b model
+- **Data Processing**: PapaParse, XLSX
+
+---
+
+## 📊 Modules Status
+
+| Module | Status | Description |
+|--------|--------|-------------|
+| Module 1 | ✅ Complete | Data Ingestion & Type Inference |
+| Module 2 | ✅ Complete | Purification & Quality Analysis |
+| Module 3A | ✅ Complete | Rule-Based Domain Detection |
+| Module 3B | ✅ Complete | Domain Governance Layer |
+| Module 3C | ✅ Complete | AI Semantic Reasoning |
+| Module 4 | 🚧 Planned | KPI Calculation Engine |
+| Module 5 | 🚧 Planned | Trend Analysis & Forecasting |
+| Module 6-9 | 📋 Planned | Advanced Features |
+
+---
+
+## 🧪 Testing
+
+```bash
+# Type check
+npx tsc --noEmit
+
+# Run in development
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+---
+
+## 🤝 Contributing
+
+This is a research-grade project. For questions or contributions, please refer to the documentation files.
+
+---
+
+## 📜 License
+
+Proprietary - All Rights Reserved
+
+---
+
+## 🙏 Acknowledgments
+
+Built with:
+- Next.js, React, TailwindCSS
+- Ollama (Local LLM)
+- Framer Motion (Animations)
+- TypeScript (Type Safety)
+
+---
+
+**Happy Analyzing! 📊✨**

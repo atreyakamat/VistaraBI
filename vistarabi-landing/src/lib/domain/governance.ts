@@ -101,6 +101,36 @@ export async function setGovernedDomain(params: GovernDomainParams) {
         },
     });
 
+    // Sync with domain detection table for UI consistency
+    const detection = await db.domainDetection.findUnique({ where: { projectId } });
+    if (detection) {
+        await db.domainDetection.update({
+            where: { projectId },
+            data: {
+                detectedDomain: domain,
+                confidence: 100,
+                status: 'MANUALLY_SELECTED',
+                explanation: `Domain manually set via governance: ${reason}`,
+                detectedAt: new Date(),
+            }
+        });
+    } else {
+        // Create it if it doesn't exist
+        await db.domainDetection.create({
+            data: {
+                id: randomUUID(),
+                projectId,
+                detectedDomain: domain,
+                confidence: 100,
+                status: 'MANUALLY_SELECTED',
+                scoringBreakdown: {} as any,
+                matchedColumns: [],
+                explanation: `Domain manually set via governance: ${reason}`,
+                detectedAt: new Date(),
+            }
+        });
+    }
+
     // Record history
     await db.domainHistory.create({
         data: {
@@ -238,6 +268,8 @@ export async function reevaluateDomain(projectId: string, userId: string) {
             lastUpdated: new Date(),
         },
     });
+
+    // Detection table is already updated by detectDomain() called above
 
     // Record in history
     await db.domainHistory.create({

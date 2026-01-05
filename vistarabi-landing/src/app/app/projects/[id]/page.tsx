@@ -11,9 +11,7 @@ import RelationshipGraph from "@/components/app/RelationshipGraph";
 import CleaningSummary from "@/components/app/CleaningSummary";
 import QualityDashboard from "@/components/app/QualityDashboard";
 import DomainBadge from "@/components/app/DomainBadge";
-import DomainExplanation from "@/components/app/DomainExplanation";
-import DomainSelection from "@/components/app/DomainSelection";
-import AIGuidedSelection from "@/components/app/AIGuidedSelection";
+import DomainSelectionPopup from "@/components/app/DomainSelectionPopup";
 import { SourceStatus, QualityScore, QualityGrade, RiskLevel, DataType, DomainType, DomainStatus } from "@/lib/prisma";
 
 interface Project {
@@ -76,9 +74,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
     const [cleaningSummary, setCleaningSummary] = useState<any>(null);
     const [qualityDashboard, setQualityDashboard] = useState<any>(null);
     const [domainData, setDomainData] = useState<any>(null);
-    const [showDomainExplanation, setShowDomainExplanation] = useState(false);
-    const [showDomainSelection, setShowDomainSelection] = useState(false);
-    const [showAIGuidedSelection, setShowAIGuidedSelection] = useState(false);
+    const [showDomainPopup, setShowDomainPopup] = useState(false);
 
     useEffect(() => {
         fetchProject();
@@ -265,42 +261,22 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
     const handleSelectDomain = async (domain: string) => {
         try {
-            const res = await fetch(`/api/projects/${id}/domain`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ domain }),
-            });
-            if (res.ok) {
-                const result = await res.json();
-                setDomainData(result.domain);
-                setShowDomainExplanation(false);
-            }
-        } catch (error) {
-            console.error("Error selecting domain:", error);
-        }
-    };
-
-    const handleConfirmDomainSelection = async (domain: string, selectedKPIs: string[]) => {
-        try {
-            // Use governance API to set domain properly
+            // Use governance API to properly set domain
             const res = await fetch(`/api/projects/${id}/governance`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'set',
                     domain,
-                    reason: `User selected ${domain} domain with ${selectedKPIs.length} KPIs`,
+                    reason: `User selected ${domain} domain`,
                 }),
             });
             if (res.ok) {
-                // Refresh project data to get updated domain
                 await fetchProject();
-                setShowDomainSelection(false);
-                console.log('Domain and KPIs set:', domain, selectedKPIs);
-                // TODO: Store selected KPIs for Module 4
+                setShowDomainPopup(false);
             }
         } catch (error) {
-            console.error("Error confirming domain selection:", error);
+            console.error("Error selecting domain:", error);
         }
     };
 
@@ -313,23 +289,6 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
             }
         } catch (error) {
             console.error("Error deleting source:", error);
-        }
-    };
-
-    const handleTriggerDomainDetection = async () => {
-        try {
-            console.log('[Domain] Manually triggering domain detection...');
-            const res = await fetch(`/api/projects/${id}/detect-domain`, { method: 'POST' });
-            console.log('[Domain] Trigger response:', res.status);
-            if (res.ok) {
-                const result = await res.json();
-                console.log('[Domain] Detection result:', result);
-                setDomainData(result.domain);
-            } else {
-                console.error('[Domain] Detection failed:', await res.text());
-            }
-        } catch (error) {
-            console.error('[Domain] Error triggering detection:', error);
         }
     };
 
@@ -403,37 +362,21 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                         <span className="font-medium text-[var(--foreground)]">{project.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        {/* Domain Badge (Module 3 Phase 3A) */}
+                        {/* Domain Badge and Selection */}
                         {sources.length > 0 && (
                             <>
                                 <DomainBadge
                                     domain={domainData?.detectedDomain || null}
                                     confidence={domainData?.confidence || 0}
                                     status={domainData?.status || 'MANUAL_REQUIRED'}
-                                    onClick={() => domainData?.detectedDomain ? setShowDomainExplanation(true) : setShowDomainSelection(true)}
+                                    onClick={() => setShowDomainPopup(true)}
                                     compact
                                 />
-                                {!domainData?.detectedDomain && (
-                                    <button
-                                        onClick={handleTriggerDomainDetection}
-                                        className="px-3 py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all"
-                                        title="Auto-detect domain from your data"
-                                    >
-                                        🔍 Detect
-                                    </button>
-                                )}
                                 <button
-                                    onClick={() => setShowDomainSelection(true)}
-                                    className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:shadow-lg transition-all"
+                                    onClick={() => setShowDomainPopup(true)}
+                                    className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all"
                                 >
-                                    {domainData?.detectedDomain ? 'Change Domain' : 'Select Domain'}
-                                </button>
-                                <button
-                                    onClick={() => setShowAIGuidedSelection(true)}
-                                    className="px-3 py-2 text-sm font-medium bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-lg hover:shadow-lg transition-all"
-                                    title="Get AI-powered domain suggestions"
-                                >
-                                    🧠 AI Assist
+                                    {domainData?.detectedDomain ? '🔄 Change Domain' : '🎯 Domain Selection'}
                                 </button>
                             </>
                         )}
@@ -461,6 +404,24 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                     <div className="mb-8">
                         <UploadZone onFilesSelected={handleFilesSelected} uploading={uploading} />
                     </div>
+
+                    {/* Continue to KPIs - shown when domain is set */}
+                    {domainData?.detectedDomain && sources.length > 0 && (
+                        <div className="mb-8 p-4 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 rounded-2xl border border-purple-200">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="font-semibold">Ready to define your KPIs?</h3>
+                                    <p className="text-sm text-[var(--muted)]">Domain detected: {domainData.detectedDomain}. Set up your measurement blueprint.</p>
+                                </div>
+                                <a
+                                    href={`/app/projects/${id}/kpis`}
+                                    className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
+                                >
+                                    📊 Continue to KPIs →
+                                </a>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Tabs */}
                     <div className="flex gap-1 mb-6 p-1 bg-[var(--background)] rounded-xl w-fit">
@@ -556,40 +517,14 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                     />
                 )}
 
-                {/* Domain Explanation Modal (Module 3 Phase 3A) */}
-                {showDomainExplanation && domainData && (
-                    <DomainExplanation
-                        domain={domainData.detectedDomain}
-                        confidence={domainData.confidence}
-                        status={domainData.status}
-                        scoringBreakdown={domainData.scoringBreakdown || {}}
-                        matchedColumns={domainData.matchedColumns || []}
-                        explanation={domainData.explanation || ''}
-                        onClose={() => setShowDomainExplanation(false)}
-                        onSelectDomain={handleSelectDomain}
-                    />
-                )}
-
-                {/* Domain Selection Modal (Module 3 Phase 3B) */}
-                {showDomainSelection && (
-                    <DomainSelection
-                        currentDomain={domainData?.detectedDomain || null}
-                        onClose={() => setShowDomainSelection(false)}
-                        onConfirm={handleConfirmDomainSelection}
-                    />
-                )}
-
-                {/* AI Guided Selection Modal (Module 3 Phase 3C) */}
-                {showAIGuidedSelection && (
-                    <AIGuidedSelection
+                {/* Unified Domain Selection Modal (Module 3) */}
+                {showDomainPopup && (
+                    <DomainSelectionPopup
                         projectId={id}
-                        phase3ADomain={domainData?.detectedDomain || null}
-                        phase3AConfidence={domainData?.confidence || 0}
-                        onSelectDomain={async (domain) => {
-                            await handleSelectDomain(domain);
-                            setShowAIGuidedSelection(false);
-                        }}
-                        onClose={() => setShowAIGuidedSelection(false)}
+                        currentDomain={domainData?.detectedDomain || null}
+                        currentConfidence={domainData?.confidence || 0}
+                        onSelectDomain={handleSelectDomain}
+                        onClose={() => setShowDomainPopup(false)}
                     />
                 )}
             </main>

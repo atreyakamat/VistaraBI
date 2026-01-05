@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/prisma';
 import { getDomainDetection, manuallySelectDomain, DomainType } from '@/lib/domain';
+import { getGovernedDomain } from '@/lib/domain/governance';
 
 // GET /api/projects/[id]/domain - Get current domain detection result
 export async function GET(
@@ -25,16 +26,30 @@ export async function GET(
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 
-        const domain = await getDomainDetection(id);
+        // Get governed domain (authoritative)
+        const governed = await getGovernedDomain(id);
 
-        if (!domain) {
+        // Get detection metadata
+        const detection = await getDomainDetection(id);
+
+        if (!detection && !governed) {
             return NextResponse.json({
                 domain: null,
                 message: 'Domain detection not yet run for this project'
             });
         }
 
-        return NextResponse.json({ domain });
+        // Construct response combining authoritative domain with detection context
+        const responseData = {
+            ...detection,
+            detectedDomain: governed?.activeDomain || detection?.detectedDomain || null,
+            status: governed ? governed.governanceStatus : (detection?.status || 'MANUAL_REQUIRED'),
+            confidence: detection?.confidence || 0,
+            // If governed manually, the confidence is high
+            ...(governed?.governanceStatus === 'MANUAL' || governed?.governanceStatus === 'LOCKED' ? { confidence: 100 } : {})
+        };
+
+        return NextResponse.json({ domain: responseData });
     } catch (error) {
         console.error('Get domain error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -71,7 +86,7 @@ export async function PUT(
         }
 
         // Validate domain type
-        const validDomains: DomainType[] = [
+        const validDomains: (DomainType | string)[] = [
             'ECOMMERCE', 'SAAS', 'EDTECH', 'RETAIL',
             'SERVICES', 'MANUFACTURING', 'HEALTHCARE', 'FINANCE'
         ];
@@ -81,7 +96,9 @@ export async function PUT(
         }
 
         console.log('[API] Manually selecting domain:', selectedDomain, 'for project:', id);
-        const result = await manuallySelectDomain(id, selectedDomain);
+
+        // Use the new manuallySelectDomain helper which also initializes governance
+        const result = await manuallySelectDomain(id, selectedDomain as DomainType);
 
         return NextResponse.json({
             success: true,

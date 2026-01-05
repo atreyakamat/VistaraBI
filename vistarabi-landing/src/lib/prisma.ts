@@ -201,20 +201,71 @@ export interface DomainHistory {
 export interface AIDomainReasoning {
     id: string;
     projectId: string;
-    primaryDomain: DomainType | null;
-    primaryConfidence: number;
-    secondaryDomain: DomainType | null;
-    secondaryConfidence: number;
-    reasoning: string;
-    keySignals: string[];
-    phase3AConfidence: number;
-    fusedConfidence: number;
+    // Rule-based detection results
+    ruleBasedDomain: DomainType | null;
+    ruleBasedConfidence: number;
+    matchedColumns: string[];
+    unmatchedColumns: string[];
+    // AI semantic analysis
+    aiRecommendedDomain: DomainType | null;
+    aiSemanticConfidence: number;
+    aiAlternativeDomain: DomainType | null;
+    aiAlternativeConfidence: number;
+    aiReasoning: string;
+    aiSemanticSignals: string[];
+    aiColumnInsights: string;
+    // Combined results
+    combinedConfidence: number;
+    finalDomain: DomainType | null;
+    wasAutoAssigned: boolean;
+    // Metadata
     ollamaModel: string;
     processingTimeMs: number;
     createdAt: Date;
 }
 
+// KPI Discovery (Module 4 Phase 4A)
+export interface KPIDiscovery {
+    projectId: string;
+    domain: DomainType;
+    totalKPIsAnalyzed: number;
+    computableKPIs: any[];
+    partialKPIs: any[];
+    discoveredAt: Date;
+}
 
+// KPI Blueprint (Module 4 Phase 4B)
+export interface ApprovedKPI {
+    kpiId: string;
+    kpiName: string;
+    formula: string;
+    category: string;
+    matchedColumns: string[];
+    confidence: number;
+    addedAt: Date;
+}
+
+export interface KPIBlueprint {
+    id: string;
+    projectId: string;
+    kpis: ApprovedKPI[];
+    version: number;
+    isLocked: boolean;
+    lockedAt: Date | null;
+    lockedBy: string | null;
+    createdAt: Date;
+}
+
+export interface KPIBlueprintHistory {
+    id: string;
+    projectId: string;
+    version: number;
+    action: 'ADD' | 'REMOVE' | 'LOCK';
+    kpiId: string;
+    kpiName: string;
+    changedBy: string;
+    changedAt: Date;
+}
 
 // ============ STORAGE (GLOBAL TO SURVIVE HMR) ============
 
@@ -234,6 +285,9 @@ interface DbStore {
     domainGovernances: Map<string, DomainGovernance>;
     domainHistories: Map<string, DomainHistory>;
     aiDomainReasonings: Map<string, AIDomainReasoning>;
+    kpiDiscoveries: Map<string, KPIDiscovery>;
+    kpiBlueprints: Map<string, KPIBlueprint>;
+    kpiBlueprintHistories: Map<string, KPIBlueprintHistory>;
     initialized: boolean;
 }
 
@@ -263,6 +317,9 @@ function getStore(): DbStore {
             domainGovernances: new Map(),
             domainHistories: new Map(),
             aiDomainReasonings: new Map(),
+            kpiDiscoveries: new Map(),
+            kpiBlueprints: new Map(),
+            kpiBlueprintHistories: new Map(),
             initialized: false,
         };
     }
@@ -301,6 +358,9 @@ const domainDetections = store.domainDetections;
 const domainGovernances = store.domainGovernances;
 const domainHistories = store.domainHistories;
 const aiDomainReasonings = store.aiDomainReasonings;
+const kpiDiscoveries = store.kpiDiscoveries;
+const kpiBlueprints = store.kpiBlueprints;
+const kpiBlueprintHistories = store.kpiBlueprintHistories;
 
 // ============ DATABASE API ============
 
@@ -901,6 +961,85 @@ const db = {
 
         create: async ({ data }: { data: any }) => {
             aiDomainReasonings.set(data.id, data);
+            return data;
+        },
+    },
+
+    // KPI Discovery (Module 4 Phase 4A)
+    kpiDiscovery: {
+        findUnique: async ({ where }: { where: { projectId: string } }) => {
+            for (const kpi of kpiDiscoveries.values()) {
+                if (kpi.projectId === where.projectId) {
+                    return kpi;
+                }
+            }
+            return null;
+        },
+
+        upsert: async ({ where, data }: { where: { projectId: string }; data: any }) => {
+            for (const [id, kpi] of kpiDiscoveries.entries()) {
+                if (kpi.projectId === where.projectId) {
+                    const updated = { ...kpi, ...data };
+                    kpiDiscoveries.set(id, updated);
+                    return updated;
+                }
+            }
+            kpiDiscoveries.set(where.projectId, data);
+            return data;
+        },
+
+        create: async ({ data }: { data: any }) => {
+            kpiDiscoveries.set(data.projectId, data);
+            return data;
+        },
+    },
+
+    // KPI Blueprint (Module 4 Phase 4B)
+    kpiBlueprint: {
+        findUnique: async ({ where }: { where: { projectId: string } }) => {
+            for (const bp of kpiBlueprints.values()) {
+                if (bp.projectId === where.projectId) return bp;
+            }
+            return null;
+        },
+
+        upsert: async ({ where, data }: { where: { projectId: string }; data: any }) => {
+            for (const [id, bp] of kpiBlueprints.entries()) {
+                if (bp.projectId === where.projectId) {
+                    const updated = { ...bp, ...data };
+                    kpiBlueprints.set(id, updated);
+                    return updated;
+                }
+            }
+            kpiBlueprints.set(data.id || where.projectId, data);
+            return data;
+        },
+
+        update: async ({ where, data }: { where: { projectId: string }; data: any }) => {
+            for (const [id, bp] of kpiBlueprints.entries()) {
+                if (bp.projectId === where.projectId) {
+                    const updated = { ...bp, ...data };
+                    kpiBlueprints.set(id, updated);
+                    return updated;
+                }
+            }
+            return null;
+        },
+    },
+
+    kpiBlueprintHistory: {
+        findMany: async ({ where }: { where?: { projectId?: string } } = {}) => {
+            const results: any[] = [];
+            for (const h of kpiBlueprintHistories.values()) {
+                if (!where?.projectId || h.projectId === where.projectId) {
+                    results.push(h);
+                }
+            }
+            return results.sort((a, b) => b.changedAt.getTime() - a.changedAt.getTime());
+        },
+
+        create: async ({ data }: { data: any }) => {
+            kpiBlueprintHistories.set(data.id, data);
             return data;
         },
     },

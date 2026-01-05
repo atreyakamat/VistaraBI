@@ -1,5 +1,6 @@
-// AI Semantic Domain Reasoning Engine (Module 3 Phase 3C)
-// Provides semantic understanding and explainable AI suggestions for domain classification
+// Ollama-Augmented Domain Reasoning Engine (Module 3C)
+// Invokes AI ONLY when rule-based detection is weak/ambiguous
+// Never blindly overrides - acts as semantic validator and recommender
 
 import { randomUUID } from 'crypto';
 import db from '@/lib/prisma';
@@ -7,144 +8,216 @@ import type { DomainType } from '@/lib/prisma';
 import {
     checkOllamaHealth,
     generateCompletion,
-    buildDomainReasoningPrompt,
-    parseAIDomainResponse,
-    type AIDomainSuggestion,
+    buildSemanticReasoningPrompt,
+    parseSemanticResponse,
+    type SemanticReasoningContext,
+    type SemanticDomainSuggestion,
 } from '@/lib/ai/ollama-client';
 
-// AI Domain Reasoning Record
+// Confidence thresholds
+const AUTO_ASSIGN_THRESHOLD = 60;  // Above this: auto-assign domain
+const AI_INVOKE_THRESHOLD = 60;    // Below this: invoke AI for help
+const COMBINED_AUTO_THRESHOLD = 70; // Combined confidence needed for auto-assign
+
+// AI Domain Reasoning Record (for audit and explainability)
 export interface AIDomainReasoning {
     id: string;
     projectId: string;
-    primaryDomain: DomainType | null;
-    primaryConfidence: number;
-    secondaryDomain: DomainType | null;
-    secondaryConfidence: number;
-    reasoning: string;
-    keySignals: string[];
-    phase3AConfidence: number;      // Original Phase 3A confidence
-    fusedConfidence: number;        // Combined AI + rule-based confidence
+    // Rule-based detection results
+    ruleBasedDomain: DomainType | null;
+    ruleBasedConfidence: number;
+    matchedColumns: string[];
+    unmatchedColumns: string[];
+    // AI semantic analysis
+    aiRecommendedDomain: DomainType | null;
+    aiSemanticConfidence: number;
+    aiAlternativeDomain: DomainType | null;
+    aiAlternativeConfidence: number;
+    aiReasoning: string;
+    aiSemanticSignals: string[];
+    aiColumnInsights: string;
+    // Combined results
+    combinedConfidence: number;
+    finalDomain: DomainType | null;
+    wasAutoAssigned: boolean;
+    // Metadata
     ollamaModel: string;
     processingTimeMs: number;
     createdAt: Date;
 }
 
-// Gather dataset summary for AI analysis
-async function gatherDataSummary(projectId: string): Promise<{
-    columns: string[];
-    normalizedColumns: string[];
-    sampleValues: Record<string, string[]>;
-    rowCount: number;
-    sourceCount: number;
-}> {
+// Gather context for semantic reasoning
+async function gatherSemanticContext(
+    projectId: string,
+    ruleDetection: any
+): Promise<SemanticReasoningContext> {
+    const project = await db.project.findUnique({ where: { id: projectId } });
     const sources = await db.source.findMany({ where: { projectId } });
 
-    const allColumns: string[] = [];
-    const allNormalizedColumns: string[] = [];
+    // Extract sample values from unmatched columns
     const sampleValues: Record<string, string[]> = {};
-    let totalRows = 0;
+    const unmatchedColumns = ruleDetection?.unmatchedColumns || [];
 
     for (const source of sources) {
-        totalRows += source.rowCount || 0;
-
-        for (const col of source.columns || []) {
-            allColumns.push(col);
-            // Normalize: lowercase, remove special chars
-            allNormalizedColumns.push(col.toLowerCase().replace(/[_\-\s]+/g, ''));
-
-            // Get sample values from first few rows
-            if (source.data && source.data.length > 0) {
-                const samples = source.data
-                    .slice(0, 5)
-                    .map((row: Record<string, any>) => String(row[col] || ''))
-                    .filter((v: string) => v && v !== 'null' && v !== 'undefined');
-                if (samples.length > 0) {
-                    sampleValues[col] = samples;
+        if (source.data && source.data.length > 0) {
+            for (const col of unmatchedColumns.slice(0, 15)) {
+                if (!sampleValues[col]) {
+                    const samples = source.data
+                        .slice(0, 5)
+                        .map((row: Record<string, any>) => String(row[col] || ''))
+                        .filter((v: string) => v && v !== 'null' && v !== 'undefined' && v.length < 50);
+                    if (samples.length > 0) {
+                        sampleValues[col] = samples;
+                    }
                 }
             }
         }
     }
 
+    // Build matched columns info
+    const matchedColumns = (ruleDetection?.matchedColumns || []).map((col: string) => ({
+        column: col,
+        domain: ruleDetection?.detectedDomain || 'UNKNOWN',
+        keyword: col,
+    }));
+
+    const totalRows = sources.reduce((sum, s) => sum + (s.rowCount || 0), 0);
+
     return {
-        columns: [...new Set(allColumns)],
-        normalizedColumns: [...new Set(allNormalizedColumns)],
+        projectName: project?.name || 'Unknown Project',
+        matchedColumns,
+        unmatchedColumns,
         sampleValues,
-        rowCount: totalRows,
-        sourceCount: sources.length,
+        ruleBasedScores: ruleDetection?.scoringBreakdown || {},
+        topDomain: ruleDetection?.detectedDomain || null,
+        topConfidence: ruleDetection?.confidence || 0,
+        totalRows,
     };
 }
 
-// Fuse AI confidence with Phase 3A confidence
-function fuseConfidence(phase3AConfidence: number, aiConfidence: number): number {
-    // Weighted average: 60% rule-based, 40% AI
-    // This ensures rule-based remains primary, AI acts as booster
-    const weight3A = 0.6;
-    const weightAI = 0.4;
-
-    const fused = (phase3AConfidence * weight3A) + (aiConfidence * weightAI);
-    return Math.round(fused);
+// Calculate combined confidence using weighted fusion
+function calculateCombinedConfidence(
+    ruleConfidence: number,
+    aiConfidence: number,
+    domainsMatch: boolean
+): number {
+    if (domainsMatch) {
+        // Domains agree - boost confidence significantly
+        // Weighted: 55% rule-based + 45% AI (slight rule preference)
+        const base = (ruleConfidence * 0.55) + (aiConfidence * 0.45);
+        // Bonus for agreement
+        const agreementBonus = Math.min(15, (ruleConfidence + aiConfidence) / 10);
+        return Math.min(100, Math.round(base + agreementBonus));
+    } else {
+        // Domains disagree - use weighted average, no bonus
+        // Rule-based gets more weight since it's deterministic
+        return Math.round((ruleConfidence * 0.6) + (aiConfidence * 0.4));
+    }
 }
 
-// Main AI reasoning function
-export async function performAIDomainReasoning(
-    projectId: string,
-    phase3AConfidence: number = 0
+// Main: Perform semantic domain reasoning
+export async function performSemanticReasoning(
+    projectId: string
 ): Promise<AIDomainReasoning | null> {
-    console.log('[AI-Domain] Starting semantic domain reasoning for project:', projectId);
+    console.log('[AI-Domain] Starting semantic reasoning for project:', projectId);
     const startTime = Date.now();
 
-    // Check if Ollama is available
+    // Get existing rule-based detection
+    const ruleDetection = await db.domainDetection.findUnique({ where: { projectId } });
+
+    if (!ruleDetection) {
+        console.log('[AI-Domain] No rule-based detection found');
+        return null;
+    }
+
+    const ruleConfidence = ruleDetection.confidence || 0;
+    console.log('[AI-Domain] Rule-based confidence:', ruleConfidence);
+
+    // Check if AI assistance is needed
+    if (ruleConfidence >= AI_INVOKE_THRESHOLD) {
+        console.log('[AI-Domain] Rule-based confidence is strong, AI not needed');
+        return null;
+    }
+
+    // Check Ollama availability
     const ollamaAvailable = await checkOllamaHealth();
     if (!ollamaAvailable) {
-        console.warn('[AI-Domain] Ollama not available, skipping AI reasoning');
+        console.warn('[AI-Domain] Ollama not available');
         return null;
     }
 
     try {
-        // Get project name
-        const project = await db.project.findUnique({ where: { id: projectId } });
-        if (!project) {
-            console.error('[AI-Domain] Project not found');
-            return null;
-        }
+        // Gather semantic context
+        const context = await gatherSemanticContext(projectId, ruleDetection);
 
-        // Gather data summary
-        const dataSummary = await gatherDataSummary(projectId);
-
-        if (dataSummary.columns.length === 0) {
+        if (context.unmatchedColumns.length === 0 && context.matchedColumns.length === 0) {
             console.log('[AI-Domain] No columns to analyze');
             return null;
         }
 
-        console.log('[AI-Domain] Analyzing', dataSummary.columns.length, 'columns,', dataSummary.rowCount, 'rows');
+        console.log('[AI-Domain] Analyzing', context.unmatchedColumns.length, 'unmatched columns');
 
         // Build prompt and call Ollama
-        const messages = buildDomainReasoningPrompt(project.name, dataSummary);
+        const messages = buildSemanticReasoningPrompt(context);
+        const response = await generateCompletion({ messages, temperature: 0.2 });
 
-        const response = await generateCompletion({
-            messages,
-            temperature: 0.3, // Low temperature for consistent results
-        });
-
-        // Parse AI response
-        const suggestion = parseAIDomainResponse(response);
+        // Parse response
+        const suggestion = parseSemanticResponse(response);
 
         const processingTime = Date.now() - startTime;
-        console.log('[AI-Domain] Reasoning complete in', processingTime, 'ms');
-        console.log('[AI-Domain] Suggested:', suggestion.primaryDomain, 'at', suggestion.confidence, '%');
+        console.log('[AI-Domain] Semantic analysis complete in', processingTime, 'ms');
+        console.log('[AI-Domain] AI recommends:', suggestion.recommendedDomain, 'at', suggestion.semanticConfidence, '%');
+
+        // Calculate combined confidence
+        const domainsMatch = suggestion.recommendedDomain === ruleDetection.detectedDomain;
+        const combinedConfidence = calculateCombinedConfidence(
+            ruleConfidence,
+            suggestion.semanticConfidence,
+            domainsMatch
+        );
+
+        // Determine final domain and auto-assignment
+        let finalDomain: DomainType | null;
+        let wasAutoAssigned: boolean;
+
+        if (combinedConfidence >= COMBINED_AUTO_THRESHOLD) {
+            // Combined confidence is high enough - auto-assign
+            finalDomain = domainsMatch
+                ? ruleDetection.detectedDomain
+                : (suggestion.semanticConfidence > ruleConfidence
+                    ? suggestion.recommendedDomain as DomainType
+                    : ruleDetection.detectedDomain);
+            wasAutoAssigned = true;
+            console.log('[AI-Domain] Auto-assigning domain:', finalDomain, 'at', combinedConfidence, '%');
+        } else {
+            // Still ambiguous - require user selection
+            finalDomain = null;
+            wasAutoAssigned = false;
+            console.log('[AI-Domain] Combined confidence', combinedConfidence, '% still below threshold, needs user input');
+        }
 
         // Create reasoning record
         const reasoning: AIDomainReasoning = {
             id: randomUUID(),
             projectId,
-            primaryDomain: suggestion.primaryDomain as DomainType | null,
-            primaryConfidence: suggestion.confidence,
-            secondaryDomain: suggestion.secondaryDomain as DomainType | null,
-            secondaryConfidence: suggestion.secondaryConfidence,
-            reasoning: suggestion.reasoning,
-            keySignals: suggestion.keySignals,
-            phase3AConfidence,
-            fusedConfidence: fuseConfidence(phase3AConfidence, suggestion.confidence),
+            // Rule-based
+            ruleBasedDomain: ruleDetection.detectedDomain,
+            ruleBasedConfidence: ruleConfidence,
+            matchedColumns: ruleDetection.matchedColumns || [],
+            unmatchedColumns: context.unmatchedColumns,
+            // AI
+            aiRecommendedDomain: suggestion.recommendedDomain as DomainType | null,
+            aiSemanticConfidence: suggestion.semanticConfidence,
+            aiAlternativeDomain: suggestion.alternativeDomain as DomainType | null,
+            aiAlternativeConfidence: suggestion.alternativeConfidence,
+            aiReasoning: suggestion.reasoning,
+            aiSemanticSignals: suggestion.semanticSignals,
+            aiColumnInsights: suggestion.ambiguousColumnInsights,
+            // Combined
+            combinedConfidence,
+            finalDomain,
+            wasAutoAssigned,
+            // Meta
             ollamaModel: process.env.OLLAMA_MODEL || 'qwen3:0.6b',
             processingTimeMs: processingTime,
             createdAt: new Date(),
@@ -156,11 +229,9 @@ export async function performAIDomainReasoning(
             data: reasoning,
         });
 
-        console.log('[AI-Domain] Reasoning stored. Fused confidence:', reasoning.fusedConfidence, '%');
-
         return reasoning;
     } catch (error) {
-        console.error('[AI-Domain] Reasoning error:', error);
+        console.error('[AI-Domain] Semantic reasoning error:', error);
         return null;
     }
 }
@@ -170,81 +241,63 @@ export async function getAIDomainReasoning(projectId: string): Promise<AIDomainR
     return await db.aiDomainReasoning.findUnique({ where: { projectId } });
 }
 
-// Check if AI reasoning should be invoked
-export function shouldInvokeAIReasoning(phase3AConfidence: number): boolean {
-    // Invoke AI when:
-    // 1. Phase 3A confidence is below auto-assign threshold (60%)
-    // 2. Phase 3A confidence is borderline (50-70%)
-    return phase3AConfidence < 70;
+// Check if AI reasoning should be invoked for a detection
+export function shouldInvokeAI(ruleConfidence: number): boolean {
+    return ruleConfidence < AI_INVOKE_THRESHOLD;
 }
 
-// Combine Phase 3A and Phase 3C for final domain decision
-export async function getEnhancedDomainClassification(projectId: string): Promise<{
+// Get enhanced classification combining rule-based and AI
+export async function getEnhancedClassification(projectId: string): Promise<{
     domain: DomainType | null;
     confidence: number;
-    source: 'rule-based' | 'ai-enhanced' | 'ai-suggested';
+    source: 'rule-based' | 'ai-enhanced' | 'ai-recommended' | 'needs-selection';
     aiReasoning: AIDomainReasoning | null;
+    ruleDetection: any;
 }> {
-    // Get Phase 3A detection
-    const detection = await db.domainDetection.findUnique({ where: { projectId } });
-
-    // Get Phase 3C AI reasoning
+    const ruleDetection = await db.domainDetection.findUnique({ where: { projectId } });
     const aiReasoning = await getAIDomainReasoning(projectId);
 
-    if (!detection && !aiReasoning) {
+    // No detection at all
+    if (!ruleDetection) {
         return {
             domain: null,
             confidence: 0,
-            source: 'rule-based',
+            source: 'needs-selection',
             aiReasoning: null,
+            ruleDetection: null,
         };
     }
 
-    // If no AI reasoning, use pure Phase 3A
-    if (!aiReasoning) {
+    // Rule-based is strong enough
+    if (ruleDetection.confidence >= AUTO_ASSIGN_THRESHOLD) {
         return {
-            domain: detection?.detectedDomain || null,
-            confidence: detection?.confidence || 0,
-            source: 'rule-based',
-            aiReasoning: null,
-        };
-    }
-
-    // If Phase 3A has high confidence, use it but include AI for context
-    if (detection && detection.confidence >= 60) {
-        return {
-            domain: detection.detectedDomain,
-            confidence: detection.confidence,
+            domain: ruleDetection.detectedDomain,
+            confidence: ruleDetection.confidence,
             source: 'rule-based',
             aiReasoning,
+            ruleDetection,
         };
     }
 
-    // If AI agrees with Phase 3A (same domain), boost confidence
-    if (detection && aiReasoning.primaryDomain === detection.detectedDomain) {
+    // AI helped and auto-assigned
+    if (aiReasoning?.wasAutoAssigned && aiReasoning.finalDomain) {
         return {
-            domain: detection.detectedDomain,
-            confidence: aiReasoning.fusedConfidence,
-            source: 'ai-enhanced',
+            domain: aiReasoning.finalDomain,
+            confidence: aiReasoning.combinedConfidence,
+            source: aiReasoning.aiRecommendedDomain === aiReasoning.finalDomain
+                ? 'ai-recommended'
+                : 'ai-enhanced',
             aiReasoning,
+            ruleDetection,
         };
     }
 
-    // If AI has higher confidence than Phase 3A, suggest AI domain
-    if (aiReasoning.primaryConfidence > (detection?.confidence || 0)) {
-        return {
-            domain: aiReasoning.primaryDomain,
-            confidence: aiReasoning.primaryConfidence,
-            source: 'ai-suggested',
-            aiReasoning,
-        };
-    }
-
-    // Default to Phase 3A
+    // Still needs user selection
     return {
-        domain: detection?.detectedDomain || null,
-        confidence: detection?.confidence || 0,
-        source: 'rule-based',
+        domain: ruleDetection.detectedDomain,
+        confidence: aiReasoning?.combinedConfidence || ruleDetection.confidence,
+        source: 'needs-selection',
         aiReasoning,
+        ruleDetection,
     };
 }

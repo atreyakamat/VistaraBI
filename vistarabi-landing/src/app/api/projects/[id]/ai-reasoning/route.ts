@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/prisma';
 import {
-    performAIDomainReasoning,
+    performSemanticReasoning,
     getAIDomainReasoning,
-    getEnhancedDomainClassification,
-    shouldInvokeAIReasoning,
+    getEnhancedClassification,
 } from '@/lib/ai/domain-reasoning';
 import { checkOllamaHealth } from '@/lib/ai/ollama-client';
 
@@ -34,8 +33,8 @@ export async function GET(
         // Get existing AI reasoning
         const aiReasoning = await getAIDomainReasoning(id);
 
-        // Get enhanced classification (combines Phase 3A + 3C)
-        const enhanced = await getEnhancedDomainClassification(id);
+        // Get enhanced classification (combines rule-based + AI)
+        const enhanced = await getEnhancedClassification(id);
 
         // Check Ollama health
         const ollamaAvailable = await checkOllamaHealth();
@@ -82,31 +81,37 @@ export async function POST(
             }, { status: 503 });
         }
 
-        // Get Phase 3A confidence for context
-        const detection = await db.domainDetection.findUnique({ where: { projectId: id } });
-        const phase3AConfidence = detection?.confidence || 0;
+        console.log('[AI-API] Triggering semantic reasoning for project:', id);
 
-        console.log('[AI-API] Triggering AI reasoning for project:', id);
-        console.log('[AI-API] Phase 3A confidence:', phase3AConfidence);
-
-        // Perform AI reasoning
-        const aiReasoning = await performAIDomainReasoning(id, phase3AConfidence);
+        // Perform semantic reasoning
+        const aiReasoning = await performSemanticReasoning(id);
 
         if (!aiReasoning) {
+            // Check if rule-based confidence is already high
+            const detection = await db.domainDetection.findUnique({ where: { projectId: id } });
+            if (detection && detection.confidence >= 60) {
+                return NextResponse.json({
+                    success: true,
+                    message: 'Rule-based detection is already confident. AI not needed.',
+                    aiReasoning: null,
+                    enhanced: await getEnhancedClassification(id),
+                });
+            }
+
             return NextResponse.json({
-                error: 'AI reasoning failed. Check server logs.',
+                error: 'AI reasoning failed or no data to analyze.',
                 ollamaAvailable: true,
             }, { status: 500 });
         }
 
         // Get enhanced classification
-        const enhanced = await getEnhancedDomainClassification(id);
+        const enhanced = await getEnhancedClassification(id);
 
         return NextResponse.json({
             success: true,
             aiReasoning,
             enhanced,
-            message: `AI reasoning complete. Suggested: ${aiReasoning.primaryDomain} at ${aiReasoning.primaryConfidence}%`,
+            message: `AI analysis complete. Recommended: ${aiReasoning.aiRecommendedDomain} at ${aiReasoning.aiSemanticConfidence}%`,
         });
     } catch (error) {
         console.error('Trigger AI reasoning error:', error);
