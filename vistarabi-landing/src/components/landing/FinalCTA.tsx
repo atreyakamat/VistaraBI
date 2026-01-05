@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
+import Link from "next/link";
 
 export default function FinalCTA() {
     const ref = useRef(null);
@@ -30,9 +31,9 @@ export default function FinalCTA() {
                         animate={isInView ? { opacity: 1, scale: 1 } : {}}
                         transition={{ duration: 0.5, delay: 0.3 }}
                     >
-                        <button className="px-10 py-5 bg-white text-[var(--primary)] font-semibold text-lg rounded-xl shadow-2xl hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:-translate-y-1 transition-all duration-300 animate-pulse-glow">
+                        <Link href="/register" className="inline-block px-10 py-5 bg-white text-[var(--primary)] font-semibold text-lg rounded-xl shadow-2xl hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:-translate-y-1 transition-all duration-300 animate-pulse-glow">
                             Get Started Free
-                        </button>
+                        </Link>
                     </motion.div>
                     <p className="text-sm text-white/50">
                         No credit card required • Free tier available • Setup in minutes

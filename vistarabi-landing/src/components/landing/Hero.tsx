@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function Hero() {
     return (
@@ -34,12 +35,12 @@ export default function Hero() {
                         transition={{ duration: 0.6, delay: 0.5 }}
                         className="flex flex-wrap gap-4"
                     >
-                        <button className="px-8 py-4 bg-[var(--primary)] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 active:scale-95">
+                        <Link href="/register" className="px-8 py-4 bg-[var(--primary)] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 active:scale-95">
                             Get Started
-                        </button>
-                        <button className="px-8 py-4 bg-transparent border-2 border-[var(--border)] text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--accent)] hover:text-[var(--accent)] hover:-translate-y-0.5 transition-all duration-200">
-                            View Demo
-                        </button>
+                        </Link>
+                        <Link href="/login" className="px-8 py-4 bg-transparent border-2 border-[var(--border)] text-[var(--foreground)] font-semibold rounded-xl hover:border-[var(--accent)] hover:text-[var(--accent)] hover:-translate-y-0.5 transition-all duration-200">
+                            Sign In
+                        </Link>
                     </motion.div>
                 </div>
 
