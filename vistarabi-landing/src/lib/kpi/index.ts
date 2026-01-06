@@ -37,10 +37,13 @@ export interface KPIDiscoveryResult {
 // Gather all columns and sample data from project sources
 async function getProjectData(projectId: string): Promise<{ columns: string[]; sampleData: Record<string, unknown>[] }> {
     const sources = await db.source.findMany({ where: { projectId } });
+    console.log('[KPI] Found sources for project:', projectId, 'count:', sources.length);
+
     const allColumns: Set<string> = new Set();
     const sampleData: Record<string, unknown>[] = [];
 
     for (const source of sources) {
+        console.log('[KPI] Source:', source.fileName, 'columns:', source.columns?.length || 0, 'rows:', source.data?.length || 0);
         if (source.columns) {
             source.columns.forEach(col => allColumns.add(col));
         }
@@ -50,6 +53,7 @@ async function getProjectData(projectId: string): Promise<{ columns: string[]; s
         }
     }
 
+    console.log('[KPI] Total columns:', allColumns.size, 'sample rows:', sampleData.length);
     return {
         columns: Array.from(allColumns),
         sampleData: sampleData.slice(0, 10), // Max 10 rows total for AI context
@@ -162,3 +166,7 @@ export async function getSampleDataForAI(projectId: string): Promise<{ columns: 
     const { columns, sampleData } = await getProjectData(projectId);
     return { columns, rows: sampleData };
 }
+
+// Re-export from submodules
+export * from './derived-kpi-library';
+export * from './ai-kpi-discovery';

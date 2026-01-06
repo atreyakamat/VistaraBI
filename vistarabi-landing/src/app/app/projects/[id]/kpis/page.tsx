@@ -56,22 +56,37 @@ export default function KPIWorkspacePage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [projRes, kpiRes, bpRes] = await Promise.all([
+            const [projRes, bpRes] = await Promise.all([
                 fetch(`/api/projects/${projectId}`),
-                fetch(`/api/projects/${projectId}/kpis`),
                 fetch(`/api/projects/${projectId}/kpi-blueprint`),
             ]);
 
             if (projRes.ok) setProject(await projRes.json());
-
-            if (kpiRes.ok) {
-                const data = await kpiRes.json();
-                setDiscoveredKPIs(data.discovery?.computableKPIs || []);
-            }
-
             if (bpRes.ok) {
                 const data = await bpRes.json();
                 setBlueprint(data.blueprint);
+            }
+
+            // First try to get existing discovery
+            const kpiGetRes = await fetch(`/api/projects/${projectId}/kpis`);
+            if (kpiGetRes.ok) {
+                const data = await kpiGetRes.json();
+                if (data.discovery?.computableKPIs?.length > 0) {
+                    setDiscoveredKPIs(data.discovery.computableKPIs);
+                    console.log('[KPI Page] Loaded existing discovery:', data.discovery.computableKPIs.length);
+                } else {
+                    // No existing discovery - trigger it now
+                    console.log('[KPI Page] No existing discovery, triggering...');
+                    const kpiPostRes = await fetch(`/api/projects/${projectId}/kpis`, { method: 'POST' });
+                    if (kpiPostRes.ok) {
+                        const postData = await kpiPostRes.json();
+                        setDiscoveredKPIs(postData.discovery?.computableKPIs || []);
+                        console.log('[KPI Page] Discovery complete:', postData.discovery?.computableKPIs?.length || 0);
+                    } else {
+                        const err = await kpiPostRes.json();
+                        console.error('[KPI Page] Discovery failed:', err);
+                    }
+                }
             }
         } catch (err) {
             console.error('Fetch error:', err);
@@ -84,10 +99,33 @@ export default function KPIWorkspacePage() {
         setAiLoading(true);
         setAiRequested(true);
         try {
-            const res = await fetch(`/api/projects/${projectId}/ai-kpis`, { method: 'POST' });
-            const data = await res.json();
-            if (data.aiKpis) {
-                setAiKPIs(data.aiKpis);
+            // First run discovery to find derived and invented KPIs
+            const discoveryRes = await fetch(`/api/projects/${projectId}/ai-kpi-discovery`, { method: 'POST' });
+            const discoveryData = await discoveryRes.json();
+
+            if (discoveryData.proposals && discoveryData.proposals.length > 0) {
+                // Convert proposals to DiscoveredKPI format
+                const aiProposals = discoveryData.proposals.map((p: any) => ({
+                    kpiId: p.id,
+                    kpiName: p.kpiName,
+                    confidence: p.confidenceScore,
+                    explanation: p.whyItMatters || p.description,
+                    matchedColumns: p.contributingColumns || [],
+                    formulaExpression: p.formula,
+                    category: p.category,
+                    isComputable: true,
+                    isDerived: p.isDerived,
+                    sourceType: p.sourceType,
+                    businessMeaning: p.businessMeaning,
+                }));
+                setAiKPIs(aiProposals);
+            } else {
+                // Fallback to simple AI KPI generation
+                const res = await fetch(`/api/projects/${projectId}/ai-kpis`, { method: 'POST' });
+                const data = await res.json();
+                if (data.aiKpis) {
+                    setAiKPIs(data.aiKpis);
+                }
             }
         } catch (err) {
             console.error('AI KPI error:', err);
@@ -159,8 +197,8 @@ export default function KPIWorkspacePage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${selected
-                        ? 'bg-green-50 border-green-400 shadow-md'
-                        : 'bg-[var(--surface)] border-[var(--border)] hover:border-purple-300'
+                    ? 'bg-green-50 border-green-400 shadow-md'
+                    : 'bg-[var(--surface)] border-[var(--border)] hover:border-purple-300'
                     } ${blueprint?.isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
                 onClick={() => !blueprint?.isLocked && !isLoading && toggleKPI(kpi)}
             >
@@ -187,16 +225,42 @@ export default function KPIWorkspacePage() {
                             )}
                             {kpi.isDerived && (
                                 <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
-                                    🔮 AI Derived
+                                    🔮 Derived
+                                </span>
+                            )}
+                            {(kpi as any).sourceType === 'AI_INVENTED' && (
+                                <span className="px-2 py-0.5 bg-cyan-100 text-cyan-700 text-xs rounded-full font-medium">
+                                    ✨ AI Invented
+                                </span>
+                            )}
+                            {(kpi as any).sourceType === 'LIBRARY_DERIVED' && (
+                                <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full font-medium">
+                                    📚 Library
                                 </span>
                             )}
                         </div>
 
                         <p className="text-sm text-[var(--muted)] mt-1">{kpi.explanation}</p>
 
+                        {(kpi as any).businessMeaning && (
+                            <p className="text-xs text-purple-600 mt-1 italic">
+                                💡 {(kpi as any).businessMeaning}
+                            </p>
+                        )}
+
                         <div className="mt-2 p-2 bg-gray-50 rounded-lg">
                             <code className="text-xs text-gray-600">{kpi.formulaExpression}</code>
                         </div>
+
+                        {kpi.matchedColumns && kpi.matchedColumns.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                                {kpi.matchedColumns.map((col, idx) => (
+                                    <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                                        {col}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </motion.div>
@@ -277,9 +341,16 @@ export default function KPIWorkspacePage() {
                             </div>
                             <div className="grid gap-3">
                                 {discoveredKPIs.length === 0 ? (
-                                    <div className="text-center py-12 text-[var(--muted)]">
+                                    <div className="text-center py-12 bg-[var(--surface)] rounded-2xl border border-dashed border-[var(--border)]">
                                         <div className="text-4xl mb-3">📁</div>
-                                        <p>No columns found. Make sure you have data uploaded.</p>
+                                        <p className="font-medium mb-2">No columns found</p>
+                                        <p className="text-sm text-[var(--muted)] mb-4">Upload data files and set a domain first.</p>
+                                        <Link
+                                            href={`/app/projects/${projectId}`}
+                                            className="inline-block px-4 py-2 bg-purple-500 text-white rounded-lg text-sm"
+                                        >
+                                            ← Go to Project
+                                        </Link>
                                     </div>
                                 ) : (
                                     discoveredKPIs.map(kpi => renderKPICard(kpi))

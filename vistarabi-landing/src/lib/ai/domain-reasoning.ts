@@ -8,10 +8,9 @@ import type { DomainType } from '@/lib/prisma';
 import {
     checkOllamaHealth,
     generateCompletion,
-    buildSemanticReasoningPrompt,
-    parseSemanticResponse,
+    performSemanticReasoning as callSemanticReasoning,
     type SemanticReasoningContext,
-    type SemanticDomainSuggestion,
+    type SemanticReasoningResult,
 } from '@/lib/ai/ollama-client';
 
 // Confidence thresholds
@@ -83,6 +82,11 @@ async function gatherSemanticContext(
 
     const totalRows = sources.reduce((sum, s) => sum + (s.rowCount || 0), 0);
 
+    // Get second domain (for comparison)
+    const scores = Object.entries(ruleDetection?.scoringBreakdown || {})
+        .sort(([, a], [, b]) => (b as number) - (a as number));
+    const secondDomain = scores.length > 1 ? scores[1][0] : null;
+
     return {
         projectName: project?.name || 'Unknown Project',
         matchedColumns,
@@ -90,8 +94,8 @@ async function gatherSemanticContext(
         sampleValues,
         ruleBasedScores: ruleDetection?.scoringBreakdown || {},
         topDomain: ruleDetection?.detectedDomain || null,
-        topConfidence: ruleDetection?.confidence || 0,
-        totalRows,
+        secondDomain,
+        ambiguityScore: totalRows > 0 ? 50 : 0,
     };
 }
 
@@ -115,8 +119,8 @@ function calculateCombinedConfidence(
     }
 }
 
-// Main: Perform semantic domain reasoning
-export async function performSemanticReasoning(
+// Main: Trigger domain reasoning with AI assistance
+export async function triggerDomainReasoning(
     projectId: string
 ): Promise<AIDomainReasoning | null> {
     console.log('[AI-Domain] Starting semantic reasoning for project:', projectId);
@@ -157,22 +161,19 @@ export async function performSemanticReasoning(
 
         console.log('[AI-Domain] Analyzing', context.unmatchedColumns.length, 'unmatched columns');
 
-        // Build prompt and call Ollama
-        const messages = buildSemanticReasoningPrompt(context);
-        const response = await generateCompletion({ messages, temperature: 0.2 });
-
-        // Parse response
-        const suggestion = parseSemanticResponse(response);
+        // Call Ollama semantic reasoning
+        const suggestion = await callSemanticReasoning(context);
 
         const processingTime = Date.now() - startTime;
         console.log('[AI-Domain] Semantic analysis complete in', processingTime, 'ms');
-        console.log('[AI-Domain] AI recommends:', suggestion.recommendedDomain, 'at', suggestion.semanticConfidence, '%');
+        console.log('[AI-Domain] AI recommends:', suggestion.domain, 'at', Math.round(suggestion.confidence * 100), '%');
 
-        // Calculate combined confidence
-        const domainsMatch = suggestion.recommendedDomain === ruleDetection.detectedDomain;
+        // Calculate combined confidence  
+        const aiConfidence = Math.round(suggestion.confidence * 100);
+        const domainsMatch = suggestion.domain === ruleDetection.detectedDomain;
         const combinedConfidence = calculateCombinedConfidence(
             ruleConfidence,
-            suggestion.semanticConfidence,
+            aiConfidence,
             domainsMatch
         );
 
@@ -184,8 +185,8 @@ export async function performSemanticReasoning(
             // Combined confidence is high enough - auto-assign
             finalDomain = domainsMatch
                 ? ruleDetection.detectedDomain
-                : (suggestion.semanticConfidence > ruleConfidence
-                    ? suggestion.recommendedDomain as DomainType
+                : (aiConfidence > ruleConfidence
+                    ? suggestion.domain as DomainType
                     : ruleDetection.detectedDomain);
             wasAutoAssigned = true;
             console.log('[AI-Domain] Auto-assigning domain:', finalDomain, 'at', combinedConfidence, '%');
@@ -206,13 +207,13 @@ export async function performSemanticReasoning(
             matchedColumns: ruleDetection.matchedColumns || [],
             unmatchedColumns: context.unmatchedColumns,
             // AI
-            aiRecommendedDomain: suggestion.recommendedDomain as DomainType | null,
-            aiSemanticConfidence: suggestion.semanticConfidence,
-            aiAlternativeDomain: suggestion.alternativeDomain as DomainType | null,
-            aiAlternativeConfidence: suggestion.alternativeConfidence,
+            aiRecommendedDomain: suggestion.domain as DomainType | null,
+            aiSemanticConfidence: aiConfidence,
+            aiAlternativeDomain: null,
+            aiAlternativeConfidence: 0,
             aiReasoning: suggestion.reasoning,
-            aiSemanticSignals: suggestion.semanticSignals,
-            aiColumnInsights: suggestion.ambiguousColumnInsights,
+            aiSemanticSignals: suggestion.keySignals,
+            aiColumnInsights: '',
             // Combined
             combinedConfidence,
             finalDomain,

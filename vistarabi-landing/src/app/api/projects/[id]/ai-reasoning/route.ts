@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/prisma';
 import {
-    performSemanticReasoning,
+    triggerDomainReasoning,
     getAIDomainReasoning,
     getEnhancedClassification,
 } from '@/lib/ai/domain-reasoning';
@@ -84,7 +84,7 @@ export async function POST(
         console.log('[AI-API] Triggering semantic reasoning for project:', id);
 
         // Perform semantic reasoning
-        const aiReasoning = await performSemanticReasoning(id);
+        const aiReasoning = await triggerDomainReasoning(id);
 
         if (!aiReasoning) {
             // Check if rule-based confidence is already high

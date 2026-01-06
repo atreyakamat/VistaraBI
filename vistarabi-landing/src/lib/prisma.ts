@@ -288,6 +288,7 @@ interface DbStore {
     kpiDiscoveries: Map<string, KPIDiscovery>;
     kpiBlueprints: Map<string, KPIBlueprint>;
     kpiBlueprintHistories: Map<string, KPIBlueprintHistory>;
+    aiKpiProposals: Map<string, any>; // AI-invented KPI proposals
     initialized: boolean;
 }
 
@@ -320,6 +321,7 @@ function getStore(): DbStore {
             kpiDiscoveries: new Map(),
             kpiBlueprints: new Map(),
             kpiBlueprintHistories: new Map(),
+            aiKpiProposals: new Map(),
             initialized: false,
         };
     }
@@ -341,26 +343,46 @@ function getStore(): DbStore {
     return globalThis.__vistaraDb;
 }
 
-// Get references to storage maps
-const store = getStore();
-const users = store.users;
-const projects = store.projects;
-const sources = store.sources;
-const columnMetas = store.columnMetas;
-const relationships = store.relationships;
-const cleanedDatasets = store.cleanedDatasets;
-const cleaningLogs = store.cleaningLogs;
-const qualityIntelligence = store.qualityIntelligence;
-const columnHealths = store.columnHealths;
-const outlierRecords = store.outlierRecords;
-const transformationAudits = store.transformationAudits;
-const domainDetections = store.domainDetections;
-const domainGovernances = store.domainGovernances;
-const domainHistories = store.domainHistories;
-const aiDomainReasonings = store.aiDomainReasonings;
-const kpiDiscoveries = store.kpiDiscoveries;
-const kpiBlueprints = store.kpiBlueprints;
-const kpiBlueprintHistories = store.kpiBlueprintHistories;
+// Use getters to always get fresh references from store (HMR safe)
+const getUsers = () => getStore().users;
+const getProjects = () => getStore().projects;
+const getSources = () => getStore().sources;
+const getColumnMetas = () => getStore().columnMetas;
+const getRelationships = () => getStore().relationships;
+const getCleanedDatasets = () => getStore().cleanedDatasets;
+const getCleaningLogs = () => getStore().cleaningLogs;
+const getQualityIntelligence = () => getStore().qualityIntelligence;
+const getColumnHealths = () => getStore().columnHealths;
+const getOutlierRecords = () => getStore().outlierRecords;
+const getTransformationAudits = () => getStore().transformationAudits;
+const getDomainDetections = () => getStore().domainDetections;
+const getDomainGovernances = () => getStore().domainGovernances;
+const getDomainHistories = () => getStore().domainHistories;
+const getAiDomainReasonings = () => getStore().aiDomainReasonings;
+const getKpiDiscoveries = () => getStore().kpiDiscoveries;
+const getKpiBlueprints = () => getStore().kpiBlueprints;
+const getKpiBlueprintHistories = () => getStore().kpiBlueprintHistories;
+const getAiKpiProposals = () => getStore().aiKpiProposals;
+
+// Keep old references for backward compatibility (these call the getters)
+const users = { get values() { return getUsers().values.bind(getUsers()); }, get entries() { return getUsers().entries.bind(getUsers()); }, get: (k: string) => getUsers().get(k), set: (k: string, v: any) => getUsers().set(k, v), delete: (k: string) => getUsers().delete(k) } as any;
+const projects = { get values() { return getProjects().values.bind(getProjects()); }, get entries() { return getProjects().entries.bind(getProjects()); }, get: (k: string) => getProjects().get(k), set: (k: string, v: any) => getProjects().set(k, v), delete: (k: string) => getProjects().delete(k) } as any;
+const sources = { get values() { return getSources().values.bind(getSources()); }, get entries() { return getSources().entries.bind(getSources()); }, get: (k: string) => getSources().get(k), set: (k: string, v: any) => getSources().set(k, v), delete: (k: string) => getSources().delete(k) } as any;
+const columnMetas = { get values() { return getColumnMetas().values.bind(getColumnMetas()); }, get entries() { return getColumnMetas().entries.bind(getColumnMetas()); }, get: (k: string) => getColumnMetas().get(k), set: (k: string, v: any) => getColumnMetas().set(k, v), delete: (k: string) => getColumnMetas().delete(k) } as any;
+const relationships = { get values() { return getRelationships().values.bind(getRelationships()); }, get entries() { return getRelationships().entries.bind(getRelationships()); }, get: (k: string) => getRelationships().get(k), set: (k: string, v: any) => getRelationships().set(k, v), delete: (k: string) => getRelationships().delete(k) } as any;
+const cleanedDatasets = { get values() { return getCleanedDatasets().values.bind(getCleanedDatasets()); }, get entries() { return getCleanedDatasets().entries.bind(getCleanedDatasets()); }, get: (k: string) => getCleanedDatasets().get(k), set: (k: string, v: any) => getCleanedDatasets().set(k, v), delete: (k: string) => getCleanedDatasets().delete(k) } as any;
+const cleaningLogs = { get values() { return getCleaningLogs().values.bind(getCleaningLogs()); }, get entries() { return getCleaningLogs().entries.bind(getCleaningLogs()); }, get: (k: string) => getCleaningLogs().get(k), set: (k: string, v: any) => getCleaningLogs().set(k, v), delete: (k: string) => getCleaningLogs().delete(k) } as any;
+const qualityIntelligence = { get values() { return getQualityIntelligence().values.bind(getQualityIntelligence()); }, get entries() { return getQualityIntelligence().entries.bind(getQualityIntelligence()); }, get: (k: string) => getQualityIntelligence().get(k), set: (k: string, v: any) => getQualityIntelligence().set(k, v), delete: (k: string) => getQualityIntelligence().delete(k) } as any;
+const columnHealths = { get values() { return getColumnHealths().values.bind(getColumnHealths()); }, get entries() { return getColumnHealths().entries.bind(getColumnHealths()); }, get: (k: string) => getColumnHealths().get(k), set: (k: string, v: any) => getColumnHealths().set(k, v), delete: (k: string) => getColumnHealths().delete(k) } as any;
+const outlierRecords = { get values() { return getOutlierRecords().values.bind(getOutlierRecords()); }, get entries() { return getOutlierRecords().entries.bind(getOutlierRecords()); }, get: (k: string) => getOutlierRecords().get(k), set: (k: string, v: any) => getOutlierRecords().set(k, v), delete: (k: string) => getOutlierRecords().delete(k) } as any;
+const transformationAudits = { get values() { return getTransformationAudits().values.bind(getTransformationAudits()); }, get entries() { return getTransformationAudits().entries.bind(getTransformationAudits()); }, get: (k: string) => getTransformationAudits().get(k), set: (k: string, v: any) => getTransformationAudits().set(k, v), delete: (k: string) => getTransformationAudits().delete(k) } as any;
+const domainDetections = { get values() { return getDomainDetections().values.bind(getDomainDetections()); }, get entries() { return getDomainDetections().entries.bind(getDomainDetections()); }, get: (k: string) => getDomainDetections().get(k), set: (k: string, v: any) => getDomainDetections().set(k, v), delete: (k: string) => getDomainDetections().delete(k) } as any;
+const domainGovernances = { get values() { return getDomainGovernances().values.bind(getDomainGovernances()); }, get entries() { return getDomainGovernances().entries.bind(getDomainGovernances()); }, get: (k: string) => getDomainGovernances().get(k), set: (k: string, v: any) => getDomainGovernances().set(k, v), delete: (k: string) => getDomainGovernances().delete(k) } as any;
+const domainHistories = { get values() { return getDomainHistories().values.bind(getDomainHistories()); }, get entries() { return getDomainHistories().entries.bind(getDomainHistories()); }, get: (k: string) => getDomainHistories().get(k), set: (k: string, v: any) => getDomainHistories().set(k, v), delete: (k: string) => getDomainHistories().delete(k) } as any;
+const aiDomainReasonings = { get values() { return getAiDomainReasonings().values.bind(getAiDomainReasonings()); }, get entries() { return getAiDomainReasonings().entries.bind(getAiDomainReasonings()); }, get: (k: string) => getAiDomainReasonings().get(k), set: (k: string, v: any) => getAiDomainReasonings().set(k, v), delete: (k: string) => getAiDomainReasonings().delete(k) } as any;
+const kpiDiscoveries = { get values() { return getKpiDiscoveries().values.bind(getKpiDiscoveries()); }, get entries() { return getKpiDiscoveries().entries.bind(getKpiDiscoveries()); }, get: (k: string) => getKpiDiscoveries().get(k), set: (k: string, v: any) => getKpiDiscoveries().set(k, v), delete: (k: string) => getKpiDiscoveries().delete(k) } as any;
+const kpiBlueprints = { get values() { return getKpiBlueprints().values.bind(getKpiBlueprints()); }, get entries() { return getKpiBlueprints().entries.bind(getKpiBlueprints()); }, get: (k: string) => getKpiBlueprints().get(k), set: (k: string, v: any) => getKpiBlueprints().set(k, v), delete: (k: string) => getKpiBlueprints().delete(k) } as any;
+const kpiBlueprintHistories = { get values() { return getKpiBlueprintHistories().values.bind(getKpiBlueprintHistories()); }, get entries() { return getKpiBlueprintHistories().entries.bind(getKpiBlueprintHistories()); }, get: (k: string) => getKpiBlueprintHistories().get(k), set: (k: string, v: any) => getKpiBlueprintHistories().set(k, v), delete: (k: string) => getKpiBlueprintHistories().delete(k) } as any;
 
 // ============ DATABASE API ============
 
@@ -1041,6 +1063,46 @@ const db = {
         create: async ({ data }: { data: any }) => {
             kpiBlueprintHistories.set(data.id, data);
             return data;
+        },
+    },
+
+    // AI KPI Proposals (Module 4 Phase 4C)
+    aiKpiProposals: {
+        findMany: async ({ where }: { where?: { projectId?: string } } = {}) => {
+            const results: any[] = [];
+            for (const p of getAiKpiProposals().values()) {
+                if (!where?.projectId || p.projectId === where.projectId) {
+                    results.push(p);
+                }
+            }
+            return results.sort((a, b) => b.confidenceScore - a.confidenceScore);
+        },
+
+        findUnique: async ({ where }: { where: { id: string } }) => {
+            return getAiKpiProposals().get(where.id) || null;
+        },
+
+        create: async ({ data }: { data: any }) => {
+            getAiKpiProposals().set(data.id, data);
+            return data;
+        },
+
+        update: async ({ where, data }: { where: { id: string }; data: any }) => {
+            const existing = getAiKpiProposals().get(where.id);
+            if (existing) {
+                const updated = { ...existing, ...data };
+                getAiKpiProposals().set(where.id, updated);
+                return updated;
+            }
+            return null;
+        },
+
+        delete: async ({ where }: { where: { id: string } }) => {
+            const existing = getAiKpiProposals().get(where.id);
+            if (existing) {
+                getAiKpiProposals().delete(where.id);
+            }
+            return existing || null;
         },
     },
 };
