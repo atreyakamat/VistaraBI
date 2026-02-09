@@ -267,6 +267,169 @@ export interface KPIBlueprintHistory {
     changedAt: Date;
 }
 
+// Data Lineage (Module 4 Phase 4D)
+export interface EntityNode {
+    id: string;                          // Source ID
+    name: string;                        // Table/file name
+    entityType: string;                  // Inferred entity type: 'customers', 'orders', etc.
+    columns: string[];
+    primaryKeyCandidate: string | null;
+    foreignKeys: ForeignKeyCandidate[];
+}
+
+export interface ForeignKeyCandidate {
+    column: string;
+    referencedEntity: string;            // Source ID it likely references
+    referencedColumn: string;
+    confidence: number;
+}
+
+export interface EntityEdge {
+    id: string;
+    fromNode: string;                    // Source ID
+    toNode: string;                      // Source ID
+    joinType: 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_MANY';
+    joinCondition: { fromColumn: string; toColumn: string };
+    confidence: number;
+}
+
+export interface EntityRelationshipGraph {
+    projectId: string;
+    nodes: EntityNode[];
+    edges: EntityEdge[];
+    createdAt: Date;
+}
+
+export interface KPISourceContribution {
+    sourceId: string;
+    sourceName: string;
+    columns: string[];
+    role: 'PRIMARY' | 'JOINED' | 'AGGREGATED';
+}
+
+export interface KPIJoin {
+    leftSource: string;
+    rightSource: string;
+    leftColumn: string;
+    rightColumn: string;
+    joinType: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
+}
+
+export interface KPIAggregation {
+    function: 'SUM' | 'AVG' | 'COUNT' | 'COUNT_DISTINCT' | 'MIN' | 'MAX';
+    column: string;
+    sourceId: string;
+}
+
+export interface KPILineage {
+    kpiId: string;
+    kpiName: string;
+    formula: string;
+    category: string;
+    sources: KPISourceContribution[];
+    joins: KPIJoin[];
+    aggregations: KPIAggregation[];
+    explanation: string;                 // Human-readable explanation
+    confidence: number;
+    tracedAt: Date;
+}
+
+export interface DataLineage {
+    id: string;
+    projectId: string;
+    entityGraph: EntityRelationshipGraph;
+    kpiLineages: KPILineage[];
+    generatedAt: Date;
+}
+
+// Relationship Registry (Module 4D-A)
+export interface ConfidenceFactors {
+    nameScore: number;           // 0-1: Column name similarity
+    overlapScore: number;        // 0-1: Value overlap percentage
+    uniquenessScore: number;     // 0-1: PK uniqueness (should be ~1.0)
+    dataTypeScore: number;       // 0-1: Data type compatibility
+}
+
+export type RelationshipType = 'PRIMARY_KEY' | 'FOREIGN_KEY' | 'LOOKUP';
+export type DetectionMethod = 'NAME_MATCH' | 'VALUE_OVERLAP' | 'UNIQUENESS' | 'AI_VALIDATED' | 'COMPOSITE';
+export type JoinCardinality = 'ONE_TO_ONE' | 'ONE_TO_MANY' | 'MANY_TO_MANY';
+
+export interface AIValidationResult {
+    validated: boolean;
+    reasoning: string;
+    adjustedConfidence?: number;
+}
+
+export interface RelationshipEntry {
+    id: string;
+    projectId: string;
+    sourceTableId: string;
+    sourceTableName: string;
+    sourceColumn: string;
+    targetTableId: string;
+    targetTableName: string;
+    targetColumn: string;
+    relationshipType: RelationshipType;
+    joinCardinality: JoinCardinality;
+    confidence: number;
+    detectionMethod: DetectionMethod;
+    confidenceFactors: ConfidenceFactors;
+    aiValidation?: AIValidationResult;
+    explanation: string;          // Human-readable explanation
+    detectedAt: Date;
+}
+
+export interface RelationshipRegistry {
+    id: string;
+    projectId: string;
+    entries: RelationshipEntry[];
+    generatedAt: Date;
+    version: number;
+}
+
+// KPI Lineage Registry (Module 4D-B)
+export interface KPIJoinPath {
+    relationshipId: string;               // Reference to RelationshipEntry from 4D-A
+    sourceTable: string;
+    sourceColumn: string;
+    targetTable: string;
+    targetColumn: string;
+    joinType: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
+    confidence: number;
+}
+
+export interface KPILineageEntry {
+    id: string;
+    projectId: string;
+    kpiId: string;
+    kpiName: string;
+    domain: string;
+    formula: string;
+    category: string;
+    sources: KPISourceContribution[];
+    joinPaths: KPIJoinPath[];             // From 4D-A RelationshipRegistry
+    aggregations: KPIAggregation[];
+    technicalExplanation: string;         // Formula-based explanation
+    businessExplanation: string;          // Human-friendly explanation
+    aiEnhanced: boolean;                  // Was explanation enhanced by AI?
+    confidence: number;
+    tracedAt: Date;
+}
+
+export interface KPILineageRegistry {
+    id: string;
+    projectId: string;
+    entries: KPILineageEntry[];
+    generatedAt: Date;
+    version: number;
+    stats: {
+        totalKPIs: number;
+        singleTableKPIs: number;
+        multiTableKPIs: number;
+        aiEnhancedCount: number;
+    };
+}
+
 // ============ STORAGE (GLOBAL TO SURVIVE HMR) ============
 
 interface DbStore {
@@ -289,6 +452,9 @@ interface DbStore {
     kpiBlueprints: Map<string, KPIBlueprint>;
     kpiBlueprintHistories: Map<string, KPIBlueprintHistory>;
     aiKpiProposals: Map<string, any>; // AI-invented KPI proposals
+    dataLineages: Map<string, DataLineage>; // Data lineage records
+    relationshipRegistries: Map<string, RelationshipRegistry>; // Module 4D-A
+    kpiLineageRegistries: Map<string, KPILineageRegistry>; // Module 4D-B
     initialized: boolean;
 }
 
@@ -322,6 +488,9 @@ function getStore(): DbStore {
             kpiBlueprints: new Map(),
             kpiBlueprintHistories: new Map(),
             aiKpiProposals: new Map(),
+            dataLineages: new Map(),
+            relationshipRegistries: new Map(),
+            kpiLineageRegistries: new Map(),
             initialized: false,
         };
     }
@@ -363,6 +532,9 @@ const getKpiDiscoveries = () => getStore().kpiDiscoveries;
 const getKpiBlueprints = () => getStore().kpiBlueprints;
 const getKpiBlueprintHistories = () => getStore().kpiBlueprintHistories;
 const getAiKpiProposals = () => getStore().aiKpiProposals;
+const getDataLineages = () => getStore().dataLineages;
+const getRelationshipRegistries = () => getStore().relationshipRegistries;
+const getKpiLineageRegistries = () => getStore().kpiLineageRegistries;
 
 // Keep old references for backward compatibility (these call the getters)
 const users = { get values() { return getUsers().values.bind(getUsers()); }, get entries() { return getUsers().entries.bind(getUsers()); }, get: (k: string) => getUsers().get(k), set: (k: string, v: any) => getUsers().set(k, v), delete: (k: string) => getUsers().delete(k) } as any;
@@ -1103,6 +1275,123 @@ const db = {
                 getAiKpiProposals().delete(where.id);
             }
             return existing || null;
+        },
+    },
+
+    // Data Lineage (Module 4 Phase 4D)
+    dataLineage: {
+        findUnique: async ({ where }: { where: { projectId: string } }) => {
+            for (const lineage of getDataLineages().values()) {
+                if (lineage.projectId === where.projectId) {
+                    return lineage;
+                }
+            }
+            return null;
+        },
+
+        upsert: async ({ where, data }: { where: { projectId: string }; data: any }) => {
+            for (const [id, lineage] of getDataLineages().entries()) {
+                if (lineage.projectId === where.projectId) {
+                    const updated = { ...lineage, ...data };
+                    getDataLineages().set(id, updated);
+                    return updated;
+                }
+            }
+            getDataLineages().set(data.id || where.projectId, data);
+            return data;
+        },
+
+        create: async ({ data }: { data: any }) => {
+            getDataLineages().set(data.id, data);
+            return data;
+        },
+
+        delete: async ({ where }: { where: { projectId: string } }) => {
+            for (const [id, lineage] of getDataLineages().entries()) {
+                if (lineage.projectId === where.projectId) {
+                    getDataLineages().delete(id);
+                    return lineage;
+                }
+            }
+            return null;
+        },
+    },
+
+    // Relationship Registry (Module 4D-A)
+    relationshipRegistry: {
+        findUnique: async ({ where }: { where: { projectId: string } }) => {
+            for (const registry of getRelationshipRegistries().values()) {
+                if (registry.projectId === where.projectId) {
+                    return registry;
+                }
+            }
+            return null;
+        },
+
+        upsert: async ({ where, data }: { where: { projectId: string }; data: any }) => {
+            for (const [id, registry] of getRelationshipRegistries().entries()) {
+                if (registry.projectId === where.projectId) {
+                    const updated = { ...registry, ...data, version: (registry.version || 0) + 1 };
+                    getRelationshipRegistries().set(id, updated);
+                    return updated;
+                }
+            }
+            getRelationshipRegistries().set(data.id || where.projectId, data);
+            return data;
+        },
+
+        create: async ({ data }: { data: any }) => {
+            getRelationshipRegistries().set(data.id, data);
+            return data;
+        },
+
+        delete: async ({ where }: { where: { projectId: string } }) => {
+            for (const [id, registry] of getRelationshipRegistries().entries()) {
+                if (registry.projectId === where.projectId) {
+                    getRelationshipRegistries().delete(id);
+                    return registry;
+                }
+            }
+            return null;
+        },
+    },
+
+    // KPI Lineage Registry (Module 4D-B)
+    kpiLineageRegistry: {
+        findUnique: async ({ where }: { where: { projectId: string } }) => {
+            for (const registry of getKpiLineageRegistries().values()) {
+                if (registry.projectId === where.projectId) {
+                    return registry;
+                }
+            }
+            return null;
+        },
+
+        upsert: async ({ where, data }: { where: { projectId: string }; data: any }) => {
+            for (const [id, registry] of getKpiLineageRegistries().entries()) {
+                if (registry.projectId === where.projectId) {
+                    const updated = { ...registry, ...data, version: (registry.version || 0) + 1 };
+                    getKpiLineageRegistries().set(id, updated);
+                    return updated;
+                }
+            }
+            getKpiLineageRegistries().set(data.id || where.projectId, data);
+            return data;
+        },
+
+        create: async ({ data }: { data: any }) => {
+            getKpiLineageRegistries().set(data.id, data);
+            return data;
+        },
+
+        delete: async ({ where }: { where: { projectId: string } }) => {
+            for (const [id, registry] of getKpiLineageRegistries().entries()) {
+                if (registry.projectId === where.projectId) {
+                    getKpiLineageRegistries().delete(id);
+                    return registry;
+                }
+            }
+            return null;
         },
     },
 };
