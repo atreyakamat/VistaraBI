@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest",
+    "test:4d": "vitest run tests/module-4d",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@prisma/client": "^7.2.0",
@@ -33,6 +36,7 @@
     "eslint-config-next": "16.1.1",
     "prisma": "^7.2.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }
