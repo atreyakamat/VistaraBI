@@ -43,13 +43,14 @@ async function getProjectData(projectId: string): Promise<{ columns: string[]; s
     const sampleData: Record<string, unknown>[] = [];
 
     for (const source of sources) {
-        console.log('[KPI] Source:', source.fileName, 'columns:', source.columns?.length || 0, 'rows:', source.data?.length || 0);
         if (source.columns) {
             source.columns.forEach(col => allColumns.add(col));
         }
         // Get first 10 rows from each source
         if (source.data && Array.isArray(source.data)) {
-            sampleData.push(...source.data.slice(0, 10));
+            const data = source.data as unknown as Record<string, unknown>[];
+            console.log('[KPI] Source:', source.fileName, 'columns:', source.columns?.length || 0, 'rows:', data.length || 0);
+            sampleData.push(...data.slice(0, 10));
         }
     }
 
@@ -124,7 +125,6 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
 
     // Get project columns and sample data
     const { columns, sampleData } = await getProjectData(projectId);
-    console.log('[KPI-Discovery] Columns found:', columns.length);
 
     if (columns.length === 0) {
         console.log('[KPI-Discovery] No columns to analyze');
@@ -145,10 +145,17 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
         discoveredAt: new Date(),
     };
 
+    const dbData = {
+        ...result,
+        computableKPIs: result.computableKPIs as any,
+        partialKPIs: result.partialKPIs as any,
+    };
+
     // Store results
-    await db.kpiDiscovery.upsert({
+    await db.kPIDiscovery.upsert({
         where: { projectId },
-        data: result,
+        create: dbData,
+        update: dbData,
     });
 
     console.log('[KPI-Discovery] Complete. Columns as KPIs:', computableKPIs.length);
@@ -158,7 +165,7 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
 
 // Get existing discovery results
 export async function getKPIDiscovery(projectId: string): Promise<KPIDiscoveryResult | null> {
-    return await db.kpiDiscovery.findUnique({ where: { projectId } }) as KPIDiscoveryResult | null;
+    return await db.kPIDiscovery.findUnique({ where: { projectId } }) as KPIDiscoveryResult | null;
 }
 
 // Get sample data for AI context

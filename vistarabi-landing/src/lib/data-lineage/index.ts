@@ -23,7 +23,7 @@ export async function generateDataLineage(projectId: string): Promise<DataLineag
     console.log('[DataLineage] Traced', kpiLineages.length, 'KPI lineages');
 
     // Create lineage record
-    const lineage: DataLineage = {
+    const lineage: any = {
         id: `lineage-${randomUUID()}`,
         projectId,
         entityGraph,
@@ -45,7 +45,8 @@ export async function generateDataLineage(projectId: string): Promise<DataLineag
 async function storeDataLineage(lineage: DataLineage): Promise<void> {
     await db.dataLineage.upsert({
         where: { projectId: lineage.projectId },
-        data: lineage,
+        create: lineage as any,
+        update: lineage as any,
     });
     console.log('[DataLineage] Stored lineage for project:', lineage.projectId);
 }
@@ -72,7 +73,7 @@ export async function getOrGenerateLineage(projectId: string, forceRegenerate: b
 export async function getEntityGraph(projectId: string): Promise<EntityRelationshipGraph | null> {
     const lineage = await getDataLineage(projectId);
     if (lineage) {
-        return lineage.entityGraph;
+        return lineage.entityGraph as unknown as EntityRelationshipGraph;
     }
 
     // Generate fresh if not exists

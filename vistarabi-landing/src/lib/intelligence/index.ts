@@ -22,7 +22,7 @@ export async function analyzeSource(sourceId: string): Promise<void> {
 
     // Analyze each column
     for (const colName of source.columns) {
-        const values = source.data.map(row => row[colName]);
+        const values = (source.data as any[]).map((row: any) => row[colName]);
 
         const normalizedName = normalizeColumnName(colName);
         const dataType = inferDataType(values);
@@ -36,7 +36,7 @@ export async function analyzeSource(sourceId: string): Promise<void> {
                 dataType,
                 nullPercent: stats.nullPercent,
                 uniquePercent: stats.uniquePercent,
-                sampleValues: stats.sampleValues,
+                sampleValues: stats.sampleValues as any,
             },
         });
 
@@ -74,7 +74,7 @@ export async function analyzeProjectRelationships(projectId: string): Promise<vo
         id: s.id,
         name: s.fileName,
         columns: s.columns,
-        data: s.data,
+        data: s.data as any[],
     }));
 
     const relationships = detectRelationships(sourceInfos);

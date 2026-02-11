@@ -38,11 +38,12 @@ export async function GET(
             });
         }
 
+        const entityGraph = lineage.entityGraph as any;
         return NextResponse.json({
             projectId: id,
             status: 'READY',
             entityGraph: {
-                nodes: lineage.entityGraph.nodes.map(n => ({
+                nodes: (entityGraph?.nodes || []).map((n: any) => ({
                     id: n.id,
                     name: n.name,
                     entityType: n.entityType,
@@ -50,24 +51,25 @@ export async function GET(
                     primaryKey: n.primaryKeyCandidate,
                     foreignKeyCount: n.foreignKeys.length,
                 })),
-                edges: lineage.entityGraph.edges.map(e => ({
+                edges: (entityGraph?.edges || []).map((e: any) => ({
                     id: e.id,
                     from: e.fromNode,
                     to: e.toNode,
                     joinType: e.joinType,
-                    condition: `${e.joinCondition.fromColumn} = ${e.joinCondition.toColumn}`,
+                    joinCondition: e.joinCondition, // Pass full object or format here? Previous code formatted it.
+                    condition: `${e.joinCondition?.fromColumn || '?'} = ${e.joinCondition?.toColumn || '?'}`,
                     confidence: e.confidence,
                 })),
             },
-            kpiLineages: lineage.kpiLineages.map(l => ({
+            kpiLineages: (lineage.kpiLineages as any[] || []).map((l: any) => ({
                 kpiId: l.kpiId,
                 kpiName: l.kpiName,
                 formula: l.formula,
                 category: l.category,
-                sourceCount: l.sources.length,
-                sources: l.sources.map(s => s.sourceName),
-                joinCount: l.joins.length,
-                aggregations: l.aggregations.map(a => `${a.function}(${a.column})`),
+                sourceCount: l.sources?.length || 0,
+                sources: (l.sources as any[])?.map((s: any) => s.sourceName) || [],
+                joinCount: l.joins?.length || 0,
+                aggregations: (l.aggregations as any[])?.map((a: any) => `${a.function}(${a.column})`) || [],
                 explanation: l.explanation,
             })),
             generatedAt: lineage.generatedAt,
@@ -102,7 +104,7 @@ export async function POST(
 
         // Check if project has sources and KPIs
         const sources = await db.source.findMany({ where: { projectId: id } });
-        const blueprint = await db.kpiBlueprint.findUnique({ where: { projectId: id } });
+        const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId: id } });
 
         if (sources.length === 0) {
             return NextResponse.json({
@@ -114,15 +116,18 @@ export async function POST(
         console.log('[API] Generating data lineage for project:', id);
         const lineage = await generateDataLineage(id);
 
+        const entityGraph = lineage.entityGraph as any;
+        const kpiLineages = lineage.kpiLineages as any[];
+
         return NextResponse.json({
             success: true,
             projectId: id,
             summary: {
-                entityNodes: lineage.entityGraph.nodes.length,
-                entityEdges: lineage.entityGraph.edges.length,
-                kpiLineagesTraced: lineage.kpiLineages.length,
+                entityNodes: entityGraph?.nodes?.length || 0,
+                entityEdges: entityGraph?.edges?.length || 0,
+                kpiLineagesTraced: kpiLineages?.length || 0,
             },
-            message: `Generated lineage: ${lineage.entityGraph.nodes.length} entities, ${lineage.entityGraph.edges.length} relationships, ${lineage.kpiLineages.length} KPI traces`,
+            message: `Generated lineage: ${entityGraph?.nodes?.length || 0} entities, ${entityGraph?.edges?.length || 0} relationships, ${kpiLineages?.length || 0} KPI traces`,
             generatedAt: lineage.generatedAt,
         });
     } catch (error) {

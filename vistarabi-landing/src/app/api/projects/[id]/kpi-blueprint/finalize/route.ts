@@ -17,12 +17,14 @@ export async function POST(
         if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         if (project.userId !== user.userId) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
 
-        const blueprint = await db.kpiBlueprint.findUnique({ where: { projectId: id } });
+        const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId: id } });
         if (!blueprint) return NextResponse.json({ error: 'No blueprint to finalize' }, { status: 404 });
         if (blueprint.isLocked) return NextResponse.json({ error: 'Already locked' }, { status: 400 });
-        if (blueprint.kpis.length === 0) return NextResponse.json({ error: 'Cannot lock empty blueprint' }, { status: 400 });
 
-        const locked = await db.kpiBlueprint.update({
+        const kpis = blueprint.kpis as any[];
+        if (!kpis || kpis.length === 0) return NextResponse.json({ error: 'Cannot lock empty blueprint' }, { status: 400 });
+
+        const locked = await db.kPIBlueprint.update({
             where: { projectId: id },
             data: {
                 isLocked: true,
@@ -32,14 +34,14 @@ export async function POST(
             },
         });
 
-        await db.kpiBlueprintHistory.create({
+        await db.kPIBlueprintHistory.create({
             data: {
                 id: randomUUID(),
                 projectId: id,
                 version: locked.version,
                 action: 'LOCK',
                 kpiId: 'BLUEPRINT',
-                kpiName: `Locked with ${blueprint.kpis.length} KPIs`,
+                kpiName: `Locked with ${kpis.length} KPIs`,
                 changedBy: user.userId,
                 changedAt: new Date(),
             },
@@ -48,7 +50,7 @@ export async function POST(
         return NextResponse.json({
             success: true,
             blueprint: locked,
-            message: `Blueprint finalized with ${blueprint.kpis.length} KPIs`,
+            message: `Blueprint finalized with ${kpis.length} KPIs`,
         });
     } catch (error) {
         console.error('Finalize blueprint error:', error);

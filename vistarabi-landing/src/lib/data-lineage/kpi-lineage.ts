@@ -238,8 +238,10 @@ export async function traceAllKPILineages(projectId: string): Promise<KPILineage
     console.log('[KPILineage] Tracing all KPIs for project:', projectId);
 
     // Get blueprint
-    const blueprint = await db.kpiBlueprint.findUnique({ where: { projectId } });
-    if (!blueprint || !blueprint.kpis || blueprint.kpis.length === 0) {
+    const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId } });
+    const kpis = (blueprint?.kpis as any[]) || [];
+
+    if (!blueprint || kpis.length === 0) {
         console.log('[KPILineage] No KPIs in blueprint');
         return [];
     }
@@ -255,7 +257,7 @@ export async function traceAllKPILineages(projectId: string): Promise<KPILineage
 
     // Trace each KPI
     const lineages: KPILineage[] = [];
-    for (const kpi of blueprint.kpis as ApprovedKPI[]) {
+    for (const kpi of kpis as ApprovedKPI[]) {
         const lineage = await traceKPILineage(projectId, kpi, entityGraph, readySources);
         lineages.push(lineage);
     }

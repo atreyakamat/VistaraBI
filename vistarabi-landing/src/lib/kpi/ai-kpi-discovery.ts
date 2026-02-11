@@ -54,7 +54,7 @@ async function gatherDiscoveryContext(projectId: string): Promise<DiscoveryConte
     const sources = await db.source.findMany({ where: { projectId } });
     console.log('[AI-Discovery] ✓ Found', sources.length, 'data sources');
 
-    const blueprint = await db.kpiBlueprint.findUnique({ where: { projectId } });
+    const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId } });
 
     // Get all columns and sample values
     const allColumns: string[] = [];
@@ -83,7 +83,7 @@ async function gatherDiscoveryContext(projectId: string): Promise<DiscoveryConte
     console.log('[AI-Discovery] ✓ Total columns:', allColumns.length);
     console.log('[AI-Discovery] ✓ Columns with samples:', Object.keys(sampleValues).length);
 
-    const existingKpiIds = blueprint?.kpis?.map((k: any) => k.kpiId) || [];
+    const existingKpiIds = (blueprint?.kpis as any[])?.map((k: any) => k.kpiId) || [];
 
     return {
         projectId,
@@ -333,12 +333,36 @@ export async function runAIKPIDiscovery(projectId: string): Promise<{
 
 // Store proposals in database
 async function storeProposals(projectId: string, proposals: AIKPIProposal[]): Promise<void> {
-    const existing = await db.aiKpiProposals.findMany({ where: { projectId } });
+    const existing = await db.aIKpiProposal.findMany({ where: { projectId } });
     const existingIds = new Set(existing.map((p: any) => p.id));
     const newProposals = proposals.filter(p => !existingIds.has(p.id));
 
     for (const proposal of newProposals) {
-        await db.aiKpiProposals.create({ data: proposal });
+        await db.aIKpiProposal.create({
+            data: {
+                id: proposal.id,
+                projectId: proposal.projectId,
+                kpiName: proposal.kpiName,
+                formula: proposal.formula,
+                rationale: proposal.businessMeaning + '\n\n' + proposal.whyItMatters,
+                confidenceScore: proposal.confidenceScore,
+                proposedAt: proposal.createdAt || new Date(),
+                status: proposal.status,
+                metadata: {
+                    description: proposal.description,
+                    category: proposal.category,
+                    contributingColumns: proposal.contributingColumns,
+                    derivedFrom: proposal.derivedFrom,
+                    isDerived: proposal.isDerived,
+                    businessMeaning: proposal.businessMeaning,
+                    whyItMatters: proposal.whyItMatters,
+                    ollamaModel: proposal.ollamaModel,
+                    sourceType: proposal.sourceType
+                } as any, // Cast metadata to Json
+                reviewedAt: proposal.reviewedAt,
+                reviewedBy: proposal.reviewedBy
+            } as any,
+        });
     }
 
     console.log('[AI-Discovery] 💾 Stored', newProposals.length, 'new proposals');
@@ -346,7 +370,33 @@ async function storeProposals(projectId: string, proposals: AIKPIProposal[]): Pr
 
 // Get all proposals for a project
 export async function getAIKPIProposals(projectId: string): Promise<AIKPIProposal[]> {
-    return await db.aiKpiProposals.findMany({ where: { projectId } });
+    const dbProposals = await db.aIKpiProposal.findMany({ where: { projectId } });
+
+    return dbProposals.map(p => {
+        const pAny = p as any;
+        const metadata = (pAny.metadata as any) || {};
+        return {
+            id: p.id,
+            projectId: p.projectId,
+            kpiName: p.kpiName,
+            formula: p.formula,
+            description: metadata.description || '',
+            category: metadata.category || 'unknown',
+            contributingColumns: metadata.contributingColumns || [],
+            derivedFrom: metadata.derivedFrom || [],
+            isDerived: metadata.isDerived || false,
+            businessMeaning: metadata.businessMeaning || p.rationale.split('\n\n')[0] || '',
+            whyItMatters: metadata.whyItMatters || p.rationale.split('\n\n')[1] || '',
+            confidenceScore: p.confidenceScore,
+            domain: 'UNKNOWN' as DomainType, // Default or infer from project?
+            sourceType: metadata.sourceType || 'AI_INVENTED',
+            status: p.status as any,
+            ollamaModel: metadata.ollamaModel || 'unknown',
+            createdAt: p.proposedAt,
+            reviewedAt: pAny.reviewedAt || undefined,
+            reviewedBy: pAny.reviewedBy || undefined
+        };
+    });
 }
 
 // Update proposal status
@@ -355,14 +405,43 @@ export async function updateProposalStatus(
     status: 'APPROVED' | 'REJECTED' | 'MODIFIED',
     userId: string
 ): Promise<AIKPIProposal | null> {
-    return await db.aiKpiProposals.update({
+    await db.aIKpiProposal.update({
         where: { id: proposalId },
         data: {
             status,
             reviewedAt: new Date(),
             reviewedBy: userId,
-        },
+        } as any,
     });
+
+    // Simple fetch
+    const p = await db.aIKpiProposal.findUnique({ where: { id: proposalId } });
+    if (!p) return null;
+
+    const pAny = p as any;
+    const meta = (pAny.metadata as any) || {};
+
+    return {
+        id: p.id,
+        projectId: p.projectId,
+        kpiName: p.kpiName,
+        formula: p.formula,
+        description: meta.description || '',
+        category: meta.category || 'unknown',
+        contributingColumns: meta.contributingColumns || [],
+        derivedFrom: meta.derivedFrom || [],
+        isDerived: meta.isDerived || false,
+        businessMeaning: meta.businessMeaning || p.rationale.split('\n\n')[0] || '',
+        whyItMatters: meta.whyItMatters || p.rationale.split('\n\n')[1] || '',
+        confidenceScore: p.confidenceScore,
+        domain: 'UNKNOWN' as DomainType,
+        sourceType: meta.sourceType || 'AI_INVENTED',
+        status: p.status as any,
+        ollamaModel: meta.ollamaModel || 'unknown',
+        createdAt: p.proposedAt,
+        reviewedAt: pAny.reviewedAt || undefined,
+        reviewedBy: pAny.reviewedBy || undefined
+    };
 }
 
 export type { DerivedKPIDefinition };

@@ -117,7 +117,7 @@ export async function POST(
         }
 
         // Check if project has KPI blueprint
-        const blueprint = await db.kpiBlueprint.findUnique({ where: { projectId: id } });
+        const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId: id } });
         if (!blueprint || !blueprint.kpis || (blueprint.kpis as any[]).length === 0) {
             return NextResponse.json({
                 error: 'No KPIs found in blueprint. Please finalize KPIs first.',
@@ -133,7 +133,7 @@ export async function POST(
             projectId: id,
             version: registry.version,
             stats: registry.stats,
-            message: `Traced lineage for ${registry.stats.totalKPIs} KPIs`,
+            message: `Traced lineage for ${(registry.stats as any)?.totalKPIs || 0} KPIs`,
             generatedAt: registry.generatedAt,
         });
     } catch (error) {

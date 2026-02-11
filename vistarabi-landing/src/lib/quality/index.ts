@@ -18,7 +18,7 @@ export async function analyzeQuality(sourceId: string): Promise<void> {
             return;
         }
 
-        const data = cleanedDataset.cleanedData;
+        const data = cleanedDataset.cleanedData as unknown as Record<string, unknown>[];
         const totalRecords = data.length;
 
         if (totalRecords === 0) {
@@ -56,7 +56,7 @@ export async function analyzeQuality(sourceId: string): Promise<void> {
                                 sourceId,
                                 columnName: col.originalName,
                                 rowIndex: outlier.rowIndex,
-                                value: outlier.value,
+                                value: outlier.value as any,
                                 detectionMethod: outlier.method,
                                 severity: outlier.severity,
                                 expectedRange: outlier.expectedRange,

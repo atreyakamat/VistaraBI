@@ -38,7 +38,7 @@ export async function purifyDataset(sourceId: string): Promise<void> {
         }
 
         // Start with source data
-        let cleanedData = source.data.map(row => ({ ...row }));
+        let cleanedData = (source.data as unknown as Record<string, unknown>[]).map(row => ({ ...row }));
         const originalRowCount = cleanedData.length;
 
         // Initialize stats
@@ -105,7 +105,7 @@ export async function purifyDataset(sourceId: string): Promise<void> {
         await db.cleanedDataset.update({
             where: { sourceId },
             data: {
-                cleanedData,
+                cleanedData: cleanedData as any,
                 cleanedRowCount: cleanedData.length,
                 cleanedColCount: cleanedColumns.length,
                 cleanedColumns,

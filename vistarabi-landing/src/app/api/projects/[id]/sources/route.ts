@@ -126,7 +126,7 @@ export async function POST(
                         rowCount: parseResult.rowCount,
                         colCount: parseResult.colCount,
                         columns: parseResult.columns,
-                        data: parseResult.data,
+                        data: parseResult.data as any,
                     },
                 }))!;
 

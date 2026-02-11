@@ -58,10 +58,11 @@ async function gatherSemanticContext(
     const unmatchedColumns = ruleDetection?.unmatchedColumns || [];
 
     for (const source of sources) {
-        if (source.data && source.data.length > 0) {
+        const sourceData = source.data as unknown as Record<string, any>[];
+        if (sourceData && sourceData.length > 0) {
             for (const col of unmatchedColumns.slice(0, 15)) {
                 if (!sampleValues[col]) {
-                    const samples = source.data
+                    const samples = sourceData
                         .slice(0, 5)
                         .map((row: Record<string, any>) => String(row[col] || ''))
                         .filter((v: string) => v && v !== 'null' && v !== 'undefined' && v.length < 50);
@@ -225,9 +226,10 @@ export async function triggerDomainReasoning(
         };
 
         // Store in database
-        await db.aiDomainReasoning.upsert({
+        await db.aIDomainReasoning.upsert({
             where: { projectId },
-            data: reasoning,
+            create: reasoning,
+            update: reasoning,
         });
 
         return reasoning;
@@ -239,7 +241,7 @@ export async function triggerDomainReasoning(
 
 // Get existing AI reasoning for a project
 export async function getAIDomainReasoning(projectId: string): Promise<AIDomainReasoning | null> {
-    return await db.aiDomainReasoning.findUnique({ where: { projectId } });
+    return await db.aIDomainReasoning.findUnique({ where: { projectId } });
 }
 
 // Check if AI reasoning should be invoked for a detection

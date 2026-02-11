@@ -28,7 +28,7 @@ import {
 export async function buildRelationshipRegistry(
     projectId: string,
     useAI: boolean = true
-): Promise<RelationshipRegistry> {
+): Promise<ParsedRelationshipRegistry> {
     console.log('[Registry] ========================================');
     console.log('[Registry] Building relationship registry for project:', projectId);
     console.log('[Registry] AI validation:', useAI ? 'enabled' : 'disabled');
@@ -50,7 +50,7 @@ export async function buildRelationshipRegistry(
         id: s.id,
         name: s.fileName,
         columns: s.columns,
-        data: s.data,
+        data: s.data as unknown as Record<string, unknown>[],
     }));
 
     // Step 1: Detect relationship candidates
@@ -138,10 +138,10 @@ export async function buildRelationshipRegistry(
     }
 
     // Create registry
-    const registry: RelationshipRegistry = {
+    const registry: ParsedRelationshipRegistry = {
         id: `registry-${randomUUID()}`,
         projectId,
-        entries,
+        entries: entries as any,
         generatedAt: new Date(),
         version: 1,
     };
@@ -157,7 +157,7 @@ export async function buildRelationshipRegistry(
 }
 
 // Create empty registry
-function createEmptyRegistry(projectId: string): RelationshipRegistry {
+function createEmptyRegistry(projectId: string): ParsedRelationshipRegistry {
     return {
         id: `registry-${randomUUID()}`,
         projectId,
@@ -168,17 +168,32 @@ function createEmptyRegistry(projectId: string): RelationshipRegistry {
 }
 
 // Store registry in database
-async function storeRegistry(registry: RelationshipRegistry): Promise<void> {
+async function storeRegistry(registry: ParsedRelationshipRegistry): Promise<void> {
+    const data = {
+        ...registry,
+        entries: registry.entries as any,
+    };
     await db.relationshipRegistry.upsert({
         where: { projectId: registry.projectId },
-        data: registry,
+        create: data,
+        update: data,
     });
     console.log('[Registry] Stored registry for project:', registry.projectId);
 }
 
+// Extended type for parsed registry
+export interface ParsedRelationshipRegistry extends Omit<RelationshipRegistry, 'entries'> {
+    entries: RelationshipEntry[];
+}
+
 // Get existing registry
-export async function getRelationshipRegistry(projectId: string): Promise<RelationshipRegistry | null> {
-    return await db.relationshipRegistry.findUnique({ where: { projectId } });
+export async function getRelationshipRegistry(projectId: string): Promise<ParsedRelationshipRegistry | null> {
+    const result = await db.relationshipRegistry.findUnique({ where: { projectId } });
+    if (!result) return null;
+    return {
+        ...result,
+        entries: result.entries as unknown as RelationshipEntry[],
+    };
 }
 
 // Get or build registry
@@ -186,7 +201,7 @@ export async function getOrBuildRegistry(
     projectId: string,
     forceRebuild: boolean = false,
     useAI: boolean = true
-): Promise<RelationshipRegistry> {
+): Promise<ParsedRelationshipRegistry> {
     if (!forceRebuild) {
         const existing = await getRelationshipRegistry(projectId);
         if (existing) {
@@ -206,9 +221,10 @@ export async function getSourceRelationships(
     const registry = await getRelationshipRegistry(projectId);
     if (!registry) return [];
 
-    return registry.entries.filter(
+    const connections = registry.entries.filter(
         e => e.sourceTableId === sourceId || e.targetTableId === sourceId
     );
+    return connections;
 }
 
 // Find path between two sources

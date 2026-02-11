@@ -182,7 +182,7 @@ export async function buildEntityGraph(projectId: string): Promise<EntityRelatio
         const sourceB = readySources.find(s => s.id === rel.sourceBId);
 
         const joinType = sourceA && sourceB
-            ? determineJoinType(sourceA.data, sourceB.data, rel.columnA, rel.columnB)
+            ? determineJoinType(sourceA.data as Record<string, unknown>[], sourceB.data as Record<string, unknown>[], rel.columnA, rel.columnB)
             : 'ONE_TO_MANY';
 
         edges.push({
@@ -208,7 +208,7 @@ export async function buildEntityGraph(projectId: string): Promise<EntityRelatio
             const sourceB = readySources.find(s => s.id === fk.referencedEntity);
 
             const joinType = sourceA && sourceB
-                ? determineJoinType(sourceA.data, sourceB.data, fk.column, fk.referencedColumn)
+                ? determineJoinType(sourceA.data as Record<string, unknown>[], sourceB.data as Record<string, unknown>[], fk.column, fk.referencedColumn)
                 : 'ONE_TO_MANY';
 
             edges.push({

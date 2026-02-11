@@ -216,15 +216,16 @@ export async function traceKPILineage(
 export async function buildKPILineageRegistry(
     projectId: string,
     useAI: boolean = true
-): Promise<KPILineageRegistry> {
+): Promise<ParsedKPILineageRegistry> {
     console.log('[KPILineageRegistry] ========================================');
     console.log('[KPILineageRegistry] Building registry for project:', projectId);
     console.log('[KPILineageRegistry] AI enhancement:', useAI ? 'enabled' : 'disabled');
     console.log('[KPILineageRegistry] ========================================');
 
     // Get KPI blueprint
-    const blueprint = await db.kpiBlueprint.findUnique({ where: { projectId } });
-    if (!blueprint || !blueprint.kpis || blueprint.kpis.length === 0) {
+    const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId } });
+    const kpis = (blueprint?.kpis as unknown as ApprovedKPI[]) || [];
+    if (!blueprint || kpis.length === 0) {
         console.log('[KPILineageRegistry] No KPIs in blueprint');
         return createEmptyRegistry(projectId);
     }
@@ -239,7 +240,7 @@ export async function buildKPILineageRegistry(
     const relRegistry = await getRelationshipRegistry(projectId);
     const relationships = relRegistry?.entries || [];
 
-    console.log('[KPILineageRegistry] Found', (blueprint.kpis as ApprovedKPI[]).length, 'KPIs');
+    console.log('[KPILineageRegistry] Found', kpis.length, 'KPIs');
     console.log('[KPILineageRegistry] Found', relationships.length, 'relationships from 4D-A');
 
     // Trace each KPI
@@ -248,7 +249,7 @@ export async function buildKPILineageRegistry(
     let multiTableCount = 0;
     let aiEnhancedCount = 0;
 
-    for (const kpi of blueprint.kpis as ApprovedKPI[]) {
+    for (const kpi of kpis) {
         const entry = await traceKPILineage(projectId, kpi, readySources, relationships, useAI);
         entries.push(entry);
 
@@ -263,10 +264,10 @@ export async function buildKPILineageRegistry(
     }
 
     // Create registry
-    const registry: KPILineageRegistry = {
+    const registry: ParsedKPILineageRegistry = {
         id: `kpilr-${randomUUID()}`,
         projectId,
-        entries,
+        entries: entries as any,
         generatedAt: new Date(),
         version: 1,
         stats: {
@@ -291,7 +292,7 @@ export async function buildKPILineageRegistry(
 }
 
 // Create empty registry
-function createEmptyRegistry(projectId: string): KPILineageRegistry {
+function createEmptyRegistry(projectId: string): ParsedKPILineageRegistry {
     return {
         id: `kpilr-${randomUUID()}`,
         projectId,
@@ -308,17 +309,34 @@ function createEmptyRegistry(projectId: string): KPILineageRegistry {
 }
 
 // Store registry in database
-async function storeKPILineageRegistry(registry: KPILineageRegistry): Promise<void> {
-    await db.kpiLineageRegistry.upsert({
+async function storeKPILineageRegistry(registry: ParsedKPILineageRegistry): Promise<void> {
+    const data = {
+        ...registry,
+        entries: registry.entries as any,
+        stats: registry.stats as any,
+    };
+    await db.kPILineageRegistry.upsert({
         where: { projectId: registry.projectId },
-        data: registry,
+        create: data,
+        update: data,
     });
     console.log('[KPILineageRegistry] Stored registry for project:', registry.projectId);
 }
 
+// Extended type for parsed registry
+export interface ParsedKPILineageRegistry extends Omit<KPILineageRegistry, 'entries'> {
+    entries: KPILineageEntry[];
+}
+
 // Get existing registry
-export async function getKPILineageRegistry(projectId: string): Promise<KPILineageRegistry | null> {
-    return await db.kpiLineageRegistry.findUnique({ where: { projectId } });
+export async function getKPILineageRegistry(projectId: string): Promise<ParsedKPILineageRegistry | null> {
+    const result = await db.kPILineageRegistry.findUnique({ where: { projectId } });
+    if (!result) return null;
+    return {
+        ...result,
+        entries: result.entries as unknown as KPILineageEntry[],
+        stats: result.stats as unknown as KPILineageRegistry['stats'],
+    };
 }
 
 // Get or build registry
@@ -326,7 +344,7 @@ export async function getOrBuildKPILineageRegistry(
     projectId: string,
     forceRebuild: boolean = false,
     useAI: boolean = true
-): Promise<KPILineageRegistry> {
+): Promise<ParsedKPILineageRegistry> {
     if (!forceRebuild) {
         const existing = await getKPILineageRegistry(projectId);
         if (existing) {

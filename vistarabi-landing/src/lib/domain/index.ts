@@ -78,7 +78,7 @@ export async function detectDomain(projectId: string): Promise<DomainDetectionRe
 }
 
 export async function getDomainDetection(projectId: string): Promise<DomainDetectionResult | null> {
-    return await db.domainDetection.findUnique({ where: { projectId } });
+    return (await db.domainDetection.findUnique({ where: { projectId } })) as unknown as DomainDetectionResult | null;
 }
 
 export async function manuallySelectDomain(
@@ -95,7 +95,7 @@ export async function manuallySelectDomain(
         detectedDomain: domain,
         confidence: 100, // Manual selection = 100% confidence
         status: 'MANUALLY_SELECTED',
-        scoringBreakdown: existing?.scoringBreakdown || ({} as Record<DomainType, number>),
+        scoringBreakdown: (existing?.scoringBreakdown as any as Record<DomainType, number>) || ({} as Record<DomainType, number>),
         matchedColumns: existing?.matchedColumns || [],
         explanation: `Domain manually selected as ${domain}.`,
         detectedAt: new Date(),

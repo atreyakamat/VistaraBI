@@ -18,8 +18,8 @@ export async function GET(
         if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         if (project.userId !== user.userId) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
 
-        const blueprint = await db.kpiBlueprint.findUnique({ where: { projectId: id } });
-        const history = await db.kpiBlueprintHistory.findMany({ where: { projectId: id } });
+        const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId: id } });
+        const history = await db.kPIBlueprintHistory.findMany({ where: { projectId: id } });
 
         return NextResponse.json({ blueprint, history });
     } catch (error) {
@@ -50,7 +50,7 @@ export async function POST(
         }
 
         // Get or create blueprint
-        let blueprint = await db.kpiBlueprint.findUnique({ where: { projectId: id } });
+        let blueprint = await db.kPIBlueprint.findUnique({ where: { projectId: id } });
 
         if (blueprint?.isLocked) {
             return NextResponse.json({ error: 'Blueprint is locked' }, { status: 400 });
@@ -62,36 +62,42 @@ export async function POST(
         };
 
         if (!blueprint) {
-            blueprint = await db.kpiBlueprint.upsert({
+            const createData = {
+                id: randomUUID(),
+                projectId: id,
+                kpis: [newKPI] as any,
+                version: 1,
+                isLocked: false,
+                lockedAt: null,
+                lockedBy: null,
+                createdAt: new Date(),
+            };
+
+            blueprint = await db.kPIBlueprint.upsert({
                 where: { projectId: id },
-                data: {
-                    id: randomUUID(),
-                    projectId: id,
-                    kpis: [newKPI],
+                create: createData,
+                update: {
+                    kpis: [newKPI] as any,
                     version: 1,
-                    isLocked: false,
-                    lockedAt: null,
-                    lockedBy: null,
-                    createdAt: new Date(),
                 },
             });
         } else {
-            // Check if already exists
-            if (blueprint.kpis.some((k: ApprovedKPI) => k.kpiId === kpi.kpiId)) {
+            const currentKpis = (blueprint.kpis as unknown as ApprovedKPI[]) || [];
+            if (currentKpis.some((k: ApprovedKPI) => k.kpiId === kpi.kpiId)) {
                 return NextResponse.json({ error: 'KPI already in blueprint' }, { status: 400 });
             }
 
-            blueprint = await db.kpiBlueprint.update({
+            blueprint = await db.kPIBlueprint.update({
                 where: { projectId: id },
                 data: {
-                    kpis: [...blueprint.kpis, newKPI],
+                    kpis: [...currentKpis, newKPI] as any,
                     version: blueprint.version + 1,
                 },
             });
         }
 
         // Record history
-        await db.kpiBlueprintHistory.create({
+        await db.kPIBlueprintHistory.create({
             data: {
                 id: randomUUID(),
                 projectId: id,
@@ -126,19 +132,20 @@ export async function DELETE(
 
         if (!kpiId) return NextResponse.json({ error: 'kpiId required' }, { status: 400 });
 
-        const blueprint = await db.kpiBlueprint.findUnique({ where: { projectId: id } });
+        const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId: id } });
         if (!blueprint) return NextResponse.json({ error: 'No blueprint' }, { status: 404 });
         if (blueprint.isLocked) return NextResponse.json({ error: 'Blueprint is locked' }, { status: 400 });
 
-        const kpiToRemove = blueprint.kpis.find((k: ApprovedKPI) => k.kpiId === kpiId);
-        const updatedKpis = blueprint.kpis.filter((k: ApprovedKPI) => k.kpiId !== kpiId);
+        const kpis = (blueprint.kpis as unknown as ApprovedKPI[]) || [];
+        const kpiToRemove = kpis.find((k: ApprovedKPI) => k.kpiId === kpiId);
+        const updatedKpis = kpis.filter((k: ApprovedKPI) => k.kpiId !== kpiId);
 
-        const updated = await db.kpiBlueprint.update({
+        const updated = await db.kPIBlueprint.update({
             where: { projectId: id },
-            data: { kpis: updatedKpis, version: blueprint.version + 1 },
+            data: { kpis: updatedKpis as any, version: blueprint.version + 1 },
         });
 
-        await db.kpiBlueprintHistory.create({
+        await db.kPIBlueprintHistory.create({
             data: {
                 id: randomUUID(),
                 projectId: id,
