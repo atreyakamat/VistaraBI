@@ -31,7 +31,7 @@ const AGGREGATION_PATTERNS: { regex: RegExp; func: KPIAggregation['function'] }[
 ];
 
 // Parse formula to extract aggregations
-function parseAggregations(formula: string, columnToSource: Map<string, string>): KPIAggregation[] {
+export function parseAggregations(formula: string, columnToSource: Map<string, string>): KPIAggregation[] {
     const aggregations: KPIAggregation[] = [];
 
     for (const { regex, func } of AGGREGATION_PATTERNS) {
@@ -53,7 +53,7 @@ function parseAggregations(formula: string, columnToSource: Map<string, string>)
 }
 
 // Extract columns referenced in a formula
-function extractColumnsFromFormula(formula: string): string[] {
+export function extractColumnsFromFormula(formula: string): string[] {
     const cleaned = formula
         .replace(/SUM|AVG|AVERAGE|COUNT|MIN|MAX|DISTINCT/gi, '')
         .replace(/[()*/+-]/g, ' ')
@@ -64,7 +64,7 @@ function extractColumnsFromFormula(formula: string): string[] {
 }
 
 // Find which source contains a column
-function findSourceForColumn(
+export function findSourceForColumn(
     column: string,
     sources: { id: string; name: string; columns: string[] }[]
 ): { sourceId: string; sourceName: string } | null {
@@ -80,7 +80,7 @@ function findSourceForColumn(
 }
 
 // Find join paths from 4D-A relationship registry
-function findJoinPaths(
+export function findJoinPaths(
     sourceIds: string[],
     relationships: RelationshipEntry[]
 ): KPIJoinPath[] {
@@ -116,7 +116,7 @@ function findJoinPaths(
 }
 
 // Trace lineage for a single KPI
-async function traceKPILineage(
+export async function traceKPILineage(
     projectId: string,
     kpi: ApprovedKPI,
     sources: { id: string; name: string; columns: string[] }[],
