@@ -127,6 +127,7 @@ model Project {
   dataLineage             DataLineage?
   relationshipRegistry    RelationshipRegistry?
   kpiLineageRegistry      KPILineageRegistry?
+  dashboardConfig         DashboardConfig?
   
   domainHistories         DomainHistory[]
   kpiBlueprintHistories   KPIBlueprintHistory[]
@@ -409,4 +410,17 @@ model KPILineageRegistry {
   generatedAt     DateTime    @default(now())
   version         Int
   stats           Json        // Statistics object
+}
+
+// Module 5: Dashboard models
+
+model DashboardConfig {
+  id              String      @id @default(uuid())
+  projectId       String      @unique
+  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sections        Json        // DashboardSection[] - KPI groupings
+  sidebarConfig   Json        // SidebarConfig - navigation structure
+  metadata        Json        // DashboardMetadata - domain, theme, version info
+  version         Int
+  generatedAt     DateTime    @default(now())
 }

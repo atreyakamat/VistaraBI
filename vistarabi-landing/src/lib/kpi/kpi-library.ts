@@ -1,7 +1,7 @@
 // KPI Library - Master definitions for all 8 domains
 // Module 4 Phase 4A
 
-import type { DomainType } from '@/lib/prisma';
+import type { DomainType } from '../prisma';
 
 export interface KPIDefinition {
     id: string;

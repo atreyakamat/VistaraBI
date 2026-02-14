@@ -9,6 +9,10 @@
     "lint": "eslint",
     "test": "vitest",
     "test:4d": "vitest run tests/module-4d",
+    "test:5a": "vitest run tests/module-5a",
+    "test:5b": "vitest run tests/module-5b",
+    "test:5c": "vitest run tests/module-5c",
+    "test:module-5": "vitest run tests/module-5",
     "test:ui": "vitest --ui"
   },
   "dependencies": {
