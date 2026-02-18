@@ -145,13 +145,15 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
         discoveredAt: new Date(),
     };
 
-    const dbData = {
+    // Exclude fields not yet in DB schema to prevent validation errors
+    // TODO: Run `npx prisma db push` to add availableColumns and sampleData to schema
+    const { availableColumns: _availableColumns, sampleData: _sampleData, ...dbData } = {
         ...result,
         computableKPIs: result.computableKPIs as any,
         partialKPIs: result.partialKPIs as any,
     };
 
-    // Store results
+    // Store results (without availableColumns and sampleData for now)
     await db.kPIDiscovery.upsert({
         where: { projectId },
         create: dbData,

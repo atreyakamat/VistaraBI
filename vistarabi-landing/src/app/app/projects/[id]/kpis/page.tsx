@@ -300,6 +300,13 @@ export default function KPIWorkspacePage() {
                             <span className="text-sm text-[var(--muted)]">
                                 {blueprint?.kpis?.length || 0} selected
                             </span>
+                            {blueprint?.isLocked && (
+                                <Link href={`/app/projects/${projectId}/dashboard`}>
+                                    <button className="px-5 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
+                                        📊 View Dashboard
+                                    </button>
+                                </Link>
+                            )}
                             {blueprint && !blueprint.isLocked && blueprint.kpis?.length > 0 && (
                                 <button onClick={finalize} disabled={finalizing}
                                     className="px-5 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-medium shadow-lg disabled:opacity-50">

@@ -342,6 +342,8 @@ model KPIDiscovery {
   totalKPIsAnalyzed   Int
   computableKPIs      Json[]      // Array of KPI objects
   partialKPIs         Json[]      // Array of KPI objects
+  availableColumns    String[]    // List of all columns analyzed
+  sampleData          Json?       // Sample rows from the source
   discoveredAt        DateTime    @default(now())
 }
 
