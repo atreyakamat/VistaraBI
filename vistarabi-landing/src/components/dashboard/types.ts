@@ -1,32 +1,33 @@
-// Chart type definitions for Module 5B visualizations
-export type ChartDataPoint = {
-    label: string;
-    value: number;
-    [key: string]: string | number;
-};
+// Module 5A — Dashboard Component Types
 
-export type TimeSeriesPoint = {
-    date: string;
-    value: number;
-    [key: string]: string | number;
-};
-
-export type CategoryData = {
-    name: string;
-    value: number;
-    percentage?: number;
-    color?: string;
-};
-
-export type KPICardData = {
+export interface KPICardData {
     kpiId: string;
     kpiName: string;
-    value: number;
-    unit?: string;
-    trend?: {
-        direction: 'up' | 'down' | 'neutral';
-        percentage: number;
-    };
-    chartType: 'metric_card' | 'line_chart' | 'bar_chart' | 'pie_chart';
-    chartData?: ChartDataPoint[] | TimeSeriesPoint[] | CategoryData[];
-};
+    formula: string;
+    category: string;
+    currentValue: number;
+    previousValue?: number;
+    trend?: 'up' | 'down' | 'flat';
+    trendPercent?: number;
+    chartType: string;
+    chartLibrary: 'chartjs' | 'plotly';
+    dataPoints: Array<{ label: string; value: number }>;
+    colorAccent?: string;
+}
+
+export interface KPIExplanationData {
+    kpiId: string;
+    explanation: string;
+    formulaSummary: string;
+    dataSourceRef: string;
+    businessDefinition: string;
+    recommendation?: string;
+}
+
+export interface DashboardSection {
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    kpiIds: string[];
+}

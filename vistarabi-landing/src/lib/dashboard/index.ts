@@ -1,24 +1,21 @@
-// Module 5A — Dashboard Configuration Orchestrator
-// Generates and persists dashboard layout configurations
+// Module 5A — Dashboard Configuration Orchestrator (Rebuilt)
+// Generates dashboard configs with chart intelligence and AI explanations
 
 import db from '../prisma';
 import type { ApprovedKPI, DomainType } from '../prisma';
 import type { DashboardConfigSchema, DashboardMetadata } from './types';
 import { buildSections } from './section-builder';
 import { buildSidebarConfig } from './sidebar-builder';
+import { generateKPIExplanations } from './kpi-explainer';
 import { DOMAIN_LIBRARIES } from '../domain/domain-keywords';
 
 /**
- * Generate (or regenerate) a complete dashboard configuration for a project.
- * 
- * This is the main entry point for Module 5A. It:
- * 1. Fetches KPI Blueprint, Domain Detection, and Project metadata
- * 2. Groups KPIs into business-centric sections
- * 3. Infers chart types for each KPI
- * 4. Builds the sidebar navigation structure
- * 5. Assembles and persists the full DashboardConfigSchema
+ * Generate (or regenerate) a complete dashboard configuration.
+ * Orchestrates: KPI fetch → section building → AI explanations → persist
  */
 export async function generateDashboardConfig(projectId: string): Promise<DashboardConfigSchema> {
+    console.log('[Dashboard] Generating config for:', projectId);
+
     // 1. Fetch upstream data
     const [project, blueprint, domainDetection] = await Promise.all([
         db.project.findUnique({ where: { id: projectId }, select: { id: true, name: true } }),
@@ -35,10 +32,14 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
         ? ((blueprint.kpis as any) as ApprovedKPI[] || [])
         : [];
 
+    if (kpis.length === 0) {
+        throw new Error('No approved KPIs found. Please finalize your KPI Blueprint first.');
+    }
+
     // 3. Resolve domain info
     const domain = domainDetection?.detectedDomain as DomainType | null;
     const domainInfo = domain ? DOMAIN_LIBRARIES[domain] : null;
-    const domainColor = domainInfo?.color || '#6366f1'; // Default indigo
+    const domainColor = domainInfo?.color || '#6366f1';
     const domainName = domainInfo?.name || 'General';
     const domainIcon = domainInfo?.icon || '📊';
 
@@ -48,14 +49,26 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     // 5. Build sidebar
     const sidebarConfig = await buildSidebarConfig(projectId, project.name);
 
-    // 6. Determine version
+    // 6. Generate AI explanations (batch, cached)
+    console.log('[Dashboard] Generating AI explanations for', kpis.length, 'KPIs...');
+    const kpiExplanations = await generateKPIExplanations(
+        kpis.map(kpi => ({
+            kpiId: kpi.kpiId,
+            kpiName: kpi.kpiName,
+            formula: kpi.formula,
+            category: kpi.category,
+            columns: kpi.matchedColumns || [],
+        }))
+    );
+
+    // 7. Version management
     const existing = await db.dashboardConfig.findUnique({
         where: { projectId },
         select: { version: true },
     });
     const version = (existing?.version || 0) + 1;
 
-    // 7. Build metadata
+    // 8. Build metadata
     const metadata: DashboardMetadata = {
         domain,
         domainName,
@@ -65,9 +78,10 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
         totalSections: sections.length,
         generatedAt: new Date().toISOString(),
         version,
+        kpiExplanations,
     };
 
-    // 8. Assemble full config
+    // 9. Assemble full config
     const config: DashboardConfigSchema = {
         projectId,
         sections,
@@ -76,7 +90,7 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
         version,
     };
 
-    // 9. Persist to database
+    // 10. Persist to database
     const dbData = {
         projectId,
         sections: sections as any,
@@ -91,12 +105,12 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
         update: dbData,
     });
 
+    console.log(`[Dashboard] Config generated: ${sections.length} sections, ${kpis.length} KPIs, v${version}`);
     return config;
 }
 
 /**
- * Retrieve an existing dashboard configuration for a project.
- * Returns null if none has been generated yet.
+ * Retrieve an existing dashboard configuration.
  */
 export async function getDashboardConfig(projectId: string): Promise<DashboardConfigSchema | null> {
     const record = await db.dashboardConfig.findUnique({

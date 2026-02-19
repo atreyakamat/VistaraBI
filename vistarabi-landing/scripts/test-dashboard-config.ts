@@ -67,7 +67,7 @@ async function main() {
     for (const section of config.sections) {
         console.log(`   ${section.icon} ${section.title} (${section.cards.length} KPIs)`);
         for (const card of section.cards) {
-            console.log(`      • ${card.kpiName} → ${card.chartType} [${card.cardSize}]`);
+            console.log(`      • ${card.kpiName} → ${card.chartSelection.chartType} [${card.cardSize}]`);
         }
     }
 

@@ -22,6 +22,11 @@ vi.mock('../../src/lib/data-lineage/kpi-lineage-registry', () => ({
     getKPILineage: vi.fn(),
 }));
 
+vi.mock('../../src/lib/ai/ollama-client', () => ({
+    checkOllamaHealth: vi.fn(),
+    generateCompletion: vi.fn(),
+}));
+
 vi.mock('../../src/lib/prisma', () => ({
     default: {
         dashboardConfig: { findUnique: vi.fn(), upsert: vi.fn() },
@@ -79,7 +84,7 @@ const mockDashboardConfig: DashboardConfigSchema = {
     sections: [
         {
             id: 'sect-1', title: 'Performance', order: 0, description: 'Desc', icon: 'test', collapsed: false,
-            cards: [{ kpiId: 'kpi-rev', kpiName: 'Revenue', chartType: 'metric_card', cardSize: 'md', position: 0, formula: 'SUM', category: 'sales', confidence: 1, timeGranularity: 'monthly' }]
+            cards: [{ kpiId: 'kpi-rev', kpiName: 'Revenue', chartSelection: { chartType: 'metric_card', chartLibrary: 'chartjs' as const, fallbackType: 'bar', fallbackLibrary: 'chartjs' as const, confidence: 0.6, reason: 'test' }, cardSize: 'md' as const, position: 0, formula: 'SUM', category: 'sales', confidence: 1 }]
         }
     ],
     sidebarConfig: { projectId: mockProjectId, projectName: 'Integration Project', items: [] },
@@ -94,6 +99,7 @@ const mockDashboardConfig: DashboardConfigSchema = {
 import { loadProjectData } from '../../src/lib/visualization/data-loader';
 import db from '../../src/lib/prisma';
 import { explainKPI } from '../../src/lib/data-lineage/kpi-lineage-registry';
+import { checkOllamaHealth, generateCompletion } from '../../src/lib/ai/ollama-client';
 
 beforeEach(() => {
     vi.clearAllMocks();
@@ -112,6 +118,14 @@ beforeEach(() => {
         technicalExplanation: 'SUM(amount)', businessExplanation: 'Total Revenue',
         sources: ['sales'], joins: [], aggregations: [{ function: 'SUM', column: 'amount' }]
     });
+
+    (checkOllamaHealth as any).mockResolvedValue(true);
+    (generateCompletion as any).mockResolvedValue(JSON.stringify({
+        explanation: 'Test explanation',
+        formulaSummary: 'Sum of amount',
+        businessDefinition: 'Total revenue',
+        recommendation: 'Monitor trends'
+    }));
 });
 
 // ─── Integration Test Suite ───────────────────────────────────────

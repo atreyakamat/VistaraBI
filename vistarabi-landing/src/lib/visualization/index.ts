@@ -81,7 +81,7 @@ export async function computeDashboardData(
                 let data: KPIDataResult;
                 if (drillDown?.groupByColumn) {
                     data = computeGroupedKPI(lineage, filteredDataMap, drillDown.groupByColumn);
-                } else if (card.chartType === 'line' || card.chartType === 'bar') {
+                } else if (card.chartSelection?.chartType === 'line' || card.chartSelection?.chartType === 'bar') {
                     data = computeTimeSeries(lineage, filteredDataMap, granularity);
                 } else {
                     data = computeKPI(lineage, filteredDataMap);
@@ -101,7 +101,7 @@ export async function computeDashboardData(
                 charts.push({
                     kpiId: card.kpiId,
                     kpiName: card.kpiName,
-                    chartType: card.chartType,
+                    chartType: card.chartSelection?.chartType || 'bar',
                     cardSize: card.cardSize,
                     sectionId: section.id,
                     data,

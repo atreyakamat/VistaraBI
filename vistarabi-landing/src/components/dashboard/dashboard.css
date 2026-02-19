@@ -1,0 +1,232 @@
+/* Module 5A — Dashboard Styles */
+/* Data Intelligence Interface: flip animations, grid system, transitions */
+
+/* ─── 3D Card Flip ──────────────────────────────────────────────── */
+
+.card-flip-container {
+    perspective: 1200px;
+    cursor: pointer;
+}
+
+.card-flip-inner {
+    position: relative;
+    width: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.card-flip-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-flip-front,
+.card-flip-back {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.card-flip-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotateY(180deg);
+}
+
+/* ─── Sparkline Container ───────────────────────────────────────── */
+
+.sparkline-container {
+    width: 80px;
+    height: 32px;
+}
+
+/* ─── Skeleton Shimmer ──────────────────────────────────────────── */
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg,
+        #f0f0f0 25%,
+        #e0e0e0 50%,
+        #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+/* ─── Chart Entrance Animation ──────────────────────────────────── */
+
+@keyframes chartEntrance {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chart-entrance {
+    animation: chartEntrance 0.4s ease-out forwards;
+}
+
+/* ─── Dashboard Grid ────────────────────────────────────────────── */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ─── Metric Strip ──────────────────────────────────────────────── */
+
+.metric-strip {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+}
+
+.metric-strip::-webkit-scrollbar {
+    height: 4px;
+}
+
+.metric-strip::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 2px;
+}
+
+/* ─── Chart Container ───────────────────────────────────────────── */
+
+.chart-container {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    overflow: hidden;
+}
+
+.chart-container:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+/* ─── Sidebar ───────────────────────────────────────────────────── */
+
+.dashboard-sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: #0F172A;
+    color: #E2E8F0;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 40;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        transform: translateX(-100%);
+    }
+    .dashboard-sidebar.open {
+        transform: translateX(0);
+    }
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    font-size: 0.875rem;
+}
+
+.sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-nav-item.active {
+    background: rgba(37, 99, 235, 0.2);
+    color: #60A5FA;
+}
+
+/* ─── Motion Preference ─────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .card-flip-inner {
+        transition: none;
+    }
+    .chart-entrance {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+    .skeleton {
+        animation: none;
+    }
+}
+
+/* ─── Dashboard Layout ──────────────────────────────────────────── */
+
+.dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.dashboard-main {
+    flex: 1;
+    margin-left: 260px;
+    min-height: 100vh;
+    background: #F7F9FC;
+}
+
+@media (max-width: 768px) {
+    .dashboard-main {
+        margin-left: 0;
+    }
+}
+
+/* ─── Header ────────────────────────────────────────────────────── */
+
+.dashboard-header {
+    height: 64px;
+    background: white;
+    border-bottom: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+}
+
+/* ─── Status Indicators ─────────────────────────────────────────── */
+
+.trend-up { color: #10B981; }
+.trend-down { color: #EF4444; }
+.trend-flat { color: #6B7280; }
+
+.severity-critical { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
+.severity-warning { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
+.severity-info { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }

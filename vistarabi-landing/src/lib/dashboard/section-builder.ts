@@ -1,27 +1,44 @@
-// Module 5A — Section Builder
+// Module 5A — Section Builder (Rebuilt)
 // Groups KPIs into business-centric dashboard sections
+// Uses the new chart intelligence engine for chart selection
 
 import type { ApprovedKPI } from '../prisma';
-import type { DashboardSection, DashboardKPICard } from './types';
-import { SECTION_DEFINITIONS, FALLBACK_SECTION } from './types';
-import { inferChartType } from './chart-inferrer';
+import type { DashboardSection, DashboardKPICard, ChartSelection } from './types';
+import { selectChart, profileData } from './chart-inferrer';
 import { KPI_LIBRARY } from '../kpi/kpi-library';
 import type { DomainType } from '../prisma';
 
+// ─── Section Definitions ──────────────────────────────────────────
+
+const SECTION_DEFINITIONS = [
+    { sectionId: 'revenue', title: 'Revenue & Sales', description: 'Financial performance metrics', icon: '💰', order: 1, categories: ['revenue', 'sales', 'financial', 'pricing'] },
+    { sectionId: 'customers', title: 'Customer Intelligence', description: 'Customer behavior and lifecycle metrics', icon: '👥', order: 2, categories: ['customer', 'user', 'retention', 'engagement', 'churn'] },
+    { sectionId: 'operations', title: 'Operational Metrics', description: 'Efficiency and process metrics', icon: '⚙️', order: 3, categories: ['operational', 'efficiency', 'logistics', 'inventory', 'process'] },
+    { sectionId: 'growth', title: 'Growth & Conversion', description: 'Growth trajectory and conversion metrics', icon: '📈', order: 4, categories: ['growth', 'conversion', 'acquisition', 'marketing'] },
+    { sectionId: 'product', title: 'Product Analytics', description: 'Product performance and usage metrics', icon: '📦', order: 5, categories: ['product', 'catalog', 'feature', 'usage'] },
+    { sectionId: 'quality', title: 'Quality & Compliance', description: 'Data quality and compliance metrics', icon: '✅', order: 6, categories: ['quality', 'compliance', 'risk', 'audit'] },
+];
+
+const FALLBACK_SECTION = {
+    sectionId: 'general',
+    title: 'General Metrics',
+    description: 'Key business metrics',
+    icon: '📊',
+    order: 99,
+};
+
 /**
  * Build dashboard sections from approved KPIs.
- * Groups KPIs by category into business-centric sections,
- * sorts by priority, and assigns chart types.
+ * Groups KPIs by category, sorts by priority, assigns chart types via profiling engine.
  */
 export function buildSections(
     kpis: ApprovedKPI[],
     domain: DomainType | null,
     domainColor: string
 ): DashboardSection[] {
-    // Step 1: Build a priority lookup from the KPI library
     const priorityMap = buildPriorityMap(domain);
 
-    // Step 2: Assign each KPI to a section based on its category
+    // Group KPIs into sections by category
     const sectionMap = new Map<string, {
         definition: typeof SECTION_DEFINITIONS[0];
         kpis: ApprovedKPI[];
@@ -40,11 +57,10 @@ export function buildSections(
         sectionMap.get(sectionDef.sectionId)!.kpis.push(kpi);
     }
 
-    // Step 3: Convert to DashboardSection[], sorted by section order
+    // Convert to DashboardSection[], sorted by section order
     const sections: DashboardSection[] = [];
 
     for (const [sectionId, { definition, kpis: sectionKpis }] of sectionMap) {
-        // Sort KPIs within section: by priority (from library), then by confidence
         const sortedKpis = sectionKpis.sort((a, b) => {
             const prioA = priorityMap.get(a.kpiId) ?? 50;
             const prioB = priorityMap.get(b.kpiId) ?? 50;
@@ -52,19 +68,20 @@ export function buildSections(
             return (b.confidence || 0) - (a.confidence || 0);
         });
 
-        // Build cards
         const cards: DashboardKPICard[] = sortedKpis.map((kpi, index) => {
-            const { chartType, cardSize } = inferChartType(kpi.formula, kpi.category);
+            // Use lightweight chart selection based on formula analysis
+            // Full data profiling happens at render time with actual data
+            const chartSelection = inferChartFromFormula(kpi.formula, kpi.category);
+
             return {
                 kpiId: kpi.kpiId,
                 kpiName: kpi.kpiName,
                 formula: kpi.formula,
                 category: kpi.category,
-                chartType,
-                cardSize,
+                chartSelection,
+                cardSize: 'md' as const,
                 position: index,
                 confidence: kpi.confidence,
-                timeGranularity: 'monthly' as const,
                 colorAccent: domainColor,
             };
         });
@@ -80,15 +97,53 @@ export function buildSections(
         });
     }
 
-    // Sort sections by order
     sections.sort((a, b) => a.order - b.order);
-
     return sections;
 }
 
 /**
- * Find the section definition for a given KPI category.
+ * Lightweight chart inference from formula text (no data required).
+ * Full data-profiling inference happens at render time.
  */
+function inferChartFromFormula(formula: string, category: string): ChartSelection {
+    const f = formula.toLowerCase();
+    const c = category.toLowerCase();
+
+    // Time-based KPIs
+    if (f.includes('date') || f.includes('month') || f.includes('daily') || f.includes('trend')) {
+        return {
+            chartType: 'line', chartLibrary: 'chartjs',
+            fallbackType: 'bar', fallbackLibrary: 'chartjs',
+            confidence: 0.75, reason: 'Time-related formula → line chart (will refine with data)',
+        };
+    }
+
+    // Percentage / ratio KPIs
+    if (f.includes('/') || f.includes('rate') || f.includes('ratio') || f.includes('percent')) {
+        return {
+            chartType: 'doughnut', chartLibrary: 'chartjs',
+            fallbackType: 'bar', fallbackLibrary: 'chartjs',
+            confidence: 0.70, reason: 'Ratio/percentage formula → doughnut chart',
+        };
+    }
+
+    // Count/sum aggregations
+    if (/^(sum|count|total)/i.test(f) || f.includes('count(') || f.includes('sum(')) {
+        return {
+            chartType: 'bar', chartLibrary: 'chartjs',
+            fallbackType: 'metric_card', fallbackLibrary: 'chartjs',
+            confidence: 0.70, reason: 'Aggregation formula → bar chart',
+        };
+    }
+
+    // Default: metric card
+    return {
+        chartType: 'metric_card', chartLibrary: 'chartjs',
+        fallbackType: 'bar', fallbackLibrary: 'chartjs',
+        confidence: 0.60, reason: 'Default selection → metric card',
+    };
+}
+
 function findSectionForCategory(category: string) {
     for (const def of SECTION_DEFINITIONS) {
         if (def.categories.includes(category)) {
@@ -98,10 +153,6 @@ function findSectionForCategory(category: string) {
     return { ...FALLBACK_SECTION, categories: [] as string[] };
 }
 
-/**
- * Build a Map<kpiId, priority> from the KPI library for the given domain.
- * This allows us to sort KPIs by their library-defined priority.
- */
 function buildPriorityMap(domain: DomainType | null): Map<string, number> {
     const map = new Map<string, number>();
 
@@ -111,11 +162,10 @@ function buildPriorityMap(domain: DomainType | null): Map<string, number> {
         }
     }
 
-    // Also index all domains as fallback (for AI-proposed KPIs)
     for (const defs of Object.values(KPI_LIBRARY)) {
         for (const def of defs) {
             if (!map.has(def.id)) {
-                map.set(def.id, def.priority + 100); // Lower priority than domain-native
+                map.set(def.id, def.priority + 100);
             }
         }
     }

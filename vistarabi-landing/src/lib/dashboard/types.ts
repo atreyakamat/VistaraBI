@@ -1,23 +1,69 @@
-// Module 5A — Dashboard Structure & Layout Engine
-// Type definitions for dashboard configuration schema
+// Module 5A — Dashboard Types (Rebuilt)
+// Production-grade type system for the Data Intelligence Interface
 
 import type { DomainType } from '../prisma';
 
-// ─── Chart & Card Types ───────────────────────────────────────────
+// ─── Chart Types ──────────────────────────────────────────────────
 
 export type ChartType =
-    | 'metric_card'   // Single KPI value with trend indicator
-    | 'line'          // Time-series / trend charts
-    | 'bar'           // Categorical comparisons / volume
-    | 'pie'           // Distribution / proportional
-    | 'stacked_bar'   // Multi-dimensional comparisons
-    | 'table';        // Tabular / detailed breakdown
+    // Chart.js (simple, fast)
+    | 'line'
+    | 'bar'
+    | 'horizontal_bar'
+    | 'pie'
+    | 'doughnut'
+    | 'area'
+    | 'radar'
+    | 'scatter'
+    | 'bubble'
+    // Plotly (advanced, interactive)
+    | 'heatmap'
+    | 'treemap'
+    | 'sunburst'
+    | 'waterfall'
+    | 'box_plot'
+    | 'violin'
+    // Fallback
+    | 'metric_card'
+    | 'table';
+
+export type ChartLibrary = 'chartjs' | 'plotly';
 
 export type CardSize =
-    | 'sm'    // 1/4 row — compact metric cards
-    | 'md'    // 1/2 row — standard charts
-    | 'lg'    // 3/4 row — wide charts
-    | 'full'; // Full row — tables / complex visuals
+    | 'sm'    // 1/4 row
+    | 'md'    // 1/2 row (default for 2×2)
+    | 'lg'    // 3/4 row
+    | 'full'; // Full row
+
+// ─── Data Profiling ───────────────────────────────────────────────
+
+export type DistributionType = 'normal' | 'skewed' | 'bimodal' | 'uniform' | 'unknown';
+export type CardinalityLevel = 'low' | 'medium' | 'high' | 'very_high';
+
+export interface DataProfile {
+    hasTimeDimension: boolean;
+    numberOfSeries: number;
+    uniqueCategoryCount: number;
+    numericDimensionCount: number;
+    hierarchicalDepth: number;
+    recordCount: number;
+    volatilityIndex: number;       // stddev / mean
+    distributionType: DistributionType;
+    cardinalityLevel: CardinalityLevel;
+    isSequentialChange: boolean;
+    dateColumn?: string;
+    categoryColumns: string[];
+    numericColumns: string[];
+}
+
+export interface ChartSelection {
+    chartType: ChartType;
+    chartLibrary: ChartLibrary;
+    fallbackType: ChartType;
+    fallbackLibrary: ChartLibrary;
+    confidence: number;           // 0–1 selection confidence
+    reason: string;               // Human-readable reasoning
+}
 
 // ─── KPI Card Configuration ──────────────────────────────────────
 
@@ -26,13 +72,12 @@ export interface DashboardKPICard {
     kpiName: string;
     formula: string;
     category: string;
-    chartType: ChartType;
+    chartSelection: ChartSelection;
     cardSize: CardSize;
-    position: number;         // Order within section
-    confidence: number;       // From ApprovedKPI
+    position: number;
+    confidence: number;
     description?: string;
-    timeGranularity: 'daily' | 'weekly' | 'monthly' | 'quarterly';
-    colorAccent?: string;     // Derived from domain
+    colorAccent?: string;
 }
 
 // ─── Dashboard Section ───────────────────────────────────────────
@@ -42,12 +87,12 @@ export interface DashboardSection {
     title: string;
     description: string;
     icon: string;
-    order: number;            // Section render order
+    order: number;
     cards: DashboardKPICard[];
-    collapsed: boolean;       // Default collapse state
+    collapsed: boolean;
 }
 
-// ─── Sidebar Navigation ──────────────────────────────────────────
+// ─── Sidebar ─────────────────────────────────────────────────────
 
 export interface SidebarItem {
     id: string;
@@ -55,7 +100,7 @@ export interface SidebarItem {
     icon: string;
     route: string;
     enabled: boolean;
-    badge?: string;           // e.g. KPI count
+    badge?: string;
     children?: SidebarItem[];
 }
 
@@ -67,6 +112,16 @@ export interface SidebarConfig {
 
 // ─── Dashboard Metadata ──────────────────────────────────────────
 
+export interface KPIExplanation {
+    kpiId: string;
+    explanation: string;
+    formulaSummary: string;
+    dataSourceRef: string;
+    businessDefinition: string;
+    recommendation?: string;
+    generatedAt: string;
+}
+
 export interface DashboardMetadata {
     domain: DomainType | null;
     domainName: string;
@@ -76,9 +131,10 @@ export interface DashboardMetadata {
     totalSections: number;
     generatedAt: string;
     version: number;
+    kpiExplanations?: Record<string, KPIExplanation>;
 }
 
-// ─── Top-Level Schema ────────────────────────────────────────────
+// ─── Full Dashboard Config ───────────────────────────────────────
 
 export interface DashboardConfigSchema {
     projectId: string;
@@ -87,72 +143,3 @@ export interface DashboardConfigSchema {
     metadata: DashboardMetadata;
     version: number;
 }
-
-// ─── Section Grouping Map ────────────────────────────────────────
-// Maps KPI categories to business-centric dashboard sections
-
-export const SECTION_DEFINITIONS: {
-    sectionId: string;
-    title: string;
-    description: string;
-    icon: string;
-    categories: string[];
-    order: number;
-}[] = [
-        {
-            sectionId: 'financial',
-            title: 'Revenue & Financial Performance',
-            description: 'Core financial KPIs tracking revenue, profitability, and monetary health',
-            icon: '💰',
-            categories: ['revenue', 'profitability', 'volume', 'liquidity'],
-            order: 1,
-        },
-        {
-            sectionId: 'customer',
-            title: 'Customer Intelligence',
-            description: 'Customer behavior, retention patterns, and lifetime value metrics',
-            icon: '👥',
-            categories: ['customer', 'retention'],
-            order: 2,
-        },
-        {
-            sectionId: 'operations',
-            title: 'Operational Efficiency',
-            description: 'Operational throughput, cost management, and process efficiency',
-            icon: '⚙️',
-            categories: ['operations', 'efficiency', 'cost'],
-            order: 3,
-        },
-        {
-            sectionId: 'growth',
-            title: 'Growth & Engagement',
-            description: 'Growth trajectory, user engagement, and adoption metrics',
-            icon: '🚀',
-            categories: ['growth', 'engagement'],
-            order: 4,
-        },
-        {
-            sectionId: 'performance',
-            title: 'Performance Metrics',
-            description: 'Quality indicators and key performance benchmarks',
-            icon: '🎯',
-            categories: ['performance', 'quality'],
-            order: 5,
-        },
-        {
-            sectionId: 'risk',
-            title: 'Risk & Compliance',
-            description: 'Risk indicators, compliance metrics, and anomaly detection',
-            icon: '🛡️',
-            categories: ['risk'],
-            order: 6,
-        },
-    ];
-
-export const FALLBACK_SECTION = {
-    sectionId: 'other',
-    title: 'Other Metrics',
-    description: 'Additional KPIs and uncategorized metrics',
-    icon: '📊',
-    order: 99,
-};

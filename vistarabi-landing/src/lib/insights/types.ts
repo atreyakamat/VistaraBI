@@ -1,25 +1,49 @@
-// Module 5C — Explainable Dashboard & AI Insight Engine
-// Type definitions for insights, anomalies, trends, and explanations
+// Module 5C — Cognitive Insight Layer Types
+// Anomaly detection, change attribution, insight generation, smart alerts
 
-import type { KPIDataResult, KPIDataPoint } from '../visualization/types';
+import type { KPIDataPoint } from '../visualization/types';
 
 // ─── Anomaly Detection ────────────────────────────────────────────
 
-export type AnomalySeverity = 'info' | 'warning' | 'critical';
-export type AnomalyDirection = 'spike' | 'drop';
+export type AnomalySeverity = 'normal' | 'warning' | 'critical';
+export type AnomalyDirection = 'spike' | 'drop' | 'none';
 
-export interface AnomalyResult {
-    dataPointIndex: number;       // Index in the time-series
-    label: string;                // The period label (e.g., "2024-03")
-    value: number;                // Actual value
-    expectedValue: number;        // Mean value
-    deviation: number;            // How many σ away
-    direction: AnomalyDirection;  // Spike or drop
-    severity: AnomalySeverity;    // info (1-2σ), warning (2-3σ), critical (>3σ)
-    percentFromMean: number;      // % deviation from mean
+export interface AnomalyFlag {
+    rule: string;
+    description: string;
+    threshold: number;
+    actual: number;
 }
 
-// ─── Trend Analysis ───────────────────────────────────────────────
+export interface AnomalyResult {
+    severity: AnomalySeverity;
+    score: number;               // 0-100
+    flags: AnomalyFlag[];
+    reason: string;              // Human-readable summary
+    direction: AnomalyDirection;
+    detectedAt: string;          // ISO timestamp
+}
+
+// ─── Change Attribution ───────────────────────────────────────────
+
+export interface SegmentContribution {
+    segment: string;
+    currentValue: number;
+    previousValue: number;
+    delta: number;
+    deltaPercent: number;
+    contributionPercent: number; // % of total change this segment caused
+}
+
+export interface ChangeAttribution {
+    segments: SegmentContribution[];
+    topPositive: SegmentContribution | null;
+    topNegative: SegmentContribution | null;
+    sentence: string;            // "Electronics contributed 68% of the increase"
+    totalDelta: number;
+}
+
+// ─── Trend Analysis ──────────────────────────────────────────────
 
 export type TrendDirection = 'up' | 'down' | 'flat';
 
@@ -32,29 +56,61 @@ export interface TrendSummary {
     previousPeriodLabel: string;
 }
 
-export interface TopContributor {
-    label: string;                // Category/group name
-    value: number;                // Aggregated value
-    percentOfTotal: number;       // Share of total
-    rank: number;                 // 1-based rank
-}
-
 // ─── KPI Insight ──────────────────────────────────────────────────
 
-export type InsightType = 'anomaly' | 'trend' | 'top_contributor' | 'comparison';
-
 export interface KPIInsight {
-    type: InsightType;
-    severity: AnomalySeverity;
-    title: string;                // Short title, e.g., "Revenue Spike in March"
-    description: string;          // 1-2 sentence description
     kpiId: string;
     kpiName: string;
-    data?: {
-        anomaly?: AnomalyResult;
-        trend?: TrendSummary;
-        topContributors?: TopContributor[];
-    };
+    category: string;
+
+    // Anomaly
+    anomaly: AnomalyResult;
+
+    // Attribution (null if single-dimension)
+    attribution: ChangeAttribution | null;
+
+    // Lineage explanation (deterministic)
+    lineageExplanation: string;
+
+    // Trend interpretation
+    trendSummary: string;
+    trend: TrendSummary | null;
+
+    // AI insight (from cache)
+    aiSummary: string | null;
+
+    // Metadata
+    lastUpdated: string;
+    dataFreshness: 'fresh' | 'stale' | 'unknown';
+}
+
+// ─── Insight Feed Panel ───────────────────────────────────────────
+
+export interface InsightFeedItem {
+    id: string;
+    type: 'movement' | 'anomaly' | 'trend' | 'freshness' | 'alert';
+    kpiId: string;
+    kpiName: string;
+    title: string;
+    description: string;
+    severity: AnomalySeverity;
+    value?: number;
+    delta?: number;
+    deltaPercent?: number;
+    timestamp: string;
+}
+
+// ─── Smart Alerts ─────────────────────────────────────────────────
+
+export interface SmartAlert {
+    kpiId: string;
+    kpiName: string;
+    severity: AnomalySeverity;
+    triggeredAt: string;
+    reason: string;
+    delta: number;
+    deltaPercent: number;
+    acknowledged: boolean;
 }
 
 // ─── Full Explanation Payload ─────────────────────────────────────
@@ -65,8 +121,6 @@ export interface KPIExplanationPayload {
     domain: string;
     formula: string;
     category: string;
-
-    // Lineage (from Module 4D-B)
     lineage: {
         sources: string[];
         joins: { from: string; to: string; via: string }[];
@@ -74,29 +128,27 @@ export interface KPIExplanationPayload {
         technicalExplanation: string;
         businessExplanation: string;
     };
-
-    // Live data (from Module 5B)
     currentValue: number;
     trend?: TrendSummary;
-
-    // Insights (from 5C)
     anomalies: AnomalyResult[];
     insights: KPIInsight[];
-
-    // AI summary (Ollama-enhanced, grounded)
     aiSummary?: string;
     aiEnhanced: boolean;
 }
 
-// ─── Dashboard Insights Payload ───────────────────────────────────
+// ─── Insights API Response ────────────────────────────────────────
 
-export interface DashboardInsightsPayload {
+export interface InsightsResponse {
     projectId: string;
-    insights: KPIInsight[];       // Top insights across all KPIs
+    insights: KPIInsight[];
+    feed: InsightFeedItem[];
+    alerts: SmartAlert[];
+    topMovers: {
+        strongest_up: InsightFeedItem | null;
+        strongest_down: InsightFeedItem | null;
+    };
     anomalyCount: number;
     trendingUp: number;
     trendingDown: number;
-    globalSummary?: string;       // AI-generated dashboard overview
-    aiEnhanced: boolean;
     computedAt: string;
 }
