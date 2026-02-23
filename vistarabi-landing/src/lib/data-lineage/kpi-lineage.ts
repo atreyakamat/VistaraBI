@@ -140,7 +140,7 @@ export async function traceKPILineage(
     entityGraph: EntityRelationshipGraph,
     sources: { id: string; name: string; columns: string[] }[]
 ): Promise<KPILineage> {
-    console.log('[KPILineage] Tracing:', kpi.kpiName);
+    console.log('[KPILineage] Tracing:', kpi.name || (kpi as any).kpiName);
 
     // Build column to source mapping
     const columnToSource = new Map<string, string>();
@@ -151,8 +151,10 @@ export async function traceKPILineage(
     }
 
     // Extract columns from formula
-    const formulaColumns = extractColumnsFromFormula(kpi.formula);
-    const allColumns = [...new Set([...kpi.matchedColumns, ...formulaColumns])];
+    const formulaStr = kpi.lineage?.formula || (kpi as any).formula || '';
+    const formulaColumns = extractColumnsFromFormula(formulaStr);
+    const structCols = kpi.aggregations?.map((a: any) => a.column) || [];
+    const allColumns = [...new Set([...structCols, ...(kpi as any).matchedColumns || [], ...formulaColumns])];
 
     // Find sources for each column
     const sourceContributions = new Map<string, KPISourceContribution>();
@@ -200,7 +202,7 @@ export async function traceKPILineage(
     }
 
     // Parse aggregations
-    const aggregations = parseAggregations(kpi.formula, columnToSource);
+    const aggregations = parseAggregations((kpi.lineage?.formula || (kpi as any).formula || ''), columnToSource);
 
     // Mark sources with aggregations
     for (const agg of aggregations) {
@@ -212,23 +214,23 @@ export async function traceKPILineage(
 
     // Generate explanation
     const explanation = generateExplanation(
-        kpi.kpiName,
-        kpi.formula,
+        kpi.name || (kpi as any).kpiName,
+        formulaStr,
         sourcesList,
         joins,
         aggregations
     );
 
     return {
-        kpiId: kpi.kpiId,
-        kpiName: kpi.kpiName,
-        formula: kpi.formula,
-        category: kpi.category,
+        kpiId: kpi.id || (kpi as any).kpiId,
+        kpiName: kpi.name || (kpi as any).kpiName,
+        formula: formulaStr,
+        category: kpi.category || 'general',
         sources: sourcesList,
         joins,
         aggregations,
         explanation,
-        confidence: kpi.confidence,
+        confidence: (kpi as any).confidence || 100,
         tracedAt: new Date(),
     };
 }

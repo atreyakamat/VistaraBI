@@ -13,13 +13,15 @@ export interface DiscoveredKPI {
     kpiName: string;
     domain: DomainType;
     confidence: number;
-    matchType: 'RULE_BASED' | 'FORMULA' | 'AI_ASSISTED';
+    matchType: string;
     explanation: string;
     matchedColumns: string[];
     formulaExpression: string;
     category: string;
     priority: number;
     isComputable: boolean;
+    supportStatus?: string;
+    aggregations?: { function: string; column: string }[];
     discoveredAt: Date;
 }
 
@@ -61,53 +63,8 @@ async function getProjectData(projectId: string): Promise<{ columns: string[]; s
     };
 }
 
-// Convert column to a KPI-like item for display
-function columnToKPI(column: string, projectId: string, domain: DomainType, index: number): DiscoveredKPI {
-    // Determine category based on column name
-    const lowerCol = column.toLowerCase();
-    let category = 'volume';
-    let formula = `SUM(${column})`;
-
-    if (lowerCol.includes('revenue') || lowerCol.includes('price') || lowerCol.includes('amount') || lowerCol.includes('sales')) {
-        category = 'revenue';
-        formula = `SUM(${column})`;
-    } else if (lowerCol.includes('cost') || lowerCol.includes('expense')) {
-        category = 'cost';
-        formula = `SUM(${column})`;
-    } else if (lowerCol.includes('count') || lowerCol.includes('qty') || lowerCol.includes('quantity')) {
-        category = 'volume';
-        formula = `SUM(${column})`;
-    } else if (lowerCol.includes('rate') || lowerCol.includes('percent') || lowerCol.includes('ratio')) {
-        category = 'performance';
-        formula = `AVG(${column})`;
-    } else if (lowerCol.includes('date') || lowerCol.includes('time')) {
-        category = 'operations';
-        formula = `COUNT(DISTINCT ${column})`;
-    } else if (lowerCol.includes('customer') || lowerCol.includes('user') || lowerCol.includes('client')) {
-        category = 'customer';
-        formula = `COUNT(DISTINCT ${column})`;
-    } else if (lowerCol.includes('id') || lowerCol.includes('order') || lowerCol.includes('transaction')) {
-        category = 'volume';
-        formula = `COUNT(${column})`;
-    }
-
-    return {
-        id: randomUUID(),
-        projectId,
-        kpiId: `col-${column.replace(/[^a-zA-Z0-9]/g, '-')}`,
-        kpiName: column,
-        domain,
-        confidence: 100,
-        matchType: 'RULE_BASED',
-        explanation: `Column available in your data. Suggested formula: ${formula}`,
-        matchedColumns: [column],
-        formulaExpression: formula,
-        category,
-        priority: index + 1,
-        isComputable: true,
-        discoveredAt: new Date(),
-    };
-}
+// Remove columnToKPI raw fallback function!
+import { matchKPIsForDomain } from './kpi-matcher';
 
 // Main discovery function - returns actual columns as KPIs
 export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResult | null> {
@@ -131,8 +88,27 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
         return null;
     }
 
-    // Convert columns to KPI format for display
-    const computableKPIs = columns.map((col, idx) => columnToKPI(col, projectId, domain, idx));
+    // Instead of raw columns array, use the Headless Domain Matcher
+    const matches = matchKPIsForDomain(domain, columns);
+
+    const computableKPIs: DiscoveredKPI[] = matches.map((match) => ({
+        id: randomUUID(),
+        projectId,
+        kpiId: match.kpi.id,
+        kpiName: match.kpi.name,
+        domain,
+        confidence: match.confidence,
+        matchType: match.matchType,
+        explanation: match.kpi.description,
+        matchedColumns: match.matchedColumns.map(c => c.columnName),
+        formulaExpression: match.kpi.formulaTemplate,
+        category: match.kpi.category,
+        priority: match.kpi.priority,
+        isComputable: match.isComputable,
+        supportStatus: match.supportStatus,
+        aggregations: match.kpi.aggregationRules,
+        discoveredAt: new Date(),
+    }));
 
     const result: KPIDiscoveryResult = {
         projectId,

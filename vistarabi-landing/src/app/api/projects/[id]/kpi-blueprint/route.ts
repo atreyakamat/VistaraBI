@@ -45,8 +45,12 @@ export async function POST(
         const body = await request.json();
         const { kpi } = body as { kpi: ApprovedKPI };
 
-        if (!kpi?.kpiId) {
-            return NextResponse.json({ error: 'KPI data required' }, { status: 400 });
+        if (!kpi || typeof kpi !== 'object') {
+            return NextResponse.json({ error: 'Fatal Structural Error: Payload must be a structured ApprovedKPI object, not a raw string/column.' }, { status: 400 });
+        }
+
+        if (!kpi.id || !kpi.name || !Array.isArray(kpi.aggregations) || !kpi.sourceTable || !kpi.lineage) {
+            return NextResponse.json({ error: 'Fatal Structural Error: KPI object must adhere to the Domain Data Contract (missing id, name, aggregations, sourceTable, or lineage).' }, { status: 400 });
         }
 
         // Get or create blueprint
@@ -83,7 +87,7 @@ export async function POST(
             });
         } else {
             const currentKpis = (blueprint.kpis as unknown as ApprovedKPI[]) || [];
-            if (currentKpis.some((k: ApprovedKPI) => k.kpiId === kpi.kpiId)) {
+            if (currentKpis.some((k: ApprovedKPI) => k.id === kpi.id)) {
                 return NextResponse.json({ error: 'KPI already in blueprint' }, { status: 400 });
             }
 
@@ -103,8 +107,8 @@ export async function POST(
                 projectId: id,
                 version: blueprint?.version || 1,
                 action: 'ADD',
-                kpiId: kpi.kpiId,
-                kpiName: kpi.kpiName,
+                kpiId: kpi.id,
+                kpiName: kpi.name,
                 changedBy: user.userId,
                 changedAt: new Date(),
             },
@@ -137,8 +141,8 @@ export async function DELETE(
         if (blueprint.isLocked) return NextResponse.json({ error: 'Blueprint is locked' }, { status: 400 });
 
         const kpis = (blueprint.kpis as unknown as ApprovedKPI[]) || [];
-        const kpiToRemove = kpis.find((k: ApprovedKPI) => k.kpiId === kpiId);
-        const updatedKpis = kpis.filter((k: ApprovedKPI) => k.kpiId !== kpiId);
+        const kpiToRemove = kpis.find((k: ApprovedKPI) => k.id === kpiId);
+        const updatedKpis = kpis.filter((k: ApprovedKPI) => k.id !== kpiId);
 
         const updated = await db.kPIBlueprint.update({
             where: { projectId: id },
@@ -152,7 +156,7 @@ export async function DELETE(
                 version: updated.version,
                 action: 'REMOVE',
                 kpiId,
-                kpiName: kpiToRemove?.kpiName || 'Unknown',
+                kpiName: kpiToRemove?.name || 'Unknown',
                 changedBy: user.userId,
                 changedAt: new Date(),
             },

@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../../src/lib/prisma', () => ({
     __esModule: true,
     default: {
-        dashboardConfig: { findUnique: vi.fn(), upsert: vi.fn() },
+        dashboardConfig: { findUnique: vi.fn(), upsert: vi.fn(), update: vi.fn() },
         kPILineageRegistry: { findUnique: vi.fn() },
         project: { findUnique: vi.fn() },
         kPIBlueprint: { findUnique: vi.fn() },
@@ -114,7 +114,7 @@ beforeEach(() => {
     vi.clearAllMocks();
     (loadProjectData as any).mockResolvedValue(mockDataMap);
     (db as any).kPILineageRegistry.findUnique.mockResolvedValue({ entries: mockLineage });
-    (db as any).dashboardConfig.findUnique.mockResolvedValue(mockDashboardConfig);
+    (db as any).dashboardConfig.findUnique.mockResolvedValue(JSON.parse(JSON.stringify(mockDashboardConfig)));
     (db as any).project.findUnique.mockResolvedValue({ id: PROJECT_ID, name: 'Integration Project' });
     (db as any).kPIBlueprint.findUnique.mockResolvedValue({
         kpis: [{ kpiId: 'kpi-rev', name: 'Revenue', kpiName: 'Revenue', confidence: 1, category: 'financial', formula: 'SUM(amount)', matchedColumns: [], addedAt: new Date() }]

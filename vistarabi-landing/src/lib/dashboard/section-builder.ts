@@ -62,26 +62,30 @@ export function buildSections(
 
     for (const [sectionId, { definition, kpis: sectionKpis }] of sectionMap) {
         const sortedKpis = sectionKpis.sort((a, b) => {
-            const prioA = priorityMap.get(a.kpiId) ?? 50;
-            const prioB = priorityMap.get(b.kpiId) ?? 50;
+            const idA = a.id || (a as any).kpiId;
+            const idB = b.id || (b as any).kpiId;
+            const prioA = priorityMap.get(idA) ?? 50;
+            const prioB = priorityMap.get(idB) ?? 50;
             if (prioA !== prioB) return prioA - prioB;
-            return (b.confidence || 0) - (a.confidence || 0);
+            return ((b as any).confidence || 100) - ((a as any).confidence || 100);
         });
 
         const cards: DashboardKPICard[] = sortedKpis.map((kpi, index) => {
             // Use lightweight chart selection based on formula analysis
             // Full data profiling happens at render time with actual data
-            const chartSelection = inferChartFromFormula(kpi.formula, kpi.category);
+            const formulaStr = kpi.lineage?.formula || (kpi as any).formula || '';
+            const categoryStr = kpi.category || 'general';
+            const chartSelection = inferChartFromFormula(formulaStr, categoryStr);
 
             return {
-                kpiId: kpi.kpiId,
-                kpiName: kpi.kpiName,
-                formula: kpi.formula,
-                category: kpi.category,
+                kpiId: kpi.id || (kpi as any).kpiId,
+                kpiName: kpi.name || (kpi as any).kpiName,
+                formula: formulaStr,
+                category: categoryStr,
                 chartSelection,
                 cardSize: 'md' as const,
                 position: index,
-                confidence: kpi.confidence,
+                confidence: (kpi as any).confidence || 100,
                 colorAccent: domainColor,
             };
         });

@@ -27,12 +27,27 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
         throw new Error(`Project not found: ${projectId}`);
     }
 
-    // 2. Extract KPIs from blueprint
-    const kpis: ApprovedKPI[] = blueprint
-        ? ((blueprint.kpis as any) as ApprovedKPI[] || [])
+    // 2. Extract and strictly validate KPIs from blueprint
+    const rawKpis: any[] = blueprint
+        ? ((blueprint.kpis as any) || [])
         : [];
 
+    // Boundary Enforcement: Filter out raw strings or invalid objects.
+    // Supports both new schema (id + aggregations) and old schema (kpiId + formula) for backwards compat.
+    const kpis: ApprovedKPI[] = rawKpis.filter(kpi =>
+        typeof kpi === 'object' &&
+        kpi !== null &&
+        // New Domain-Driven schema (id + aggregations required)
+        (typeof kpi.id === 'string' && Array.isArray(kpi.aggregations)) ||
+        // Legacy schema fallback
+        (typeof kpi.kpiId === 'string' && typeof kpi.formula === 'string')
+    );
+
     if (kpis.length === 0) {
+        if (rawKpis.length > 0) {
+            console.error('[Dashboard] CRITICAL BOUNDARY FAILURE: Blueprint KPIs lack required structure. Got:', JSON.stringify(rawKpis[0], null, 2));
+            throw new Error('Fatal Structural Error: Module 4 Blueprint KPIs are missing required fields (id, aggregations). Please reset your blueprint.');
+        }
         throw new Error('No approved KPIs found. Please finalize your KPI Blueprint first.');
     }
 
@@ -49,17 +64,38 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     // 5. Build sidebar
     const sidebarConfig = await buildSidebarConfig(projectId, project.name);
 
-    // 6. Generate AI explanations (batch, cached)
-    console.log('[Dashboard] Generating AI explanations for', kpis.length, 'KPIs...');
-    const kpiExplanations = await generateKPIExplanations(
+    // 6. Generate AI explanations (non-blocking)
+    console.log('[Dashboard] Initiating asynchronous AI explanations for', kpis.length, 'KPIs...');
+
+    // Create an empty explanations record so UI doesn't crash
+    const kpiExplanations: Record<string, any> = {};
+
+    // We purposefully DO NOT await this to prevent Ollama ECONNREFUSED from blocking the config flow. 
+    generateKPIExplanations(
         kpis.map(kpi => ({
-            kpiId: kpi.kpiId,
-            kpiName: kpi.kpiName,
-            formula: kpi.formula,
-            category: kpi.category,
-            columns: kpi.matchedColumns || [],
+            kpiId: kpi.id || (kpi as any).kpiId,
+            kpiName: kpi.name || (kpi as any).kpiName,
+            formula: kpi.lineage?.formula || (kpi as any).formula || '',
+            category: kpi.category || 'general',
+            columns: kpi.aggregations?.map(a => a.column) || (kpi as any).matchedColumns || [],
         }))
-    );
+    ).then(explanations => {
+        // Asynchronously update the dashboard config when Ollama eventually responds
+        if (process.env.NODE_ENV !== 'test') {
+            db.dashboardConfig.findUnique({ where: { projectId } }).then(existingConfig => {
+                if (existingConfig && existingConfig.metadata) {
+                    const metadata = existingConfig.metadata as any;
+                    metadata.kpiExplanations = explanations;
+                    db.dashboardConfig.update({
+                        where: { projectId },
+                        data: { metadata }
+                    }).catch(err => console.error('[Dashboard] Failed to async-save AI explanations:', err));
+                }
+            });
+        }
+    }).catch(err => {
+        console.warn(`[Dashboard] AI Explanations failed or unavailable: ${err.message}. Plotting charts without them.`);
+    });
 
     // 7. Version management
     const existing = await db.dashboardConfig.findUnique({

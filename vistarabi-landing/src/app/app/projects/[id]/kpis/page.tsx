@@ -15,15 +15,18 @@ interface DiscoveredKPI {
     category: string;
     isComputable: boolean;
     isDerived?: boolean;
+    supportStatus?: string;
+    aggregations?: { function: string; column: string }[];
 }
 
 interface ApprovedKPI {
-    kpiId: string;
-    kpiName: string;
-    formula: string;
-    category: string;
-    matchedColumns: string[];
-    confidence: number;
+    id: string;
+    name: string;
+    aggregations: { function: string; column: string }[];
+    sourceTable: string;
+    groupBy: string | null;
+    lineage: any;
+    category?: string;
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -47,7 +50,7 @@ export default function KPIWorkspacePage() {
     const [aiRequested, setAiRequested] = useState(false);
     const [adding, setAdding] = useState<string | null>(null);
     const [finalizing, setFinalizing] = useState(false);
-    const [activeTab, setActiveTab] = useState<'columns' | 'ai' | 'blueprint'>('columns');
+    const [activeTab, setActiveTab] = useState<'domain' | 'ai' | 'blueprint'>('domain');
 
     useEffect(() => {
         fetchData();
@@ -150,12 +153,17 @@ export default function KPIWorkspacePage() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         kpi: {
-                            kpiId: kpi.kpiId,
-                            kpiName: kpi.kpiName,
-                            formula: kpi.formulaExpression,
-                            category: kpi.category,
-                            matchedColumns: kpi.matchedColumns,
-                            confidence: kpi.confidence,
+                            id: kpi.kpiId,
+                            name: kpi.kpiName,
+                            aggregations: kpi.aggregations || kpi.matchedColumns.map(c => ({ function: 'SUM', column: c })),
+                            sourceTable: 'merged_data',
+                            groupBy: null,
+                            lineage: {
+                                tables: ['merged_data'],
+                                joins: [],
+                                formula: kpi.formulaExpression
+                            },
+                            category: kpi.category
                         },
                     }),
                 });
@@ -184,7 +192,7 @@ export default function KPIWorkspacePage() {
         }
     };
 
-    const isInBlueprint = (kpiId: string) => blueprint?.kpis?.some(k => k.kpiId === kpiId) || false;
+    const isInBlueprint = (kpiId: string) => blueprint?.kpis?.some(k => k.id === kpiId) || false;
 
     const renderKPICard = (kpi: DiscoveredKPI) => {
         const selected = isInBlueprint(kpi.kpiId);
@@ -221,6 +229,21 @@ export default function KPIWorkspacePage() {
                             {selected && (
                                 <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
                                     ✓ Selected
+                                </span>
+                            )}
+                            {kpi.supportStatus === 'FULLY_SUPPORTED' && (
+                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
+                                    ✅ Fully Supported
+                                </span>
+                            )}
+                            {kpi.supportStatus === 'PARTIALLY_SUPPORTED' && (
+                                <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">
+                                    ⚠️ Partially Supported
+                                </span>
+                            )}
+                            {kpi.supportStatus === 'UNSUPPORTED' && (
+                                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                                    ❌ Unsupported
                                 </span>
                             )}
                             {kpi.isDerived && (
@@ -324,9 +347,9 @@ export default function KPIWorkspacePage() {
             <main className="max-w-6xl mx-auto px-6 py-8">
                 {/* Tabs */}
                 <div className="flex gap-2 mb-6 p-1.5 bg-[var(--surface)] rounded-2xl w-fit border border-[var(--border)]">
-                    <button onClick={() => setActiveTab('columns')}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'columns' ? 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white' : 'text-[var(--muted)]'}`}>
-                        📋 Your Data Columns ({discoveredKPIs.length})
+                    <button onClick={() => setActiveTab('domain')}
+                        className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'domain' ? 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white' : 'text-[var(--muted)]'}`}>
+                        📋 Domain KPIs ({discoveredKPIs.length})
                     </button>
                     <button onClick={() => setActiveTab('ai')}
                         className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'ai' ? 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white' : 'text-[var(--muted)]'}`}>
@@ -340,27 +363,40 @@ export default function KPIWorkspacePage() {
 
                 {/* Content */}
                 <AnimatePresence mode="wait">
-                    {activeTab === 'columns' && (
-                        <motion.div key="columns" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+                    {activeTab === 'domain' && (
+                        <motion.div key="domain" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                             <div className="mb-4">
-                                <h2 className="text-lg font-bold">Your Data Columns</h2>
-                                <p className="text-sm text-[var(--muted)]">These are the columns from your imported files. Select which ones to use as KPIs.</p>
+                                <h2 className="text-lg font-bold">Domain KPIs</h2>
+                                <p className="text-sm text-[var(--muted)]">Industry standard KPIs for your domain, matched securely against your database schema.</p>
                             </div>
-                            <div className="grid gap-3">
+                            <div className="grid gap-6">
                                 {discoveredKPIs.length === 0 ? (
                                     <div className="text-center py-12 bg-[var(--surface)] rounded-2xl border border-dashed border-[var(--border)]">
                                         <div className="text-4xl mb-3">📁</div>
-                                        <p className="font-medium mb-2">No columns found</p>
-                                        <p className="text-sm text-[var(--muted)] mb-4">Upload data files and set a domain first.</p>
-                                        <Link
-                                            href={`/app/projects/${projectId}`}
-                                            className="inline-block px-4 py-2 bg-purple-500 text-white rounded-lg text-sm"
-                                        >
-                                            ← Go to Project
-                                        </Link>
+                                        <p className="font-medium mb-2">No KPIs found</p>
+                                        <p className="text-sm text-[var(--muted)] mb-4">Set a domain and upload tables.</p>
                                     </div>
                                 ) : (
-                                    discoveredKPIs.map(kpi => renderKPICard(kpi))
+                                    <>
+                                        <div className="space-y-3">
+                                            <h3 className="font-semibold text-emerald-600">✅ Fully Supported</h3>
+                                            {discoveredKPIs.filter(k => k.supportStatus === 'FULLY_SUPPORTED').length > 0
+                                                ? discoveredKPIs.filter(k => k.supportStatus === 'FULLY_SUPPORTED').map(kpi => renderKPICard(kpi))
+                                                : <p className="text-sm text-[var(--muted)]">No fully supported KPIs found.</p>}
+                                        </div>
+                                        <div className="space-y-3">
+                                            <h3 className="font-semibold text-yellow-600">⚠️ Partially Supported</h3>
+                                            {discoveredKPIs.filter(k => k.supportStatus === 'PARTIALLY_SUPPORTED').length > 0
+                                                ? discoveredKPIs.filter(k => k.supportStatus === 'PARTIALLY_SUPPORTED').map(kpi => renderKPICard(kpi))
+                                                : <p className="text-sm text-[var(--muted)]">No partially supported KPIs found.</p>}
+                                        </div>
+                                        <div className="space-y-3 opacity-60 hover:opacity-100 transition-opacity">
+                                            <h3 className="font-semibold text-red-500">❌ Unsupported</h3>
+                                            {discoveredKPIs.filter(k => k.supportStatus === 'UNSUPPORTED').length > 0
+                                                ? discoveredKPIs.filter(k => k.supportStatus === 'UNSUPPORTED').map(kpi => renderKPICard(kpi))
+                                                : <p className="text-sm text-[var(--muted)]">No unsupported KPIs!</p>}
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         </motion.div>
@@ -415,10 +451,10 @@ export default function KPIWorkspacePage() {
                             ) : (
                                 <div className="grid gap-3">
                                     {blueprint.kpis.map(kpi => {
-                                        const fullKpi = [...discoveredKPIs, ...aiKPIs].find(k => k.kpiId === kpi.kpiId) || {
-                                            kpiId: kpi.kpiId, kpiName: kpi.kpiName, confidence: kpi.confidence,
-                                            explanation: `Formula: ${kpi.formula}`, matchedColumns: kpi.matchedColumns,
-                                            formulaExpression: kpi.formula, category: kpi.category, isComputable: true,
+                                        const fullKpi = [...discoveredKPIs, ...aiKPIs].find(k => k.kpiId === kpi.id) || {
+                                            kpiId: kpi.id, kpiName: kpi.name, confidence: 100,
+                                            explanation: `Formula matching table ${kpi.sourceTable}`, matchedColumns: kpi.aggregations.map(a => a.column),
+                                            formulaExpression: kpi.lineage?.formula || 'Custom', category: kpi.category || 'unknown', isComputable: true, supportStatus: 'FULLY_SUPPORTED'
                                         };
                                         return renderKPICard(fullKpi);
                                     })}

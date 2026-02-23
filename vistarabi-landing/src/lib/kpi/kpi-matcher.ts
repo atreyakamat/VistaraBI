@@ -19,6 +19,7 @@ export interface KPIMatch {
     isComputable: boolean;
     confidence: number;
     matchType: 'EXACT' | 'ALIAS' | 'PARTIAL';
+    supportStatus: 'FULLY_SUPPORTED' | 'PARTIALLY_SUPPORTED' | 'UNSUPPORTED';
 }
 
 // Normalize column name for matching
@@ -69,7 +70,7 @@ function matchKPI(kpi: KPIDefinition, projectColumns: string[]): KPIMatch {
     const matchedColumns: ColumnMatch[] = [];
     const missingColumns: string[] = [];
 
-    for (const requiredCol of kpi.requiredColumns) {
+    for (const requiredCol of kpi.requiredFields) {
         const aliases = kpi.columnAliases[requiredCol] || [];
         let bestMatch: ColumnMatch | null = null;
 
@@ -99,12 +100,13 @@ function matchKPI(kpi: KPIDefinition, projectColumns: string[]): KPIMatch {
         : 0;
 
     // Adjust confidence based on completeness
-    const completenessRatio = matchedColumns.length / kpi.requiredColumns.length;
+    const completenessRatio = matchedColumns.length / kpi.requiredFields.length;
     const confidence = Math.round(avgConfidence * completenessRatio);
 
     const matchType = confidence >= 95 ? 'EXACT' : confidence >= 70 ? 'ALIAS' : 'PARTIAL';
+    const supportStatus = isComputable ? 'FULLY_SUPPORTED' : matchedColumns.length > 0 ? 'PARTIALLY_SUPPORTED' : 'UNSUPPORTED';
 
-    return { kpi, matchedColumns, missingColumns, isComputable, confidence, matchType };
+    return { kpi, matchedColumns, missingColumns, isComputable, confidence, matchType, supportStatus };
 }
 
 // Match all KPIs for a domain against project columns
@@ -114,10 +116,8 @@ export function matchKPIsForDomain(domain: DomainType, projectColumns: string[])
 
     for (const kpi of kpis) {
         const match = matchKPI(kpi, projectColumns);
-        // Only include if at least partially matched
-        if (match.matchedColumns.length > 0) {
-            matches.push(match);
-        }
+        // We now return ALL Domain KPIs, even unsupported, so the UI can list them.
+        matches.push(match);
     }
 
     // Sort by confidence (descending), then by priority

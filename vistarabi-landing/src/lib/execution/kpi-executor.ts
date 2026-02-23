@@ -2,7 +2,7 @@
 // Core orchestrator: cache → load → filter → compute → profile → explain → respond
 // Produces structured KPIExecutionResult payloads ready for frontend rendering
 
-import type { KPILineageEntry, KPISourceContribution } from '../prisma';
+import type { KPILineageEntry, KPISourceContribution, ApprovedKPI } from '../prisma';
 import type { KPIDataPoint, Filter } from '../visualization/types';
 import type {
     KPIExecutionResult,
@@ -257,52 +257,15 @@ export async function executeDashboard(
         for (const card of section.cards) {
             let lineage = lineageEntries.find(e => e.kpiId === card.kpiId);
 
-            // Auto-generate fallback lineage if missing (e.g. for raw columns)
+            // BOUNDARY ENFORCEMENT: A Dashboard Config should never ask to execute a raw string with no lineage
             if (!lineage) {
-                console.log(`[Executor] Auto-generating fallback lineage for raw column/KPI: ${card.kpiName} (${card.kpiId})`);
+                console.error(`[Executor] FATAL STRUCTURAL ERROR: No KPI lineage found for '${card.kpiId}'. This means Module 4 incorrectly passed an unstructured column to Module 5.`);
+                throw new Error(`FATAL STRUCTURAL ERROR: KPI ${card.kpiId} lacks lineage. The Business Intelligence Data Contract was violated.`);
+            }
 
-                // Determine aggregation based on typical naming/usage.
-                // We default to SUM unless it's an ID, Date, or categorical string.
-                const isIdOrDate = card.kpiName.toLowerCase().includes('id') || card.kpiName.toLowerCase().includes('date') || card.kpiName.toLowerCase().includes('status');
-                const aggFunc = isIdOrDate ? 'COUNT' : 'SUM';
-
-                // Find primary source that has this column
-                let sourceTableStr = 'unknown_source';
-                let sourceIdStr = '';
-                for (const [srcId, srcData] of dataMap.sources.entries()) {
-                    if (srcData.columns.includes(card.kpiId.toLowerCase())) {
-                        sourceIdStr = srcId;
-                        sourceTableStr = (srcData as any).fileName || (srcData as any).name || 'Dataset';
-                        break;
-                    }
-                }
-
-                lineage = {
-                    id: `fallback-${card.kpiId}`,
-                    projectId,
-                    kpiId: card.kpiId,
-                    kpiName: card.kpiName,
-                    domain: 'General',
-                    formula: `${aggFunc}(${card.kpiId})`,
-                    category: card.category || 'general',
-                    sources: [{
-                        sourceId: sourceIdStr || 'fallback',
-                        sourceName: sourceTableStr,
-                        columns: [card.kpiId],
-                        role: 'PRIMARY'
-                    }],
-                    joinPaths: [],
-                    aggregations: [{
-                        function: aggFunc as any,
-                        column: card.kpiId,
-                        sourceId: sourceIdStr
-                    }],
-                    technicalExplanation: 'Auto-generated fallback lineage for raw column visualization.',
-                    businessExplanation: `Derived metric plotting ${card.kpiName}.`,
-                    aiEnhanced: false,
-                    confidence: 0.5,
-                    tracedAt: new Date()
-                };
+            // BOUNDARY ENFORCEMENT: Ensure the formula exists mathematically
+            if (!lineage.formula || lineage.formula.trim() === '') {
+                throw new Error(`Structural Error: KPI ${card.kpiId} has empty mathematical formula`);
             }
 
             try {
@@ -387,9 +350,37 @@ async function loadDashboardConfig(projectId: string): Promise<DashboardConfigSc
 }
 
 async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]> {
-    const registry = await db.kPILineageRegistry.findUnique({ where: { projectId } });
-    if (!registry?.entries) return [];
-    return registry.entries as unknown as KPILineageEntry[];
+    const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId } });
+    if (!blueprint || !blueprint.kpis) return [];
+
+    const kpis = blueprint.kpis as unknown as ApprovedKPI[];
+
+    return kpis.map(kpi => ({
+        id: kpi.id || (kpi as any).kpiId, // Fallback for any old dev records
+        projectId,
+        kpiId: kpi.id || (kpi as any).kpiId,
+        kpiName: kpi.name || (kpi as any).kpiName,
+        domain: (blueprint as any).domain || 'General',
+        formula: kpi.lineage?.formula || (kpi as any).formula || '',
+        category: kpi.category || 'general',
+        sources: [{
+            sourceId: kpi.sourceTable || 'unknown',
+            sourceName: kpi.sourceTable || 'unknown',
+            columns: kpi.aggregations?.map((a: any) => a.column) || (kpi as any).matchedColumns || [],
+            role: 'PRIMARY'
+        }],
+        joinPaths: kpi.lineage?.joins || [],
+        aggregations: kpi.aggregations?.map((a: any) => ({
+            function: a.function,
+            column: a.column,
+            sourceId: kpi.sourceTable || 'unknown'
+        })) || [],
+        technicalExplanation: 'Generated strictly from BI Definition Layer',
+        businessExplanation: 'Domain defined structured metric',
+        aiEnhanced: false,
+        confidence: 100,
+        tracedAt: (blueprint as any).updatedAt || new Date()
+    } as KPILineageEntry));
 }
 
 function applyGlobalFilters(dataMap: ProjectDataMap, filters: Filter[]): ProjectDataMap {

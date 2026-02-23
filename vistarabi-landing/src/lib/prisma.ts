@@ -199,12 +199,16 @@ export interface ComputableKPI {
 // Stored in KPIBlueprint.kpis (Json)
 
 export interface ApprovedKPI {
-    kpiId: string;
-    kpiName: string;
-    formula: string;
-    category: string;
-    matchedColumns: string[];
-    confidence: number;
-    addedAt: Date | string;
-    domainContext?: any; // For flexibility
+    id: string;
+    name: string;
+    aggregations: { function: string; column: string }[];
+    sourceTable: string;
+    groupBy: string | null;
+    lineage: {
+        tables: string[];
+        joins: any[];
+        formula: string;
+    };
+    category?: string;
+    addedAt?: Date | string;
 }

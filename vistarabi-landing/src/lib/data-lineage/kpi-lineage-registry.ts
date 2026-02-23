@@ -123,7 +123,7 @@ export async function traceKPILineage(
     relationships: RelationshipEntry[],
     useAI: boolean
 ): Promise<KPILineageEntry> {
-    console.log('[KPILineageRegistry] Tracing:', kpi.kpiName);
+    console.log('[KPILineageRegistry] Tracing:', kpi.name || (kpi as any).kpiName);
 
     // Build column to source mapping
     const columnToSource = new Map<string, string>();
@@ -134,8 +134,10 @@ export async function traceKPILineage(
     }
 
     // Extract columns from formula
-    const formulaColumns = extractColumnsFromFormula(kpi.formula);
-    const allColumns = [...new Set([...kpi.matchedColumns, ...formulaColumns])];
+    const formulaStr = kpi.lineage?.formula || (kpi as any).formula || '';
+    const formulaColumns = extractColumnsFromFormula(formulaStr);
+    const structCols = kpi.aggregations?.map((a: any) => a.column) || [];
+    const allColumns = [...new Set([...structCols, ...(kpi as any).matchedColumns || [], ...formulaColumns])];
 
     // Find sources for each column
     const sourceContributions = new Map<string, KPISourceContribution>();
@@ -168,7 +170,7 @@ export async function traceKPILineage(
     const joinPaths = findJoinPaths(sourceIds, relationships);
 
     // Parse aggregations
-    const aggregations = parseAggregations(kpi.formula, columnToSource);
+    const aggregations = parseAggregations(formulaStr, columnToSource);
 
     // Mark sources with aggregations
     for (const agg of aggregations) {
@@ -180,10 +182,10 @@ export async function traceKPILineage(
 
     // Generate explanations
     const context: ExplanationContext = {
-        kpiName: kpi.kpiName,
-        formula: kpi.formula,
+        kpiName: kpi.name || (kpi as any).kpiName,
+        formula: formulaStr,
         domain: (kpi as any).domainContext?.detectedDomain || 'Unknown',
-        category: kpi.category,
+        category: kpi.category || 'general',
         sources: sourcesList,
         joins: joinPaths,
         aggregations,
@@ -196,18 +198,18 @@ export async function traceKPILineage(
     return {
         id: `kpil-${randomUUID()}`,
         projectId,
-        kpiId: kpi.kpiId,
-        kpiName: kpi.kpiName,
+        kpiId: kpi.id || (kpi as any).kpiId,
+        kpiName: kpi.name || (kpi as any).kpiName,
         domain: (kpi as any).domainContext?.detectedDomain || 'Unknown',
-        formula: kpi.formula,
-        category: kpi.category,
+        formula: formulaStr,
+        category: kpi.category || 'general',
         sources: sourcesList,
         joinPaths,
         aggregations,
         technicalExplanation: explanations.technical,
         businessExplanation: explanations.business,
         aiEnhanced: explanations.aiEnhanced,
-        confidence: kpi.confidence,
+        confidence: (kpi as any).confidence || 100,
         tracedAt: new Date(),
     };
 }

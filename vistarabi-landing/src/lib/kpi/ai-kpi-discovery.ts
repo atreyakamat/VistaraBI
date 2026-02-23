@@ -112,22 +112,22 @@ async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIPr
 
     console.log('[AI-Discovery] 📋 Columns for AI:\n', columnInfo);
 
-    const prompt = `You are a Business Intelligence expert. Create derived KPIs by combining these columns.
+    const prompt = `You are a Business Intelligence expert evaluating the ${context.domain} domain.
 
-DOMAIN: ${context.domain}
-
-AVAILABLE COLUMNS:
+AVAILABLE WAREHOUSE FIELDS (ONLY use these exact fields):
 ${columnInfo}
 
-Create 4 meaningful DERIVED KPIs. Each must COMBINE 2+ columns into a formula.
+Suggest 4 additional meaningful KPIs based strictly on the available fields above.
+ABSOLUTELY NO HALLUCINATED COLUMNS.
 
-Examples of good derived KPIs:
-- Profit Margin = (selling_price - cost) / selling_price * 100
-- Average Order Value = order_value / quantity
-- Revenue per Customer = SUM(order_value) / COUNT(DISTINCT customer_id)
+Output a structured JSON array. Each object must have:
+"name": string
+"aggregation": string (e.g. "SUM(order_value)")
+"groupBy": string or null
+"description": string
 
 Respond ONLY with JSON array:
-[{"name":"KPI Name","formula":"column1 / column2 * 100","category":"revenue","description":"What it measures","businessMeaning":"What it tells business","whyItMatters":"Why care"}]`;
+[{"name":"Revenue Per SKU", "aggregation":"SUM(order_value)", "groupBy":"sku", "description":"Total revenue grouped by SKU"}]`;
 
     console.log('[AI-Discovery] 📤 Sending prompt to Ollama...');
     console.log('[AI-Discovery] Prompt length:', prompt.length, 'chars');
@@ -155,42 +155,45 @@ Respond ONLY with JSON array:
         const inventedKpis = JSON.parse(jsonMatch[0]) as {
             name: string;
             description: string;
-            formula: string;
-            category: string;
-            businessMeaning: string;
-            whyItMatters: string;
+            aggregation: string;
+            groupBy: string | null;
         }[];
 
         console.log('[AI-Discovery] ✓ Parsed', inventedKpis.length, 'KPIs from AI');
 
         // Convert to AIKPIProposal format
         const proposals = inventedKpis.map((kpi, idx) => {
+            const formula = kpi.groupBy && kpi.groupBy !== 'null' ? `${kpi.aggregation} GROUP BY ${kpi.groupBy}` : kpi.aggregation;
+
             const contributingColumns = context.allColumns.filter(col =>
-                kpi.formula.toLowerCase().includes(col.toLowerCase())
+                formula.toLowerCase().includes(col.toLowerCase())
             );
 
-            console.log('[AI-Discovery]   KPI:', kpi.name, '| Formula:', kpi.formula, '| Uses:', contributingColumns.join(', '));
+            // Validation: if no valid columns are used, drop this KPI (hallucination guard)
+            if (contributingColumns.length === 0) return null;
+
+            console.log('[AI-Discovery]   KPI:', kpi.name, '| Formula:', formula, '| Uses:', contributingColumns.join(', '));
 
             return {
                 id: `ai-inv-${Date.now()}-${idx}`,
                 projectId: context.projectId,
                 kpiName: kpi.name,
                 description: kpi.description || kpi.name,
-                formula: kpi.formula,
-                category: kpi.category || 'derived',
+                formula: formula,
+                category: 'derived',
                 contributingColumns,
                 derivedFrom: [],
                 isDerived: false,
-                businessMeaning: kpi.businessMeaning || kpi.description,
-                whyItMatters: kpi.whyItMatters || 'AI-suggested KPI',
-                confidenceScore: contributingColumns.length >= 2 ? 85 : 70,
+                businessMeaning: kpi.description || 'AI-suggested KPI',
+                whyItMatters: 'Domain-specific insight from AI',
+                confidenceScore: 85,
                 domain: context.domain,
                 sourceType: 'AI_INVENTED' as const,
                 status: 'PENDING' as const,
                 ollamaModel: process.env.OLLAMA_MODEL || 'qwen3:0.6b',
                 createdAt: new Date(),
             };
-        });
+        }).filter(Boolean) as AIKPIProposal[];
 
         console.log('[AI-Discovery] ✓ Created', proposals.length, 'AI-invented proposals');
         return proposals;
