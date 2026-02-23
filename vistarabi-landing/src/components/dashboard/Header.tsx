@@ -9,10 +9,11 @@ interface HeaderProps {
     onRefresh: () => void;
     onToggleSidebar: () => void;
     isRefreshing: boolean;
+    children?: React.ReactNode;
 }
 
 export function Header({
-    title, subtitle, kpiCount, onRefresh, onToggleSidebar, isRefreshing,
+    title, subtitle, kpiCount, onRefresh, onToggleSidebar, isRefreshing, children,
 }: HeaderProps) {
     return (
         <header className="dashboard-header">
@@ -49,6 +50,9 @@ export function Header({
                     </svg>
                     {isRefreshing ? 'Refreshing...' : 'Refresh'}
                 </button>
+
+                {/* Module 5C: Additional header actions */}
+                {children}
 
                 {/* Live indicator */}
                 <div className="hidden sm:flex items-center gap-1.5 text-xs text-gray-500">

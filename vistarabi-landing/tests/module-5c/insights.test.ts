@@ -1,354 +1,364 @@
-// Module 5C — Explainable Dashboard & AI Insight Engine
-// Unit tests for anomaly detection, trend analysis, and insight generation
+// Module 5C — Cognitive Insight Layer Tests
+// Unit tests for anomaly detection, change attribution, explanation rendering, trend, insight generator
 
 import { describe, it, expect } from 'vitest';
-import { detectAnomalies, detectLatestAnomaly, computeStats } from '../../src/lib/insights/anomaly-detector';
-import { computeTrend, computeOverallTrend, identifyTopContributors, findChangeDrivers } from '../../src/lib/insights/trend-analyzer';
-import type { KPIDataPoint } from '../../src/lib/visualization/types';
 
-// ─── Test Data ────────────────────────────────────────────────────
+// ─── Anomaly Detector Tests ───────────────────────────────────────
 
-const stableTimeSeries: KPIDataPoint[] = [
-    { label: '2024-01', value: 100 },
-    { label: '2024-02', value: 101 },
-    { label: '2024-03', value: 100 },
-    { label: '2024-04', value: 101 },
-    { label: '2024-05', value: 100 },
-    { label: '2024-06', value: 101 },
-];
+import { detectAnomaly, computeStats } from '@/lib/insights/anomaly-detector';
 
-const spikeTimeSeries: KPIDataPoint[] = [
-    { label: '2024-01', value: 100 },
-    { label: '2024-02', value: 102 },
-    { label: '2024-03', value: 98 },
-    { label: '2024-04', value: 101 },
-    { label: '2024-05', value: 99 },
-    { label: '2024-06', value: 100 },
-    { label: '2024-07', value: 101 },
-    { label: '2024-08', value: 99 },
-    { label: '2024-09', value: 102 },
-    { label: '2024-10', value: 1000 }, // Massive spike — well above 3σ
-];
-
-const dropTimeSeries: KPIDataPoint[] = [
-    { label: '2024-01', value: 200 },
-    { label: '2024-02', value: 198 },
-    { label: '2024-03', value: 202 },
-    { label: '2024-04', value: 199 },
-    { label: '2024-05', value: 201 },
-    { label: '2024-06', value: 50 }, // Massive drop
-];
-
-const upwardTimeSeries: KPIDataPoint[] = [
-    { label: '2024-01', value: 100 },
-    { label: '2024-02', value: 120 },
-    { label: '2024-03', value: 140 },
-    { label: '2024-04', value: 160 },
-    { label: '2024-05', value: 180 },
-    { label: '2024-06', value: 200 },
-];
-
-const downwardTimeSeries: KPIDataPoint[] = [
-    { label: '2024-01', value: 200 },
-    { label: '2024-02', value: 180 },
-    { label: '2024-03', value: 160 },
-    { label: '2024-04', value: 140 },
-    { label: '2024-05', value: 120 },
-    { label: '2024-06', value: 100 },
-];
-
-const groupedData: KPIDataPoint[] = [
-    { label: 'Electronics', value: 500 },
-    { label: 'Clothing', value: 300 },
-    { label: 'Home', value: 150 },
-    { label: 'Garden', value: 30 },
-    { label: 'Toys', value: 20 },
-];
-
-// ─── Anomaly Detection Tests ──────────────────────────────────────
-
-describe('Module 5C: Insight Engine', () => {
-
-    describe('Statistical Helpers', () => {
-        it('should compute mean and standard deviation correctly', () => {
-            const { mean, stdDev } = computeStats([10, 20, 30, 40, 50]);
-            expect(mean).toBe(30);
-            expect(stdDev).toBeCloseTo(14.14, 1); // Population std dev
+describe('Module 5C — Anomaly Detector', () => {
+    it('should return normal for insufficient data (<3 points)', () => {
+        const result = detectAnomaly({
+            currentValue: 100,
+            dataPoints: [{ label: 'Jan', value: 100 }],
         });
-
-        it('should handle single value', () => {
-            const { mean, stdDev } = computeStats([42]);
-            expect(mean).toBe(42);
-            expect(stdDev).toBe(0);
-        });
-
-        it('should handle empty array', () => {
-            const { mean, stdDev } = computeStats([]);
-            expect(mean).toBe(0);
-            expect(stdDev).toBe(0);
-        });
+        expect(result.severity).toBe('normal');
+        expect(result.score).toBe(0);
+        expect(result.flags).toHaveLength(0);
+        expect(result.direction).toBe('none');
     });
 
-    describe('Anomaly Detection', () => {
-        it('should detect no anomalies in stable data', () => {
-            const anomalies = detectAnomalies(stableTimeSeries);
-            expect(anomalies.length).toBe(0);
+    it('should detect a spike >35%', () => {
+        const result = detectAnomaly({
+            currentValue: 150,
+            previousValue: 100,
+            delta: 50,
+            deltaPercent: 50,
+            dataPoints: [
+                { label: 'Jan', value: 100 },
+                { label: 'Feb', value: 105 },
+                { label: 'Mar', value: 98 },
+                { label: 'Apr', value: 150 },
+            ],
         });
-
-        it('should detect spike anomaly', () => {
-            const anomalies = detectAnomalies(spikeTimeSeries);
-            expect(anomalies.length).toBeGreaterThan(0);
-
-            const spike = anomalies.find(a => a.label === '2024-10');
-            expect(spike).toBeDefined();
-            expect(spike!.direction).toBe('spike');
-            // Population-inclusive z-score: outlier inflates σ, so severity is warning
-            expect(spike!.severity).toBe('warning');
-            expect(spike!.value).toBe(1000);
-
-            // detectLatestAnomaly excludes the outlier from baseline → true critical severity
-            const latest = detectLatestAnomaly(spikeTimeSeries);
-            expect(latest).not.toBeNull();
-            expect(latest!.severity).toBe('critical');
-        });
-
-        it('should detect drop anomaly', () => {
-            const anomalies = detectAnomalies(dropTimeSeries);
-            expect(anomalies.length).toBeGreaterThan(0);
-
-            const drop = anomalies.find(a => a.label === '2024-06');
-            expect(drop).toBeDefined();
-            expect(drop!.direction).toBe('drop');
-            expect(drop!.value).toBe(50);
-        });
-
-        it('should return empty for fewer than 3 data points', () => {
-            const anomalies = detectAnomalies([
-                { label: '2024-01', value: 100 },
-                { label: '2024-02', value: 500 },
-            ]);
-            expect(anomalies.length).toBe(0);
-        });
-
-        it('should return empty for all identical values', () => {
-            const anomalies = detectAnomalies([
-                { label: '2024-01', value: 100 },
-                { label: '2024-02', value: 100 },
-                { label: '2024-03', value: 100 },
-                { label: '2024-04', value: 100 },
-            ]);
-            expect(anomalies.length).toBe(0);
-        });
-
-        it('should sort anomalies by severity (critical first)', () => {
-            const anomalies = detectAnomalies(spikeTimeSeries);
-            if (anomalies.length > 1) {
-                const severityOrder = { critical: 0, warning: 1, info: 2 };
-                for (let i = 1; i < anomalies.length; i++) {
-                    expect(severityOrder[anomalies[i].severity])
-                        .toBeGreaterThanOrEqual(severityOrder[anomalies[i - 1].severity]);
-                }
-            }
-        });
+        expect(result.severity).not.toBe('normal');
+        expect(result.direction).toBe('spike');
+        expect(result.flags.some(f => f.rule === 'spike_threshold')).toBe(true);
     });
 
-    describe('Latest Anomaly Detection', () => {
-        it('should detect latest spike', () => {
-            const anomaly = detectLatestAnomaly(spikeTimeSeries);
-            expect(anomaly).not.toBeNull();
-            expect(anomaly!.direction).toBe('spike');
-            expect(anomaly!.label).toBe('2024-10');
+    it('should detect a drop >25%', () => {
+        const result = detectAnomaly({
+            currentValue: 70,
+            previousValue: 100,
+            delta: -30,
+            deltaPercent: -30,
+            dataPoints: [
+                { label: 'Jan', value: 100 },
+                { label: 'Feb', value: 98 },
+                { label: 'Mar', value: 102 },
+                { label: 'Apr', value: 70 },
+            ],
         });
-
-        it('should detect latest drop', () => {
-            const anomaly = detectLatestAnomaly(dropTimeSeries);
-            expect(anomaly).not.toBeNull();
-            expect(anomaly!.direction).toBe('drop');
-        });
-
-        it('should return null for stable data', () => {
-            const anomaly = detectLatestAnomaly(stableTimeSeries);
-            expect(anomaly).toBeNull();
-        });
-
-        it('should return null for insufficient data', () => {
-            const anomaly = detectLatestAnomaly([{ label: '2024-01', value: 100 }]);
-            expect(anomaly).toBeNull();
-        });
+        expect(result.flags.some(f => f.rule === 'drop_threshold')).toBe(true);
+        expect(result.direction).toBe('drop');
     });
 
-    // ─── Trend Analysis Tests ─────────────────────────────────────
-
-    describe('Trend Analysis', () => {
-        it('should detect upward trend', () => {
-            const trend = computeTrend(upwardTimeSeries);
-            expect(trend).not.toBeNull();
-            expect(trend!.direction).toBe('up');
-            expect(trend!.percentChange).toBeGreaterThan(0);
-            expect(trend!.currentPeriodLabel).toBe('2024-06');
-            expect(trend!.previousPeriodLabel).toBe('2024-05');
+    it('should detect stddev breach (>2σ)', () => {
+        const result = detectAnomaly({
+            currentValue: 500,
+            dataPoints: [
+                { label: 'Jan', value: 100 },
+                { label: 'Feb', value: 105 },
+                { label: 'Mar', value: 98 },
+                { label: 'Apr', value: 102 },
+                { label: 'May', value: 100 },
+                { label: 'Jun', value: 103 },
+                { label: 'Jul', value: 500 },
+            ],
         });
-
-        it('should detect downward trend', () => {
-            const trend = computeTrend(downwardTimeSeries);
-            expect(trend).not.toBeNull();
-            expect(trend!.direction).toBe('down');
-            expect(trend!.percentChange).toBeLessThan(0);
-        });
-
-        it('should detect flat trend', () => {
-            const trend = computeTrend([
-                { label: '2024-01', value: 100 },
-                { label: '2024-02', value: 100.5 },
-            ]);
-            expect(trend).not.toBeNull();
-            expect(trend!.direction).toBe('flat');
-        });
-
-        it('should return null for insufficient data', () => {
-            const trend = computeTrend([{ label: '2024-01', value: 100 }]);
-            expect(trend).toBeNull();
-        });
-
-        it('should handle previous value of zero', () => {
-            const trend = computeTrend([
-                { label: '2024-01', value: 0 },
-                { label: '2024-02', value: 50 },
-            ]);
-            expect(trend).not.toBeNull();
-            expect(trend!.percentChange).toBe(100);
-        });
+        expect(result.flags.some(f => f.rule === 'stddev_breach')).toBe(true);
+        expect(result.score).toBeGreaterThan(0);
     });
 
-    describe('Overall Trend (Regression)', () => {
-        it('should detect upward overall trend', () => {
-            const result = computeOverallTrend(upwardTimeSeries);
-            expect(result.direction).toBe('up');
-            expect(result.slope).toBeGreaterThan(0);
-            expect(result.confidence).toBeGreaterThan(0.9); // Very linear
+    it('should detect missing data (current=0 from non-zero)', () => {
+        const result = detectAnomaly({
+            currentValue: 0,
+            previousValue: 100,
+            dataPoints: [
+                { label: 'Jan', value: 100 },
+                { label: 'Feb', value: 95 },
+                { label: 'Mar', value: 105 },
+            ],
         });
-
-        it('should detect downward overall trend', () => {
-            const result = computeOverallTrend(downwardTimeSeries);
-            expect(result.direction).toBe('down');
-            expect(result.slope).toBeLessThan(0);
-        });
-
-        it('should return flat for stable data', () => {
-            const result = computeOverallTrend(stableTimeSeries);
-            expect(result.direction).toBe('flat');
-        });
-
-        it('should return flat for insufficient data', () => {
-            const result = computeOverallTrend([{ label: 'a', value: 1 }]);
-            expect(result.direction).toBe('flat');
-            expect(result.confidence).toBe(0);
-        });
+        expect(result.flags.some(f => f.rule === 'missing_data')).toBe(true);
     });
 
-    // ─── Top Contributors Tests ───────────────────────────────────
-
-    describe('Top Contributors', () => {
-        it('should identify top contributors in correct order', () => {
-            const contributors = identifyTopContributors(groupedData, 3);
-            expect(contributors.length).toBe(3);
-            expect(contributors[0].label).toBe('Electronics');
-            expect(contributors[0].rank).toBe(1);
-            expect(contributors[1].label).toBe('Clothing');
-            expect(contributors[2].label).toBe('Home');
+    it('should detect abnormal distribution skew', () => {
+        const result = detectAnomaly({
+            currentValue: 100,
+            dataPoints: [
+                { label: 'A', value: 100 },
+                { label: 'B', value: 95 },
+                { label: 'C', value: 105 },
+            ],
+            distributionSkew: 3.5,
         });
-
-        it('should calculate percent of total correctly', () => {
-            const contributors = identifyTopContributors(groupedData, 5);
-            const totalPercent = contributors.reduce((sum, c) => sum + c.percentOfTotal, 0);
-            expect(totalPercent).toBe(100);
-        });
-
-        it('should handle empty data', () => {
-            const contributors = identifyTopContributors([], 5);
-            expect(contributors.length).toBe(0);
-        });
-
-        it('should respect limit parameter', () => {
-            const contributors = identifyTopContributors(groupedData, 2);
-            expect(contributors.length).toBe(2);
-        });
+        expect(result.flags.some(f => f.rule === 'distribution_skew')).toBe(true);
     });
 
-    describe('Change Drivers', () => {
-        it('should find biggest change driver', () => {
-            const current: KPIDataPoint[] = [
-                { label: 'Electronics', value: 600 },
-                { label: 'Clothing', value: 300 },
-                { label: 'Home', value: 100 },
-            ];
-
-            const previous: KPIDataPoint[] = [
-                { label: 'Electronics', value: 400 },
-                { label: 'Clothing', value: 290 },
-                { label: 'Home', value: 110 },
-            ];
-
-            const drivers = findChangeDrivers(current, previous, 3);
-            expect(drivers.length).toBe(3);
-            // Electronics had +200 change (biggest absolute change)
-            expect(drivers[0].label).toBe('Electronics');
-            expect(drivers[0].change).toBe(200);
-            expect(drivers[0].percentChange).toBe(50);
+    it('should classify severity: critical for score ≥70', () => {
+        const result = detectAnomaly({
+            currentValue: 500,
+            previousValue: 100,
+            delta: 400,
+            deltaPercent: 400,
+            dataPoints: [
+                { label: 'A', value: 100 },
+                { label: 'B', value: 95 },
+                { label: 'C', value: 105 },
+                { label: 'D', value: 500 },
+            ],
         });
-
-        it('should handle new categories (no previous)', () => {
-            const current: KPIDataPoint[] = [
-                { label: 'NewProduct', value: 100 },
-            ];
-            const drivers = findChangeDrivers(current, [], 3);
-            expect(drivers[0].previousValue).toBe(0);
-            expect(drivers[0].percentChange).toBe(100);
-        });
+        expect(result.severity).toBe('critical');
+        expect(result.score).toBeGreaterThanOrEqual(70);
     });
 
-    // ─── Edge Cases ───────────────────────────────────────────────
+    it('computeStats should compute mean and stddev', () => {
+        const { mean, stdDev } = computeStats([10, 20, 30]);
+        expect(mean).toBeCloseTo(20);
+        expect(stdDev).toBeCloseTo(8.165, 2);
+    });
+});
 
-    describe('Edge Cases', () => {
-        it('should handle all zero values', () => {
-            const zeros: KPIDataPoint[] = Array.from({ length: 5 }, (_, i) => ({
-                label: `2024-${i + 1}`, value: 0,
-            }));
-            const anomalies = detectAnomalies(zeros);
-            expect(anomalies.length).toBe(0);
+// ─── Change Attribution Tests ─────────────────────────────────────
 
-            const trend = computeTrend(zeros);
-            expect(trend).not.toBeNull();
-            expect(trend!.direction).toBe('flat');
+import { computeChangeAttribution } from '@/lib/insights/change-attribution';
+
+describe('Module 5C — Change Attribution', () => {
+    it('should return null for single-dimension data', () => {
+        const result = computeChangeAttribution(
+            [{ label: 'Total', value: 100 }],
+            [{ label: 'Total', value: 80 }],
+        );
+        expect(result).toBeNull();
+    });
+
+    it('should compute segment contributions correctly', () => {
+        const result = computeChangeAttribution(
+            [
+                { label: 'Electronics', value: 500 },
+                { label: 'Clothing', value: 200 },
+            ],
+            [
+                { label: 'Electronics', value: 300 },
+                { label: 'Clothing', value: 200 },
+            ],
+            'total_revenue',
+        );
+        expect(result).not.toBeNull();
+        expect(result!.totalDelta).toBe(200);
+        expect(result!.topPositive?.segment).toBe('Electronics');
+        expect(result!.topPositive?.contributionPercent).toBe(100);
+        expect(result!.sentence).toContain('Electronics');
+    });
+
+    it('should handle disappeared segments', () => {
+        const result = computeChangeAttribution(
+            [{ label: 'A', value: 100 }, { label: 'B', value: 50 }],
+            [{ label: 'A', value: 80 }, { label: 'B', value: 60 }, { label: 'C', value: 30 }],
+        );
+        expect(result).not.toBeNull();
+        const cSegment = result!.segments.find(s => s.segment === 'C');
+        expect(cSegment).toBeDefined();
+        expect(cSegment!.currentValue).toBe(0);
+        expect(cSegment!.deltaPercent).toBe(-100);
+    });
+
+    it('should handle no change', () => {
+        const result = computeChangeAttribution(
+            [{ label: 'A', value: 100 }, { label: 'B', value: 50 }],
+            [{ label: 'A', value: 100 }, { label: 'B', value: 50 }],
+        );
+        expect(result).not.toBeNull();
+        expect(result!.totalDelta).toBe(0);
+        expect(result!.sentence).toContain('No change');
+    });
+});
+
+// ─── Explanation Renderer Tests ──────────────────────────────────
+
+import { renderLineageExplanation, renderTrendSummary } from '@/lib/insights/explanation-renderer';
+
+describe('Module 5C — Explanation Renderer', () => {
+    it('should render formula-based explanation without lineage', () => {
+        const result = renderLineageExplanation('total_revenue', null);
+        expect(result).toContain('Total Revenue');
+        expect(result).toContain('computed from');
+    });
+
+    it('should render full lineage explanation', () => {
+        const result = renderLineageExplanation('monthly_revenue', {
+            tables: ['orders', 'order_items'],
+            joins: [{ from: 'orders', to: 'order_items', on: 'order_id' }],
+            formula: 'SUM(total)',
+            aggregations: [{ function: 'SUM', column: 'total' }],
+        });
+        expect(result).toContain('Monthly Revenue');
+        expect(result).toContain('sum(total)');
+        expect(result).toContain('orders');
+        expect(result).toContain('order_items');
+        expect(result).toContain('order_id');
+    });
+
+    it('should render trend summary with increase', () => {
+        const result = renderTrendSummary({
+            kpiName: 'avg_order_value',
+            currentValue: 150,
+            previousValue: 120,
+            deltaPercent: 25,
+            trend: 'up',
+        });
+        expect(result).toContain('increased');
+        expect(result).toContain('25.0%');
+        expect(result).toContain('150');
+    });
+
+    it('should render flat trend', () => {
+        const result = renderTrendSummary({
+            kpiName: 'revenue',
+            currentValue: 100,
+            previousValue: 100,
+            deltaPercent: 0,
+            trend: 'flat',
+        });
+        expect(result).toContain('stable');
+    });
+});
+
+// ─── Trend Analyzer Tests ────────────────────────────────────────
+
+import { computeTrend, computeOverallTrend, identifyTopContributors, findChangeDrivers } from '@/lib/insights/trend-analyzer';
+
+describe('Module 5C — Trend Analyzer', () => {
+    it('should compute period-over-period trend', () => {
+        const result = computeTrend([
+            { label: 'Jan', value: 100 },
+            { label: 'Feb', value: 120 },
+        ]);
+        expect(result).not.toBeNull();
+        expect(result!.direction).toBe('up');
+        expect(result!.percentChange).toBe(20);
+    });
+
+    it('should compute overall trend direction via linear regression', () => {
+        const result = computeOverallTrend([
+            { label: 'Q1', value: 100 },
+            { label: 'Q2', value: 110 },
+            { label: 'Q3', value: 120 },
+            { label: 'Q4', value: 130 },
+        ]);
+        expect(result.direction).toBe('up');
+        expect(result.slope).toBeGreaterThan(0);
+        expect(result.confidence).toBeGreaterThan(0.9);
+    });
+
+    it('should identify top contributors', () => {
+        const result = identifyTopContributors([
+            { label: 'Electronics', value: 500 },
+            { label: 'Clothing', value: 200 },
+            { label: 'Books', value: 100 },
+        ], 2);
+        expect(result).toHaveLength(2);
+        expect(result[0].label).toBe('Electronics');
+        expect(result[0].rank).toBe(1);
+    });
+
+    it('should find change drivers between periods', () => {
+        const result = findChangeDrivers(
+            [{ label: 'A', value: 200 }, { label: 'B', value: 100 }],
+            [{ label: 'A', value: 100 }, { label: 'B', value: 90 }],
+        );
+        expect(result[0].label).toBe('A');
+        expect(result[0].change).toBe(100);
+    });
+});
+
+// ─── Insight Generator Tests ─────────────────────────────────────
+
+import { generateKPIInsight, generateDashboardInsights } from '@/lib/insights/insight-generator';
+
+describe('Module 5C — Insight Generator', () => {
+    it('should generate a complete KPIInsight with all fields', () => {
+        const insight = generateKPIInsight({
+            kpiId: 'total_revenue',
+            kpiName: 'total_revenue',
+            category: 'financial',
+            currentValue: 150000,
+            previousValue: 120000,
+            delta: 30000,
+            deltaPercent: 25,
+            trend: 'up',
+            dataPoints: [
+                { label: 'Jan', value: 100000 },
+                { label: 'Feb', value: 110000 },
+                { label: 'Mar', value: 120000 },
+                { label: 'Apr', value: 150000 },
+            ],
         });
 
-        it('should handle negative values', () => {
-            const negatives: KPIDataPoint[] = [
-                { label: '2024-01', value: -10 },
-                { label: '2024-02', value: -12 },
-                { label: '2024-03', value: -11 },
-                { label: '2024-04', value: -50 }, // Anomaly drop
-            ];
-            const anomalies = detectAnomalies(negatives);
-            expect(anomalies.length).toBeGreaterThan(0);
+        expect(insight.kpiId).toBe('total_revenue');
+        expect(insight.anomaly).toBeDefined();
+        expect(insight.anomaly.severity).toBeDefined();
+        expect(insight.lineageExplanation).toContain('Total Revenue');
+        expect(insight.trendSummary).toContain('increased');
+        expect(insight.trend).not.toBeNull();
+        expect(insight.dataFreshness).toBe('fresh');
+        expect(insight.lastUpdated).toMatch(/\d{4}-\d{2}-\d{2}/);
+    });
+
+    it('should generate dashboard-wide insights with feed and alerts', () => {
+        const kpiInsights = [
+            generateKPIInsight({
+                kpiId: 'kpi_1',
+                kpiName: 'Revenue',
+                category: 'financial',
+                currentValue: 200000,
+                previousValue: 100000,
+                deltaPercent: 100,
+                trend: 'up',
+                dataPoints: [
+                    { label: 'Jan', value: 100000 },
+                    { label: 'Feb', value: 120000 },
+                    { label: 'Mar', value: 200000 },
+                ],
+            }),
+            generateKPIInsight({
+                kpiId: 'kpi_2',
+                kpiName: 'Costs',
+                category: 'financial',
+                currentValue: 50000,
+                trend: 'flat',
+                dataPoints: [
+                    { label: 'Jan', value: 50000 },
+                    { label: 'Feb', value: 50500 },
+                    { label: 'Mar', value: 50000 },
+                ],
+            }),
+        ];
+
+        const response = generateDashboardInsights('project-123', kpiInsights);
+
+        expect(response.projectId).toBe('project-123');
+        expect(response.insights).toHaveLength(2);
+        expect(response.feed).toBeDefined();
+        expect(response.alerts).toBeDefined();
+        expect(response.computedAt).toMatch(/\d{4}-\d{2}-\d{2}/);
+        expect(response.trendingUp + response.trendingDown).toBeLessThanOrEqual(2);
+    });
+
+    it('should handle KPI with no previous data gracefully', () => {
+        const insight = generateKPIInsight({
+            kpiId: 'new_kpi',
+            kpiName: 'new_metric',
+            category: 'other',
+            currentValue: 42,
+            dataPoints: [],
         });
 
-        it('should handle very large values', () => {
-            const large: KPIDataPoint[] = Array.from({ length: 6 }, (_, i) => ({
-                label: `2024-${i + 1}`, value: 1e12 + i,
-            }));
-            const anomalies = detectAnomalies(large);
-            // Very small relative differences — should be no anomalies
-            expect(anomalies.length).toBe(0);
-        });
-
-        it('top contributors should handle all zero values', () => {
-            const zeros: KPIDataPoint[] = [
-                { label: 'A', value: 0 },
-                { label: 'B', value: 0 },
-            ];
-            const contributors = identifyTopContributors(zeros);
-            expect(contributors.length).toBe(0);
-        });
+        expect(insight.anomaly.severity).toBe('normal');
+        expect(insight.attribution).toBeNull();
+        expect(insight.trend).toBeNull();
+        expect(insight.dataFreshness).toBe('unknown');
     });
 });

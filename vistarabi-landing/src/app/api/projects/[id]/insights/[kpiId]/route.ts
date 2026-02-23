@@ -25,14 +25,51 @@ export async function GET(
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 
-        const insight = await generateKPIInsight(id, kpiId);
+        // Fetch the dashboard data for this KPI
+        const baseUrl = request.url.split('/api/')[0];
+        const dataRes = await fetch(`${baseUrl}/api/projects/${id}/dashboard/data`, {
+            headers: { cookie: request.headers.get('cookie') || '' },
+        });
 
-        if (!insight) {
+        if (!dataRes.ok) {
             return NextResponse.json({
-                error: 'KPI not found or lineage not generated',
-                hint: 'Call POST /api/projects/{id}/kpi-lineage to generate lineage first',
+                error: 'Failed to load KPI data',
+                hint: 'Ensure dashboard data is generated first',
             }, { status: 404 });
         }
+
+        const dashData = await dataRes.json();
+        const exec = (dashData.kpis || []).find((k: any) => k.kpiId === kpiId);
+
+        if (!exec) {
+            return NextResponse.json({
+                error: 'KPI not found in dashboard data',
+                hint: 'Call POST /api/projects/{id}/dashboard to generate the dashboard first',
+            }, { status: 404 });
+        }
+
+        const insight = generateKPIInsight({
+            kpiId,
+            kpiName: exec.kpiName || kpiId,
+            category: exec.category || 'general',
+            currentValue: exec.primaryValue ?? 0,
+            previousValue: exec.previousValue ?? undefined,
+            delta: exec.delta ?? undefined,
+            deltaPercent: exec.deltaPercent ?? undefined,
+            trend: exec.deltaDirection ?? undefined,
+            dataPoints: exec.dataset || [],
+            lineage: exec.lineage ? {
+                tables: exec.lineage.tables || [],
+                joins: (exec.lineage.joins || []).map((j: any) => ({
+                    from: j.from || '',
+                    to: j.to || '',
+                    on: j.on || undefined,
+                })),
+                formula: exec.lineage.formula || '',
+                aggregations: exec.lineage.aggregations || [],
+            } : undefined,
+            aiExplanation: exec.aiExplanation?.summary || null,
+        });
 
         return NextResponse.json({
             success: true,

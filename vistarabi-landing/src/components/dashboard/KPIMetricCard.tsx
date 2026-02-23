@@ -1,6 +1,6 @@
 'use client';
 
-// Module 5A — KPI Metric Card with Sparkline + Double-Click Flip
+// Module 5C — KPI Metric Card with Sparkline + Anomaly Badge + Double-Click Flip
 
 import { useState, useRef, useEffect } from 'react';
 import { Chart, registerables } from 'chart.js';
@@ -35,6 +35,14 @@ export function KPIMetricCard({ data, explanation }: KPIMetricCardProps) {
         flat: { arrow: '→', color: '#6B7280', bg: '#F3F4F6' },
     };
     const trend = trendConfig[data.trend || 'flat'];
+
+    // Severity config
+    const severityConfig = {
+        critical: { dot: '#DC2626', glow: '0 0 0 3px rgba(220,38,38,0.15)', label: 'Critical' },
+        warning: { dot: '#D97706', glow: '0 0 0 3px rgba(217,119,6,0.12)', label: 'Warning' },
+        normal: { dot: '', glow: '', label: '' },
+    };
+    const severity = severityConfig[data.anomalySeverity || 'normal'];
 
     // Render sparkline with Chart.js
     useEffect(() => {
@@ -76,7 +84,7 @@ export function KPIMetricCard({ data, explanation }: KPIMetricCardProps) {
 
     return (
         <div
-            className="card-flip-container"
+            className={`card-flip-container ${data.anomalySeverity === 'critical' ? 'anomaly-critical' : data.anomalySeverity === 'warning' ? 'anomaly-warning' : ''}`}
             onDoubleClick={() => setFlipped(!flipped)}
             title="Double-click for AI explanation"
         >
@@ -84,11 +92,24 @@ export function KPIMetricCard({ data, explanation }: KPIMetricCardProps) {
                 style={{ minHeight: '100px' }}
             >
                 {/* Front Face */}
-                <div className="card-flip-front bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div
+                    className="card-flip-front bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-shadow"
+                    style={severity.glow ? { boxShadow: severity.glow } : undefined}
+                >
                     <div className="flex items-start justify-between mb-2">
                         <div className="min-w-0 flex-1">
-                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide truncate">
-                                {data.kpiName.replace(/_/g, ' ')}
+                            <div className="flex items-center gap-1.5">
+                                {/* Severity badge */}
+                                {data.anomalySeverity && data.anomalySeverity !== 'normal' && (
+                                    <span
+                                        className="severity-dot"
+                                        style={{ background: severity.dot }}
+                                        title={`${severity.label}: ${data.anomalyReason || 'Anomaly detected'}`}
+                                    />
+                                )}
+                                <div className="text-xs font-medium text-gray-500 uppercase tracking-wide truncate">
+                                    {data.kpiName.replace(/_/g, ' ')}
+                                </div>
                             </div>
                             <div className="text-2xl font-bold text-gray-900 mt-1">
                                 {formatValue(data.currentValue)}
@@ -118,6 +139,13 @@ export function KPIMetricCard({ data, explanation }: KPIMetricCardProps) {
                             </span>
                         )}
                     </div>
+
+                    {/* Insight summary line */}
+                    {data.insightSummary && (
+                        <div className="text-[10px] text-gray-400 mt-2 truncate insight-fade-in">
+                            💡 {data.insightSummary}
+                        </div>
+                    )}
                 </div>
 
                 {/* Back Face */}
@@ -127,6 +155,12 @@ export function KPIMetricCard({ data, explanation }: KPIMetricCardProps) {
                         explanation={explanation}
                         formula={data.formula}
                         onFlipBack={() => setFlipped(false)}
+                        lineageExplanation={data.lineageExplanation}
+                        trendSummary={data.trendSummary}
+                        anomalySeverity={data.anomalySeverity}
+                        anomalyReason={data.anomalyReason}
+                        changeAttribution={data.changeAttribution}
+                        lastUpdated={data.lastUpdated}
                     />
                 </div>
             </div>

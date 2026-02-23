@@ -1,7 +1,7 @@
 'use client';
 
-// Module 5A — Chart Renderer
-// Routes to ChartJS or Plotly based on chart library discriminant
+// Module 5 — Chart Renderer
+// Routes to ChartJS or Plotly based on library discriminant, forwards all props
 
 import { ChartJSChart } from './ChartJSChart';
 import { PlotlyChart } from './PlotlyChart';
@@ -13,14 +13,12 @@ interface ChartRendererProps {
     dataValues: number[];
     colorAccent?: string;
     recordCount: number;
+    kpiName?: string;
+    onPointClick?: (label: string, value: number, index: number) => void;
 }
 
-/**
- * Renders the appropriate chart based on library selection.
- * Disables animations for >500 datapoints.
- */
 export function ChartRenderer({
-    chartType, chartLibrary, labels, dataValues, colorAccent, recordCount,
+    chartType, chartLibrary, labels, dataValues, colorAccent, recordCount, kpiName, onPointClick,
 }: ChartRendererProps) {
     const disableAnimation = recordCount > 500;
 
@@ -31,6 +29,8 @@ export function ChartRenderer({
                 labels={labels}
                 dataValues={dataValues}
                 colorAccent={colorAccent}
+                kpiName={kpiName}
+                onPointClick={onPointClick}
             />
         );
     }
@@ -42,6 +42,8 @@ export function ChartRenderer({
             dataValues={dataValues}
             colorAccent={colorAccent}
             disableAnimation={disableAnimation}
+            kpiName={kpiName}
+            onPointClick={onPointClick}
         />
     );
 }

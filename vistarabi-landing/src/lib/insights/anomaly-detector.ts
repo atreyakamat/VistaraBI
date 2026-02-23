@@ -1,107 +1,159 @@
-// Module 5C — Anomaly Detector
-// Deterministic statistical anomaly detection for KPI time-series data
-// Uses mean ± standard deviation thresholds
+// Module 5C — Anomaly Detector (Upgraded)
+// Deterministic rule engine — runs BEFORE any AI
+// Rules: stddev threshold, spike >35%, drop >25%, missing data, distribution skew
 
-import type { KPIDataPoint } from '../visualization/types';
-import type { AnomalyResult, AnomalySeverity, AnomalyDirection } from './types';
+import type { AnomalyResult, AnomalySeverity, AnomalyDirection, AnomalyFlag } from './types';
 
 // ─── Configuration ────────────────────────────────────────────────
 
-const SIGMA_THRESHOLDS = {
-    info: 1.5,      // 1.5σ — notable
-    warning: 2.0,   // 2σ   — significant
-    critical: 3.0,  // 3σ   — extreme
+const RULES = {
+    STDDEV_MULTIPLIER: 2,        // delta > 2 * rolling stddev → anomaly
+    SPIKE_THRESHOLD: 0.35,       // >35% spike
+    DROP_THRESHOLD: -0.25,       // >25% drop
+    SKEW_THRESHOLD: 2.0,         // distribution skew > 2.0
+    MIN_RECORDS_FOR_ANOMALY: 3,  // need at least 3 records
 };
-
-const MIN_DATA_POINTS = 3; // Need at least 3 points for meaningful stats
 
 // ─── Core Detection ───────────────────────────────────────────────
 
 /**
- * Detect anomalies in time-series KPI data.
- * Uses z-score method: flags points deviating beyond σ thresholds from the mean.
+ * Run all deterministic anomaly rules against a KPI result.
+ * Returns severity classification + individual flags.
  */
-export function detectAnomalies(dataPoints: KPIDataPoint[]): AnomalyResult[] {
-    if (dataPoints.length < MIN_DATA_POINTS) return [];
+export function detectAnomaly(params: {
+    currentValue: number;
+    previousValue?: number;
+    delta?: number;
+    deltaPercent?: number;
+    dataPoints: Array<{ label: string; value: number }>;
+    volatilityIndex?: number;
+    distributionSkew?: number;
+    recordCount?: number;
+}): AnomalyResult {
+    const {
+        currentValue, previousValue, delta, deltaPercent,
+        dataPoints, volatilityIndex, distributionSkew, recordCount,
+    } = params;
 
-    const values = dataPoints.map(dp => dp.value);
-    const { mean, stdDev } = computeStats(values);
+    const flags: AnomalyFlag[] = [];
+    let maxScore = 0;
+    let direction: AnomalyDirection = 'none';
 
-    // If std dev is 0 (all same values), no anomalies
-    if (stdDev === 0) return [];
+    // Rule 1: Low record count — disable anomaly detection
+    if ((recordCount ?? dataPoints.length) < RULES.MIN_RECORDS_FOR_ANOMALY) {
+        return {
+            severity: 'normal',
+            score: 0,
+            flags: [],
+            reason: 'Insufficient data for anomaly detection',
+            direction: 'none',
+            detectedAt: new Date().toISOString(),
+        };
+    }
 
-    const anomalies: AnomalyResult[] = [];
+    // Rule 2: Delta > 2 * rolling standard deviation
+    if (dataPoints.length >= 3) {
+        const values = dataPoints.map(d => d.value);
+        const { mean, stdDev } = computeStats(values);
+        const deviationFromMean = Math.abs(currentValue - mean);
 
-    for (let i = 0; i < dataPoints.length; i++) {
-        const value = dataPoints[i].value;
-        const deviation = Math.abs(value - mean) / stdDev;
+        if (stdDev > 0 && deviationFromMean > RULES.STDDEV_MULTIPLIER * stdDev) {
+            const sigma = deviationFromMean / stdDev;
+            const score = Math.min(100, Math.round(sigma * 25));
+            maxScore = Math.max(maxScore, score);
+            direction = currentValue > mean ? 'spike' : 'drop';
 
-        if (deviation >= SIGMA_THRESHOLDS.info) {
-            const direction: AnomalyDirection = value > mean ? 'spike' : 'drop';
-            const severity = classifySeverity(deviation);
-            const percentFromMean = ((value - mean) / Math.abs(mean)) * 100;
-
-            anomalies.push({
-                dataPointIndex: i,
-                label: dataPoints[i].label,
-                value,
-                expectedValue: Math.round(mean * 100) / 100,
-                deviation: Math.round(deviation * 100) / 100,
-                direction,
-                severity,
-                percentFromMean: Math.round(percentFromMean * 100) / 100,
+            flags.push({
+                rule: 'stddev_breach',
+                description: `Value deviates ${sigma.toFixed(1)}σ from rolling mean`,
+                threshold: RULES.STDDEV_MULTIPLIER * stdDev,
+                actual: deviationFromMean,
             });
         }
     }
 
-    // Sort by severity (critical first) then by deviation
-    anomalies.sort((a, b) => {
-        const severityOrder = { critical: 0, warning: 1, info: 2 };
-        const diff = severityOrder[a.severity] - severityOrder[b.severity];
-        return diff !== 0 ? diff : b.deviation - a.deviation;
-    });
+    // Rule 3: Sudden spike > 35%
+    if (deltaPercent !== undefined && deltaPercent > RULES.SPIKE_THRESHOLD * 100) {
+        const score = Math.min(100, Math.round(deltaPercent * 1.2));
+        maxScore = Math.max(maxScore, score);
+        direction = 'spike';
 
-    return anomalies;
-}
+        flags.push({
+            rule: 'spike_threshold',
+            description: `Spike of ${deltaPercent.toFixed(1)}% exceeds ${RULES.SPIKE_THRESHOLD * 100}% threshold`,
+            threshold: RULES.SPIKE_THRESHOLD * 100,
+            actual: deltaPercent,
+        });
+    }
 
-/**
- * Detect anomalies in the most recent data point only.
- * Useful for real-time alerting on the latest period.
- */
-export function detectLatestAnomaly(dataPoints: KPIDataPoint[]): AnomalyResult | null {
-    if (dataPoints.length < MIN_DATA_POINTS) return null;
+    // Rule 4: Drop > 25%
+    if (deltaPercent !== undefined && deltaPercent < RULES.DROP_THRESHOLD * 100) {
+        const score = Math.min(100, Math.round(Math.abs(deltaPercent) * 1.5));
+        maxScore = Math.max(maxScore, score);
+        direction = 'drop';
 
-    // Use all points except the last to compute baseline stats
-    const baselineValues = dataPoints.slice(0, -1).map(dp => dp.value);
-    const { mean, stdDev } = computeStats(baselineValues);
+        flags.push({
+            rule: 'drop_threshold',
+            description: `Drop of ${Math.abs(deltaPercent).toFixed(1)}% exceeds ${Math.abs(RULES.DROP_THRESHOLD) * 100}% threshold`,
+            threshold: Math.abs(RULES.DROP_THRESHOLD) * 100,
+            actual: Math.abs(deltaPercent),
+        });
+    }
 
-    if (stdDev === 0) return null;
+    // Rule 5: Missing data (empty dataset or zero current value with history)
+    if (dataPoints.length === 0 || (currentValue === 0 && previousValue && previousValue !== 0)) {
+        maxScore = Math.max(maxScore, 80);
+        flags.push({
+            rule: 'missing_data',
+            description: dataPoints.length === 0
+                ? 'No data points available'
+                : 'Current value dropped to zero from a non-zero previous value',
+            threshold: 1,
+            actual: dataPoints.length === 0 ? 0 : currentValue,
+        });
+    }
 
-    const latest = dataPoints[dataPoints.length - 1];
-    const deviation = Math.abs(latest.value - mean) / stdDev;
+    // Rule 6: Abnormal distribution skew
+    if (distributionSkew !== undefined && Math.abs(distributionSkew) > RULES.SKEW_THRESHOLD) {
+        const score = Math.min(100, Math.round(Math.abs(distributionSkew) * 20));
+        maxScore = Math.max(maxScore, score);
 
-    if (deviation < SIGMA_THRESHOLDS.info) return null;
+        flags.push({
+            rule: 'distribution_skew',
+            description: `Distribution skew of ${distributionSkew.toFixed(2)} exceeds ±${RULES.SKEW_THRESHOLD} threshold`,
+            threshold: RULES.SKEW_THRESHOLD,
+            actual: Math.abs(distributionSkew),
+        });
+    }
 
-    const direction: AnomalyDirection = latest.value > mean ? 'spike' : 'drop';
-    const percentFromMean = ((latest.value - mean) / Math.abs(mean)) * 100;
+    // Classify severity
+    const severity = classifySeverity(maxScore, flags);
+
+    // Build reason string
+    const reason = flags.length === 0
+        ? 'No anomalies detected'
+        : flags.map(f => f.description).join('; ');
 
     return {
-        dataPointIndex: dataPoints.length - 1,
-        label: latest.label,
-        value: latest.value,
-        expectedValue: Math.round(mean * 100) / 100,
-        deviation: Math.round(deviation * 100) / 100,
+        severity,
+        score: maxScore,
+        flags,
+        reason,
         direction,
-        severity: classifySeverity(deviation),
-        percentFromMean: Math.round(percentFromMean * 100) / 100,
+        detectedAt: new Date().toISOString(),
     };
+}
+
+// ─── Severity Classification ──────────────────────────────────────
+
+function classifySeverity(score: number, flags: AnomalyFlag[]): AnomalySeverity {
+    if (score >= 70 || flags.some(f => f.rule === 'missing_data')) return 'critical';
+    if (score >= 40) return 'warning';
+    return 'normal';
 }
 
 // ─── Statistical Helpers ──────────────────────────────────────────
 
-/**
- * Compute mean and standard deviation for a set of values.
- */
 export function computeStats(values: number[]): { mean: number; stdDev: number } {
     if (values.length === 0) return { mean: 0, stdDev: 0 };
 
@@ -112,13 +164,4 @@ export function computeStats(values: number[]): { mean: number; stdDev: number }
     const stdDev = Math.sqrt(variance);
 
     return { mean, stdDev };
-}
-
-/**
- * Classify anomaly severity based on sigma deviation.
- */
-function classifySeverity(deviation: number): AnomalySeverity {
-    if (deviation >= SIGMA_THRESHOLDS.critical) return 'critical';
-    if (deviation >= SIGMA_THRESHOLDS.warning) return 'warning';
-    return 'info';
 }

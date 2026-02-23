@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import { generateDashboardInsights } from '@/lib/insights';
+import { generateKPIInsight, generateDashboardInsights } from '@/lib/insights';
 
 // GET /api/projects/[id]/insights — Global dashboard insights panel
 export async function GET(
@@ -25,7 +25,38 @@ export async function GET(
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 
-        const insights = await generateDashboardInsights(id);
+        // Fetch dashboard data
+        const baseUrl = request.url.split('/api/')[0];
+        const dataRes = await fetch(`${baseUrl}/api/projects/${id}/dashboard/data`, {
+            headers: { cookie: request.headers.get('cookie') || '' },
+        });
+
+        if (!dataRes.ok) {
+            return NextResponse.json({
+                error: 'Failed to load dashboard data for insight generation',
+            }, { status: 502 });
+        }
+
+        const dashData = await dataRes.json();
+        const execResults: any[] = dashData.kpis || [];
+
+        // Generate insight for each KPI from execution results
+        const kpiInsights = execResults.map((exec: any) => {
+            return generateKPIInsight({
+                kpiId: exec.kpiId,
+                kpiName: exec.kpiName || exec.kpiId,
+                category: exec.category || 'general',
+                currentValue: exec.primaryValue ?? 0,
+                previousValue: exec.previousValue ?? undefined,
+                delta: exec.delta ?? undefined,
+                deltaPercent: exec.deltaPercent ?? undefined,
+                trend: exec.deltaDirection ?? undefined,
+                dataPoints: exec.dataset || [],
+                aiExplanation: exec.aiExplanation?.summary || null,
+            });
+        });
+
+        const insights = generateDashboardInsights(id, kpiInsights);
 
         return NextResponse.json({
             success: true,

@@ -1,13 +1,13 @@
 'use client';
 
-// Module 5A — Data Intelligence Interface
-// Main dashboard page with 4-stage progressive rendering
+// Module 5A+5C — Data Intelligence Interface
+// Main dashboard page with 4-stage progressive rendering + cognitive insight layer
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { SkeletonLoader } from '@/components/dashboard/SkeletonLoader';
-import type { KPICardData, KPIExplanationData, DashboardSection } from '@/components/dashboard/types';
+import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from '@/components/dashboard/types';
 import '@/components/dashboard/dashboard.css';
 
 interface DashboardConfig {
@@ -21,10 +21,7 @@ interface DashboardConfig {
             kpiName: string;
             formula: string;
             category: string;
-            chartSelection: {
-                chartType: string;
-                chartLibrary: 'chartjs' | 'plotly';
-            };
+            chartSelection?: { chartType: string; chartLibrary: string };
             colorAccent?: string;
         }>;
     }>;
@@ -40,6 +37,7 @@ interface DashboardConfig {
     sidebarConfig: {
         projectName: string;
     };
+    projectName: string;
 }
 
 export default function DashboardPage() {
@@ -56,6 +54,15 @@ export default function DashboardPage() {
     const [kpis, setKpis] = useState<KPICardData[]>([]);
     const [sections, setSections] = useState<DashboardSection[]>([]);
     const [explanations, setExplanations] = useState<Record<string, KPIExplanationData>>({});
+
+    // Module 5C — Insight states
+    const [insightFeed, setInsightFeed] = useState<InsightFeedItem[]>([]);
+    const [smartAlerts, setSmartAlerts] = useState<SmartAlert[]>([]);
+    const [strongestUp, setStrongestUp] = useState<InsightFeedItem | null>(null);
+    const [strongestDown, setStrongestDown] = useState<InsightFeedItem | null>(null);
+    const [anomalyCount, setAnomalyCount] = useState(0);
+    const [trendingUp, setTrendingUp] = useState(0);
+    const [trendingDown, setTrendingDown] = useState(0);
 
     // 4-Stage Progressive Loading
     const loadDashboard = useCallback(async (isRefresh = false) => {
@@ -98,33 +105,46 @@ export default function DashboardPage() {
             setStage(2); // Stage 2: Config loaded, KPI cards can render
 
             // ── Stage 3: Load Computed Data ───────────────────────────
+            // The /dashboard/data API returns DashboardExecutionResult:
+            //   { projectId, kpis: KPIExecutionResult[], metadata, ... }
+            // Each KPIExecutionResult has: primaryValue, previousValue, dataset[],
+            //   deltaPercent, deltaDirection, recommendedChartType, recommendedChartLibrary
             const dataRes = await fetch(`/api/projects/${projectId}/dashboard/data`);
-            let chartDataMap: Record<string, any> = {};
+            let kpiDataMap: Record<string, any> = {};
 
             if (dataRes.ok) {
                 const dashData = await dataRes.json();
-                for (const chart of (dashData.charts || [])) {
-                    chartDataMap[chart.kpiId] = chart;
+                // Map KPI execution results by kpiId for quick lookup
+                for (const kpi of (dashData.kpis || [])) {
+                    kpiDataMap[kpi.kpiId] = kpi;
                 }
             }
 
-            // Build KPICardData from config + computed data
+            // Build KPICardData from config + computed execution results
             const allKpis: KPICardData[] = [];
             for (const section of dashConfig.sections || []) {
                 for (const card of section.cards || []) {
-                    const computed = chartDataMap[card.kpiId];
+                    const exec = kpiDataMap[card.kpiId];
+
+                    // Map dataset (KPIDataPoint[]) to the chart-friendly { label, value } format
+                    const dataPoints: Array<{ label: string; value: number }> = (exec?.dataset || []).map((dp: any) => ({
+                        label: dp.label || dp.category || dp.date || String(dp.x || ''),
+                        value: typeof dp.value === 'number' ? dp.value : (dp.y ?? 0),
+                    }));
+
                     const kpiData: KPICardData = {
                         kpiId: card.kpiId,
-                        kpiName: card.kpiName,
+                        kpiName: exec?.kpiName || card.kpiName,
                         formula: card.formula,
-                        category: card.category,
-                        currentValue: computed?.data?.currentValue ?? 0,
-                        previousValue: computed?.data?.previousValue,
-                        trend: computed?.data?.trend,
-                        trendPercent: computed?.data?.trendPercent,
-                        chartType: card.chartSelection?.chartType || 'bar',
-                        chartLibrary: card.chartSelection?.chartLibrary || 'chartjs',
-                        dataPoints: computed?.data?.dataPoints || [],
+                        category: exec?.category || card.category,
+                        currentValue: exec?.primaryValue ?? 0,
+                        previousValue: exec?.previousValue ?? undefined,
+                        trend: exec?.deltaDirection ?? undefined,
+                        trendPercent: exec?.deltaPercent ?? undefined,
+                        // Use the execution engine's recommended chart type, fall back to config
+                        chartType: exec?.recommendedChartType || card.chartSelection?.chartType || 'bar',
+                        chartLibrary: (exec?.recommendedChartLibrary || card.chartSelection?.chartLibrary || 'chartjs') as 'chartjs' | 'plotly',
+                        dataPoints,
                         colorAccent: card.colorAccent || dashConfig.metadata.domainColor,
                     };
                     allKpis.push(kpiData);
@@ -135,6 +155,7 @@ export default function DashboardPage() {
             setStage(3); // Stage 3: Charts can render
 
             // ── Stage 4: AI Insights (async, non-blocking) ────────────
+            loadInsights(projectId, allKpis);
             requestAnimationFrame(() => setStage(4));
 
         } catch (err: any) {
@@ -144,6 +165,46 @@ export default function DashboardPage() {
             setIsRefreshing(false);
         }
     }, [projectId]);
+
+    // Module 5C — Load insights asynchronously (non-blocking)
+    const loadInsights = useCallback(async (projId: string, currentKpis: KPICardData[]) => {
+        try {
+            const insightRes = await fetch(`/api/projects/${projId}/dashboard/insights`);
+            if (!insightRes.ok) return;
+
+            const data = await insightRes.json();
+
+            setInsightFeed(data.feed || []);
+            setSmartAlerts(data.alerts || []);
+            setStrongestUp(data.topMovers?.strongest_up ?? null);
+            setStrongestDown(data.topMovers?.strongest_down ?? null);
+            setAnomalyCount(data.anomalyCount ?? 0);
+            setTrendingUp(data.trendingUp ?? 0);
+            setTrendingDown(data.trendingDown ?? 0);
+
+            // Enrich KPI cards with insight data
+            if (data.insights && Array.isArray(data.insights)) {
+                const insightMap = new Map(data.insights.map((i: any) => [i.kpiId, i]));
+                setKpis(prev => prev.map(kpi => {
+                    const insight = insightMap.get(kpi.kpiId) as any;
+                    if (!insight) return kpi;
+                    return {
+                        ...kpi,
+                        anomalySeverity: insight.anomaly?.severity || 'normal',
+                        anomalyScore: insight.anomaly?.score || 0,
+                        anomalyReason: insight.anomaly?.reason || '',
+                        insightSummary: insight.attribution?.sentence || insight.trendSummary || '',
+                        trendSummary: insight.trendSummary || '',
+                        lineageExplanation: insight.lineageExplanation || '',
+                        changeAttribution: insight.attribution?.sentence || '',
+                        lastUpdated: insight.lastUpdated || '',
+                    };
+                }));
+            }
+        } catch (err) {
+            console.warn('[Dashboard] Insights load failed (non-critical):', err);
+        }
+    }, []);
 
     useEffect(() => {
         if (projectId) loadDashboard();
@@ -198,7 +259,7 @@ export default function DashboardPage() {
         );
     }
 
-    // Stage 2+: Progressive render
+    // Stage 2+: Progressive render with 5C insight layer
     return (
         <DashboardShell
             projectId={projectId}
@@ -212,6 +273,14 @@ export default function DashboardPage() {
             isLoading={stage < 3}
             isRefreshing={isRefreshing}
             onRefresh={() => loadDashboard(true)}
+            // Module 5C props
+            insightFeed={insightFeed}
+            smartAlerts={smartAlerts}
+            strongestUp={strongestUp}
+            strongestDown={strongestDown}
+            anomalyCount={anomalyCount}
+            trendingUp={trendingUp}
+            trendingDown={trendingDown}
         />
     );
 }

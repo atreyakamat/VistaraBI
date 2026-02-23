@@ -1,18 +1,28 @@
-// Module 5C — Explainable Dashboard & AI Insight Engine
+// Module 5C — Cognitive Insight Layer
 // Public API re-exports
 
+// Core generators
 export { generateKPIInsight, generateDashboardInsights } from './insight-generator';
-export { detectAnomalies, detectLatestAnomaly, computeStats } from './anomaly-detector';
+
+// Engines
+export { detectAnomaly, computeStats } from './anomaly-detector';
+export { computeChangeAttribution } from './change-attribution';
+export { renderLineageExplanation, renderTrendSummary } from './explanation-renderer';
 export { computeTrend, computeOverallTrend, identifyTopContributors, findChangeDrivers } from './trend-analyzer';
+
+// Types
 export type {
-    KPIInsight,
-    AnomalyResult,
     AnomalySeverity,
     AnomalyDirection,
-    TrendSummary,
+    AnomalyFlag,
+    AnomalyResult,
+    SegmentContribution,
+    ChangeAttribution,
     TrendDirection,
-    TopContributor,
+    TrendSummary,
+    KPIInsight,
+    InsightFeedItem,
+    SmartAlert,
     KPIExplanationPayload,
-    DashboardInsightsPayload,
-    InsightType,
+    InsightsResponse,
 } from './types';

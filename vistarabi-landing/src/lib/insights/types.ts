@@ -56,6 +56,13 @@ export interface TrendSummary {
     previousPeriodLabel: string;
 }
 
+export interface TopContributor {
+    label: string;
+    value: number;
+    percentOfTotal: number;
+    rank: number;
+}
+
 // ─── KPI Insight ──────────────────────────────────────────────────
 
 export interface KPIInsight {

@@ -1,115 +1,332 @@
 'use client';
 
-// Module 5A — Chart Container
-// Wrapper for each chart box with header, type switcher, export, and hover stats
+// Module 5 — Enhanced Chart Container
+// Icon-based chart type switcher, fullscreen, CSV export, rich stats, empty/loading states
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChartRenderer } from './ChartRenderer';
 import type { KPICardData } from './types';
 
 interface ChartContainerProps {
     kpi: KPICardData;
     index: number;
+    onDrillDown?: (kpiId: string, label: string, value: number) => void;
 }
 
-const CHART_TYPE_OPTIONS = [
-    { value: 'line', label: 'Line', lib: 'chartjs' as const },
-    { value: 'bar', label: 'Bar', lib: 'chartjs' as const },
-    { value: 'area', label: 'Area', lib: 'chartjs' as const },
-    { value: 'doughnut', label: 'Doughnut', lib: 'chartjs' as const },
-    { value: 'horizontal_bar', label: 'H. Bar', lib: 'chartjs' as const },
-    { value: 'pie', label: 'Pie', lib: 'chartjs' as const },
-    { value: 'radar', label: 'Radar', lib: 'chartjs' as const },
-    { value: 'scatter', label: 'Scatter', lib: 'chartjs' as const },
-    { value: 'heatmap', label: 'Heatmap', lib: 'plotly' as const },
-    { value: 'treemap', label: 'Treemap', lib: 'plotly' as const },
-    { value: 'box_plot', label: 'Box Plot', lib: 'plotly' as const },
-    { value: 'waterfall', label: 'Waterfall', lib: 'plotly' as const },
+// ── Chart type groups ────────────────────────────────────────────────────────
+interface ChartOption {
+    value: string;
+    label: string;
+    icon: string;
+    lib: 'chartjs' | 'plotly';
+    group: 'trend' | 'compare' | 'composition' | 'advanced';
+}
+
+const CHART_OPTIONS: ChartOption[] = [
+    // Trend
+    { value: 'line', label: 'Line', icon: '📈', lib: 'chartjs', group: 'trend' },
+    { value: 'area', label: 'Area', icon: '📉', lib: 'chartjs', group: 'trend' },
+    // Compare
+    { value: 'bar', label: 'Bar', icon: '📊', lib: 'chartjs', group: 'compare' },
+    { value: 'horizontal_bar', label: 'H-Bar', icon: '🔲', lib: 'chartjs', group: 'compare' },
+    { value: 'stacked_bar', label: 'Stacked', icon: '🏗️', lib: 'chartjs', group: 'compare' },
+    { value: 'waterfall', label: 'Waterfall', icon: '🌊', lib: 'plotly', group: 'compare' },
+    // Composition
+    { value: 'pie', label: 'Pie', icon: '🥧', lib: 'chartjs', group: 'composition' },
+    { value: 'doughnut', label: 'Donut', icon: '🍩', lib: 'chartjs', group: 'composition' },
+    { value: 'treemap', label: 'Treemap', icon: '🗺️', lib: 'plotly', group: 'composition' },
+    { value: 'sunburst', label: 'Sunburst', icon: '☀️', lib: 'plotly', group: 'composition' },
+    // Advanced
+    { value: 'scatter', label: 'Scatter', icon: '🔵', lib: 'chartjs', group: 'advanced' },
+    { value: 'bubble', label: 'Bubble', icon: '🫧', lib: 'chartjs', group: 'advanced' },
+    { value: 'radar', label: 'Radar', icon: '🕸️', lib: 'chartjs', group: 'advanced' },
+    { value: 'heatmap', label: 'Heatmap', icon: '🌡️', lib: 'plotly', group: 'advanced' },
+    { value: 'box_plot', label: 'Box', icon: '📦', lib: 'plotly', group: 'advanced' },
+    { value: 'violin', label: 'Violin', icon: '🎻', lib: 'plotly', group: 'advanced' },
 ];
 
-export function ChartContainer({ kpi, index }: ChartContainerProps) {
-    const [chartType, setChartType] = useState(kpi.chartType);
-    const [chartLib, setChartLib] = useState(kpi.chartLibrary);
+const GROUP_LABELS: Record<string, string> = {
+    trend: 'Trend',
+    compare: 'Compare',
+    composition: 'Composition',
+    advanced: 'Advanced',
+};
+
+// ── Stats helpers ────────────────────────────────────────────────────────────
+function computeStats(data: number[]) {
+    if (data.length === 0) return null;
+    const sum = data.reduce((a, b) => a + b, 0);
+    const avg = sum / data.length;
+    const min = Math.min(...data);
+    const max = Math.max(...data);
+    return { sum, avg, min, max };
+}
+
+function fmt(v: number): string {
+    if (Math.abs(v) >= 1_000_000) return (v / 1_000_000).toFixed(2) + 'M';
+    if (Math.abs(v) >= 1_000) return (v / 1_000).toFixed(1) + 'K';
+    return v.toLocaleString(undefined, { maximumFractionDigits: 1 });
+}
+
+// ── CSV export ───────────────────────────────────────────────────────────────
+function exportCSV(kpiName: string, dataPoints: KPICardData['dataPoints']) {
+    const rows = ['Label,Value', ...dataPoints.map(d => `"${d.label}",${d.value}`)];
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${kpiName.replace(/\s+/g, '_')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ── Main Component ───────────────────────────────────────────────────────────
+export function ChartContainer({ kpi, index, onDrillDown }: ChartContainerProps) {
+    const [chartType, setChartType] = useState(kpi.chartType || 'bar');
+    const [chartLib, setChartLib] = useState<'chartjs' | 'plotly'>(kpi.chartLibrary || 'chartjs');
     const [visible, setVisible] = useState(false);
+    const [fullscreen, setFullscreen] = useState(false);
+    const [pickerOpen, setPickerOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+    const pickerRef = useRef<HTMLDivElement>(null);
 
-    // Lazy loading via IntersectionObserver
+    // Lazy-load via IntersectionObserver
     useEffect(() => {
-        const ref = containerRef.current;
-        if (!ref) return;
-
-        const observer = new IntersectionObserver(
-            ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
-            { threshold: 0.1 }
+        const el = containerRef.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(
+            ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
+            { threshold: 0.05 }
         );
-        observer.observe(ref);
-        return () => observer.disconnect();
+        obs.observe(el);
+        return () => obs.disconnect();
     }, []);
 
-    // Chart type switch
-    const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const opt = CHART_TYPE_OPTIONS.find(o => o.value === e.target.value);
-        if (opt) {
-            setChartType(opt.value);
-            setChartLib(opt.lib);
-        }
-    };
+    // Close picker on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+                setPickerOpen(false);
+            }
+        };
+        if (pickerOpen) document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [pickerOpen]);
 
-    // Hover stats
-    const total = kpi.dataPoints.reduce((s, d) => s + d.value, 0);
-    const avg = kpi.dataPoints.length > 0 ? total / kpi.dataPoints.length : 0;
+    // Escape to close fullscreen
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setFullscreen(false); };
+        if (fullscreen) document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [fullscreen]);
+
+    const selectType = useCallback((opt: ChartOption) => {
+        setChartType(opt.value);
+        setChartLib(opt.lib);
+        setPickerOpen(false);
+    }, []);
+
+    const handleDrillDown = useCallback((label: string, value: number) => {
+        onDrillDown?.(kpi.kpiId, label, value);
+    }, [kpi.kpiId, onDrillDown]);
+
+    const dataValues = kpi.dataPoints.map(d => d.value);
+    const dataLabels = kpi.dataPoints.map(d => d.label);
+    const stats = computeStats(dataValues);
+    const currentOpt = CHART_OPTIONS.find(o => o.value === chartType) ?? CHART_OPTIONS[2];
+    const isEmpty = kpi.dataPoints.length === 0;
+
+    const chartContent = (
+        <>
+            {visible && !isEmpty ? (
+                <ChartRenderer
+                    chartType={chartType}
+                    chartLibrary={chartLib}
+                    labels={dataLabels}
+                    dataValues={dataValues}
+                    colorAccent={kpi.colorAccent}
+                    recordCount={kpi.dataPoints.length}
+                    kpiName={kpi.kpiName}
+                    onPointClick={(label, value) => handleDrillDown(label, value)}
+                />
+            ) : isEmpty ? (
+                <div className="chart-empty-state">
+                    <span className="chart-empty-icon">📊</span>
+                    <p className="chart-empty-text">No data available</p>
+                    <p className="chart-empty-sub">Data will appear once the dashboard is refreshed</p>
+                </div>
+            ) : (
+                <div className="skeleton w-full h-full rounded-lg" />
+            )}
+        </>
+    );
 
     return (
-        <div
-            ref={containerRef}
-            className="chart-container chart-entrance"
-            style={{ animationDelay: `${index * 100}ms` }}
-        >
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-gray-900 truncate">
-                        {kpi.kpiName.replace(/_/g, ' ')}
-                    </h3>
-                    <p className="text-[10px] text-gray-400 mt-0.5 truncate">{kpi.formula}</p>
+        <>
+            <div
+                ref={containerRef}
+                className="chart-container chart-entrance"
+                style={{ animationDelay: `${Math.min(index, 5) * 80}ms` }}
+            >
+                {/* ── Header ─────────────────────────────────────────────── */}
+                <div className="chart-header">
+                    <div className="chart-header-left">
+                        <h3 className="chart-title">{kpi.kpiName.replace(/_/g, ' ')}</h3>
+                        <p className="chart-formula">{kpi.formula}</p>
+                    </div>
+                    <div className="chart-toolbar">
+                        {/* Chart type picker trigger */}
+                        <div className="chart-picker-wrapper" ref={pickerRef}>
+                            <button
+                                className="chart-tool-btn chart-type-btn"
+                                onClick={() => setPickerOpen(p => !p)}
+                                title="Change chart type"
+                            >
+                                <span>{currentOpt.icon}</span>
+                                <span className="chart-type-label">{currentOpt.label}</span>
+                                <ChevronDown size={12} />
+                            </button>
+
+                            {pickerOpen && (
+                                <div className="chart-picker-dropdown">
+                                    {Object.keys(GROUP_LABELS).map(group => {
+                                        const opts = CHART_OPTIONS.filter(o => o.group === group);
+                                        return (
+                                            <div key={group} className="chart-picker-group">
+                                                <p className="chart-picker-group-label">{GROUP_LABELS[group]}</p>
+                                                <div className="chart-picker-grid">
+                                                    {opts.map(opt => (
+                                                        <button
+                                                            key={opt.value}
+                                                            className={`chart-picker-item ${chartType === opt.value ? 'active' : ''}`}
+                                                            onClick={() => selectType(opt)}
+                                                            title={opt.label}
+                                                        >
+                                                            <span className="text-base">{opt.icon}</span>
+                                                            <span className="chart-picker-item-label">{opt.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Export CSV */}
+                        <button
+                            className="chart-tool-btn"
+                            onClick={() => exportCSV(kpi.kpiName, kpi.dataPoints)}
+                            title="Export CSV"
+                        >
+                            ⬇️
+                        </button>
+
+                        {/* Fullscreen */}
+                        <button
+                            className="chart-tool-btn"
+                            onClick={() => setFullscreen(true)}
+                            title="Expand chart"
+                        >
+                            ⛶
+                        </button>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
-                    {/* Chart Type Switcher */}
-                    <select
-                        value={chartType}
-                        onChange={handleTypeChange}
-                        className="text-[10px] bg-gray-50 border border-gray-200 rounded-md px-1.5 py-1 text-gray-600 cursor-pointer hover:border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    >
-                        {CHART_TYPE_OPTIONS.map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                    </select>
+                {/* ── Chart Area ─────────────────────────────────────────── */}
+                <div className="chart-body">
+                    {chartContent}
                 </div>
-            </div>
 
-            {/* Chart Area */}
-            <div className="p-4" style={{ height: '260px' }}>
-                {visible ? (
-                    <ChartRenderer
-                        chartType={chartType}
-                        chartLibrary={chartLib}
-                        labels={kpi.dataPoints.map(d => d.label)}
-                        dataValues={kpi.dataPoints.map(d => d.value)}
-                        colorAccent={kpi.colorAccent}
-                        recordCount={kpi.dataPoints.length}
-                    />
-                ) : (
-                    <div className="skeleton w-full h-full" />
+                {/* ── Stats Footer ───────────────────────────────────────── */}
+                {stats && (
+                    <div className="chart-stats-bar">
+                        <div className="chart-stat">
+                            <span className="chart-stat-label">Min</span>
+                            <span className="chart-stat-value">{fmt(stats.min)}</span>
+                        </div>
+                        <div className="chart-stat-divider" />
+                        <div className="chart-stat">
+                            <span className="chart-stat-label">Avg</span>
+                            <span className="chart-stat-value">{fmt(stats.avg)}</span>
+                        </div>
+                        <div className="chart-stat-divider" />
+                        <div className="chart-stat">
+                            <span className="chart-stat-label">Max</span>
+                            <span className="chart-stat-value">{fmt(stats.max)}</span>
+                        </div>
+                        <div className="chart-stat-divider" />
+                        <div className="chart-stat">
+                            <span className="chart-stat-label">Total</span>
+                            <span className="chart-stat-value chart-stat-total">{fmt(stats.sum)}</span>
+                        </div>
+                        <div style={{ flex: 1 }} />
+                        <div className="chart-stat">
+                            <span className="chart-stat-label">Points</span>
+                            <span className="chart-stat-value">{kpi.dataPoints.length.toLocaleString()}</span>
+                        </div>
+                    </div>
                 )}
             </div>
 
-            {/* Hover Stats Footer */}
-            <div className="flex items-center gap-4 px-4 py-2 border-t border-gray-50 text-[10px] text-gray-400">
-                <span>Points: {kpi.dataPoints.length}</span>
-                <span>Avg: {avg.toFixed(1)}</span>
-                <span>Total: {total.toFixed(0)}</span>
-            </div>
-        </div>
+            {/* ── Fullscreen Modal ─────────────────────────────────────── */}
+            {fullscreen && (
+                <div className="chart-fullscreen-overlay" onClick={() => setFullscreen(false)}>
+                    <div className="chart-fullscreen-container" onClick={e => e.stopPropagation()}>
+                        <div className="chart-fullscreen-header">
+                            <div>
+                                <h2 className="chart-fullscreen-title">{kpi.kpiName.replace(/_/g, ' ')}</h2>
+                                <p className="chart-fullscreen-formula">{kpi.formula}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    className="chart-tool-btn"
+                                    onClick={() => exportCSV(kpi.kpiName, kpi.dataPoints)}
+                                >
+                                    ⬇️ Export
+                                </button>
+                                <button className="chart-fullscreen-close" onClick={() => setFullscreen(false)}>
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                        <div className="chart-fullscreen-body">
+                            <ChartRenderer
+                                chartType={chartType}
+                                chartLibrary={chartLib}
+                                labels={dataLabels}
+                                dataValues={dataValues}
+                                colorAccent={kpi.colorAccent}
+                                recordCount={kpi.dataPoints.length}
+                                kpiName={kpi.kpiName}
+                            />
+                        </div>
+                        {stats && (
+                            <div className="chart-stats-bar chart-fullscreen-stats">
+                                <div className="chart-stat"><span className="chart-stat-label">Min</span><span className="chart-stat-value">{fmt(stats.min)}</span></div>
+                                <div className="chart-stat-divider" />
+                                <div className="chart-stat"><span className="chart-stat-label">Average</span><span className="chart-stat-value">{fmt(stats.avg)}</span></div>
+                                <div className="chart-stat-divider" />
+                                <div className="chart-stat"><span className="chart-stat-label">Max</span><span className="chart-stat-value">{fmt(stats.max)}</span></div>
+                                <div className="chart-stat-divider" />
+                                <div className="chart-stat"><span className="chart-stat-label">Total</span><span className="chart-stat-value chart-stat-total">{fmt(stats.sum)}</span></div>
+                                <div className="chart-stat-divider" />
+                                <div className="chart-stat"><span className="chart-stat-label">Data Points</span><span className="chart-stat-value">{kpi.dataPoints.length.toLocaleString()}</span></div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+// Tiny SVG chevron
+function ChevronDown({ size = 16 }: { size?: number }) {
+    return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="4,6 8,10 12,6" />
+        </svg>
     );
 }
