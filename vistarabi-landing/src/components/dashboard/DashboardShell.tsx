@@ -12,6 +12,7 @@ import { SkeletonLoader } from './SkeletonLoader';
 import { InsightPanel } from './InsightPanel';
 import { SmartAlertBanner } from './SmartAlertBanner';
 import { FilterBar, type DashboardFilters } from './FilterBar';
+import { AIFilter } from './AIFilter';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from './types';
 
 interface DrillState {
@@ -155,6 +156,7 @@ export function DashboardShell({
                                             filters.dateRange === '90d' ? 'Last 90 Days' :
                                                 filters.dateRange === '7d' ? 'Last 7 Days' : 'All Time'}
                                     </button>
+                                    <AIFilter onFilterGenerated={handleFilterChange} />
                                     <button className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all flex items-center gap-2">
                                         <span className="material-symbols-outlined text-lg text-slate-500">ios_share</span>
                                         Export
@@ -277,7 +279,7 @@ export function DashboardShell({
                                             insightFeed.slice(0, 3).map((item) => (
                                                 <div key={item.id} className="ai-insight-card">
                                                     <span className={`ai-insight-label ${item.type === 'anomaly' ? 'anomaly' :
-                                                            item.type === 'movement' ? 'growth' : 'warning'
+                                                        item.type === 'movement' ? 'growth' : 'warning'
                                                         }`}>
                                                         {item.title}
                                                     </span>

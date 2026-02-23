@@ -255,11 +255,54 @@ export async function executeDashboard(
 
     for (const section of config.sections) {
         for (const card of section.cards) {
-            const lineage = lineageEntries.find(e => e.kpiId === card.kpiId);
+            let lineage = lineageEntries.find(e => e.kpiId === card.kpiId);
+
+            // Auto-generate fallback lineage if missing (e.g. for raw columns)
             if (!lineage) {
-                console.log(`[Executor] No lineage for KPI: ${card.kpiName}, skipping`);
-                skippedCount++;
-                continue;
+                console.log(`[Executor] Auto-generating fallback lineage for raw column/KPI: ${card.kpiName} (${card.kpiId})`);
+
+                // Determine aggregation based on typical naming/usage.
+                // We default to SUM unless it's an ID, Date, or categorical string.
+                const isIdOrDate = card.kpiName.toLowerCase().includes('id') || card.kpiName.toLowerCase().includes('date') || card.kpiName.toLowerCase().includes('status');
+                const aggFunc = isIdOrDate ? 'COUNT' : 'SUM';
+
+                // Find primary source that has this column
+                let sourceTableStr = 'unknown_source';
+                let sourceIdStr = '';
+                for (const [srcId, srcData] of dataMap.sources.entries()) {
+                    if (srcData.columns.includes(card.kpiId.toLowerCase())) {
+                        sourceIdStr = srcId;
+                        sourceTableStr = (srcData as any).fileName || (srcData as any).name || 'Dataset';
+                        break;
+                    }
+                }
+
+                lineage = {
+                    id: `fallback-${card.kpiId}`,
+                    projectId,
+                    kpiId: card.kpiId,
+                    kpiName: card.kpiName,
+                    domain: 'General',
+                    formula: `${aggFunc}(${card.kpiId})`,
+                    category: card.category || 'general',
+                    sources: [{
+                        sourceId: sourceIdStr || 'fallback',
+                        sourceName: sourceTableStr,
+                        columns: [card.kpiId],
+                        role: 'PRIMARY'
+                    }],
+                    joinPaths: [],
+                    aggregations: [{
+                        function: aggFunc as any,
+                        column: card.kpiId,
+                        sourceId: sourceIdStr
+                    }],
+                    technicalExplanation: 'Auto-generated fallback lineage for raw column visualization.',
+                    businessExplanation: `Derived metric plotting ${card.kpiName}.`,
+                    aiEnhanced: false,
+                    confidence: 0.5,
+                    tracedAt: new Date()
+                };
             }
 
             try {
