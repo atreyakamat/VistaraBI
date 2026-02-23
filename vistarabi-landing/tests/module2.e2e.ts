@@ -539,11 +539,11 @@ export class Module2TestSuite {
     }
 }
 
-// Run tests if executed directly
-if (require.main === module) {
+import { test, expect } from 'vitest';
+
+test('Module 2 Test Suite', async () => {
     const suite = new Module2TestSuite();
-    suite.runAll().then(results => {
-        const allPassed = results.every(r => r.passed);
-        process.exit(allPassed ? 0 : 1);
-    });
-}
+    const results = await suite.runAll();
+    const allPassed = results.every(r => r.passed);
+    expect(allPassed).toBe(true);
+});

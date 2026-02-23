@@ -25,7 +25,7 @@ const AGGREGATION_PATTERNS: { regex: RegExp; func: KPIAggregation['function'] }[
     { regex: /AVG\s*\(\s*([^)]+)\s*\)/gi, func: 'AVG' },
     { regex: /AVERAGE\s*\(\s*([^)]+)\s*\)/gi, func: 'AVG' },
     { regex: /COUNT\s*\(\s*DISTINCT\s+([^)]+)\s*\)/gi, func: 'COUNT_DISTINCT' },
-    { regex: /COUNT\s*\(\s*([^)]+)\s*\)/gi, func: 'COUNT' },
+    { regex: /COUNT\s*\(\s*(?!DISTINCT\b)([^)]+)\s*\)/gi, func: 'COUNT' },
     { regex: /MIN\s*\(\s*([^)]+)\s*\)/gi, func: 'MIN' },
     { regex: /MAX\s*\(\s*([^)]+)\s*\)/gi, func: 'MAX' },
 ];

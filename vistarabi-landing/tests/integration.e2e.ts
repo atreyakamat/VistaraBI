@@ -276,12 +276,13 @@ async function runAllTests() {
     process.exit(allPassed ? 0 : 1);
 }
 
-// Run if executed directly
-if (require.main === module) {
-    runAllTests().catch(error => {
-        console.error('Fatal test error:', error);
-        process.exit(1);
-    });
-}
+import { test, expect } from 'vitest';
+
+test('Integration Test Suite', async () => {
+    const integrationSuite = new IntegrationTestSuite();
+    await integrationSuite.runAll();
+    const allPassed = integrationSuite['results'].every(r => r.passed);
+    expect(allPassed).toBe(true);
+});
 
 export { runAllTests };
