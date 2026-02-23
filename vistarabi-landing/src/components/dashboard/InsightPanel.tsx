@@ -41,7 +41,7 @@ export function InsightPanel({
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-slate-700">
                     <div className="flex items-center gap-2">
-                        <span className="text-base">🧠</span>
+                        <span className="material-symbols-outlined text-base">psychology</span>
                         <h3 className="text-sm font-bold text-white">Insights</h3>
                         {activeAlerts.length > 0 && (
                             <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
@@ -81,7 +81,7 @@ export function InsightPanel({
                         </div>
                         {strongestUp && (
                             <div className="flex items-center gap-2 bg-green-500/10 rounded-lg p-2">
-                                <span className="text-sm">📈</span>
+                                <span className="material-symbols-outlined text-sm text-green-400">trending_up</span>
                                 <div className="min-w-0 flex-1">
                                     <div className="text-xs font-medium text-green-300 truncate">
                                         {strongestUp.kpiName.replace(/_/g, ' ')}
@@ -94,7 +94,7 @@ export function InsightPanel({
                         )}
                         {strongestDown && (
                             <div className="flex items-center gap-2 bg-red-500/10 rounded-lg p-2">
-                                <span className="text-sm">📉</span>
+                                <span className="material-symbols-outlined text-sm text-red-400">trending_down</span>
                                 <div className="min-w-0 flex-1">
                                     <div className="text-xs font-medium text-red-300 truncate">
                                         {strongestDown.kpiName.replace(/_/g, ' ')}
@@ -135,10 +135,10 @@ export function InsightPanel({
                                 className="bg-slate-800/50 rounded-lg p-2.5 border border-slate-700/50 insight-fade-in"
                             >
                                 <div className="flex items-start gap-2">
-                                    <span className="text-sm mt-0.5">
-                                        {item.type === 'anomaly' ? '⚠️' :
-                                            item.type === 'movement' ? '📊' :
-                                                item.type === 'trend' ? '📈' : '🔔'}
+                                    <span className="material-symbols-outlined text-sm mt-0.5 text-slate-400">
+                                        {item.type === 'anomaly' ? 'warning' :
+                                            item.type === 'movement' ? 'analytics' :
+                                                item.type === 'trend' ? 'trending_up' : 'notifications'}
                                     </span>
                                     <div className="min-w-0 flex-1">
                                         <div className="text-xs font-medium text-slate-200 truncate">
@@ -169,13 +169,13 @@ export function InsightPanel({
                             <div
                                 key={`alert-${alert.kpiId}-${i}`}
                                 className={`rounded-lg p-2.5 border insight-fade-in ${alert.severity === 'critical'
-                                        ? 'bg-red-500/10 border-red-500/30'
-                                        : 'bg-yellow-500/10 border-yellow-500/30'
+                                    ? 'bg-red-500/10 border-red-500/30'
+                                    : 'bg-yellow-500/10 border-yellow-500/30'
                                     }`}
                             >
                                 <div className="flex items-start gap-2">
-                                    <span className="text-sm">
-                                        {alert.severity === 'critical' ? '🔴' : '🟡'}
+                                    <span className={`material-symbols-outlined text-sm ${alert.severity === 'critical' ? 'text-red-500' : 'text-yellow-500'}`}>
+                                        {alert.severity === 'critical' ? 'error' : 'warning'}
                                     </span>
                                     <div className="min-w-0 flex-1">
                                         <div className="text-xs font-medium text-slate-200 truncate">

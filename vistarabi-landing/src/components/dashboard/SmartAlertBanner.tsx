@@ -1,7 +1,7 @@
 'use client';
 
-// Module 5C — Smart Alert Banner
-// Alert strip above KPI cards when anomaly thresholds are breached
+// Module 5C — Smart Alert Banner (Glassmorphism)
+// Alert strip with Material Symbols icons and glass styling
 
 import type { SmartAlert } from './types';
 
@@ -21,27 +21,26 @@ export function SmartAlertBanner({ alerts, onViewAll }: SmartAlertBannerProps) {
         return order[a.severity] - order[b.severity];
     })[0];
 
-    const bgColor = criticalCount > 0 ? '#FEF2F2' : '#FFFBEB';
-    const borderColor = criticalCount > 0 ? '#FECACA' : '#FDE68A';
-    const textColor = criticalCount > 0 ? '#DC2626' : '#D97706';
-    const icon = criticalCount > 0 ? '🔴' : '🟡';
+    const isCritical = criticalCount > 0;
 
     return (
         <div
-            className="alert-banner insight-fade-in"
+            className="glass-card insight-fade-in"
             style={{
-                background: bgColor,
-                border: `1px solid ${borderColor}`,
-                borderRadius: '10px',
-                padding: '10px 16px',
-                marginBottom: '16px',
+                background: isCritical ? 'rgba(254, 242, 242, 0.8)' : 'rgba(255, 251, 235, 0.8)',
+                borderColor: isCritical ? '#FECACA' : '#FDE68A',
+                padding: '12px 16px',
             }}
         >
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm flex-shrink-0">{icon}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                    <span className="material-symbols-outlined flex-shrink-0"
+                        style={{ color: isCritical ? '#DC2626' : '#D97706' }}>
+                        {isCritical ? 'error' : 'warning'}
+                    </span>
                     <div className="min-w-0">
-                        <span className="text-xs font-semibold" style={{ color: textColor }}>
+                        <span className="text-xs font-bold"
+                            style={{ color: isCritical ? '#DC2626' : '#D97706' }}>
                             {activeAlerts.length} Alert{activeAlerts.length > 1 ? 's' : ''}
                         </span>
                         {criticalCount > 0 && (
@@ -61,8 +60,11 @@ export function SmartAlertBanner({ alerts, onViewAll }: SmartAlertBannerProps) {
                 </div>
                 <button
                     onClick={onViewAll}
-                    className="text-[10px] font-semibold px-2.5 py-1 rounded-md transition-colors flex-shrink-0"
-                    style={{ color: textColor, background: `${textColor}15` }}
+                    className="text-[10px] font-semibold px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                    style={{
+                        color: isCritical ? '#DC2626' : '#D97706',
+                        background: isCritical ? 'rgba(220, 38, 38, 0.08)' : 'rgba(217, 119, 6, 0.08)',
+                    }}
                 >
                     View All →
                 </button>

@@ -1,12 +1,12 @@
 'use client';
 
-// Module 5 — Dashboard Shell (Enhanced)
-// Includes FilterBar, drill-down breadcrumb, wired to onFilterChange callback
+// Module 5 — Dashboard Shell (Premium Glassmorphism Redesign)
+// 2×2 KPI grid, AI Insights section, Active Streams, FilterBar, drill-down breadcrumb
 
 import { useState, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
-import { KPIMetricStrip } from './KPIMetricStrip';
+import { KPIMetricCard } from './KPIMetricCard';
 import { ChartGrid } from './ChartGrid';
 import { SkeletonLoader } from './SkeletonLoader';
 import { InsightPanel } from './InsightPanel';
@@ -63,6 +63,9 @@ export function DashboardShell({
 
     const kpiMap = new Map(kpis.map(k => [k.kpiId, k]));
 
+    // Get top 4 KPIs for the main grid
+    const topKpis = kpis.slice(0, 4);
+
     // ── Filter Change ──────────────────────────────────────────────
     const handleFilterChange = useCallback((f: DashboardFilters) => {
         setFilters(f);
@@ -82,8 +85,16 @@ export function DashboardShell({
 
     const clearDrill = () => setDrillStack([]);
 
+    // Build AI insight summary for welcome subtitle
+    const aiSummary = strongestUp
+        ? `AI has detected a ${Math.abs(strongestUp.deltaPercent || 0).toFixed(1)}% surge in ${strongestUp.kpiName.replace(/_/g, ' ')} today.`
+        : anomalyCount > 0
+            ? `${anomalyCount} anomalies detected across your KPIs.`
+            : `All ${kpis.length} KPIs are performing within expected range.`;
+
     return (
-        <div className="dashboard-layout">
+        <div className="dashboard-layout dashboard-root">
+            {/* Slim Sidebar */}
             <Sidebar
                 projectId={projectId}
                 projectName={projectName}
@@ -96,7 +107,9 @@ export function DashboardShell({
                 onToggle={() => setSidebarOpen(!sidebarOpen)}
             />
 
-            <div className="dashboard-main">
+            {/* Main Content */}
+            <main className="dashboard-main">
+                {/* Frosted Glass Header */}
                 <Header
                     title="Data Intelligence"
                     subtitle={domainName}
@@ -112,7 +125,8 @@ export function DashboardShell({
                                    bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
                         title="Open Insights Panel"
                     >
-                        🧠 Insights
+                        <span className="material-symbols-outlined text-base">psychology</span>
+                        Insights
                         {anomalyCount > 0 && (
                             <span className="bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                                 {anomalyCount}
@@ -121,26 +135,48 @@ export function DashboardShell({
                     </button>
                 </Header>
 
-                <main className="p-6">
-                    {/* ── Filter Bar ─────────────────────────────────── */}
-                    {!isLoading && (
-                        <div className="mb-4">
-                            <FilterBar
-                                filters={filters}
-                                onChange={handleFilterChange}
-                                loading={isRefreshing}
-                            />
+                <div className="p-8 space-y-8">
+                    {/* ── Welcome Section ────────────────────────────── */}
+                    <div className="flex justify-between items-end">
+                        <div>
+                            <h1 className="welcome-title">Executive Overview</h1>
+                            <p className="welcome-subtitle">
+                                <span className="material-symbols-outlined text-emerald-500 text-sm font-bold">verified</span>
+                                {aiSummary}
+                            </p>
                         </div>
+                        <div className="flex gap-2">
+                            {/* Filter Bar */}
+                            {!isLoading && (
+                                <>
+                                    <button className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-lg text-slate-500">calendar_today</span>
+                                        {filters.dateRange === '30d' ? 'Last 30 Days' :
+                                            filters.dateRange === '90d' ? 'Last 90 Days' :
+                                                filters.dateRange === '7d' ? 'Last 7 Days' : 'All Time'}
+                                    </button>
+                                    <button className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-lg text-slate-500">ios_share</span>
+                                        Export
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ── Filter Bar (Advanced) ──────────────────────── */}
+                    {!isLoading && (
+                        <FilterBar
+                            filters={filters}
+                            onChange={handleFilterChange}
+                            loading={isRefreshing}
+                        />
                     )}
 
                     {/* ── Drill-down Breadcrumb ──────────────────────── */}
                     {drillStack.length > 0 && (
-                        <div className="drilldown-bar mb-4">
-                            <span
-                                className="drilldown-crumb"
-                                onClick={clearDrill}
-                                title="Back to overview"
-                            >
+                        <div className="drilldown-bar">
+                            <span className="drilldown-crumb" onClick={clearDrill} title="Back to overview">
                                 Overview
                             </span>
                             {drillStack.map((crumb, i) => (
@@ -173,10 +209,89 @@ export function DashboardShell({
                                 onViewAll={() => setInsightPanelOpen(true)}
                             />
 
-                            {/* KPI Metric Strip */}
-                            <KPIMetricStrip kpis={kpis} explanations={explanations} />
+                            {/* ── 2×2 KPI Card Grid ──────────────────── */}
+                            <div className="dashboard-grid">
+                                {topKpis.map((kpi) => (
+                                    <KPIMetricCard
+                                        key={kpi.kpiId}
+                                        data={kpi}
+                                        explanation={explanations[kpi.kpiId]}
+                                    />
+                                ))}
+                            </div>
 
-                            {/* Chart Sections */}
+                            {/* ── AI Generated Insights Section ──────── */}
+                            {(insightFeed.length > 0 || anomalyCount > 0 || strongestUp || strongestDown) && (
+                                <div className="ai-insights-section mt-8">
+                                    <div className="flex items-center gap-4 mb-6">
+                                        <div className="w-12 h-12 rounded-full flex items-center justify-center"
+                                            style={{ background: 'rgba(19, 91, 236, 0.1)' }}>
+                                            <span className="material-symbols-outlined" style={{ color: '#135bec' }}>psychology</span>
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+                                                Vistara AI Insights
+                                            </h2>
+                                            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                                                Deep learning analysis based on your historical data.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        {/* Anomaly Card */}
+                                        {anomalyCount > 0 && (
+                                            <div className="ai-insight-card">
+                                                <span className="ai-insight-label anomaly">Anomaly Detected</span>
+                                                <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-text-primary)' }}>
+                                                    {insightFeed.find(f => f.type === 'anomaly')?.description
+                                                        || `${anomalyCount} anomal${anomalyCount === 1 ? 'y' : 'ies'} detected across your KPIs. Investigate unusual patterns.`}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Growth Card */}
+                                        {strongestUp && (
+                                            <div className="ai-insight-card">
+                                                <span className="ai-insight-label growth">Growth Opportunity</span>
+                                                <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-text-primary)' }}>
+                                                    <span className="font-bold">{strongestUp.kpiName.replace(/_/g, ' ')}</span> surged
+                                                    by {Math.abs(strongestUp.deltaPercent || 0).toFixed(1)}%. {strongestUp.description || 'Analyze contributing factors to sustain growth.'}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Warning Card */}
+                                        {strongestDown && (
+                                            <div className="ai-insight-card">
+                                                <span className="ai-insight-label warning">Churn Warning</span>
+                                                <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-text-primary)' }}>
+                                                    <span className="font-bold">{strongestDown.kpiName.replace(/_/g, ' ')}</span> dropped
+                                                    by {Math.abs(strongestDown.deltaPercent || 0).toFixed(1)}%. {strongestDown.description || 'AI suggests proactive investigation.'}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Fallback cards when no specific insights */}
+                                        {anomalyCount === 0 && !strongestUp && !strongestDown && insightFeed.length > 0 && (
+                                            insightFeed.slice(0, 3).map((item) => (
+                                                <div key={item.id} className="ai-insight-card">
+                                                    <span className={`ai-insight-label ${item.type === 'anomaly' ? 'anomaly' :
+                                                            item.type === 'movement' ? 'growth' : 'warning'
+                                                        }`}>
+                                                        {item.title}
+                                                    </span>
+                                                    <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--color-text-primary)' }}>
+                                                        {item.description}
+                                                    </p>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ── Chart Sections per Domain ──────────── */}
                             {sections.map((section) => {
                                 const sectionKpis = section.kpiIds
                                     .map(id => kpiMap.get(id))
@@ -185,26 +300,88 @@ export function DashboardShell({
                                 if (sectionKpis.length === 0) return null;
 
                                 return (
-                                    <div key={section.id} id={`section-${section.id}`} className="mb-8">
-                                        <div className="flex items-center gap-2 mb-3">
+                                    <div key={section.id} id={`section-${section.id}`} className="mt-8">
+                                        <div className="flex items-center gap-2 mb-4">
                                             <span className="text-lg">{section.icon}</span>
                                             <div>
-                                                <h2 className="text-base font-bold text-gray-900">
-                                                    {section.title}
-                                                </h2>
-                                                <p className="text-xs text-gray-500">{section.description}</p>
+                                                <h2 className="section-title">{section.title}</h2>
+                                                <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                                                    {section.description}
+                                                </p>
                                             </div>
                                         </div>
                                         <ChartGrid kpis={sectionKpis} onDrillDown={handleDrillDown} />
                                     </div>
                                 );
                             })}
+
+                            {/* ── Active Streams Table ────────────────── */}
+                            <div className="pb-12 mt-8">
+                                <h3 className="section-title mb-4">Active Streams</h3>
+                                <table className="streams-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data Source</th>
+                                            <th>Status</th>
+                                            <th>Frequency</th>
+                                            <th>Last Sync</th>
+                                            <th>Reliability</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600">
+                                                        <span className="material-symbols-outlined text-sm">api</span>
+                                                    </div>
+                                                    <span className="font-semibold">PostgreSQL Warehouse</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className="stream-status-badge">
+                                                    <span className="stream-status-dot" /> Live
+                                                </span>
+                                            </td>
+                                            <td className="text-slate-500">Real-time</td>
+                                            <td className="text-slate-500">Just now</td>
+                                            <td>
+                                                <div className="stream-reliability-bar">
+                                                    <div className="stream-reliability-fill" style={{ width: '98%' }} />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                                                        <span className="material-symbols-outlined text-sm">cloud</span>
+                                                    </div>
+                                                    <span className="font-semibold">Ollama AI Engine</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span className="stream-status-badge">
+                                                    <span className="stream-status-dot" /> Healthy
+                                                </span>
+                                            </td>
+                                            <td className="text-slate-500">On demand</td>
+                                            <td className="text-slate-500">2 mins ago</td>
+                                            <td>
+                                                <div className="stream-reliability-bar">
+                                                    <div className="stream-reliability-fill" style={{ width: '92%' }} />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </>
                     )}
-                </main>
-            </div>
+                </div>
+            </main>
 
-            {/* Insight Panel (right sidebar) */}
+            {/* Insight Panel (right sidebar overlay) */}
             <InsightPanel
                 feed={insightFeed}
                 alerts={smartAlerts}

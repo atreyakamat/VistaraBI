@@ -188,6 +188,97 @@ describe('Module 5B — Data Profiler', () => {
     });
 });
 
+// ─── Profiler Edge Cases ──────────────────────────────────────────
+
+describe('Module 5B — Data Profiler Edge Cases', () => {
+    let profiler: typeof import('../../src/lib/execution/data-profiler');
+
+    beforeEach(async () => {
+        profiler = await import('../../src/lib/execution/data-profiler');
+    });
+
+    it('should handle empty dataset', () => {
+        const result = profiler.profileDataset([]);
+        expect(result.recordCount).toBe(0);
+        expect(result.uniqueCategoryCount).toBe(0);
+        expect(result.volatilityIndex).toBe(0);
+        expect(result.distributionSkew).toBe(0);
+    });
+
+    it('should handle single data point', () => {
+        const result = profiler.profileDataset([{ label: 'A', value: 42 }]);
+        expect(result.recordCount).toBe(1);
+        expect(result.uniqueCategoryCount).toBe(1);
+        expect(result.volatilityIndex).toBe(0);
+        expect(result.isSequentialChange).toBe(false);
+    });
+
+    it('should detect right-skewed distribution (positive skewness)', () => {
+        // Right-skewed: many small values, few large values
+        const result = profiler.profileDataset([
+            { label: 'A', value: 10 },
+            { label: 'B', value: 12 },
+            { label: 'C', value: 11 },
+            { label: 'D', value: 15 },
+            { label: 'E', value: 100 },  // outlier
+        ]);
+        // Median < Mean → positive skew
+        expect(result.distributionSkew).toBeGreaterThan(0);
+    });
+
+    it('should detect left-skewed distribution (negative skewness)', () => {
+        // Left-skewed: many large values, few small values
+        const result = profiler.profileDataset([
+            { label: 'A', value: 5 },    // outlier
+            { label: 'B', value: 90 },
+            { label: 'C', value: 92 },
+            { label: 'D', value: 95 },
+            { label: 'E', value: 88 },
+        ]);
+        // Median > Mean → negative skew
+        expect(result.distributionSkew).toBeLessThan(0);
+    });
+
+    it('should report symmetric distribution (near-zero skewness)', () => {
+        const result = profiler.profileDataset([
+            { label: 'A', value: 10 },
+            { label: 'B', value: 20 },
+            { label: 'C', value: 30 },
+            { label: 'D', value: 20 },
+            { label: 'E', value: 10 },
+        ]);
+        // Small sample sizes can produce skew values up to ~0.8 even for symmetric data
+        expect(Math.abs(result.distributionSkew)).toBeLessThan(1.0);
+    });
+
+    it('should detect hierarchical labels with separators', () => {
+        const result = profiler.profileDataset([
+            { label: 'Electronics > Phones > iPhone', value: 100 },
+            { label: 'Electronics > Laptops > MacBook', value: 200 },
+            { label: 'Clothing > Shirts', value: 50 },
+        ]);
+        expect(result.hierarchicalDepth).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should classify high cardinality correctly', () => {
+        const manyCategories = Array.from({ length: 30 }, (_, i) => ({
+            label: `Category_${i}`, value: Math.random() * 100,
+        }));
+        const result = profiler.profileDataset(manyCategories);
+        expect(['high', 'very_high']).toContain(result.cardinalityLevel);
+    });
+
+    it('should detect multi-series from metadata', () => {
+        const result = profiler.profileDataset([
+            { label: '2024-01', value: 100, metadata: { series: 'Product A' } },
+            { label: '2024-01', value: 200, metadata: { series: 'Product B' } },
+            { label: '2024-02', value: 150, metadata: { series: 'Product A' } },
+            { label: '2024-02', value: 250, metadata: { series: 'Product B' } },
+        ]);
+        expect(result.numberOfSeries).toBe(2);
+    });
+});
+
 // ─── Types Contract Tests ─────────────────────────────────────────
 
 describe('Module 5B — Response Contract', () => {

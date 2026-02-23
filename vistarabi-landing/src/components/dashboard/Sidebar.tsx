@@ -1,6 +1,7 @@
 'use client';
 
-// Module 5A — Fixed Left Sidebar
+// Module 5A — Slim Icon Sidebar (Glassmorphism Redesign)
+// Matches premium template: w-20 icon-only nav, Material Symbols, active glow
 
 import { useRouter } from 'next/navigation';
 
@@ -14,6 +15,26 @@ interface SidebarProps {
     activeSection?: string;
     isOpen: boolean;
     onToggle: () => void;
+}
+
+// Map section icons to Material Symbols (fallback to emoji)
+const MATERIAL_ICONS: Record<string, string> = {
+    '📊': 'grid_view',
+    '💰': 'payments',
+    '👥': 'group',
+    '📈': 'trending_up',
+    '🎯': 'target',
+    '🔧': 'build',
+    '⚡': 'bolt',
+    '🏦': 'account_balance',
+    '🛒': 'shopping_cart',
+    '📦': 'inventory_2',
+    '🏥': 'local_hospital',
+    '🎓': 'school',
+};
+
+function getMaterialIcon(emoji: string): string {
+    return MATERIAL_ICONS[emoji] || 'analytics';
 }
 
 export function Sidebar({
@@ -33,75 +54,63 @@ export function Sidebar({
             )}
 
             <aside className={`dashboard-sidebar ${isOpen ? 'open' : ''}`}>
-                {/* Brand / Project */}
-                <div className="p-5 border-b border-white/10">
-                    <div className="flex items-center gap-3">
-                        <div
-                            className="w-9 h-9 rounded-lg flex items-center justify-center text-lg"
-                            style={{ background: domainColor + '22', color: domainColor }}
-                        >
-                            {domainIcon}
-                        </div>
-                        <div className="min-w-0">
-                            <div className="text-sm font-semibold text-white truncate">{projectName}</div>
-                            <div className="text-xs text-slate-400">{domainName}</div>
-                        </div>
-                    </div>
+                {/* Brand Logo */}
+                <div className="sidebar-logo">
+                    <span className="material-symbols-outlined text-3xl font-bold">query_stats</span>
                 </div>
 
-                {/* Navigation */}
-                <nav className="p-3 space-y-1">
-                    <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                        Dashboard
-                    </div>
-
+                {/* Main Navigation */}
+                <nav className="sidebar-nav">
+                    {/* Overview (always first) */}
                     <button
-                        className={`sidebar-nav-item w-full text-left ${!activeSection ? 'active' : ''}`}
+                        className={`sidebar-nav-item ${!activeSection ? 'active' : ''}`}
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        title="Overview"
                     >
-                        <span>📊</span>
-                        <span>Overview</span>
+                        <div className="nav-icon-wrapper">
+                            <span className="material-symbols-outlined">grid_view</span>
+                        </div>
                     </button>
 
-                    {sections.map((section) => (
+                    {/* Section nav items */}
+                    {sections.slice(0, 4).map((section) => (
                         <button
                             key={section.id}
-                            className={`sidebar-nav-item w-full text-left ${activeSection === section.id ? 'active' : ''}`}
+                            className={`sidebar-nav-item ${activeSection === section.id ? 'active' : ''}`}
                             onClick={() => {
                                 const el = document.getElementById(`section-${section.id}`);
                                 el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                             }}
+                            title={section.title}
                         >
-                            <span>{section.icon}</span>
-                            <span className="truncate">{section.title}</span>
+                            <div className="nav-icon-wrapper">
+                                <span className="material-symbols-outlined">
+                                    {getMaterialIcon(section.icon)}
+                                </span>
+                            </div>
                         </button>
                     ))}
-
-                    <div className="px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                        Actions
-                    </div>
-
-                    <button
-                        className="sidebar-nav-item w-full text-left"
-                        onClick={() => router.push(`/app/projects/${projectId}/kpis`)}
-                    >
-                        <span>🔧</span>
-                        <span>Edit KPIs</span>
-                    </button>
-
-                    <button
-                        className="sidebar-nav-item w-full text-left"
-                        onClick={() => router.push(`/app/projects/${projectId}`)}
-                    >
-                        <span>← </span>
-                        <span>Back to Project</span>
-                    </button>
                 </nav>
 
-                {/* Version Info */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
-                    <div className="text-[10px] text-slate-500">
-                        VistaraBI • Data Intelligence Interface
+                {/* Footer Actions */}
+                <div className="sidebar-footer">
+                    <button
+                        className="sidebar-nav-item"
+                        onClick={() => router.push(`/app/projects/${projectId}/kpis`)}
+                        title="Edit KPIs"
+                    >
+                        <span className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-all">
+                            settings
+                        </span>
+                    </button>
+
+                    <div className="sidebar-avatar">
+                        <div
+                            className="w-full h-full rounded-full flex items-center justify-center text-sm font-bold"
+                            style={{ background: domainColor + '22', color: domainColor }}
+                        >
+                            {projectName.charAt(0).toUpperCase()}
+                        </div>
                     </div>
                 </div>
             </aside>
