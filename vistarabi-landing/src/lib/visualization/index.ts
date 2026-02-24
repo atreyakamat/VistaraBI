@@ -17,6 +17,7 @@ import { loadProjectData, findSourceForColumn } from './data-loader';
 import { computeKPI, computeTimeSeries, computeGroupedKPI } from './kpi-computer';
 import { applyFilters, applyDrillDown, applyCrossFilter, findDrillDownColumns, getFilterOptions } from './filter-engine';
 import type { DashboardConfigSchema, DashboardSection, DashboardKPICard } from '../dashboard/types';
+import { loadBlueprintWithKPIs } from '../kpi/blueprint-loader';
 
 // ─── Main Dashboard Data Computation ──────────────────────────────
 
@@ -49,8 +50,8 @@ export async function computeDashboardData(
     // 2. Load KPI lineage registry from Module 4D-B
     const lineageEntries = await loadLineageRegistry(projectId);
 
-    // 3. Load project data
-    const dataMap = await loadProjectData(projectId);
+    // 3. (Data load removed, visualization module now leans on executor but we keep types for legacy)
+    const dataMap = { projectId, sources: new Map() } as ProjectDataMap;
 
     // 4. Apply global filters to data if present
     let filteredDataMap = dataMap;
@@ -66,7 +67,7 @@ export async function computeDashboardData(
 
     for (const section of dashboardConfig.sections) {
         for (const card of section.cards) {
-            const lineage = lineageEntries.find(e => e.kpiId === card.kpiId);
+            const lineage = lineageEntries.find(e => e.kpiId === card.kpiId || e.id === card.kpiId);
 
             if (!lineage) {
                 console.log(`[Visualization] No lineage found for KPI: ${card.kpiName}, skipping`);
@@ -150,11 +151,11 @@ export async function computeSingleKPI(
     }
 ): Promise<KPIDataResult | null> {
     const lineageEntries = await loadLineageRegistry(projectId);
-    const lineage = lineageEntries.find(e => e.kpiId === kpiId);
+    const lineage = lineageEntries.find(e => e.kpiId === kpiId || e.id === kpiId);
 
     if (!lineage) return null;
 
-    const dataMap = await loadProjectData(projectId);
+    const dataMap = { projectId, sources: new Map() } as ProjectDataMap;
     let filteredDataMap = dataMap;
 
     if (options?.filters && options.filters.filters.length > 0) {
@@ -183,7 +184,7 @@ export async function applyCrossFilterAndRecompute(
     granularity: TimeGranularity = 'monthly'
 ): Promise<ChartDataPayload[]> {
     const lineageEntries = await loadLineageRegistry(projectId);
-    const dataMap = await loadProjectData(projectId);
+    const dataMap = { projectId, sources: new Map() } as ProjectDataMap;
 
     // Apply cross-filter to data
     const filteredRows = applyCrossFilter(dataMap, event);
@@ -206,7 +207,7 @@ export async function applyCrossFilterAndRecompute(
     // Recompute affected KPIs
     const results: ChartDataPayload[] = [];
     for (const kpiId of event.affectedKpiIds) {
-        const lineage = lineageEntries.find(e => e.kpiId === kpiId);
+        const lineage = lineageEntries.find(e => e.kpiId === kpiId || e.id === kpiId);
         if (!lineage) continue;
 
         const data = computeTimeSeries(lineage, filteredDataMap, granularity);
@@ -254,16 +255,38 @@ async function loadDashboardConfig(projectId: string): Promise<DashboardConfigSc
 }
 
 /**
- * Load KPI lineage entries from Module 4D-B registry.
+ * Load KPI lineage entries from the Relational Blueprint.
  */
 async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]> {
-    const registry = await db.kPILineageRegistry.findUnique({
-        where: { projectId },
-    });
+    const blueprint = await loadBlueprintWithKPIs(projectId);
+    if (!blueprint || blueprint.kpis.length === 0) return [];
 
-    if (!registry || !registry.entries) return [];
-
-    return registry.entries as unknown as KPILineageEntry[];
+    return blueprint.kpis.map((kpi: any) => ({
+        id: kpi.id,
+        projectId,
+        kpiId: kpi.kpiLibraryId || kpi.id,
+        kpiName: kpi.name,
+        domain: blueprint.domain || 'General',
+        formula: kpi.lineage?.formula || '',
+        category: kpi.category,
+        sources: [{
+            sourceId: kpi.sourceTable,
+            sourceName: kpi.sourceTable,
+            columns: kpi.aggregations.map((a: any) => a.column),
+            role: 'PRIMARY'
+        }],
+        joinPaths: (kpi.lineage?.joins as any[]) || [],
+        aggregations: kpi.aggregations.map((a: any) => ({
+            function: a.function as any,
+            column: a.column,
+            sourceId: kpi.sourceTable,
+        })),
+        technicalExplanation: 'Generated from relational BI Definition Layer',
+        businessExplanation: 'Domain-defined structured metric',
+        aiEnhanced: false,
+        confidence: 100,
+        tracedAt: kpi.updatedAt,
+    } as KPILineageEntry));
 }
 
 /**

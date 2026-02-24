@@ -109,6 +109,7 @@ export interface ExecutionOptions {
     granularity?: TimeGranularity;
     filters?: Filter[];
     groupBy?: string;
+    dateColumn?: string;
     dateFrom?: string;
     dateTo?: string;
     skipCache?: boolean;

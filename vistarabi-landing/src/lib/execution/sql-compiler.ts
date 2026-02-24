@@ -91,6 +91,7 @@ function compileSelectClause(
     granularity?: string,
     dateColumn?: string,
     drillByColumn?: string,
+    formula?: string,
 ): string {
     const parts: string[] = [];
 
@@ -110,9 +111,9 @@ function compileSelectClause(
         parts.push(`${qi(drillByColumn)} AS ${qi(drillByColumn)}`);
     }
 
-    // Aggregation expressions
+    // Aggregation expressions (for chart tooltips, etc)
     for (const agg of aggregations) {
-        const alias = `${agg.function.toLowerCase()}_${agg.column.replace(/\W/g, '_')}`;
+        const alias = `${agg.function.toLowerCase()}_${agg.column.replace(/\\W/g, '_')}`;
         if (agg.function === 'COUNT_DISTINCT') {
             parts.push(`COUNT(DISTINCT ${qi(agg.column)}) AS ${qi(alias)}`);
         } else {
@@ -122,15 +123,17 @@ function compileSelectClause(
         }
     }
 
-    // Single-value shortcut: if only one aggregation and no grouping, also alias as "value"
-    if (aggregations.length === 1 && groupBys.length === 0 && !granularity && !drillByColumn) {
-        // Replace first to use "value" alias
-        const agg = aggregations[0];
-        if (agg.function === 'COUNT_DISTINCT') {
-            return `SELECT COUNT(DISTINCT ${qi(agg.column)}) AS "value"`;
-        }
-        const fn = AGG_SQL_MAP[agg.function]!;
-        return `SELECT ${fn}(${qi(agg.column)}) AS "value"`;
+    // Include the primary KPI computed "value"
+    if (formula) {
+        // Strip descriptive pseudo-SQL from library formulas
+        let safeFormula = formula.split(/\s+BY\s+/i)[0].split(/\s+WHERE\s+/i)[0].split(/\s+ORDER\s+BY\s+/i)[0];
+        safeFormula = safeFormula.replace(/COUNT\(([^)]+)\)/gi, 'NULLIF(COUNT($1), 0)');
+        // A minimal safe wrapper for basic division: but the simplest is just projecting the formula
+        parts.push(`(${safeFormula}) AS "value"`);
+    } else if (aggregations.length > 0) {
+        const primaryAgg = aggregations[0];
+        const fn = primaryAgg.function === 'COUNT_DISTINCT' ? `COUNT(DISTINCT ${qi(primaryAgg.column)})` : `${AGG_SQL_MAP[primaryAgg.function]}(${qi(primaryAgg.column)})`;
+        parts.push(`${fn} AS "value"`);
     }
 
     if (parts.length === 0) {
@@ -305,6 +308,7 @@ export function compileFullQuery(ctx: CompilationContext): CompiledQuery {
         granularity,
         dateColumn,
         drillByColumn,
+        (kpi as any).lineage?.formula || (kpi as any).formula
     );
     const fromClause = compileFromClause(kpi.sourceTable);
     const joinClause = compileJoinClause(kpi.lineage);
@@ -380,7 +384,7 @@ export function compileScalarQuery(ctx: CompilationContext): CompiledQuery {
         throw new Error(`[SQL Compiler] KPI "${kpi.name}" has no AggregationRules — cannot compile`);
     }
 
-    const selectClause = compileSelectClause(kpi.aggregations, [], undefined, undefined, undefined);
+    const selectClause = compileSelectClause(kpi.aggregations, [], undefined, undefined, undefined, (kpi as any).lineage?.formula || (kpi as any).formula);
     const fromClause = compileFromClause(kpi.sourceTable);
     const joinClause = compileJoinClause(kpi.lineage);
     const { clause: whereClause, params } = compileWhereClause(filters);

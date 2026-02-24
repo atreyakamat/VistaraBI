@@ -24,6 +24,7 @@ import {
     setCachedResult,
 } from './cache';
 import { loadBlueprintWithKPIs } from '../kpi/blueprint-loader';
+import { getAllKPIs } from '../kpi/kpi-library';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -82,14 +83,52 @@ export async function executeKPI(
         throw new Error(`[Executor] KPI "${targetKpiId}" lacks aggregation rules`);
     }
 
-    // Extract time column from lineage joins/tables as fallback if not explicitly provided
-    // In a real scenario, dateColumn should come from UI/User selection. We infer heuristically here.
-    let possibleDateColumn: string | undefined = undefined;
-    if (options.dateFrom || options.dateTo || options.granularity) {
-        // Naive heuristic: look for 'date' or 'time' in any grouping or lineage.
-        // Usually, the date column is sent from the frontend filter.
-        const allCols = [...kpi.groupBys.map(g => g.column), 'date', 'order_date', 'created_at'];
-        possibleDateColumn = allCols.find(c => c.toLowerCase().includes('date') || c.toLowerCase().includes('time')) || 'date';
+    // Fetch schema dynamically to bridge Semantic Library names -> physical table columns
+    const colRes = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = $1`, [kpi.sourceTable]);
+    const actualCols = colRes.rows.map(r => r.column_name.toLowerCase());
+
+    const libraryDefinition = getAllKPIs().find(k => k.id === kpi.kpiLibraryId);
+    const aliases = libraryDefinition?.columnAliases || {};
+
+    const resolveColumn = (col: string) => {
+        const lower = col.toLowerCase();
+        if (actualCols.includes(lower)) return lower;
+        if (aliases[lower]) {
+            const match = aliases[lower].find(a => actualCols.includes(a.toLowerCase()));
+            if (match) return match.toLowerCase();
+        }
+        // Fallback fuzzy match
+        const fuzzy = actualCols.find(c => c.includes(lower) || lower.includes(c));
+        return fuzzy || lower;
+    };
+
+    // Rewrite metric and dimension columns dynamically based on physical table
+    for (const agg of kpi.aggregations) {
+        agg.column = resolveColumn(agg.column);
+    }
+    for (const gb of kpi.groupBys) {
+        gb.column = resolveColumn(gb.column);
+    }
+    if (kpi.lineage?.formula) {
+        let f = kpi.lineage.formula;
+        for (const [semanticCol, _] of Object.entries(aliases)) {
+            const actual = resolveColumn(semanticCol);
+            if (actual !== semanticCol.toLowerCase()) {
+                f = f.replace(new RegExp(`\\b${semanticCol}\\b`, 'gi'), actual);
+            }
+        }
+        kpi.lineage.formula = f;
+    }
+
+    let possibleDateColumn: string | undefined = options.dateColumn;
+    if (!possibleDateColumn && (options.dateFrom || options.dateTo || options.granularity)) {
+        let dc = resolveColumn('date');
+        if (!actualCols.includes(dc)) dc = resolveColumn('order_date');
+        if (!actualCols.includes(dc)) {
+            const kw = ['date', 'time', 'created', 'updated', 'timestamp', 'day', 'month', 'year'];
+            dc = actualCols.find(c => kw.some(k => c.includes(k))) || 'date';
+        }
+        possibleDateColumn = dc;
     }
 
     // Map filters to ExecutionFilters
@@ -328,7 +367,7 @@ export async function executeDashboard(
 
     for (const section of config.sections) {
         for (const card of section.cards) {
-            const lineage = lineageEntries.find(e => e.kpiId === card.kpiId);
+            const lineage = lineageEntries.find(e => e.kpiId === card.kpiId || e.id === card.kpiId);
 
             // BOUNDARY ENFORCEMENT: A Dashboard Config should never ask to execute a raw string with no lineage
             if (!lineage) {
@@ -398,7 +437,7 @@ export async function executeDrill(
     options: ExecutionOptions = {}
 ): Promise<KPIExecutionResult> {
     const lineageEntries = await loadLineageRegistry(projectId);
-    const lineage = lineageEntries.find(e => e.kpiId === kpiId);
+    const lineage = lineageEntries.find(e => e.kpiId === kpiId || e.id === kpiId);
 
     if (!lineage) {
         throw new Error(`No lineage found for KPI: ${kpiId}`);
@@ -430,7 +469,7 @@ async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]
     const blueprint = await loadBlueprintWithKPIs(projectId);
     if (!blueprint || blueprint.kpis.length === 0) return [];
 
-    return blueprint.kpis.map(kpi => ({
+    return blueprint.kpis.map((kpi: any) => ({
         id: kpi.id,
         projectId,
         kpiId: kpi.kpiLibraryId || kpi.id,
@@ -441,11 +480,11 @@ async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]
         sources: [{
             sourceId: kpi.sourceTable,
             sourceName: kpi.sourceTable,
-            columns: kpi.aggregations.map(a => a.column),
+            columns: kpi.aggregations.map((a: any) => a.column),
             role: 'PRIMARY'
         }],
         joinPaths: (kpi.lineage?.joins as any[]) || [],
-        aggregations: kpi.aggregations.map(a => ({
+        aggregations: kpi.aggregations.map((a: any) => ({
             function: a.function as any,
             column: a.column,
             sourceId: kpi.sourceTable,
