@@ -3,6 +3,7 @@
 
 export { executeDashboard, executeKPI, executeDrill } from './kpi-executor';
 export { invalidateProject, invalidateKPI, invalidateExplanations, getCacheStats, clearAllCaches } from './cache';
+export { destroyPool } from './pool';
 export { profileDataset } from './data-profiler';
 export { getKPIExplanation, batchGenerateExplanations } from './explanation-cache';
 

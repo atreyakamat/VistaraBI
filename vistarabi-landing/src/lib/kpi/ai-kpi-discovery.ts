@@ -6,6 +6,7 @@ import db from '@/lib/prisma';
 import type { DomainType } from '@/lib/prisma';
 import { getGovernedDomain } from '@/lib/domain/governance';
 import { checkOllamaHealth, generateCompletion } from '@/lib/ai/ollama-client';
+import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { getDerivedKPIsForDomain, checkDerivedKPIDependencies, type DerivedKPIDefinition } from './derived-kpi-library';
 
 // AI KPI Proposal - invented KPIs suggested by AI
@@ -54,7 +55,8 @@ async function gatherDiscoveryContext(projectId: string): Promise<DiscoveryConte
     const sources = await db.source.findMany({ where: { projectId } });
     console.log('[AI-Discovery] ✓ Found', sources.length, 'data sources');
 
-    const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId } });
+    const blueprint = await loadBlueprintWithKPIs(projectId);
+    const existingKpiIds = blueprint?.kpis.map(k => k.kpiLibraryId || k.id) || [];
 
     // Get all columns and sample values
     const allColumns: string[] = [];
@@ -82,8 +84,6 @@ async function gatherDiscoveryContext(projectId: string): Promise<DiscoveryConte
 
     console.log('[AI-Discovery] ✓ Total columns:', allColumns.length);
     console.log('[AI-Discovery] ✓ Columns with samples:', Object.keys(sampleValues).length);
-
-    const existingKpiIds = (blueprint?.kpis as any[])?.map((k: any) => k.kpiId) || [];
 
     return {
         projectId,

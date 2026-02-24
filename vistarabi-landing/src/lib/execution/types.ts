@@ -69,6 +69,11 @@ export interface ExecutionPerformance {
     profilingTimeMs: number;
     cacheHit: boolean;
     cacheKey: string | null;
+    // New SQL Execution metrics
+    queryTimeMs?: number;
+    rowsReturned?: number;
+    executionMethod?: 'sql' | 'memory-fallback';
+    executionContext?: 'primary' | 'comparison' | 'drill-down';
 }
 
 // ─── Cache Types ──────────────────────────────────────────────────

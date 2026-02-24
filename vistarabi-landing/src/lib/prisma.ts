@@ -195,20 +195,81 @@ export interface ComputableKPI {
     confidence: number;
 }
 
-// KPI Blueprint Types
-// Stored in KPIBlueprint.kpis (Json)
+// ─── Relational KPI Blueprint Types ─────────────────────────────────────────
+// Explicit interfaces matched to the Prisma schema — no import needed.
+// These are the ground-truth shapes for Module 4 ↔ Module 5 data contracts.
+
+export type AggregationFunction = 'SUM' | 'COUNT' | 'COUNT_DISTINCT' | 'AVG' | 'MIN' | 'MAX';
+
+export interface AggregationRule {
+    id: string;
+    kpiId: string;
+    function: AggregationFunction;
+    column: string;
+}
+
+export interface GroupByDefinition {
+    id: string;
+    kpiId: string;
+    column: string;
+}
+
+export interface LineageDefinition {
+    id: string;
+    kpiId: string;
+    formula: string;
+    tables: any;   // Json → string[] at runtime
+    joins: any;    // Json → JoinPath[] at runtime
+}
 
 export interface ApprovedKPI {
     id: string;
+    blueprintId: string;
+    kpiLibraryId: string | null;
     name: string;
-    aggregations: { function: string; column: string }[];
+    description: string | null;
     sourceTable: string;
+    category: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface KPIBlueprint {
+    id: string;
+    projectId: string;
+    domain: string;
+    version: number;
+    isLocked: boolean;
+    lockedAt: Date | null;
+    lockedBy: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+// Hydrated shapes with relations resolved
+export type ApprovedKPIWithRelations = ApprovedKPI & {
+    aggregations: AggregationRule[];
+    groupBys: GroupByDefinition[];
+    lineage: LineageDefinition | null;
+};
+
+export type BlueprintWithKPIs = KPIBlueprint & {
+    kpis: ApprovedKPIWithRelations[];
+};
+
+// ─── Legacy compatibility shim ───────────────────────────────────────────────
+// Flat shape for the execution engine and lineage modules.
+// Must be explicitly constructed from ApprovedKPIWithRelations using flattenKPI().
+export interface FlatApprovedKPI {
+    id: string;
+    name: string;
+    category: string;
+    sourceTable: string;
+    aggregations: { function: string; column: string }[];
     groupBy: string | null;
     lineage: {
         tables: string[];
         joins: any[];
         formula: string;
     };
-    category?: string;
-    addedAt?: Date | string;
 }

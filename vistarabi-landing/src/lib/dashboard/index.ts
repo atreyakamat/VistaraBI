@@ -2,12 +2,13 @@
 // Generates dashboard configs with chart intelligence and AI explanations
 
 import db from '../prisma';
-import type { ApprovedKPI, DomainType } from '../prisma';
+import type { DomainType } from '../prisma';
 import type { DashboardConfigSchema, DashboardMetadata } from './types';
 import { buildSections } from './section-builder';
 import { buildSidebarConfig } from './sidebar-builder';
 import { generateKPIExplanations } from './kpi-explainer';
 import { DOMAIN_LIBRARIES } from '../domain/domain-keywords';
+import { loadBlueprintWithKPIs, flattenKPI } from '../kpi/blueprint-loader';
 
 /**
  * Generate (or regenerate) a complete dashboard configuration.
@@ -17,9 +18,8 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     console.log('[Dashboard] Generating config for:', projectId);
 
     // 1. Fetch upstream data
-    const [project, blueprint, domainDetection] = await Promise.all([
+    const [project, domainDetection] = await Promise.all([
         db.project.findUnique({ where: { id: projectId }, select: { id: true, name: true } }),
-        db.kPIBlueprint.findUnique({ where: { projectId } }),
         db.domainDetection.findUnique({ where: { projectId } }),
     ]);
 
@@ -27,26 +27,17 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
         throw new Error(`Project not found: ${projectId}`);
     }
 
-    // 2. Extract and strictly validate KPIs from blueprint
-    const rawKpis: any[] = blueprint
-        ? ((blueprint.kpis as any) || [])
-        : [];
+    // 2. Load blueprint via relational loader — returns null if none exists
+    const blueprint = await loadBlueprintWithKPIs(projectId);
+    const rawKpis = blueprint?.kpis || [];
 
-    // Boundary Enforcement: Filter out raw strings or invalid objects.
-    // Supports both new schema (id + aggregations) and old schema (kpiId + formula) for backwards compat.
-    const kpis: ApprovedKPI[] = rawKpis.filter(kpi =>
-        typeof kpi === 'object' &&
-        kpi !== null &&
-        // New Domain-Driven schema (id + aggregations required)
-        (typeof kpi.id === 'string' && Array.isArray(kpi.aggregations)) ||
-        // Legacy schema fallback
-        (typeof kpi.kpiId === 'string' && typeof kpi.formula === 'string')
-    );
+    // Boundary Enforcement: every KPI must have at least one AggregationRule
+    const kpis = rawKpis.filter(kpi => kpi.aggregations && kpi.aggregations.length > 0);
 
     if (kpis.length === 0) {
         if (rawKpis.length > 0) {
-            console.error('[Dashboard] CRITICAL BOUNDARY FAILURE: Blueprint KPIs lack required structure. Got:', JSON.stringify(rawKpis[0], null, 2));
-            throw new Error('Fatal Structural Error: Module 4 Blueprint KPIs are missing required fields (id, aggregations). Please reset your blueprint.');
+            console.error('[Dashboard] BOUNDARY FAILURE: KPIs exist but none have AggregationRules:', rawKpis.map(k => k.id));
+            throw new Error('Blueprint KPIs are missing aggregation rules. Please reset your blueprint.');
         }
         throw new Error('No approved KPIs found. Please finalize your KPI Blueprint first.');
     }

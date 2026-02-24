@@ -7,8 +7,9 @@ import db, {
     KPIJoin,
     KPIAggregation,
     EntityRelationshipGraph,
-    ApprovedKPI,
 } from '@/lib/prisma';
+import type { ApprovedKPIWithRelations } from '@/lib/prisma';
+import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { buildEntityGraph, findEntityPath } from './relationship-graph';
 
 // Aggregation function patterns in formulas
@@ -136,7 +137,7 @@ function generateExplanation(
 // Trace lineage for a single KPI
 export async function traceKPILineage(
     projectId: string,
-    kpi: ApprovedKPI,
+    kpi: ApprovedKPIWithRelations,
     entityGraph: EntityRelationshipGraph,
     sources: { id: string; name: string; columns: string[] }[]
 ): Promise<KPILineage> {
@@ -239,9 +240,9 @@ export async function traceKPILineage(
 export async function traceAllKPILineages(projectId: string): Promise<KPILineage[]> {
     console.log('[KPILineage] Tracing all KPIs for project:', projectId);
 
-    // Get blueprint
-    const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId } });
-    const kpis = (blueprint?.kpis as any[]) || [];
+    // Get blueprint via relational loader
+    const blueprint = await loadBlueprintWithKPIs(projectId);
+    const kpis = blueprint?.kpis || [];
 
     if (!blueprint || kpis.length === 0) {
         console.log('[KPILineage] No KPIs in blueprint');
@@ -259,8 +260,8 @@ export async function traceAllKPILineages(projectId: string): Promise<KPILineage
 
     // Trace each KPI
     const lineages: KPILineage[] = [];
-    for (const kpi of kpis as ApprovedKPI[]) {
-        const lineage = await traceKPILineage(projectId, kpi, entityGraph, readySources);
+    for (const kpi of kpis) {
+        const lineage = await traceKPILineage(projectId, kpi as any, entityGraph, readySources);
         lineages.push(lineage);
     }
 

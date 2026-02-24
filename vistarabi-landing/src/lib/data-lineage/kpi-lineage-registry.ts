@@ -8,9 +8,9 @@ import db, {
     KPISourceContribution,
     KPIAggregation,
     KPIJoinPath,
-    ApprovedKPI,
     RelationshipEntry,
 } from '@/lib/prisma';
+import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { getRelationshipRegistry } from './relationship-registry';
 import {
     generateExplanations,
@@ -118,7 +118,7 @@ export function findJoinPaths(
 // Trace lineage for a single KPI
 export async function traceKPILineage(
     projectId: string,
-    kpi: ApprovedKPI,
+    kpi: any, // ApprovedKPIWithRelations — typed via loadBlueprintWithKPIs
     sources: { id: string; name: string; columns: string[] }[],
     relationships: RelationshipEntry[],
     useAI: boolean
@@ -224,9 +224,9 @@ export async function buildKPILineageRegistry(
     console.log('[KPILineageRegistry] AI enhancement:', useAI ? 'enabled' : 'disabled');
     console.log('[KPILineageRegistry] ========================================');
 
-    // Get KPI blueprint
-    const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId } });
-    const kpis = (blueprint?.kpis as unknown as ApprovedKPI[]) || [];
+    // Get KPI blueprint via relational loader
+    const blueprint = await loadBlueprintWithKPIs(projectId);
+    const kpis = blueprint?.kpis || [];
     if (!blueprint || kpis.length === 0) {
         console.log('[KPILineageRegistry] No KPIs in blueprint');
         return createEmptyRegistry(projectId);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/prisma';
+import { loadBlueprintWithKPIs, flattenKPI } from '@/lib/kpi/blueprint-loader';
 
 // POST /api/projects/[id]/kpi-blueprint/finalize - Lock the blueprint
 export async function POST(
@@ -17,12 +17,18 @@ export async function POST(
         if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         if (project.userId !== user.userId) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
 
-        const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId: id } });
+        // ── Load with relational data ──
+        const blueprint = await loadBlueprintWithKPIs(id);
         if (!blueprint) return NextResponse.json({ error: 'No blueprint to finalize' }, { status: 404 });
         if (blueprint.isLocked) return NextResponse.json({ error: 'Already locked' }, { status: 400 });
 
-        const kpis = blueprint.kpis as any[];
-        if (!kpis || kpis.length === 0) return NextResponse.json({ error: 'Cannot lock empty blueprint' }, { status: 400 });
+        // ── Enforce: must have at least one KPI with at least one AggregationRule ──
+        const validKPIs = blueprint.kpis.filter(k => k.aggregations.length > 0);
+        if (validKPIs.length === 0) {
+            return NextResponse.json({
+                error: 'Cannot finalize: Blueprint has no KPIs with valid aggregation rules.',
+            }, { status: 400 });
+        }
 
         const locked = await db.kPIBlueprint.update({
             where: { projectId: id },
@@ -30,27 +36,29 @@ export async function POST(
                 isLocked: true,
                 lockedAt: new Date(),
                 lockedBy: user.userId,
-                version: blueprint.version + 1,
+                version: { increment: 1 },
             },
         });
 
         await db.kPIBlueprintHistory.create({
             data: {
-                id: randomUUID(),
                 projectId: id,
                 version: locked.version,
                 action: 'LOCK',
                 kpiId: 'BLUEPRINT',
-                kpiName: `Locked with ${kpis.length} KPIs`,
+                kpiName: `Locked with ${validKPIs.length} KPIs`,
                 changedBy: user.userId,
-                changedAt: new Date(),
             },
         });
 
+        const finalBlueprint = await loadBlueprintWithKPIs(id);
         return NextResponse.json({
             success: true,
-            blueprint: locked,
-            message: `Blueprint finalized with ${kpis.length} KPIs`,
+            blueprint: {
+                ...locked,
+                kpis: finalBlueprint?.kpis.map(flattenKPI) || [],
+            },
+            message: `Blueprint finalized with ${validKPIs.length} KPIs`,
         });
     } catch (error) {
         console.error('Finalize blueprint error:', error);

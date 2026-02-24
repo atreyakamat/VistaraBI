@@ -5,6 +5,7 @@ import {
     buildKPILineageRegistry,
     getKPILineageRegistry,
 } from '@/lib/data-lineage/kpi-lineage-registry';
+import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 
 // GET /api/projects/[id]/kpi-lineage - Get KPI lineage registry
 export async function GET(
@@ -117,8 +118,8 @@ export async function POST(
         }
 
         // Check if project has KPI blueprint
-        const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId: id } });
-        if (!blueprint || !blueprint.kpis || (blueprint.kpis as any[]).length === 0) {
+        const blueprint = await loadBlueprintWithKPIs(id);
+        if (!blueprint || blueprint.kpis.length === 0) {
             return NextResponse.json({
                 error: 'No KPIs found in blueprint. Please finalize KPIs first.',
             }, { status: 400 });

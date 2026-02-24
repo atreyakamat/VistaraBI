@@ -2,7 +2,7 @@
 // Groups KPIs into business-centric dashboard sections
 // Uses the new chart intelligence engine for chart selection
 
-import type { ApprovedKPI } from '../prisma';
+import type { ApprovedKPIWithRelations } from '../prisma';
 import type { DashboardSection, DashboardKPICard, ChartSelection } from './types';
 import { selectChart, profileData } from './chart-inferrer';
 import { KPI_LIBRARY } from '../kpi/kpi-library';
@@ -32,7 +32,7 @@ const FALLBACK_SECTION = {
  * Groups KPIs by category, sorts by priority, assigns chart types via profiling engine.
  */
 export function buildSections(
-    kpis: ApprovedKPI[],
+    kpis: ApprovedKPIWithRelations[],
     domain: DomainType | null,
     domainColor: string
 ): DashboardSection[] {
@@ -41,7 +41,7 @@ export function buildSections(
     // Group KPIs into sections by category
     const sectionMap = new Map<string, {
         definition: typeof SECTION_DEFINITIONS[0];
-        kpis: ApprovedKPI[];
+        kpis: ApprovedKPIWithRelations[];
     }>();
 
     for (const kpi of kpis) {

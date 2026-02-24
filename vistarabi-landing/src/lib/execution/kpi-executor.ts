@@ -12,11 +12,9 @@ import type {
     DashboardExecutionResult,
 } from './types';
 import type { DashboardConfigSchema, DashboardKPICard, ChartType, ChartLibrary } from '../dashboard/types';
-
 import db from '../prisma';
-import { loadProjectData } from '../visualization/data-loader';
-import { computeKPI, computeTimeSeries, computeGroupedKPI } from '../visualization/kpi-computer';
-import { applyFilters, findDrillDownColumns } from '../visualization/filter-engine';
+import pool from './pool';
+import { compileFullQuery, compileComparisonQuery, compileScalarQuery, type CompilationContext, type ExecutionFilters } from './sql-compiler';
 import { profileDataset } from './data-profiler';
 import { selectChart } from '../dashboard/chart-inferrer';
 import { getKPIExplanation } from './explanation-cache';
@@ -25,7 +23,7 @@ import {
     getCachedResult,
     setCachedResult,
 } from './cache';
-import type { ProjectDataMap } from '../visualization/types';
+import { loadBlueprintWithKPIs } from '../kpi/blueprint-loader';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -36,18 +34,18 @@ const GROUP_BY_ROW_LIMIT = 1000;
 // ─── Execute Single KPI ───────────────────────────────────────────
 
 /**
+/**
  * Execute a single KPI and return a structured result.
- * This is the core function of Module 5B.
+ * This is the deterministic SQL compiler path.
  */
 export async function executeKPI(
     projectId: string,
     kpiId: string,
-    lineage: KPILineageEntry,
-    dataMap: ProjectDataMap,
     options: ExecutionOptions = {}
 ): Promise<KPIExecutionResult> {
     const startTime = Date.now();
-    const timings = { dataLoadMs: 0, computeMs: 0, profilingMs: 0 };
+    const timings = { dataLoadMs: 0, computeMs: 0, profilingMs: 0, queryMs: 0 };
+    let rowsReturned = 0;
 
     // ── Step 1: Check cache ──
     const cacheKey = buildCacheKey(projectId, kpiId, {
@@ -72,49 +70,123 @@ export async function executeKPI(
         }
     }
 
-    // ── Step 2: Apply filters to data ──
-    let filteredDataMap = dataMap;
-    const computeStart = Date.now();
+    // ── Step 2: Load Blueprint & Validate ──
+    const blueprint = await loadBlueprintWithKPIs(projectId);
+    if (!blueprint) throw new Error(`[Executor] No blueprint found for project ${projectId}`);
 
-    if (options.filters && options.filters.length > 0) {
-        filteredDataMap = applyGlobalFilters(dataMap, options.filters);
+    const targetKpiId = kpiId;
+    const kpi = blueprint.kpis.find(k => k.kpiLibraryId === targetKpiId || k.id === targetKpiId);
+
+    if (!kpi) throw new Error(`[Executor] KPI "${targetKpiId}" not found in project blueprint`);
+    if (!kpi.aggregations || kpi.aggregations.length === 0) {
+        throw new Error(`[Executor] KPI "${targetKpiId}" lacks aggregation rules`);
     }
 
-    // Inject date range filter if provided
-    if (options.dateFrom || options.dateTo) {
-        const dateFilter = buildDateFilter(lineage, options.dateFrom, options.dateTo);
-        if (dateFilter) {
-            filteredDataMap = applyGlobalFilters(filteredDataMap, [dateFilter]);
-        }
+    // Extract time column from lineage joins/tables as fallback if not explicitly provided
+    // In a real scenario, dateColumn should come from UI/User selection. We infer heuristically here.
+    let possibleDateColumn: string | undefined = undefined;
+    if (options.dateFrom || options.dateTo || options.granularity) {
+        // Naive heuristic: look for 'date' or 'time' in any grouping or lineage.
+        // Usually, the date column is sent from the frontend filter.
+        const allCols = [...kpi.groupBys.map(g => g.column), 'date', 'order_date', 'created_at'];
+        possibleDateColumn = allCols.find(c => c.toLowerCase().includes('date') || c.toLowerCase().includes('time')) || 'date';
     }
 
-    // ── Step 3: Execute primary computation ──
-    let primaryResult;
-    if (options.groupBy) {
-        primaryResult = computeGroupedKPI(lineage, filteredDataMap, options.groupBy);
-        // Enforce row limit
-        if (primaryResult.dataPoints.length > GROUP_BY_ROW_LIMIT) {
-            primaryResult.dataPoints = primaryResult.dataPoints.slice(0, GROUP_BY_ROW_LIMIT);
-        }
-    } else if (options.granularity) {
-        primaryResult = computeTimeSeries(lineage, filteredDataMap, options.granularity);
-    } else {
-        primaryResult = computeTimeSeries(lineage, filteredDataMap, 'monthly');
-    }
+    // Map filters to ExecutionFilters
+    const mappedFilters: ExecutionFilters = {
+        dateColumn: possibleDateColumn,
+        dateFrom: options.dateFrom,
+        dateTo: options.dateTo,
+        categoryFilters: options.filters?.filter(f => f.type === 'category' && (f as any).values).map(f => ({
+            column: f.column,
+            values: (f as any).values,
+        })) || [],
+        equalsFilters: options.filters?.filter(f => (f as any).type === 'value' && (f as any).value).map(f => ({
+            column: f.column,
+            value: (f as any).value,
+        })) || [],
+    };
 
-    // ── Step 4: Execute comparison (previous period) ──
-    let previousValue: number | null = null;
+    const compilationCtx: CompilationContext = {
+        kpi,
+        filters: mappedFilters,
+        granularity: options.granularity,
+        drillByColumn: options.groupBy,
+    };
+
+    // ── Step 3: Execute Primary Query ──
+    const queryStart = Date.now();
+    let primaryDataPoints: any[] = [];
+    let primaryValue = 0;
+
     try {
-        const previousPeriodData = computeKPI(lineage, dataMap); // Unfiltered for comparison
-        previousValue = previousPeriodData.previousValue ?? null;
-    } catch {
-        // Non-critical — proceed without comparison
+        if (options.granularity || options.groupBy) {
+            // Time-series or grouped dataset
+            const queryData = compileFullQuery(compilationCtx);
+            const res = await pool.query(queryData.text, queryData.values);
+            primaryDataPoints = res.rows;
+            rowsReturned += res.rows.length;
+
+            // Compute the total primary value by looking at the scalar equivalent
+            const scalarQuery = compileScalarQuery(compilationCtx);
+            const scalarRes = await pool.query(scalarQuery.text, scalarQuery.values);
+            primaryValue = parseFloat(scalarRes.rows[0]?.value || '0');
+
+        } else {
+            // Scalar single value
+            const queryData = compileScalarQuery(compilationCtx);
+            const res = await pool.query(queryData.text, queryData.values);
+            primaryValue = parseFloat(res.rows[0]?.value || '0');
+            primaryDataPoints = [{ label: 'Total', value: primaryValue }];
+            rowsReturned += 1;
+        }
+    } catch (err: any) {
+        console.error(`[Executor] SQL Error on KPI ${kpiId}:`, err.message);
+        throw err;
     }
 
-    timings.computeMs = Date.now() - computeStart;
+    // Format dataset for Chart.js expecting { label, value } or { date, value }
+    // We try to map the first group col and the first agg col
+    const aggAlias = `${kpi.aggregations[0].function.toLowerCase()}_${kpi.aggregations[0].column.replace(/\\W/g, '_')}`;
+    const formattedDataset = primaryDataPoints.map(row => {
+        // If it already has 'value', use it
+        if ('value' in row) return { label: 'Total', value: Number(row.value) || 0 };
 
-    // ── Step 5: Compute delta metrics ──
-    const primaryValue = primaryResult.currentValue;
+        // For time series
+        if (row.period) {
+            return {
+                date: new Date(row.period).toISOString().split('T')[0],
+                value: Number(row[aggAlias]) || 0,
+                // Include other dims if present
+                ...row,
+            };
+        }
+
+        // For categorical grouping
+        const groupCol = options.groupBy || (kpi.groupBys.length > 0 ? kpi.groupBys[0].column : null);
+        return {
+            label: groupCol && row[groupCol] ? String(row[groupCol]) : 'Unknown',
+            value: Number(row[aggAlias]) || 0,
+            ...row,
+        };
+    });
+
+    timings.queryMs = Date.now() - queryStart;
+
+    // ── Step 4: Execute Comparison Query ──
+    let previousValue: number | null = null;
+    const comparisonQueryDate = compileComparisonQuery(compilationCtx);
+
+    if (comparisonQueryDate) {
+        try {
+            const res = await pool.query(comparisonQueryDate.text, comparisonQueryDate.values);
+            previousValue = parseFloat(res.rows[0]?.value || '0');
+        } catch (err) {
+            console.warn(`[Executor] Comparison query failed for ${kpiId}, non-fatal.`);
+        }
+    }
+
+    // ── Step 5: Compute Deltas ──
     const delta = previousValue !== null ? primaryValue - previousValue : null;
     const deltaPercent = previousValue !== null && previousValue !== 0
         ? Number(((primaryValue - previousValue) / Math.abs(previousValue) * 100).toFixed(2))
@@ -123,16 +195,19 @@ export async function executeKPI(
         ? (delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat')
         : null;
 
-    // ── Step 6: Run data profiler ──
+    // ── Step 6: Data Profiler ──
     const profilingStart = Date.now();
-    const profiling = profileDataset(primaryResult.dataPoints, {
-        dateColumn: findDateColumnFromLineage(lineage),
-        categoryColumns: findCategoryColumnsFromLineage(lineage),
-        numericColumns: findNumericColumnsFromLineage(lineage),
+    const groupCol = options.groupBy || (kpi.groupBys.length > 0 ? kpi.groupBys[0].column : null);
+
+    // Quick heuristic profiler since SQL already aggs
+    const profiling = profileDataset(formattedDataset, {
+        dateColumn: options.granularity ? 'date' : undefined,
+        categoryColumns: groupCol ? ['label'] : [],
+        numericColumns: ['value'],
     });
     timings.profilingMs = Date.now() - profilingStart;
 
-    // ── Step 7: Determine chart recommendation ──
+    // ── Step 7: Chart Selection ──
     const chartSelection = selectChart({
         hasTimeDimension: profiling.hasTimeDimension,
         numberOfSeries: profiling.numberOfSeries,
@@ -150,73 +225,76 @@ export async function executeKPI(
         numericColumns: [],
     });
 
-    // ── Step 8: Fetch AI explanation (non-blocking) ──
+    // ── Step 8: AI Explanation ──
     let aiExplanation = null;
     if (!options.skipAIExplanation) {
         try {
-            const columns = lineage.sources.flatMap((s: KPISourceContribution) =>
-                s.columns.map((c: string) => c)
-            );
             aiExplanation = await getKPIExplanation(projectId, kpiId, {
-                kpiName: lineage.kpiName,
-                formula: lineage.formula,
-                category: lineage.category,
-                columns,
+                kpiName: kpi.name,
+                formula: kpi.lineage?.formula || 'SQL Calculation',
+                category: kpi.category,
+                columns: kpi.aggregations.map(a => a.column),
                 currentValue: primaryValue,
                 previousValue: previousValue ?? undefined,
                 trendPercent: deltaPercent ?? undefined,
             });
         } catch {
-            // Non-critical — proceed without explanation
+            // Non-critical
         }
     }
 
-    // ── Step 9: Build lineage summary ──
+    // ── Step 9: Lineage Summary ──
+    const tablesRaw = kpi.lineage?.tables || [kpi.sourceTable];
+    const tables = Array.isArray(tablesRaw) ? tablesRaw as string[] : [kpi.sourceTable];
+    const joinsRaw = (kpi.lineage?.joins as any[]) || [];
+
     const lineageSummary = {
-        tables: lineage.sources.map((s: KPISourceContribution) => s.sourceName),
-        joins: lineage.joinPaths.map(j => ({
-            from: `${j.sourceTable}.${j.sourceColumn}`,
-            to: `${j.targetTable}.${j.targetColumn}`,
-            on: j.joinType,
+        tables,
+        joins: joinsRaw.map(j => ({
+            from: `${j.leftTable}.${j.leftColumn}`,
+            to: `${j.rightTable}.${j.rightColumn}`,
+            on: j.joinType || 'LEFT',
         })),
-        formula: lineage.formula,
-        aggregations: lineage.aggregations.map(a => `${a.function}(${a.column})`),
+        formula: kpi.lineage?.formula || '',
+        aggregations: kpi.aggregations.map(a => `${a.function}(${a.column})`),
     };
 
-    // ── Step 10: Build performance metadata ──
-    const performance: ExecutionPerformance = {
+    // ── Step 10: Performance Metadata ──
+    const performance = {
         totalTimeMs: Date.now() - startTime,
-        dataLoadTimeMs: timings.dataLoadMs,
-        computeTimeMs: timings.computeMs,
+        dataLoadTimeMs: 0,
+        computeTimeMs: timings.queryMs, // Replaced by queryMs
         profilingTimeMs: timings.profilingMs,
         cacheHit: false,
         cacheKey,
+        queryTimeMs: timings.queryMs,
+        rowsReturned,
+        executionMethod: 'sql' as const,
+        executionContext: previousValue !== null ? 'comparison' as const : 'primary' as const,
     };
 
-    // ── Step 11: Assemble result ──
+    // ── Step 11: Build Result ──
     const result: KPIExecutionResult = {
         kpiId,
-        kpiName: lineage.kpiName,
-        category: lineage.category,
+        kpiName: kpi.name,
+        category: kpi.category,
         primaryValue,
         previousValue,
         delta,
         deltaPercent,
         deltaDirection,
-        dataset: primaryResult.dataPoints,
-        datasetSize: primaryResult.dataPoints.length,
+        dataset: formattedDataset,
+        datasetSize: formattedDataset.length,
         profiling,
         recommendedChartType: chartSelection.chartType,
         recommendedChartLibrary: chartSelection.chartLibrary,
-        disableAnimation: profiling.recordCount > ANIMATION_DISABLE_THRESHOLD,
+        disableAnimation: profiling.recordCount > 5000,
         aiExplanation,
         lineage: lineageSummary,
         performance,
     };
 
-    // ── Step 12: Cache result ──
     setCachedResult(cacheKey, result);
-
     return result;
 }
 
@@ -239,13 +317,8 @@ export async function executeDashboard(
         throw new Error(`No dashboard config for project: ${projectId}. Run Module 5A first.`);
     }
 
-    // Load lineage registry
+    // Load lineage registry (used solely for validation here)
     const lineageEntries = await loadLineageRegistry(projectId);
-
-    // Load project data (single load for all KPIs)
-    const dataLoadStart = Date.now();
-    const dataMap = await loadProjectData(projectId);
-    const dataLoadMs = Date.now() - dataLoadStart;
 
     // Execute each KPI
     const kpis: KPIExecutionResult[] = [];
@@ -255,7 +328,7 @@ export async function executeDashboard(
 
     for (const section of config.sections) {
         for (const card of section.cards) {
-            let lineage = lineageEntries.find(e => e.kpiId === card.kpiId);
+            const lineage = lineageEntries.find(e => e.kpiId === card.kpiId);
 
             // BOUNDARY ENFORCEMENT: A Dashboard Config should never ask to execute a raw string with no lineage
             if (!lineage) {
@@ -269,8 +342,14 @@ export async function executeDashboard(
             }
 
             try {
-                const result = await executeKPI(projectId, card.kpiId, lineage, dataMap, {
+                // Determine effective granularity based on chart defaults (if not provided in options)
+                const chartType = card.chartSelection?.chartType;
+                const granularity = options.granularity ||
+                    (['line', 'bar'].includes(chartType || '') ? 'monthly' : undefined);
+
+                const result = await executeKPI(projectId, card.kpiId, {
                     ...options,
+                    granularity,
                     skipAIExplanation: options.skipAIExplanation,
                 });
 
@@ -325,9 +404,7 @@ export async function executeDrill(
         throw new Error(`No lineage found for KPI: ${kpiId}`);
     }
 
-    const dataMap = await loadProjectData(projectId);
-
-    return executeKPI(projectId, kpiId, lineage, dataMap, {
+    return executeKPI(projectId, kpiId, {
         ...options,
         groupBy: groupByColumn,
         skipCache: true, // Drill-down always recomputes
@@ -350,107 +427,33 @@ async function loadDashboardConfig(projectId: string): Promise<DashboardConfigSc
 }
 
 async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]> {
-    const blueprint = await db.kPIBlueprint.findUnique({ where: { projectId } });
-    if (!blueprint || !blueprint.kpis) return [];
+    const blueprint = await loadBlueprintWithKPIs(projectId);
+    if (!blueprint || blueprint.kpis.length === 0) return [];
 
-    const kpis = blueprint.kpis as unknown as ApprovedKPI[];
-
-    return kpis.map(kpi => ({
-        id: kpi.id || (kpi as any).kpiId, // Fallback for any old dev records
+    return blueprint.kpis.map(kpi => ({
+        id: kpi.id,
         projectId,
-        kpiId: kpi.id || (kpi as any).kpiId,
-        kpiName: kpi.name || (kpi as any).kpiName,
-        domain: (blueprint as any).domain || 'General',
-        formula: kpi.lineage?.formula || (kpi as any).formula || '',
-        category: kpi.category || 'general',
+        kpiId: kpi.kpiLibraryId || kpi.id,
+        kpiName: kpi.name,
+        domain: blueprint.domain || 'General',
+        formula: kpi.lineage?.formula || '',
+        category: kpi.category,
         sources: [{
-            sourceId: kpi.sourceTable || 'unknown',
-            sourceName: kpi.sourceTable || 'unknown',
-            columns: kpi.aggregations?.map((a: any) => a.column) || (kpi as any).matchedColumns || [],
+            sourceId: kpi.sourceTable,
+            sourceName: kpi.sourceTable,
+            columns: kpi.aggregations.map(a => a.column),
             role: 'PRIMARY'
         }],
-        joinPaths: kpi.lineage?.joins || [],
-        aggregations: kpi.aggregations?.map((a: any) => ({
-            function: a.function,
+        joinPaths: (kpi.lineage?.joins as any[]) || [],
+        aggregations: kpi.aggregations.map(a => ({
+            function: a.function as any,
             column: a.column,
-            sourceId: kpi.sourceTable || 'unknown'
-        })) || [],
-        technicalExplanation: 'Generated strictly from BI Definition Layer',
-        businessExplanation: 'Domain defined structured metric',
+            sourceId: kpi.sourceTable,
+        })),
+        technicalExplanation: 'Generated from relational BI Definition Layer',
+        businessExplanation: 'Domain-defined structured metric',
         aiEnhanced: false,
         confidence: 100,
-        tracedAt: (blueprint as any).updatedAt || new Date()
+        tracedAt: kpi.updatedAt,
     } as KPILineageEntry));
-}
-
-function applyGlobalFilters(dataMap: ProjectDataMap, filters: Filter[]): ProjectDataMap {
-    const filtered: ProjectDataMap = {
-        projectId: dataMap.projectId,
-        sources: new Map(),
-    };
-
-    for (const [sourceId, source] of dataMap.sources) {
-        const applicableFilters = filters.filter(f =>
-            source.columns.includes(f.column.toLowerCase())
-        );
-
-        filtered.sources.set(sourceId, {
-            ...source,
-            rows: applicableFilters.length > 0
-                ? applyFilters(source.rows, applicableFilters)
-                : source.rows,
-        });
-    }
-
-    return filtered;
-}
-
-function buildDateFilter(
-    lineage: KPILineageEntry,
-    dateFrom?: string,
-    dateTo?: string
-): Filter | null {
-    // Find date column from lineage sources
-    const dateCol = findDateColumnFromLineage(lineage);
-    if (!dateCol) return null;
-
-    return {
-        type: 'date_range',
-        column: dateCol,
-        from: dateFrom,
-        to: dateTo,
-    };
-}
-
-function findDateColumnFromLineage(lineage: KPILineageEntry): string | undefined {
-    for (const source of lineage.sources) {
-        for (const col of source.columns) {
-            const lower = col.toLowerCase();
-            if (lower.includes('date') || lower.includes('time') ||
-                lower.includes('created') || lower.includes('order_date') ||
-                lower.includes('timestamp')) {
-                return col;
-            }
-        }
-    }
-    return undefined;
-}
-
-function findCategoryColumnsFromLineage(lineage: KPILineageEntry): string[] {
-    const categories: string[] = [];
-    for (const source of lineage.sources) {
-        for (const col of source.columns) {
-            const lower = col.toLowerCase();
-            if (lower.includes('category') || lower.includes('type') ||
-                lower.includes('region') || lower.includes('status') ||
-                lower.includes('segment') || lower.includes('group')) {
-                categories.push(col);
-            }
-        }
-    }
-    return categories;
-}
-
-function findNumericColumnsFromLineage(lineage: KPILineageEntry): string[] {
-    return lineage.aggregations.map(a => a.column);
 }

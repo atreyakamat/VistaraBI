@@ -97,6 +97,15 @@ enum JoinCardinality {
   MANY_TO_MANY
 }
 
+enum AggregationFunction {
+  SUM
+  COUNT
+  COUNT_DISTINCT
+  AVG
+  MIN
+  MAX
+}
+
 // Models
 
 model User {
@@ -348,15 +357,71 @@ model KPIDiscovery {
 }
 
 model KPIBlueprint {
-  id              String      @id @default(uuid())
-  projectId       String      @unique
-  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  kpis            Json        // Array of ApprovedKPI objects
-  version         Int
-  isLocked        Boolean
+  id              String        @id @default(uuid())
+  projectId       String        @unique
+  domain          String        @default("GENERAL")
+  version         Int           @default(1)
+  isLocked        Boolean       @default(false)
   lockedAt        DateTime?
   lockedBy        String?
-  createdAt       DateTime    @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  kpis            ApprovedKPI[]
+
+  @@index([projectId])
+}
+
+model ApprovedKPI {
+  id            String              @id @default(uuid())
+  blueprintId   String
+  kpiLibraryId  String?             // Reference to the domain KPI definition (e.g. 'ec-001')
+  name          String
+  description   String?
+  sourceTable   String
+  category      String              @default("general")
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  blueprint     KPIBlueprint        @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  aggregations  AggregationRule[]
+  groupBys      GroupByDefinition[]
+  lineage       LineageDefinition?
+
+  @@index([blueprintId])
+  @@index([kpiLibraryId])
+}
+
+model AggregationRule {
+  id          String              @id @default(uuid())
+  kpiId       String
+  function    AggregationFunction
+  column      String
+
+  kpi         ApprovedKPI         @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  @@index([kpiId])
+}
+
+model GroupByDefinition {
+  id        String      @id @default(uuid())
+  kpiId     String
+  column    String
+
+  kpi       ApprovedKPI @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  @@index([kpiId])
+}
+
+model LineageDefinition {
+  id        String      @id @default(uuid())
+  kpiId     String      @unique
+  formula   String
+  tables    Json        // String[]
+  joins     Json        // JoinPath[] — complex, kept as JSON
+
+  kpi       ApprovedKPI @relation(fields: [kpiId], references: [id], onDelete: Cascade)
 }
 
 model KPIBlueprintHistory {
