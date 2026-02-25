@@ -33,7 +33,7 @@ export function renderLineageExplanation(
     // Aggregations
     if (lineage.aggregations && lineage.aggregations.length > 0) {
         const aggDescriptions = lineage.aggregations.map(agg =>
-            `${agg.function.toLowerCase()}(${agg.column})`
+            `${agg.function ? agg.function.toLowerCase() : 'aggregate'}(${agg.column})`
         );
         parts.push(`${readableName} is calculated by ${aggDescriptions.join(' and ')}`);
     } else if (lineage.formula) {
