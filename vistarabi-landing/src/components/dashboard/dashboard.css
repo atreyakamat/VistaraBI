@@ -1416,3 +1416,692 @@
     font-weight: 700;
     color: var(--color-text-primary);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ─── Chart Grid Controls (view toggle) ──────────────────────────
+   ═══════════════════════════════════════════════════════════════════ */
+
+.chart-grid-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.chart-grid-count {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+}
+
+.chart-grid-view-toggle {
+    display: flex;
+    gap: 2px;
+    background: rgba(241, 245, 249, 0.8);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 3px;
+}
+
+.chart-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    border: none;
+    background: transparent;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.chart-view-btn:hover {
+    color: var(--color-text-secondary);
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.chart-view-btn.active {
+    background: white;
+    color: var(--color-primary);
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ─── Compact Card View ──────────────────────────────────────────
+   Small cards arranged in a tighter responsive grid
+   ═══════════════════════════════════════════════════════════════════ */
+
+.chart-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.chart-card-compact {
+    position: relative;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
+    cursor: default;
+}
+
+.chart-card-compact:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 32px rgba(15, 23, 42, 0.12),
+        0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+/* KPI name label — visible on hover */
+.chart-compact-label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px 6px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 60%, transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.chart-card-compact:hover .chart-compact-label {
+    opacity: 1;
+}
+
+.chart-compact-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+.chart-compact-filter-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 20px;
+    background: rgba(99, 102, 241, 0.12);
+    color: #6366F1;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    white-space: nowrap;
+}
+
+.chart-compact-body {
+    height: 140px;
+    padding: 28px 4px 4px;
+}
+
+/* Compact value + trend footer */
+.chart-compact-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px 8px;
+    border-top: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.chart-compact-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    font-family: var(--font-display);
+}
+
+.chart-compact-trend {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.chart-compact-trend.up {
+    color: #059669;
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.chart-compact-trend.down {
+    color: #DC2626;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.chart-compact-trend.flat {
+    color: #64748B;
+    background: rgba(100, 116, 139, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ─── Per-chart Floating Filter Pill ─────────────────────────────
+   Anchored to the top-right corner of each chart card
+   ═══════════════════════════════════════════════════════════════════ */
+
+.chart-filter-pill {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    /* Glass pill */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.7);
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    padding: 3px 6px;
+
+    /* Hidden by default, show on card hover or when active */
+    opacity: 0;
+    transform: translateY(-2px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    pointer-events: none;
+}
+
+.chart-container:hover .chart-filter-pill,
+.chart-filter-pill--active,
+.chart-filter-pill--compact {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Active state: indigo tint */
+.chart-filter-pill--active {
+    background: rgba(238, 242, 255, 0.95);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* Compact override: always visible, top-right of compact card */
+.chart-card-compact:hover .chart-filter-pill--compact {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.chart-card-compact .chart-filter-pill--compact {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.chart-filter-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    background: none;
+    border: none;
+    font-size: 10px;
+    font-weight: 600;
+    color: #6366F1;
+    cursor: pointer;
+    font-family: inherit;
+    border-radius: 12px;
+    transition: background var(--transition-fast);
+    white-space: nowrap;
+}
+
+.chart-filter-trigger:hover {
+    background: rgba(99, 102, 241, 0.08);
+}
+
+.chart-filter-badge {
+    font-size: 9px;
+    font-weight: 700;
+    color: #4338CA;
+}
+
+/* ✕ clear button on the pill */
+.chart-filter-clear {
+    background: none;
+    border: none;
+    font-size: 11px;
+    line-height: 1;
+    color: #94A3B8;
+    cursor: pointer;
+    padding: 1px 3px;
+    border-radius: 50%;
+    transition: color var(--transition-fast), background var(--transition-fast);
+    display: flex;
+    align-items: center;
+}
+
+.chart-filter-clear:hover {
+    color: #DC2626;
+    background: rgba(220, 38, 38, 0.06);
+}
+
+/* Tiny inline loading spinner */
+.chart-filter-spinner {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border: 1.5px solid rgba(99, 102, 241, 0.3);
+    border-top-color: #6366F1;
+    border-radius: 50%;
+    animation: chartFilterSpin 0.6s linear infinite;
+}
+
+@keyframes chartFilterSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ── Dropdown filter panel ─────────────────────────────────────── */
+
+.chart-filter-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 200;
+    width: 240px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 14px;
+    box-shadow:
+        0 16px 48px rgba(15, 23, 42, 0.14),
+        0 4px 12px rgba(15, 23, 42, 0.06),
+        0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: filterPanelIn 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Compact variant: slightly narrower */
+.chart-filter-panel--compact {
+    width: 200px;
+}
+
+@keyframes filterPanelIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.chart-filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chart-filter-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    padding: 0 2px;
+}
+
+.chart-filter-btn-row {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+}
+
+.chart-filter-btn {
+    padding: 4px 9px;
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    background: rgba(248, 250, 252, 0.9);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.chart-filter-btn:hover {
+    background: rgba(238, 242, 255, 0.9);
+    border-color: #A5B4FC;
+    color: #4338CA;
+}
+
+.chart-filter-btn.active {
+    background: #6366F1;
+    border-color: #6366F1;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.35);
+}
+
+.chart-filter-divider {
+    height: 1px;
+    background: rgba(226, 232, 240, 0.7);
+    margin: 0;
+}
+
+.chart-filter-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding-top: 2px;
+}
+
+.chart-filter-apply {
+    flex: 1;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: none;
+    background: #6366F1;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+}
+
+.chart-filter-apply:hover:not(:disabled) {
+    background: #4F46E5;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+.chart-filter-apply:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.chart-filter-reset {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #FECACA;
+    background: rgba(254, 242, 242, 0.7);
+    color: #DC2626;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.chart-filter-reset:hover {
+    background: #FEE2E2;
+}
+
+/* ── FilterBar (inline, non-floating) ────────────────────────── */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--glass-shadow);
+    font-family: var(--font-display);
+    flex-wrap: wrap;
+    row-gap: 6px;
+}
+
+.filter-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.filter-group {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+}
+
+.filter-preset-btn {
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1px solid var(--color-border);
+    background: rgba(248, 250, 252, 0.9);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+}
+
+.filter-preset-btn:hover:not(:disabled) {
+    background: rgba(238, 242, 255, 0.9);
+    border-color: #A5B4FC;
+    color: #4338CA;
+}
+
+.filter-preset-btn.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.filter-preset-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.filter-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--color-border);
+    flex-shrink: 0;
+    margin: 0 2px;
+}
+
+@media (max-width: 768px) {
+    .chart-grid-compact {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
+    .chart-filter-panel {
+        right: auto;
+        left: 0;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ─── Chart Selection Overlay ──────────────────────────────────────
+   ═══════════════════════════════════════════════════════════════════ */
+
+.chart-select-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    z-index: 60;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 10px;
+}
+
+.chart-select-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.chart-select-overlay:hover .chart-select-checkbox:not(.selected) {
+    border-color: #A5B4FC;
+    background: rgba(238, 242, 255, 0.9);
+}
+
+.chart-select-checkbox.selected {
+    background: #6366F1;
+    border-color: #6366F1;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4);
+}
+
+.chart-select-checkbox svg {
+    width: 12px;
+    height: 12px;
+}
+
+.chart-selected {
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 8px 30px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ─── Bottom Floating Bulk Filter Bar ──────────────────────────────
+   ═══════════════════════════════════════════════════════════════════ */
+
+.bottom-filter-bar-wrapper {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    animation: filterBarSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes filterBarSlideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.bottom-filter-bar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 999px;
+    box-shadow: 0 10px 40px rgba(15, 23, 42, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+    display: flex;
+    align-items: center;
+    padding: 6px 6px 6px 16px;
+    gap: 16px;
+}
+
+.bottom-filter-bar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-right: 1px solid rgba(226, 232, 240, 0.8);
+    padding-right: 16px;
+}
+
+.bottom-filter-selection-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4338CA;
+    white-space: nowrap;
+}
+
+.bottom-filter-clear-btn {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748B;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.bottom-filter-clear-btn:hover {
+    color: #0F172A;
+}
+
+.bottom-filter-bar-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bottom-filter-preset-btn {
+    padding: 4px 10px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748B;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.bottom-filter-preset-btn:hover {
+    color: #0F172A;
+    background: #F1F5F9;
+}
+
+.bottom-filter-preset-btn.active {
+    background: rgba(99, 102, 241, 0.1);
+    color: #4F46E5;
+}
+
+.bottom-filter-apply-btn {
+    background: #0F172A;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-left: 8px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+}
+
+.bottom-filter-apply-btn:hover {
+    background: #1E293B;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3);
+    transform: translateY(-1px);
+}

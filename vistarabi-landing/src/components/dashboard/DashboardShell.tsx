@@ -14,6 +14,7 @@ import { SmartAlertBanner } from './SmartAlertBanner';
 import { FilterBar, type DashboardFilters } from './FilterBar';
 import { AIFilter } from './AIFilter';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from './types';
+import type { DateRange, Granularity } from './ChartContainer';
 
 interface DrillState {
     kpiId: string;
@@ -61,6 +62,38 @@ export function DashboardShell({
         granularity: 'monthly',
         dateRange: '90d',
     });
+
+    // Bulk selection & filtering state
+    const [selectedKpis, setSelectedKpis] = useState<Set<string>>(new Set());
+    const [externalFilters, setExternalFilters] = useState<Record<string, { range: DateRange; gran: Granularity; ts: number }>>({});
+
+    // UI state for bottom bar
+    const [bottomDateRange, setBottomDateRange] = useState<DateRange>('90d');
+    const [bottomGranularity, setBottomGranularity] = useState<Granularity>('monthly');
+
+    const toggleKpiSelection = useCallback((kpiId: string) => {
+        setSelectedKpis(prev => {
+            const next = new Set(prev);
+            if (next.has(kpiId)) next.delete(kpiId);
+            else next.add(kpiId);
+            return next;
+        });
+    }, []);
+
+    const clearSelection = useCallback(() => setSelectedKpis(new Set()), []);
+    const selectAll = useCallback(() => setSelectedKpis(new Set(kpis.map(k => k.kpiId))), [kpis]);
+
+    const applyFilterToSelected = useCallback(() => {
+        const ts = Date.now();
+        setExternalFilters(prev => {
+            const next = { ...prev };
+            selectedKpis.forEach(id => {
+                next[id] = { range: bottomDateRange, gran: bottomGranularity, ts };
+            });
+            return next;
+        });
+        clearSelection(); // Optional: clears selection after applying
+    }, [selectedKpis, bottomDateRange, bottomGranularity, clearSelection]);
 
     const kpiMap = new Map(kpis.map(k => [k.kpiId, k]));
 
@@ -312,7 +345,14 @@ export function DashboardShell({
                                                 </p>
                                             </div>
                                         </div>
-                                        <ChartGrid kpis={sectionKpis} onDrillDown={handleDrillDown} />
+                                        <ChartGrid
+                                            kpis={sectionKpis}
+                                            projectId={projectId}
+                                            selectedKpis={selectedKpis}
+                                            onToggleSelection={toggleKpiSelection}
+                                            externalFilters={externalFilters}
+                                            onDrillDown={handleDrillDown}
+                                        />
                                     </div>
                                 );
                             })}
@@ -382,6 +422,59 @@ export function DashboardShell({
                     )}
                 </div>
             </main>
+
+            {/* ── Bottom Floating Filter Bar for Selected Cards ──────────── */}
+            {selectedKpis.size > 0 && (
+                <div className="bottom-filter-bar-wrapper">
+                    <div className="bottom-filter-bar">
+                        <div className="bottom-filter-bar-header">
+                            <div className="flex items-center gap-3">
+                                <span className="bottom-filter-selection-count">
+                                    {selectedKpis.size} chart{selectedKpis.size > 1 ? 's' : ''} selected
+                                </span>
+                                <button className="bottom-filter-clear-btn" onClick={clearSelection}>Clear</button>
+                                <button className="bottom-filter-clear-btn" onClick={selectAll}>Select All</button>
+                            </div>
+                        </div>
+
+                        <div className="bottom-filter-bar-controls">
+                            <div className="flex items-center gap-2 border-r border-slate-200/50 pr-4">
+                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Range</span>
+                                <div className="flex gap-1">
+                                    {(['7d', '30d', '90d', '1y', 'all'] as DateRange[]).map(d => (
+                                        <button
+                                            key={d}
+                                            className={`bottom-filter-preset-btn ${bottomDateRange === d ? 'active' : ''}`}
+                                            onClick={() => setBottomDateRange(d)}
+                                        >
+                                            {d === '7d' ? '7D' : d === '30d' ? '30D' : d === '90d' ? '90D' : d === '1y' ? '1Y' : 'All'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pl-2">
+                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Group</span>
+                                <div className="flex gap-1">
+                                    {(['daily', 'weekly', 'monthly', 'quarterly'] as Granularity[]).map(g => (
+                                        <button
+                                            key={g}
+                                            className={`bottom-filter-preset-btn ${bottomGranularity === g ? 'active' : ''}`}
+                                            onClick={() => setBottomGranularity(g)}
+                                        >
+                                            {g === 'daily' ? 'D' : g === 'weekly' ? 'W' : g === 'monthly' ? 'M' : 'Q'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <button className="bottom-filter-apply-btn" onClick={applyFilterToSelected}>
+                                Apply Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Insight Panel (right sidebar overlay) */}
             <InsightPanel

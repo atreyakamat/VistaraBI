@@ -184,28 +184,33 @@ export async function executeKPI(
         throw err;
     }
 
-    // Format dataset for Chart.js expecting { label, value } or { date, value }
-    // We try to map the first group col and the first agg col
-    const aggAlias = `${kpi.aggregations[0].function.toLowerCase()}_${kpi.aggregations[0].column.replace(/\\W/g, '_')}`;
+    // Format dataset rows into { label, value } or { date, label, value }
+    // CRITICAL: must check `row.period` FIRST — time-series rows also contain a "value" column
+    // (from `SELECT … AS "value"`) so the old `'value' in row` guard swallowed every time-series row.
+    const aggAlias = `${kpi.aggregations[0].function.toLowerCase()}_${kpi.aggregations[0].column.replace(/\W/g, '_')}`;
     const formattedDataset = primaryDataPoints.map(row => {
-        // If it already has 'value', use it
-        if ('value' in row) return { label: 'Total', value: Number(row.value) || 0 };
-
-        // For time series
-        if (row.period) {
-            return {
-                date: new Date(row.period).toISOString().split('T')[0],
-                value: Number(row[aggAlias]) || 0,
-                // Include other dims if present
-                ...row,
-            };
+        // ── Time-series row: DATE_TRUNC returns a "period" column ──
+        if (row.period != null) {
+            const dateStr = new Date(row.period).toISOString().split('T')[0];
+            const val = typeof row.value === 'number' ? row.value
+                : typeof row.value === 'string' ? parseFloat(row.value)
+                    : typeof row[aggAlias] === 'number' ? row[aggAlias]
+                        : typeof row[aggAlias] === 'string' ? parseFloat(row[aggAlias])
+                            : 0;
+            return { date: dateStr, label: dateStr, value: Number(val) || 0 };
         }
 
-        // For categorical grouping
+        // ── Scalar row (no grouping) ──
+        if ('value' in row) return { label: 'Total', value: Number(row.value) || 0 };
+
+        // ── Categorical / grouped row ──
         const groupCol = options.groupBy || (kpi.groupBys.length > 0 ? kpi.groupBys[0].column : null);
+        const numVal = typeof row[aggAlias] === 'number' ? row[aggAlias]
+            : typeof row[aggAlias] === 'string' ? parseFloat(row[aggAlias])
+                : 0;
         return {
-            label: groupCol && row[groupCol] ? String(row[groupCol]) : 'Unknown',
-            value: Number(row[aggAlias]) || 0,
+            label: groupCol && row[groupCol] != null ? String(row[groupCol]) : 'Unknown',
+            value: Number(numVal) || 0,
             ...row,
         };
     });
