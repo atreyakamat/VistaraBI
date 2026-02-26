@@ -14,7 +14,7 @@ import { SmartAlertBanner } from './SmartAlertBanner';
 import { FilterBar, type DashboardFilters } from './FilterBar';
 import { AIFilter } from './AIFilter';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from './types';
-import type { DateRange, Granularity } from './ChartContainer';
+import { getAvailableRanges, type DateRange, type Granularity } from './ChartContainer';
 
 interface DrillState {
     kpiId: string;
@@ -441,15 +441,24 @@ export function DashboardShell({
                             <div className="flex items-center gap-2 border-r border-slate-200/50 pr-4">
                                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Range</span>
                                 <div className="flex gap-1">
-                                    {(['7d', '30d', '90d', '1y', 'all'] as DateRange[]).map(d => (
-                                        <button
-                                            key={d}
-                                            className={`bottom-filter-preset-btn ${bottomDateRange === d ? 'active' : ''}`}
-                                            onClick={() => setBottomDateRange(d)}
-                                        >
-                                            {d === '7d' ? '7D' : d === '30d' ? '30D' : d === '90d' ? '90D' : d === '1y' ? '1Y' : 'All'}
-                                        </button>
-                                    ))}
+                                    {(['7d', '30d', '90d', '1y', 'all'] as DateRange[]).map(d => {
+                                        // Compute available ranges for the entire selection.
+                                        // If any chart has data for this range, we allow it.
+                                        const selectedData = Array.from(selectedKpis).map(id => kpis.find(k => k.kpiId === id)).filter(Boolean) as KPICardData[];
+                                        const availableRanges = getAvailableRanges(selectedData);
+                                        const isAvailable = availableRanges.includes(d);
+
+                                        return (
+                                            <button
+                                                key={d}
+                                                className={`bottom-filter-preset-btn ${bottomDateRange === d ? 'active' : ''} ${!isAvailable ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                                onClick={() => isAvailable && setBottomDateRange(d)}
+                                                disabled={!isAvailable}
+                                            >
+                                                {d === '7d' ? '7D' : d === '30d' ? '30D' : d === '90d' ? '90D' : d === '1y' ? '1Y' : 'All'}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 

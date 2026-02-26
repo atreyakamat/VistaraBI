@@ -91,6 +91,38 @@ function resolveDateRange(range: DateRange): { dateFrom: string; dateTo: string 
     return { dateFrom: from.toISOString().split('T')[0], dateTo: to };
 }
 
+// ── Range constraint helpers ──────────────────────────────────────────────────
+export function getAvailableRanges(kpis: KPICardData[]): DateRange[] {
+    let oldestDate = new Date();
+    let hasData = false;
+
+    for (const kpi of kpis) {
+        if (!kpi.dataPoints || kpi.dataPoints.length === 0) continue;
+        for (const pt of kpi.dataPoints) {
+            // Attempt to parse label as date to find oldest data point
+            const dt = new Date(pt.label);
+            if (!isNaN(dt.getTime()) && dt < oldestDate) {
+                oldestDate = dt;
+                hasData = true;
+            }
+        }
+    }
+
+    if (!hasData) return ['all']; // Default fallback if data is totally empty/unparseable
+
+    const now = new Date();
+    const msDiff = now.getTime() - oldestDate.getTime();
+    const daysDiff = msDiff / (1000 * 60 * 60 * 24);
+
+    const available: DateRange[] = ['all'];
+    if (daysDiff >= 1) available.push('7d'); // At least some recent history makes 7d valid to click
+    if (daysDiff >= 7) available.push('30d');
+    if (daysDiff >= 30) available.push('90d');
+    if (daysDiff >= 90) available.push('1y');
+
+    return available;
+}
+
 // ── Stats helpers ─────────────────────────────────────────────────────────────
 function computeStats(data: number[]) {
     if (data.length === 0) return null;
@@ -319,13 +351,21 @@ export function ChartContainer({ kpi, index, projectId, compact = false, isSelec
                             <div className="chart-filter-section">
                                 <span className="chart-filter-section-label">Range</span>
                                 <div className="chart-filter-btn-row">
-                                    {DATE_PRESETS.map(d => (
-                                        <button key={d.value}
-                                            className={`chart-filter-btn ${dateRange === d.value ? 'active' : ''}`}
-                                            onClick={() => setDateRange(d.value)}>
-                                            {d.label}
-                                        </button>
-                                    ))}
+                                    {DATE_PRESETS.map(d => {
+                                        const availableRanges = getAvailableRanges([kpi]);
+                                        const isAvailable = availableRanges.includes(d.value);
+
+                                        return (
+                                            <button key={d.value}
+                                                className={`chart-filter-btn ${dateRange === d.value ? 'active' : ''} ${!isAvailable ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                                onClick={() => isAvailable && setDateRange(d.value)}
+                                                disabled={!isAvailable}
+                                                title={!isAvailable ? 'Insufficient historical data' : ''}
+                                            >
+                                                {d.label}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                             <div className="chart-filter-divider" />
