@@ -137,6 +137,7 @@ model Project {
   relationshipRegistry    RelationshipRegistry?
   kpiLineageRegistry      KPILineageRegistry?
   dashboardConfig         DashboardConfig?
+  dashboardState          DashboardState?
   
   domainHistories         DomainHistory[]
   kpiBlueprintHistories   KPIBlueprintHistory[]
@@ -490,4 +491,47 @@ model DashboardConfig {
   metadata        Json        // DashboardMetadata - domain, theme, version info
   version         Int
   generatedAt     DateTime    @default(now())
+}
+
+// Module 5.5 — Dashboard State (persisted, versioned)
+
+model DashboardState {
+  id              String          @id @default(uuid())
+  projectId       String          @unique
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  domain          String
+  version         Int             @default(1)
+  globalFilters   Json            // NormalizedFilter[] — business-resolved filters
+  granularity     String          @default("monthly")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  cards           DashboardCard[]
+
+  @@index([projectId])
+}
+
+model DashboardCard {
+  id              String          @id @default(uuid())
+  stateId         String
+  state           DashboardState  @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  kpiId           String          // kpiLibraryId (e.g. 'ec-001')
+  kpiName         String
+  chartType       String
+  cardSize        String          @default("md")
+  position        Int
+  colSpan         Int             @default(1)
+  rowSpan         Int             @default(1)
+  groupBy         String?
+  filterOverrides Json            // NormalizedFilter[]
+  comparisonMode  String?         // 'prev_period' | 'prev_year' | 'custom'
+  isPinned        Boolean         @default(false)
+  isAIGenerated   Boolean         @default(false)
+  isDrillDown     Boolean         @default(false)
+  parentCardId    String?         // Source card for drill-down
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([stateId])
+  @@index([kpiId])
 }
