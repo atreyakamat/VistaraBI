@@ -153,7 +153,7 @@ async function generateSimple(prompt: string, model: string, temperature: number
                 stream: false,
                 options: {
                     temperature,
-                    num_predict: 800,
+                    num_predict: 1200,
                 },
             }),
             signal: controller.signal,
@@ -167,7 +167,12 @@ async function generateSimple(prompt: string, model: string, temperature: number
         }
 
         const data = await response.json();
-        return data.response || '';
+        let text: string = data.response || '';
+
+        // Strip qwen3 <think>...</think> reasoning blocks so only the JSON remains
+        text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+        return text;
 
     } catch (error: any) {
         clearTimeout(timeoutId);
@@ -199,33 +204,34 @@ export interface SemanticReasoningResult {
 export async function generateKPISuggestions(
     columns: string[],
     sampleRows: Record<string, unknown>[],
-    domain: string
+    domain: string,
+    model?: string
 ): Promise<{ name: string; formula: string; category: string; explanation: string }[]> {
+
+    // Use the provided model or fall back to qwen3:4b (needs 4B+ params for reliable JSON output)
+    const kpiModel = model || 'qwen3:4b';
 
     // Build a simple, clear prompt that works well with small models
     const columnList = columns.slice(0, 15).join(', ');
     const sampleJson = JSON.stringify(sampleRows.slice(0, 5));
 
-    const prompt = `Given these data columns: ${columnList}
+    const prompt = `You are a data analyst. Given these columns: ${columnList}
 
-Sample data: ${sampleJson}
+Sample rows: ${sampleJson}
 
 Business domain: ${domain}
 
-Generate 5 KPIs as JSON array. Each KPI must use formulas combining the columns above.
+Generate 5 KPIs. Each KPI MUST use only the exact column names listed above.
 
-Format exactly like this:
-[
-{"name": "Average Value", "formula": "SUM(column1) / COUNT(column2)", "category": "revenue", "explanation": "Measures the average value per transaction"},
-{"name": "Rate", "formula": "column1 / column2 * 100", "category": "performance", "explanation": "Shows percentage rate"}
-]
+Respond ONLY with a JSON array, no other text:
+[{"name": "Total Revenue", "formula": "SUM(order_value)", "category": "revenue", "explanation": "Total revenue across all orders"}]
 
-Only output the JSON array, nothing else:`;
+JSON array:`;
 
-    console.log('[Ollama-KPI] Generating KPI suggestions...');
+    console.log('[Ollama-KPI] Generating KPI suggestions with model:', kpiModel);
 
     try {
-        const response = await generateSimple(prompt, DEFAULT_MODEL, 0.4);
+        const response = await generateSimple(prompt, kpiModel, 0.3);
         console.log('[Ollama-KPI] Raw response:', response.substring(0, 300));
 
         // Try to extract JSON from response

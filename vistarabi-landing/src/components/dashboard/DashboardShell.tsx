@@ -13,6 +13,7 @@ import { InsightPanel } from './InsightPanel';
 import { SmartAlertBanner } from './SmartAlertBanner';
 import { FilterBar, type DashboardFilters } from './FilterBar';
 import { AIFilter } from './AIFilter';
+import { AskAIPanel } from './AskAIPanel';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from './types';
 import { getAvailableRanges, type DateRange, type Granularity } from './ChartContainer';
 
@@ -57,6 +58,7 @@ export function DashboardShell({
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeSection, setActiveSection] = useState<string | undefined>();
     const [insightPanelOpen, setInsightPanelOpen] = useState(false);
+    const [askAiOpen, setAskAiOpen] = useState(false);
     const [drillStack, setDrillStack] = useState<DrillState[]>([]);
     const [filters, setFilters] = useState<DashboardFilters>({
         granularity: 'monthly',
@@ -155,8 +157,7 @@ export function DashboardShell({
                     {/* Insight Panel Toggle */}
                     <button
                         onClick={() => setInsightPanelOpen(!insightPanelOpen)}
-                        className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                                   bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                        className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
                         title="Open Insights Panel"
                     >
                         <span className="material-symbols-outlined text-base">psychology</span>
@@ -484,6 +485,25 @@ export function DashboardShell({
                     </div>
                 </div>
             )}
+
+            {/* Ask AI FAB */}
+            <button
+                className={`ask-ai-fab${askAiOpen ? ' open' : ''}`}
+                onClick={() => setAskAiOpen(true)}
+                aria-label="Ask AI"
+                title="Ask AI"
+            >
+                <span className="material-symbols-outlined text-base">auto_awesome</span>
+                Ask AI
+            </button>
+
+            {/* Ask AI Panel */}
+            <AskAIPanel
+                projectId={projectId}
+                isOpen={askAiOpen}
+                onClose={() => setAskAiOpen(false)}
+                onCommandSuccess={onRefresh}
+            />
 
             {/* Insight Panel (right sidebar overlay) */}
             <InsightPanel

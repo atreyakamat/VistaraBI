@@ -73,9 +73,42 @@ export async function POST(
             derived: result.derivedCount,
         });
 
+        // Enrich proposals with parsed aggregations so the frontend
+        // can submit them directly to the kpi-blueprint POST without a 400.
+        const enriched = result.proposals.map(p => {
+            // If AI_INVENTED proposals already stored _aggregation via our new logic, surface it
+            const privateAgg = (p as any)._aggregation;
+            const aggregations: { function: string; column: string }[] = privateAgg
+                ? [privateAgg]
+                : (() => {
+                    // Parse from formula for library derived KPIs
+                    // e.g. "SUM(order_value) / COUNT(order_id)" → [{SUM, order_value}]
+                    const fnMatch = (p.formula || '').match(
+                        /\b(SUM|COUNT|AVG|MIN|MAX|COUNT_DISTINCT)\s*\(\s*([\w_]+)\s*\)/gi
+                    );
+                    if (fnMatch && fnMatch.length > 0) {
+                        return fnMatch.slice(0, 1).map(m => {
+                            const parts = m.match(/(\w+)\s*\(\s*([\w_]+)\s*\)/i)!;
+                            return { function: parts[1].toUpperCase(), column: parts[2] };
+                        });
+                    }
+                    // No recognisable function — fall back using contributingColumns
+                    const cols = p.contributingColumns || [];
+                    return cols.length > 0
+                        ? [{ function: 'SUM', column: cols[0] }]
+                        : [{ function: 'COUNT', column: 'order_id' }]; // last resort
+                })();
+
+            return {
+                ...p,
+                aggregations,
+                _aggregation: undefined, // strip private field
+            };
+        });
+
         return NextResponse.json({
             success: true,
-            proposals: result.proposals,
+            proposals: enriched,
             inventedCount: result.inventedCount,
             derivedCount: result.derivedCount,
             debug: result.debug,

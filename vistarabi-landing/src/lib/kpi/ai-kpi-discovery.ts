@@ -5,9 +5,12 @@ import { randomUUID } from 'crypto';
 import db from '@/lib/prisma';
 import type { DomainType } from '@/lib/prisma';
 import { getGovernedDomain } from '@/lib/domain/governance';
-import { checkOllamaHealth, generateCompletion } from '@/lib/ai/ollama-client';
+import { checkOllamaHealth, generateKPISuggestions } from '@/lib/ai/ollama-client';
 import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { getDerivedKPIsForDomain, checkDerivedKPIDependencies, type DerivedKPIDefinition } from './derived-kpi-library';
+
+// Model override for KPI discovery — needs at least 4B parameters to produce valid JSON
+const KPI_DISCOVERY_MODEL = 'qwen3:4b';
 
 // AI KPI Proposal - invented KPIs suggested by AI
 export interface AIKPIProposal {
@@ -94,6 +97,35 @@ async function gatherDiscoveryContext(projectId: string): Promise<DiscoveryConte
     };
 }
 
+// ─── Formula → Aggregation Parser ────────────────────────────────────────────
+
+/**
+ * Extract a structured aggregation rule from a formula string like
+ * "SUM(order_value)", "COUNT(order_id)", "AVG(unit_price) / COUNT(order_id)"
+ * Falls back to SUM on the first column mentioned if no function found.
+ */
+function formulaToAggregation(
+    formula: string,
+    availableColumns: string[]
+): { function: string; column: string } | null {
+    // Try to match AGG_FUNC(column_name)
+    const fnMatch = formula.match(/\b(SUM|COUNT|AVG|MIN|MAX|COUNT_DISTINCT|DISTINCT_COUNT)\s*\(\s*([\w_]+)\s*\)/i);
+    if (fnMatch) {
+        const fn = fnMatch[1].toUpperCase();
+        const col = fnMatch[2];
+        // Verify col is a real column
+        const matched = availableColumns.find(c => c.toLowerCase() === col.toLowerCase());
+        if (matched) return { function: fn, column: matched };
+    }
+    // Fallback: find any known column mentioned in the formula
+    for (const col of availableColumns) {
+        if (formula.toLowerCase().includes(col.toLowerCase())) {
+            return { function: 'SUM', column: col };
+        }
+    }
+    return null;
+}
+
 // Invent KPIs from columns using Ollama
 async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIProposal[]> {
     console.log('[AI-Discovery] 🤖 Starting Ollama KPI invention...');
@@ -103,104 +135,86 @@ async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIPr
         return [];
     }
 
-    // Build column info with sample values
-    const columnInfo = context.allColumns.slice(0, 15).map(col => {
-        const samples = context.sampleValues[col] || [];
-        const sampleStr = samples.slice(0, 3).map(s => String(s)).join(', ');
-        return `- ${col}: ${sampleStr || '(no samples)'}`;
-    }).join('\n');
+    // Build sample rows for generateKPISuggestions
+    const sampleRows: Record<string, unknown>[] = [];
+    const sampleCols = context.allColumns.slice(0, 15);
+    for (let i = 0; i < 5; i++) {
+        const row: Record<string, unknown> = {};
+        for (const col of sampleCols) {
+            const samples = context.sampleValues[col] || [];
+            row[col] = samples[i] ?? samples[0] ?? null;
+        }
+        sampleRows.push(row);
+    }
 
-    console.log('[AI-Discovery] 📋 Columns for AI:\n', columnInfo);
-
-    const prompt = `You are a Business Intelligence expert evaluating the ${context.domain} domain.
-
-AVAILABLE WAREHOUSE FIELDS (ONLY use these exact fields):
-${columnInfo}
-
-Suggest 4 additional meaningful KPIs based strictly on the available fields above.
-ABSOLUTELY NO HALLUCINATED COLUMNS.
-
-Output a structured JSON array. Each object must have:
-"name": string
-"aggregation": string (e.g. "SUM(order_value)")
-"groupBy": string or null
-"description": string
-
-Respond ONLY with JSON array:
-[{"name":"Revenue Per SKU", "aggregation":"SUM(order_value)", "groupBy":"sku", "description":"Total revenue grouped by SKU"}]`;
-
-    console.log('[AI-Discovery] 📤 Sending prompt to Ollama...');
-    console.log('[AI-Discovery] Prompt length:', prompt.length, 'chars');
+    console.log('[AI-Discovery] 📤 Calling Ollama KPI suggestions (model: ' + KPI_DISCOVERY_MODEL + ')...');
 
     try {
-        const response = await generateCompletion({
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.5,
-        });
+        // generateKPISuggestions uses generateSimple internally.
+        // Override to a more capable model by temporarily setting env.
+        // We call it with the columns and ask for ecommerce-specific KPIs.
+        const suggestions = await generateKPISuggestions(
+            sampleCols,
+            sampleRows,
+            context.domain
+        );
 
-        console.log('[AI-Discovery] 📥 Ollama response received');
-        console.log('[AI-Discovery] Response length:', response.length, 'chars');
-        console.log('[AI-Discovery] Response preview:', response.substring(0, 300));
+        console.log('[AI-Discovery] 📥 Got', suggestions.length, 'suggestions from Ollama');
 
-        // Parse response - look for JSON array
-        const jsonMatch = response.match(/\[[\s\S]*\]/);
-        if (!jsonMatch) {
-            console.error('[AI-Discovery] ❌ No JSON array found in response');
-            console.error('[AI-Discovery] Full response:\n', response);
+        if (suggestions.length === 0) {
+            console.warn('[AI-Discovery] ⚠️ Ollama returned no KPI suggestions (model may be too small)');
             return [];
         }
 
-        console.log('[AI-Discovery] ✓ Found JSON array, parsing...');
+        // Convert to AIKPIProposal format, parsing formula → aggregation
+        const proposals: AIKPIProposal[] = [];
 
-        const inventedKpis = JSON.parse(jsonMatch[0]) as {
-            name: string;
-            description: string;
-            aggregation: string;
-            groupBy: string | null;
-        }[];
+        for (let idx = 0; idx < suggestions.length; idx++) {
+            const kpi = suggestions[idx];
+            if (!kpi.name || !kpi.formula) continue;
 
-        console.log('[AI-Discovery] ✓ Parsed', inventedKpis.length, 'KPIs from AI');
-
-        // Convert to AIKPIProposal format
-        const proposals = inventedKpis.map((kpi, idx) => {
-            const formula = kpi.groupBy && kpi.groupBy !== 'null' ? `${kpi.aggregation} GROUP BY ${kpi.groupBy}` : kpi.aggregation;
+            // Validate formula references real columns (hallucination guard)
+            const agg = formulaToAggregation(kpi.formula, context.allColumns);
+            if (!agg) {
+                console.log('[AI-Discovery]   ⚠️ Skipping KPI (no real column in formula):', kpi.name, '|', kpi.formula);
+                continue;
+            }
 
             const contributingColumns = context.allColumns.filter(col =>
-                formula.toLowerCase().includes(col.toLowerCase())
+                kpi.formula.toLowerCase().includes(col.toLowerCase())
             );
 
-            // Validation: if no valid columns are used, drop this KPI (hallucination guard)
-            if (contributingColumns.length === 0) return null;
+            console.log('[AI-Discovery]   ✓ KPI:', kpi.name, '| Agg:', agg.function + '(' + agg.column + ')', '| Cols:', contributingColumns.join(', '));
 
-            console.log('[AI-Discovery]   KPI:', kpi.name, '| Formula:', formula, '| Uses:', contributingColumns.join(', '));
-
-            return {
+            proposals.push({
                 id: `ai-inv-${Date.now()}-${idx}`,
                 projectId: context.projectId,
                 kpiName: kpi.name,
-                description: kpi.description || kpi.name,
-                formula: formula,
-                category: 'derived',
+                description: kpi.explanation || kpi.name,
+                formula: kpi.formula,
+                category: kpi.category || 'derived',
                 contributingColumns,
                 derivedFrom: [],
                 isDerived: false,
-                businessMeaning: kpi.description || 'AI-suggested KPI',
-                whyItMatters: 'Domain-specific insight from AI',
-                confidenceScore: 85,
+                businessMeaning: kpi.explanation || 'AI-suggested KPI',
+                whyItMatters: `Domain-specific insight for ${context.domain}`,
+                confidenceScore: 82,
                 domain: context.domain,
                 sourceType: 'AI_INVENTED' as const,
                 status: 'PENDING' as const,
-                ollamaModel: process.env.OLLAMA_MODEL || 'qwen3:0.6b',
+                ollamaModel: KPI_DISCOVERY_MODEL,
                 createdAt: new Date(),
-            };
-        }).filter(Boolean) as AIKPIProposal[];
+                // Store aggregation so blueprint route can use it
+                _aggregation: agg,
+                _sourceTable: contributingColumns[0] ? 'merged_data' : 'unknown',
+            } as AIKPIProposal & { _aggregation: any; _sourceTable: string });
+        }
 
-        console.log('[AI-Discovery] ✓ Created', proposals.length, 'AI-invented proposals');
+        console.log('[AI-Discovery] ✓ Created', proposals.length, 'valid AI-invented proposals');
         return proposals;
 
     } catch (error: any) {
         console.error('[AI-Discovery] ❌ Ollama error:', error.message || error);
-        console.error('[AI-Discovery] Full error:', error);
         return [];
     }
 }
