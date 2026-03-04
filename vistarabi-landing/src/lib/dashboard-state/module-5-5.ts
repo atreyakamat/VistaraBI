@@ -1,7 +1,11 @@
 // Module 5.5 — Orchestrator (Main Entry Point)
 // runDashboardIntelligence() is the single function Module 5.5 exposes to the API.
 // Pipeline:
-//   hydrateDashboard → normalizeFilters → execute KPIs → attach summary → attach anomaly → return
+//   hydrateDashboard → normalizeFilters → execute KPIs (parallel) → attach summary → attach anomaly → return
+
+// R7: Concurrency cap — at most this many KPI DB queries run simultaneously
+// Prevents connection pool exhaustion when processing large dashboards.
+const KPI_CONCURRENCY_LIMIT = 5;
 
 import { hydrateDashboard } from './state-engine';
 import { normalizeFilters } from './filter-interpreter';
@@ -9,6 +13,7 @@ import { mergeFilters, toExecutionFilters, extractDateRange, extractRankConfig }
 import { generateDeterministicSummary } from './kpi-summary-engine';
 import { tryDetectAnomalies } from './anomaly-detector';
 import { executeKPI } from '@/lib/execution';
+import db from '@/lib/prisma';
 import type {
     DashboardIntelligenceOptions,
     EnrichedKPIResult,
@@ -58,73 +63,100 @@ export async function runDashboardIntelligence(
         globalFilters = parsed;
     }
 
-    // ── Step 3: Execute per-card ──
+    // ── Step 3: Execute per-card (parallel with concurrency cap) ──
     const granularity = options.granularity || state.granularity || 'monthly';
-
-    const enrichedKPIs: EnrichedKPIResult[] = [];
-    let skippedCount = 0;
-    let anomalyCount = 0;
-    let cacheHitCount = 0;
 
     // Filter to requested card IDs if specified
     const cardsToProcess = options.cardIds
         ? state.cards.filter(c => options.cardIds!.includes(c.id))
         : state.cards;
 
-    for (const card of cardsToProcess) {
-        try {
-            // Merge global + card-level overrides (global-first, card wins on collision)
-            const effectiveFilters = mergeFilters(globalFilters, card.filterOverrides);
+    // R3: Prefetch unit for all KPIs in this dashboard in a single query
+    const kpiIds = [...new Set(cardsToProcess.map(c => c.kpiId))];
+    const approvedKPIs = await db.approvedKPI.findMany({
+        where: { id: { in: kpiIds } },
+        select: { id: true, unit: true },
+    });
+    const unitLookup = new Map(approvedKPIs.map(k => [k.id, (k as any).unit as string | null]));
 
-            // Convert to execution layer filter format
-            const executionFilters = toExecutionFilters(effectiveFilters);
-            const dateRange = extractDateRange(effectiveFilters);
-            const rankConfig = extractRankConfig(effectiveFilters);
+    // R7: Build execution tasks, then run with concurrency cap via Promise.allSettled
+    type CardTask = {
+        card: typeof cardsToProcess[number];
+        unit: string;
+    };
 
-            // Resolve groupBy: card setting OR rank filter column
-            const groupBy = card.groupBy || rankConfig.groupBy || undefined;
+    async function executeCardKPI(card: typeof cardsToProcess[number]): Promise<EnrichedKPIResult> {
+        const effectiveFilters = mergeFilters(globalFilters, card.filterOverrides);
+        const executionFilters = toExecutionFilters(effectiveFilters);
+        const dateRange = extractDateRange(effectiveFilters);
+        const rankConfig = extractRankConfig(effectiveFilters);
+        const groupBy = card.groupBy || rankConfig.groupBy || undefined;
 
-            // Execute via Module 5B executor (untouched)
-            const result = await executeKPI(projectId, card.kpiId, {
-                granularity: groupBy ? undefined : granularity, // No time-series when grouped
-                filters: executionFilters,
-                groupBy,
-                dateFrom: dateRange.dateFrom,
-                dateTo: dateRange.dateTo,
-                dateColumn: dateRange.dateColumn,
-                skipCache: options.skipCache,
-                skipAIExplanation: true, // 5.5 handles summaries deterministically
-            });
+        const result = await executeKPI(projectId, card.kpiId, {
+            granularity: groupBy ? undefined : granularity,
+            filters: executionFilters,
+            groupBy,
+            dateFrom: dateRange.dateFrom,
+            dateTo: dateRange.dateTo,
+            dateColumn: dateRange.dateColumn,
+            skipCache: options.skipCache,
+            skipAIExplanation: true,
+        });
 
-            if (result.performance.cacheHit) cacheHitCount++;
+        const summary = options.skipSummaryGeneration
+            ? null
+            : generateDeterministicSummary(result);
 
-            // ── Step 4: KPI Summary (deterministic, always present) ──
-            const summary = options.skipSummaryGeneration
-                ? null
-                : generateDeterministicSummary(result);
+        let anomaly = null;
+        if (!options.skipAnomalyDetection && result.dataset.length >= 5) {
+            anomaly = tryDetectAnomalies(result.dataset);
+        }
 
-            // ── Step 5: Anomaly Detection (optional, only time-series) ──
-            let anomaly = null;
-            if (!options.skipAnomalyDetection && result.dataset.length >= 5) {
-                anomaly = tryDetectAnomalies(result.dataset);
-                if (anomaly?.detected) anomalyCount++;
+        const guardrail: GuardrailInfo | null = result.datasetSize > MAX_GROUP_BY_ROWS
+            ? {
+                triggered: true,
+                reason: `High cardinality: ${result.datasetSize} rows exceed limit of ${MAX_GROUP_BY_ROWS}`,
+                fallbackChartType: 'table',
+                originalCount: result.datasetSize,
             }
+            : null;
 
-            // ── Step 6: Performance Guardrail ──
-            const guardrail: GuardrailInfo | null = result.datasetSize > MAX_GROUP_BY_ROWS
-                ? {
-                    triggered: true,
-                    reason: `High cardinality: ${result.datasetSize} rows exceed limit of ${MAX_GROUP_BY_ROWS}`,
-                    fallbackChartType: 'table',
-                    originalCount: result.datasetSize,
-                }
-                : null;
+        // R3: resolve unit from prefetched lookup, fallback to empty string
+        const unit = unitLookup.get(card.kpiId) || '';
 
-            enrichedKPIs.push({ ...result, summary, anomaly, guardrail });
+        return { ...result, summary, anomaly, guardrail, unit };
+    }
 
-        } catch (err: any) {
-            console.error(`[Module5.5] KPI "${card.kpiId}" failed:`, err.message);
-            skippedCount++;
+    // R7: Concurrency-capped parallel execution via batched Promise.allSettled
+    const enrichedKPIs: EnrichedKPIResult[] = [];
+    const errors: EnrichedDashboardResult['errors'] = [];
+    let anomalyCount = 0;
+    let cacheHitCount = 0;
+    let skippedCount = 0;
+
+    // Process in batches of KPI_CONCURRENCY_LIMIT
+    for (let i = 0; i < cardsToProcess.length; i += KPI_CONCURRENCY_LIMIT) {
+        const batch = cardsToProcess.slice(i, i + KPI_CONCURRENCY_LIMIT);
+        const batchResults = await Promise.allSettled(batch.map(card => executeCardKPI(card)));
+
+        for (let j = 0; j < batchResults.length; j++) {
+            const outcome = batchResults[j];
+            const card = batch[j];
+
+            if (outcome.status === 'fulfilled') {
+                const enriched = outcome.value;
+                if (enriched.performance.cacheHit) cacheHitCount++;
+                if (enriched.anomaly?.detected) anomalyCount++;
+                enrichedKPIs.push(enriched);
+            } else {
+                // R2: Surface failure, never swallow silently
+                const err = outcome.reason;
+                const message = err instanceof Error ? err.message : String(err);
+                const errorCode = err?.code || 'KPI_EXECUTION_FAILURE';
+                console.error(`[Module5.5] KPI "${card.kpiId}" failed (${errorCode}):`, message);
+                errors.push({ kpiId: card.kpiId, errorCode, message });
+                skippedCount++;
+            }
         }
     }
 
@@ -138,6 +170,7 @@ export async function runDashboardIntelligence(
         globalFilters,
         kpis: enrichedKPIs,
         computedAt: new Date().toISOString(),
+        errors,  // R2
         metadata: {
             totalKPIs: cardsToProcess.length,
             computedKPIs: enrichedKPIs.length,

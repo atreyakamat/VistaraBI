@@ -9,6 +9,23 @@ import type { EligibleKPI, SemanticInput } from './semantic-types';
 import { type KPIRule } from './kpi-rule-registry';
 import { resolveKPI, SemanticResolutionError } from './semantic-resolver';
 
+// ─── Formula Validation ────────────────────────────────────────────────────────
+
+/**
+ * R4: Validate that a resolved formula is a pure arithmetic expression.
+ * Throws BlueprintInsertionError if any forbidden SQL clause is found.
+ * Forbidden: WHERE, GROUP BY, ORDER BY, JOIN, LIMIT — these indicate
+ * a formula template that accidentally leaked SQL into the expression.
+ */
+const FORBIDDEN_FORMULA_CLAUSES = /\b(WHERE|GROUP\s+BY|ORDER\s+BY|JOIN|LIMIT)\b/i;
+
+export class BlueprintInsertionError extends Error {
+    constructor(public readonly ruleId: string, public readonly detail: string) {
+        super(`[BlueprintInserter] Formula validation failed for rule "${ruleId}": ${detail}`);
+        this.name = 'BlueprintInsertionError';
+    }
+}
+
 // ─── Insertion Result ──────────────────────────────────────────────────────────
 
 export interface BlueprintInsertionResult {
@@ -71,6 +88,23 @@ export async function insertEligibleKPIsIntoBlueprint(
                 input.relationships
             );
 
+            // R3: unit is required — fail loudly if missing from KPIRule
+            if (!rule.unit || rule.unit.trim() === '') {
+                throw new BlueprintInsertionError(
+                    rule.id,
+                    `KPIRule is missing required 'unit' field. Add a unit (e.g. 'currency', 'count', 'ratio') to the rule definition.`
+                );
+            }
+
+            // R4: formula must be a pure arithmetic expression — no SQL clauses allowed
+            if (FORBIDDEN_FORMULA_CLAUSES.test(resolved.formula)) {
+                throw new BlueprintInsertionError(
+                    rule.id,
+                    `Formula "${resolved.formula}" contains a forbidden SQL clause (WHERE/GROUP BY/ORDER BY/JOIN/LIMIT). ` +
+                    `Formula must be a pure arithmetic expression like 'SUM(col) / COUNT(col)'.`
+                );
+            }
+
             // Upsert ApprovedKPI — schema has no @@unique on [blueprintId,kpiLibraryId],
             // so we use findFirst + create/update manually.
             const existingKPI = await db.approvedKPI.findFirst({
@@ -89,6 +123,7 @@ export async function insertEligibleKPIsIntoBlueprint(
                         description: resolved.description,
                         sourceTable: resolved.sourceTable,
                         category: resolved.category,
+                        unit: rule.unit,  // R3: propagate unit
                         updatedAt: new Date(),
                     },
                 });
@@ -102,6 +137,7 @@ export async function insertEligibleKPIsIntoBlueprint(
                         description: resolved.description,
                         sourceTable: resolved.sourceTable,
                         category: resolved.category,
+                        unit: rule.unit,  // R3: propagate unit
                     },
                 });
             }
@@ -135,7 +171,10 @@ export async function insertEligibleKPIsIntoBlueprint(
             console.log(`${prefix} ✅ Inserted: [${rule.id}] ${rule.name} → table: ${resolved.sourceTable}`);
 
         } catch (err) {
-            if (err instanceof SemanticResolutionError) {
+            if (err instanceof BlueprintInsertionError) {
+                // R4: formula validation error — always a hard skip, logged clearly
+                console.error(`${prefix} ❌ FORMULA INVALID [${rule.id}] ${rule.name}: ${err.detail}`);
+            } else if (err instanceof SemanticResolutionError) {
                 console.warn(`${prefix} ⚠️  SKIPPED [${rule.id}] ${rule.name}: ${err.detail}`);
             } else {
                 console.error(`${prefix} ❌ ERROR inserting [${rule.id}] ${rule.name}:`, err);

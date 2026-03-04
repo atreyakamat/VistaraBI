@@ -96,9 +96,12 @@ function compileSelectClause(
     const parts: string[] = [];
 
     // Time dimension if granularity is requested
+    // R1 FIX: Cast to ::DATE to eliminate TIMESTAMPTZ timezone ambiguity.
+    // PostgreSQL returns a plain DATE value (e.g. '2024-01-01') with no time component,
+    // so JS never needs to interpret timezone offsets. The SQL layer owns the date boundary.
     if (granularity && dateColumn) {
         const trunc = GRANULARITY_MAP[granularity] || 'month';
-        parts.push(`DATE_TRUNC('${trunc}', ${qi(dateColumn)}) AS "period"`);
+        parts.push(`DATE_TRUNC('${trunc}', ${qi(dateColumn)})::DATE AS "period"`);
     }
 
     // GroupBy columns in SELECT
@@ -233,9 +236,10 @@ function compileGroupByClause(
     const parts: string[] = [];
 
     // Time dimension grouping
+    // R1 FIX: Match the ::DATE cast from compileSelectClause so GROUP BY aligns perfectly.
     if (granularity && dateColumn) {
         const trunc = GRANULARITY_MAP[granularity] || 'month';
-        parts.push(`DATE_TRUNC('${trunc}', ${qi(dateColumn)})`);
+        parts.push(`DATE_TRUNC('${trunc}', ${qi(dateColumn)})::DATE`);
     }
 
     // Defined group-bys

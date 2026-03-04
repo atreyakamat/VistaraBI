@@ -156,6 +156,8 @@ export interface EnrichedKPIResult extends KPIExecutionResult {
     summary: KPISummary | null;
     anomaly: AnomalyReport | null;
     guardrail: GuardrailInfo | null;
+    // R3: unit propagated from KPI definition → EnrichedKPIResult
+    unit: string;
 }
 
 // ─── Enriched Dashboard Result ────────────────────────────────────────────────
@@ -168,6 +170,12 @@ export interface EnrichedDashboardResult {
     globalFilters: NormalizedFilter[];
     kpis: EnrichedKPIResult[];
     computedAt: string;
+    // R2: KPI execution errors surfaced explicitly — never swallowed silently
+    errors: Array<{
+        kpiId: string;
+        errorCode: string;
+        message: string;
+    }>;
     metadata: {
         totalKPIs: number;
         computedKPIs: number;

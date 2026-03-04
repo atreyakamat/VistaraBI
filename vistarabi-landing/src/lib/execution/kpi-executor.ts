@@ -191,7 +191,16 @@ export async function executeKPI(
     const formattedDataset = primaryDataPoints.map(row => {
         // ── Time-series row: DATE_TRUNC returns a "period" column ──
         if (row.period != null) {
-            const dateStr = new Date(row.period).toISOString().split('T')[0];
+            // R1 FIX: sql-compiler now emits DATE_TRUNC(...)::DATE so PostgreSQL returns
+            // a plain DATE value. pg driver serialises a DATE column as a JS Date object
+            // but we read it via toISOString().slice(0,10) ONLY as a safety net.
+            // Because the DB value is already a local calendar date (no time zone),
+            // toISOString() on a midnight-UTC Date still gives the correct YYYY-MM-DD.
+            // We deliberately do NOT rely on timezone arithmetic here.
+            const rawPeriod = row.period;
+            const dateStr = rawPeriod instanceof Date
+                ? rawPeriod.toISOString().slice(0, 10)
+                : String(rawPeriod).slice(0, 10);   // YYYY-MM-DD already from ::DATE cast
             const val = typeof row.value === 'number' ? row.value
                 : typeof row.value === 'string' ? parseFloat(row.value)
                     : typeof row[aggAlias] === 'number' ? row[aggAlias]

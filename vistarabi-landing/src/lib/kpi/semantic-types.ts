@@ -86,6 +86,7 @@ export interface EligibleKPI {
     category: string;
     sourceTable: string;           // primary source table
     formula: string;               // interpolated with real columns
+    unit: string;                  // R3: e.g. "INR", "count", "percent"
     aggregations: EligibleKPIAggregation[];
     joins: EligibleKPIJoin[];
     tables: string[];

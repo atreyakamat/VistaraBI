@@ -27,10 +27,13 @@ export interface KPIRule {
      * Formula template. Use {roleName} as placeholder.
      * e.g. 'SUM({revenue})' or 'SUM({revenue}) / COUNT({order_id})'
      * The resolver will replace {role} with the actual column name.
+     * MUST be a pure arithmetic expression — no SQL clauses (WHERE/GROUP BY/JOIN etc.)
      */
     lineageFormulaTemplate: string;
     defaultVisualizationHint: 'metric_card' | 'bar_chart' | 'line_chart' | 'pie_chart';
     priority: number;
+    // R3: measurement unit for the KPI output value (required)
+    unit: string;
 }
 
 // ─── ECOMMERCE (10 rules) ─────────────────────────────────────────────────────
@@ -44,6 +47,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'ec-002', name: 'Order Count', category: 'volume', priority: 2,
@@ -53,6 +57,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'COUNT', semanticRole: 'order_id' }],
         lineageFormulaTemplate: 'COUNT({order_id})',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
     {
         id: 'ec-003', name: 'Average Order Value', category: 'revenue', priority: 3,
@@ -65,6 +70,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({revenue}) / COUNT({order_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'ec-004', name: 'Conversion Rate', category: 'conversion', priority: 4,
@@ -77,6 +83,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({order_id}) / COUNT(DISTINCT {session_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'ec-005', name: 'Cart Abandonment Rate', category: 'conversion', priority: 5,
@@ -89,6 +96,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: '(COUNT({cart_id}) - COUNT({order_id})) / COUNT({cart_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'ec-006', name: 'Customer Lifetime Value', category: 'customer', priority: 6,
@@ -101,6 +109,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({revenue}) / COUNT(DISTINCT {customer_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'ec-007', name: 'Gross Margin', category: 'profitability', priority: 7,
@@ -113,6 +122,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: '(SUM({revenue}) - SUM({cogs})) / SUM({revenue})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'ec-008', name: 'Revenue Growth Rate', category: 'growth', priority: 8,
@@ -122,6 +132,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue}) GROUP BY {date}',
         defaultVisualizationHint: 'line_chart',
+        unit: 'currency', // R3
     },
     {
         id: 'ec-009', name: 'Revenue by Category', category: 'revenue', priority: 9,
@@ -131,6 +142,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue}) GROUP BY {category}',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'currency', // R3
     },
     {
         id: 'ec-010', name: 'Customer Acquisition Cost', category: 'marketing', priority: 10,
@@ -143,6 +155,7 @@ const ECOMMERCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({marketing_cost}) / COUNT(DISTINCT {customer_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
 ];
 
@@ -157,6 +170,7 @@ const SAAS_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'mrr' }],
         lineageFormulaTemplate: 'SUM({mrr})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'saas-002', name: 'Annual Recurring Revenue', category: 'revenue', priority: 2,
@@ -166,6 +180,7 @@ const SAAS_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'mrr' }],
         lineageFormulaTemplate: 'SUM({mrr}) * 12',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'saas-003', name: 'Churn Rate', category: 'retention', priority: 3,
@@ -178,6 +193,7 @@ const SAAS_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({churn_flag}) / COUNT(DISTINCT {customer_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'saas-004', name: 'Net Revenue Retention', category: 'retention', priority: 4,
@@ -191,6 +207,7 @@ const SAAS_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: '(SUM({mrr}) + SUM({expansion_mrr}) - SUM({contraction_mrr})) / SUM({mrr})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'saas-005', name: 'Average Revenue Per User', category: 'revenue', priority: 5,
@@ -203,6 +220,7 @@ const SAAS_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({mrr}) / COUNT(DISTINCT {user_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'saas-006', name: 'Trial Conversion Rate', category: 'conversion', priority: 6,
@@ -215,6 +233,7 @@ const SAAS_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({converted_flag}) / COUNT({trial_flag})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'saas-007', name: 'Active Users', category: 'engagement', priority: 7,
@@ -224,6 +243,7 @@ const SAAS_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'COUNT_DISTINCT', semanticRole: 'user_id' }],
         lineageFormulaTemplate: 'COUNT(DISTINCT {user_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'count', // R3
     },
     {
         id: 'saas-008', name: 'Expansion Revenue', category: 'revenue', priority: 8,
@@ -233,6 +253,7 @@ const SAAS_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'expansion_mrr' }],
         lineageFormulaTemplate: 'SUM({expansion_mrr})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'saas-009', name: 'Revenue Growth (MoM)', category: 'growth', priority: 9,
@@ -242,6 +263,7 @@ const SAAS_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'mrr' }],
         lineageFormulaTemplate: 'SUM({mrr}) GROUP BY {date}',
         defaultVisualizationHint: 'line_chart',
+        unit: 'currency', // R3
     },
     {
         id: 'saas-010', name: 'Customer Acquisition Cost', category: 'marketing', priority: 10,
@@ -254,6 +276,7 @@ const SAAS_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({marketing_cost}) / COUNT(DISTINCT {customer_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
 ];
 
@@ -268,6 +291,7 @@ const EDTECH_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'COUNT', semanticRole: 'enrollment_id' }],
         lineageFormulaTemplate: 'COUNT({enrollment_id})',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
     {
         id: 'ed-002', name: 'Course Completion Rate', category: 'engagement', priority: 2,
@@ -280,6 +304,7 @@ const EDTECH_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({completion_flag}) / COUNT({enrollment_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'ed-003', name: 'Average Grade', category: 'performance', priority: 3,
@@ -289,6 +314,7 @@ const EDTECH_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'AVG', semanticRole: 'grade' }],
         lineageFormulaTemplate: 'AVG({grade})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'score', // R3
     },
     {
         id: 'ed-004', name: 'Active Learners', category: 'engagement', priority: 4,
@@ -298,6 +324,7 @@ const EDTECH_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'COUNT_DISTINCT', semanticRole: 'student_id' }],
         lineageFormulaTemplate: 'COUNT(DISTINCT {student_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'count', // R3
     },
     {
         id: 'ed-005', name: 'Certification Rate', category: 'performance', priority: 5,
@@ -310,6 +337,7 @@ const EDTECH_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({certification_flag}) / COUNT({completion_flag})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'ed-006', name: 'Revenue per Course', category: 'revenue', priority: 6,
@@ -322,6 +350,7 @@ const EDTECH_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({revenue}) / COUNT(DISTINCT {course_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'ed-007', name: 'Dropout Rate', category: 'retention', priority: 7,
@@ -334,6 +363,7 @@ const EDTECH_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({status}[dropped]) / COUNT({enrollment_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'ed-008', name: 'Enrollment by Course', category: 'volume', priority: 8,
@@ -343,6 +373,7 @@ const EDTECH_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'COUNT', semanticRole: 'enrollment_id' }],
         lineageFormulaTemplate: 'COUNT({enrollment_id}) GROUP BY {course_id}',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
     {
         id: 'ed-009', name: 'Revenue Growth (MoM)', category: 'growth', priority: 9,
@@ -352,6 +383,7 @@ const EDTECH_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue}) GROUP BY {date}',
         defaultVisualizationHint: 'line_chart',
+        unit: 'currency', // R3
     },
     {
         id: 'ed-010', name: 'Cross-course Student Analytics', category: 'engagement', priority: 10,
@@ -365,6 +397,7 @@ const EDTECH_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT(DISTINCT {student_id}) JOIN {course_id}',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
 ];
 
@@ -379,6 +412,7 @@ const RETAIL_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'rt-002', name: 'Inventory Turnover', category: 'operations', priority: 2,
@@ -391,6 +425,7 @@ const RETAIL_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({cogs}) / AVG({inventory})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'rt-003', name: 'Gross Margin', category: 'profitability', priority: 3,
@@ -403,6 +438,7 @@ const RETAIL_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: '(SUM({revenue}) - SUM({cogs})) / SUM({revenue})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'rt-004', name: 'Sales per Store', category: 'revenue', priority: 4,
@@ -412,6 +448,7 @@ const RETAIL_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue}) GROUP BY {store_id}',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'currency', // R3
     },
     {
         id: 'rt-005', name: 'Average Basket Size', category: 'volume', priority: 5,
@@ -424,6 +461,7 @@ const RETAIL_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({items_in_basket}) / COUNT({transaction_id})',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
     {
         id: 'rt-006', name: 'Shrinkage Rate', category: 'operations', priority: 6,
@@ -436,6 +474,7 @@ const RETAIL_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({shrinkage}) / SUM({inventory})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'rt-007', name: 'Sell-through Rate', category: 'operations', priority: 7,
@@ -448,6 +487,7 @@ const RETAIL_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({sold_units}) / SUM({received_units})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'rt-008', name: 'Sales Growth', category: 'growth', priority: 8,
@@ -457,6 +497,7 @@ const RETAIL_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue}) GROUP BY {date}',
         defaultVisualizationHint: 'line_chart',
+        unit: 'currency', // R3
     },
     {
         id: 'rt-009', name: 'Footfall Conversion', category: 'conversion', priority: 9,
@@ -469,6 +510,7 @@ const RETAIL_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({transaction_id}) / COUNT({visitor_count})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'rt-010', name: 'Revenue by Category', category: 'revenue', priority: 10,
@@ -478,6 +520,7 @@ const RETAIL_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue}) GROUP BY {category}',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'currency', // R3
     },
 ];
 
@@ -492,6 +535,7 @@ const SERVICES_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'sv-002', name: 'Billable Utilization Rate', category: 'efficiency', priority: 2,
@@ -504,6 +548,7 @@ const SERVICES_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({billable_hours}) / SUM({total_hours})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'sv-003', name: 'Project Profitability', category: 'profitability', priority: 3,
@@ -516,6 +561,7 @@ const SERVICES_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({revenue}) - SUM({project_cost})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'sv-004', name: 'Average Billing Rate', category: 'revenue', priority: 4,
@@ -528,6 +574,7 @@ const SERVICES_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({revenue}) / SUM({billable_hours})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'sv-005', name: 'Revenue per Client', category: 'revenue', priority: 5,
@@ -540,6 +587,7 @@ const SERVICES_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({revenue}) / COUNT(DISTINCT {client_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'sv-006', name: 'Overdue Invoices', category: 'operations', priority: 6,
@@ -549,6 +597,7 @@ const SERVICES_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'COUNT', semanticRole: 'invoice_id' }],
         lineageFormulaTemplate: 'COUNT({invoice_id}) WHERE {due_date} < today AND {paid_flag} = false',
         defaultVisualizationHint: 'metric_card',
+        unit: 'count', // R3
     },
     {
         id: 'sv-007', name: 'Employee Utilization', category: 'efficiency', priority: 7,
@@ -561,6 +610,7 @@ const SERVICES_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({hours_worked}) / SUM({available_hours})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'sv-008', name: 'Active Projects', category: 'volume', priority: 8,
@@ -570,6 +620,7 @@ const SERVICES_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'COUNT', semanticRole: 'project_id' }],
         lineageFormulaTemplate: 'COUNT({project_id}) WHERE {status} = active',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
     {
         id: 'sv-009', name: 'Revenue Growth', category: 'growth', priority: 9,
@@ -579,6 +630,7 @@ const SERVICES_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue}) GROUP BY {date}',
         defaultVisualizationHint: 'line_chart',
+        unit: 'currency', // R3
     },
     {
         id: 'sv-010', name: 'Cross-table Client Revenue', category: 'revenue', priority: 10,
@@ -589,6 +641,7 @@ const SERVICES_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'revenue' }],
         lineageFormulaTemplate: 'SUM({revenue}) JOIN {client_id}',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'currency', // R3
     },
 ];
 
@@ -603,6 +656,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'units_produced' }],
         lineageFormulaTemplate: 'SUM({units_produced})',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
     {
         id: 'mf-002', name: 'Yield Rate', category: 'quality', priority: 2,
@@ -615,6 +669,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({good_units}) / SUM({total_units})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'mf-003', name: 'Defect Rate', category: 'quality', priority: 3,
@@ -627,6 +682,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({defects}) / SUM({total_units})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'mf-004', name: 'Overall Equipment Effectiveness', category: 'efficiency', priority: 4,
@@ -640,6 +696,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'AVG({availability}) * AVG({performance}) * AVG({quality_ratio})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'mf-005', name: 'Downtime', category: 'operations', priority: 5,
@@ -649,6 +706,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'downtime' }],
         lineageFormulaTemplate: 'SUM({downtime})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'hours', // R3
     },
     {
         id: 'mf-006', name: 'Cost per Unit', category: 'cost', priority: 6,
@@ -661,6 +719,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({unit_cost}) / SUM({units_produced})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'mf-007', name: 'Machine Utilization', category: 'efficiency', priority: 7,
@@ -673,6 +732,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({running_time}) / SUM({available_time})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'mf-008', name: 'Scrap Rate', category: 'quality', priority: 8,
@@ -685,6 +745,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({scrap}) / SUM({material_used})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'mf-009', name: 'Throughput (Time-based)', category: 'volume', priority: 9,
@@ -694,6 +755,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'units_produced' }],
         lineageFormulaTemplate: 'SUM({units_produced}) / {time_period}',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
     {
         id: 'mf-010', name: 'Lead Time', category: 'operations', priority: 10,
@@ -703,6 +765,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
         aggregationRules: [],
         lineageFormulaTemplate: 'AVG({delivery_date} - {order_date})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'days', // R3
     },
 ];
 
@@ -717,6 +780,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'COUNT_DISTINCT', semanticRole: 'patient_id' }],
         lineageFormulaTemplate: 'COUNT(DISTINCT {patient_id})',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
     {
         id: 'hc-002', name: 'Appointment No-show Rate', category: 'operations', priority: 2,
@@ -729,6 +793,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({no_show_flag}) / COUNT({appointment_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'hc-003', name: 'Bed Occupancy Rate', category: 'capacity', priority: 3,
@@ -741,6 +806,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({beds_occupied}) / SUM({beds_total})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'hc-004', name: 'Average Length of Stay', category: 'operations', priority: 4,
@@ -750,6 +816,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         aggregationRules: [],
         lineageFormulaTemplate: 'AVG({discharge_date} - {admission_date})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'days', // R3
     },
     {
         id: 'hc-005', name: 'Readmission Rate', category: 'quality', priority: 5,
@@ -762,6 +829,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({readmission_flag}) / COUNT(DISTINCT {patient_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'hc-006', name: 'Claim Approval Rate', category: 'operations', priority: 6,
@@ -774,6 +842,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({claim_approved_flag}) / COUNT({claim_submitted_flag})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'hc-007', name: 'Treatment Success Rate', category: 'quality', priority: 7,
@@ -786,6 +855,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({treatment_success_flag}) / COUNT({treatment_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'hc-008', name: 'Cost per Treatment', category: 'cost', priority: 8,
@@ -798,6 +868,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({treatment_cost}) / COUNT({treatment_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'hc-009', name: 'Doctor Utilization', category: 'efficiency', priority: 9,
@@ -810,6 +881,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({patient_hours}) / SUM({available_hours})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'hc-010', name: 'Revenue per Patient', category: 'revenue', priority: 10,
@@ -823,6 +895,7 @@ const HEALTHCARE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({revenue}) / COUNT(DISTINCT {patient_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
 ];
 
@@ -837,6 +910,7 @@ const FINANCE_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'COUNT', semanticRole: 'transaction_id' }],
         lineageFormulaTemplate: 'COUNT({transaction_id})',
         defaultVisualizationHint: 'bar_chart',
+        unit: 'count', // R3
     },
     {
         id: 'fn-002', name: 'Net Profit', category: 'profitability', priority: 2,
@@ -849,6 +923,7 @@ const FINANCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({revenue}) - SUM({expenses})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'fn-003', name: 'Cash Flow', category: 'liquidity', priority: 3,
@@ -861,6 +936,7 @@ const FINANCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({inflow}) - SUM({outflow})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'fn-004', name: 'Loan Default Rate', category: 'risk', priority: 4,
@@ -873,6 +949,7 @@ const FINANCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({default_flag}) / COUNT({loan_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'fn-005', name: 'Return on Assets', category: 'performance', priority: 5,
@@ -885,6 +962,7 @@ const FINANCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({net_income}) / AVG({total_assets})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'fn-006', name: 'Return on Equity', category: 'performance', priority: 6,
@@ -897,6 +975,7 @@ const FINANCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({net_income}) / AVG({equity})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'fn-007', name: 'Liquidity Ratio', category: 'liquidity', priority: 7,
@@ -909,6 +988,7 @@ const FINANCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({current_assets}) / SUM({current_liabilities})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'fn-008', name: 'Non-performing Assets Ratio', category: 'risk', priority: 8,
@@ -921,6 +1001,7 @@ const FINANCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'SUM({npa}) / SUM({total_loans})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
     {
         id: 'fn-009', name: 'Interest Income', category: 'revenue', priority: 9,
@@ -930,6 +1011,7 @@ const FINANCE_RULES: KPIRule[] = [
         aggregationRules: [{ function: 'SUM', semanticRole: 'interest_income' }],
         lineageFormulaTemplate: 'SUM({interest_income})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'currency', // R3
     },
     {
         id: 'fn-010', name: 'Fraud Rate', category: 'risk', priority: 10,
@@ -942,6 +1024,7 @@ const FINANCE_RULES: KPIRule[] = [
         ],
         lineageFormulaTemplate: 'COUNT({fraud_flag}) / COUNT({transaction_id})',
         defaultVisualizationHint: 'metric_card',
+        unit: 'ratio', // R3
     },
 ];
 

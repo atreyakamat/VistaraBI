@@ -382,6 +382,7 @@ model ApprovedKPI {
   description   String?
   sourceTable   String
   category      String              @default("general")
+  unit          String?             // R3: e.g. "currency", "count", "ratio", "percent", "days"
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 
@@ -535,3 +536,25 @@ model DashboardCard {
   @@index([stateId])
   @@index([kpiId])
 }
+
+// Module 6A: Append-only audit log for every AI command attempt
+model AuditLog {
+  id                     String   @id @default(uuid())
+  sessionId              String
+  userId                 String?
+  intentId               String   @unique
+  rawUserQuery           String
+  normalizedUserQuery    String
+  llmRawOutput           String?
+  validationStagesPassed Int      @default(0)
+  validationFailedAt     String?  // e.g. "STAGE_3_DCO" or null if all passed
+  structuredCommand      Json?    // validated Module6Command, or null on rejection
+  executionStatus        String   // "success" | "rejected" | "already_processed" | "execution_failed"
+  errorCode              String?
+  createdAt              DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([intentId])
+  @@index([createdAt])
+}
+
