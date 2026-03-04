@@ -1,8 +1,8 @@
 // Ollama Client for AI Semantic Reasoning
-// Uses locally hosted Ollama with qwen3:0.6b model
+// Uses locally hosted Ollama with qwen2.5:3b model
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3:0.6b';
+const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:3b';
 
 export interface OllamaMessage {
     role: 'system' | 'user' | 'assistant';
@@ -70,37 +70,56 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
         temperature = 0.3,
     } = options;
 
-    console.log(`[Ollama] Generating with model: ${model}`);
-    console.log(`[Ollama] URL: ${OLLAMA_BASE_URL}`);
+    const cloudApiKey = process.env.CLOUD_AI_API_KEY; // e.g., Groq or OpenAI key placeholder
+    const cloudApiUrl = process.env.CLOUD_AI_BASE_URL; // e.g., https://api.groq.com/openai/v1
 
-    // If prompt is provided, use the simpler /api/generate endpoint
-    if (prompt) {
-        return generateSimple(prompt, model, temperature);
+    // If a cloud configuration is fully provided, bypass local Ollama and use OpenAI-compatible API
+    const useCloud = Boolean(cloudApiKey && cloudApiUrl);
+    const resolvedUrl = useCloud ? `${cloudApiUrl}/chat/completions` : `${OLLAMA_BASE_URL}/api/chat`;
+    const resolvedModel = useCloud && process.env.CLOUD_AI_MODEL ? process.env.CLOUD_AI_MODEL : model;
+
+    console.log(`[AI-Client] Generating with model: ${resolvedModel} (Cloud: ${useCloud})`);
+
+    // If prompt is provided and we're local, use the simpler /api/generate endpoint
+    if (prompt && !useCloud) {
+        return generateSimple(prompt, resolvedModel, temperature);
     }
 
-    // Use chat API for messages
+    // Convert prompt to message array if using Cloud and prompt was provided
+    const payloadMessages = prompt ? [{ role: 'user', content: prompt }] : messages;
+
     const maxRetries = 2;
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            console.log(`[Ollama] Attempt ${attempt}/${maxRetries}`);
+            console.log(`[AI-Client] Attempt ${attempt}/${maxRetries}`);
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
 
-            const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+            const payload = useCloud ? {
+                model: resolvedModel,
+                messages: payloadMessages,
+                temperature,
+                max_tokens: 800,
+            } : {
+                model: resolvedModel,
+                messages: payloadMessages,
+                stream: false,
+                options: {
+                    temperature,
+                    num_predict: 800,
+                },
+            };
+
+            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+            if (useCloud && cloudApiKey) headers['Authorization'] = `Bearer ${cloudApiKey}`;
+
+            const response = await fetch(resolvedUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model,
-                    messages,
-                    stream: false,
-                    options: {
-                        temperature,
-                        num_predict: 800,
-                    },
-                }),
+                headers,
+                body: JSON.stringify(payload),
                 signal: controller.signal,
             });
 
@@ -108,37 +127,56 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error(`[Ollama] API error (${response.status}):`, errorText);
-                throw new Error(`Ollama API error: ${response.status} - ${errorText}`);
+                console.error(`[AI-Client] API error (${response.status}):`, errorText);
+                throw new Error(`AI API error: ${response.status} - ${errorText}`);
             }
 
             const data = await response.json();
-            const content = data.message?.content || '';
 
-            console.log(`[Ollama] Response received, length: ${content.length}`);
+            // Cloud API uses choices[0].message.content, Ollama uses message.content
+            let content = '';
+            if (useCloud) {
+                content = data.choices?.[0]?.message?.content || '';
+            } else {
+                content = data.message?.content || '';
+            }
+
+            // Strip reasoning blocks for any qwen models (local or cloud reasoning models)
+            content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+            console.log(`[AI-Client] Response received, length: ${content.length}`);
             return content;
 
         } catch (error: any) {
             lastError = error;
-            console.error(`[Ollama] Attempt ${attempt} failed:`, error.message);
+            console.error(`[AI-Client] Attempt ${attempt} failed:`, error.message);
 
             if (error.name === 'AbortError') {
-                console.error('[Ollama] Request timed out');
+                console.error('[AI-Client] Request timed out');
             }
 
             if (attempt < maxRetries) {
-                console.log('[Ollama] Retrying in 2 seconds...');
+                console.log('[AI-Client] Retrying in 2 seconds...');
                 await new Promise(r => setTimeout(r, 2000));
             }
         }
     }
 
-    throw lastError || new Error('Ollama generation failed after retries');
+    throw lastError || new Error('AI generation failed after retries');
 }
 
-// Simpler generate endpoint (more reliable for some prompts)
+// Simpler generate endpoint (more reliable for some prompts on local Ollama)
 async function generateSimple(prompt: string, model: string, temperature: number): Promise<string> {
-    console.log('[Ollama] Using simple /api/generate endpoint');
+    const cloudApiKey = process.env.CLOUD_AI_API_KEY;
+    const cloudApiUrl = process.env.CLOUD_AI_BASE_URL;
+    const useCloud = Boolean(cloudApiKey && cloudApiUrl);
+
+    if (useCloud) {
+        // Reroute to the general completion function, which handles cloud chat completions natively
+        return generateCompletion({ prompt, model, temperature });
+    }
+
+    console.log('[Ollama] Using local simple /api/generate endpoint');
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 180000);

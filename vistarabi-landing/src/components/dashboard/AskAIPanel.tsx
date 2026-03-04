@@ -35,7 +35,42 @@ type ChatContent =
     | { type: 'synthesis'; narrative: string; conflictCount: number; packetCount: number; reasoningTier: string }
     | { type: 'command'; action: string; detail: string; requiresRefresh?: boolean }
     | { type: 'suppressed'; message: string }
-    | { type: 'error'; message: string; recoverable: boolean };
+    | { type: 'error'; message: string; recoverable: boolean }
+    | {
+        type: 'kpi_value';
+        kpiName: string;
+        value: string;
+        unit: string;
+        period: string;
+        delta?: number | null;
+        deltaPercent?: number | null;
+        deltaDirection?: 'up' | 'down' | 'flat' | null;
+    }
+    | {
+        type: 'trend_analysis';
+        kpiName: string;
+        trendDirection: 'up' | 'down' | 'flat';
+        deltaPercent: number;
+        volatilityIndex: number;
+        summarySentence: string;
+        dataset: any[];
+    }
+    | {
+        type: 'comparison';
+        kpiAName: string;
+        kpiBName: string;
+        valueA: number;
+        valueB: number;
+        unitA: string;
+        unitB: string;
+        ratio: number;
+        summarySentence: string;
+    }
+    | {
+        type: 'clarification';
+        message: string;
+        options: Array<{ id: string; name: string }>;
+    };
 
 interface AskAIPanelProps {
     projectId: string;
@@ -67,18 +102,75 @@ function parseResponse(data: any): ChatContent {
         };
     }
 
+    if (status === 'clarification_required') {
+        return {
+            type: 'clarification',
+            message: data.message || 'I found multiple matches. Which would you like to explore?',
+            options: data.options || []
+        };
+    }
+
     if (status === 'rejected' || status === 'error') {
         const isTimeout = (data.message || '').toLowerCase().includes('timed out') ||
             (data.message || '').toLowerCase().includes('timeout');
+
+        // Natural Tone Rewrite for generic failures
+        let displayMsg = data.message || 'I encountered an issue processing that query. Please try again.';
+        if (status === 'rejected' && data.route === 'UNSUPPORTED_SCOPE') {
+            displayMsg = "This type of query is outside my current structured reasoning capabilities. I'm focused on governed financial metrics and their relationships.";
+        }
+
         return {
             type: 'error',
-            message: data.message || 'Something went wrong. Please try again.',
+            message: displayMsg,
             recoverable: isTimeout || status === 'rejected',
         };
     }
 
     if (status === 'timeout') {
         return { type: 'error', message: 'AI response timed out. Please try again.', recoverable: true };
+    }
+
+    // New: KPI Scalar Read
+    if (route === 'KPI_VALUE_QUERY' && status === 'success') {
+        return {
+            type: 'kpi_value',
+            kpiName: data.kpiName,
+            value: data.value,
+            unit: data.unit || '',
+            period: data.period || 'Total',
+            delta: data.delta,
+            deltaPercent: data.deltaPercent,
+            deltaDirection: data.deltaDirection
+        };
+    }
+
+    // New: Trend Analysis
+    if (route === 'TREND_ANALYSIS' && status === 'success') {
+        return {
+            type: 'trend_analysis',
+            kpiName: data.kpiName,
+            trendDirection: data.trendDirection || 'flat',
+            deltaPercent: data.deltaPercent || 0,
+            volatilityIndex: data.volatilityIndex || 0,
+            summarySentence: data.summarySentence || 'Trend analysis complete.',
+            dataset: data.dataset || []
+        };
+    }
+
+    // New: Comparison
+    if (route === 'COMPARISON_ANALYSIS' && status === 'success') {
+        return {
+            type: 'comparison',
+            kpiAName: data.kpiAName,
+            kpiBName: data.kpiBName,
+            valueA: data.valueA || 0,
+            valueB: data.valueB || 0,
+            unitA: data.unitA || '',
+            unitB: data.unitB || '',
+            ratio: data.ratio || 0,
+            summarySentence: data.summarySentence || 'Comparison complete.'
+        };
     }
 
     // 6A — Command
@@ -125,14 +217,14 @@ function parseResponse(data: any): ChatContent {
         };
     }
 
-    // 6E — Synthesis
-    if (route === '6E' && status === 'success') {
+    // 6E — Synthesis / Contextual Explanation
+    if ((route === '6E' || route === 'CONTEXTUAL_EXPLANATION') && status === 'success') {
         return {
             type: 'synthesis',
             narrative: data.narrative || '',
             conflictCount: data.conflictSummary?.length ?? 0,
             packetCount: data.supportingPacketIds?.length ?? 0,
-            reasoningTier: data.reasoningTier || 'MULTI_PACKET_SYNTHESIS',
+            reasoningTier: data.reasoningTier || (route === 'CONTEXTUAL_EXPLANATION' ? 'CONTEXTUAL_SYNTHESIS' : 'MULTI_PACKET_SYNTHESIS'),
         };
     }
 
@@ -251,7 +343,159 @@ function ErrorCard({ c, onRetry }: { c: Extract<ChatContent, { type: 'error' }>;
     );
 }
 
-function MessageBubble({ msg, onRetry }: { msg: ChatMessage; onRetry?: () => void }) {
+function ScalarKpiCard({ c }: { c: Extract<ChatContent, { type: 'kpi_value' }> }) {
+    const renderDelta = () => {
+        if (!c.deltaDirection || typeof c.deltaPercent !== 'number') return null;
+
+        const isPositive = c.deltaDirection === 'up';
+
+        let colorClass = 'text-slate-500';
+        let arrow = '−';
+
+        if (isPositive) {
+            colorClass = 'text-green-600';
+            arrow = '↑';
+        } else if (c.deltaDirection === 'down') {
+            colorClass = 'text-rose-600';
+            arrow = '↓';
+        }
+
+        return (
+            <div className={`text-sm font-medium flex items-center gap-1 ${colorClass} mt-1`}>
+                <span>{arrow}</span>
+                <span>{Math.abs(c.deltaPercent).toFixed(1)}%</span>
+                <span className="text-xs text-slate-400 font-normal ml-1">compared to previous period</span>
+            </div>
+        );
+    };
+
+    return (
+        <div className="ask-ai-insight-card p-4 rounded-xl border border-slate-100 bg-white shadow-sm w-full max-w-sm">
+            <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+                    {c.kpiName}
+                </span>
+                <span className="text-3xl font-bold text-slate-900 tracking-tight">
+                    {c.unit && c.unit !== 'number' ? `${c.unit} ` : ''}
+                    {Number(c.value).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </span>
+                {renderDelta()}
+                <span className="text-[10px] text-slate-400 mt-2 block border-t border-slate-50 pt-2">
+                    Period: {c.period}
+                </span>
+            </div>
+        </div>
+    );
+}
+
+function TrendCard({ c }: { c: Extract<ChatContent, { type: 'trend_analysis' }> }) {
+    const isPositive = c.trendDirection === 'up';
+    const isNegative = c.trendDirection === 'down';
+
+    let colorClass = 'text-slate-500';
+    let bgClass = 'bg-slate-50 text-slate-500 border-slate-200';
+    let icon = 'trending_flat';
+
+    if (isPositive) {
+        colorClass = 'text-green-600';
+        bgClass = 'bg-green-50 text-green-700 border-green-200';
+        icon = 'trending_up';
+    } else if (isNegative) {
+        colorClass = 'text-rose-600';
+        bgClass = 'bg-rose-50 text-rose-700 border-rose-200';
+        icon = 'trending_down';
+    }
+
+    return (
+        <div className="ask-ai-insight-card p-4 rounded-xl border border-slate-100 bg-white shadow-sm w-full max-w-lg">
+            <div className="flex items-center gap-2 mb-3">
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${bgClass} uppercase tracking-wider flex items-center gap-1`}>
+                    <span className="material-symbols-outlined text-[14px]">{icon}</span>
+                    {Math.abs(c.deltaPercent).toFixed(1)}% {c.trendDirection}
+                </span>
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest pl-2 border-l border-slate-200">
+                    {c.kpiName} Trend
+                </span>
+            </div>
+
+            <p className="text-sm leading-relaxed text-slate-800 font-medium mb-3">
+                {c.summarySentence}
+            </p>
+
+            {/* Sparkline visualization logic here eventually */}
+            {c.dataset.length > 0 && (
+                <div className="h-12 w-full flex items-end justify-between gap-1 opacity-60">
+                    {c.dataset.map((pt, i) => (
+                        <div
+                            key={i}
+                            className={`w-full rounded-sm ${isNegative ? 'bg-rose-200' : isPositive ? 'bg-green-200' : 'bg-slate-200'}`}
+                            style={{
+                                height: `${Math.max(10, (pt.value / Math.max(...c.dataset.map(d => d.value))) * 100)}%`,
+                                minHeight: '4px'
+                            }}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function ComparisonCard({ c }: { c: Extract<ChatContent, { type: 'comparison' }> }) {
+    return (
+        <div className="ask-ai-insight-card p-4 rounded-xl border border-indigo-100 bg-white shadow-sm w-full max-w-lg">
+            <div className="flex items-center gap-2 mb-4">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-indigo-50 text-indigo-700 border-indigo-200 uppercase tracking-wider">
+                    Comparison
+                </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex flex-col items-center text-center">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">{c.kpiAName}</span>
+                    <span className="text-xl font-bold text-slate-900">
+                        {c.unitA === 'currency' ? '$' : c.unitA === 'percentage' ? '' : ''}
+                        {c.valueA.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                        {c.unitA === 'percentage' ? '%' : ''}
+                    </span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 flex flex-col items-center text-center">
+                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">{c.kpiBName}</span>
+                    <span className="text-xl font-bold text-slate-900">
+                        {c.unitB === 'currency' ? '$' : c.unitB === 'percentage' ? '' : ''}
+                        {c.valueB.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                        {c.unitB === 'percentage' ? '%' : ''}
+                    </span>
+                </div>
+            </div>
+
+            <p className="text-sm leading-relaxed text-slate-800 font-medium">
+                {c.summarySentence}
+            </p>
+        </div>
+    );
+}
+
+function ClarificationCard({ c, onSelect }: { c: Extract<ChatContent, { type: 'clarification' }>; onSelect: (name: string) => void }) {
+    return (
+        <div className="ask-ai-insight-card p-4 rounded-xl border border-amber-100 bg-amber-50 shadow-sm w-full max-w-sm">
+            <p className="text-sm font-medium text-amber-900 mb-3">{c.message}</p>
+            <div className="flex flex-wrap gap-2">
+                {c.options.map(opt => (
+                    <button
+                        key={opt.id}
+                        onClick={() => onSelect(opt.name)}
+                        className="px-3 py-1.5 bg-white border border-amber-200 rounded-lg text-xs font-semibold text-amber-700 hover:bg-amber-100 transition-colors"
+                    >
+                        {opt.name}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?: () => void; onClarify?: (name: string) => void }) {
     const isUser = msg.role === 'user';
     const c = msg.content;
 
@@ -277,6 +521,10 @@ function MessageBubble({ msg, onRetry }: { msg: ChatMessage; onRetry?: () => voi
                     {c.type === 'command' && <CommandCard c={c} />}
                     {c.type === 'suppressed' && <SuppressedCard c={c} />}
                     {c.type === 'error' && <ErrorCard c={c} onRetry={onRetry} />}
+                    {c.type === 'kpi_value' && <ScalarKpiCard c={c} />}
+                    {c.type === 'trend_analysis' && <TrendCard c={c} />}
+                    {c.type === 'comparison' && <ComparisonCard c={c} />}
+                    {c.type === 'clarification' && <ClarificationCard c={c} onSelect={onClarify || (() => { })} />}
                     <span className="text-[10px] text-slate-400 mt-1 block">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -303,6 +551,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, isOpen, onClose }: Ask
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [lastUserMessage, setLastUserMessage] = useState('');
+    const [suggestions, setSuggestions] = useState<string[]>([]);
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -328,6 +577,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, isOpen, onClose }: Ask
         setMessages(prev => [...prev, userMsg]);
         setLastUserMessage(messageText.trim());
         setInput('');
+        setSuggestions([]); // Clear suggestions when user sends new message
         setIsLoading(true);
 
         // 3-second client-side timeout sentinel
@@ -359,6 +609,11 @@ export function AskAIPanel({ projectId, onCommandSuccess, isOpen, onClose }: Ask
                 timestamp: new Date(),
                 content,
             }]);
+
+            // Add suggestions if present
+            if (data.suggestions && Array.isArray(data.suggestions)) {
+                setSuggestions(data.suggestions);
+            }
 
             // Trigger dashboard refresh on successful 6A command
             if (content.type === 'command' && content.requiresRefresh) {
@@ -424,7 +679,12 @@ export function AskAIPanel({ projectId, onCommandSuccess, isOpen, onClose }: Ask
                 {/* Messages */}
                 <div className="ask-ai-messages">
                     {messages.map(msg => (
-                        <MessageBubble key={msg.id} msg={msg} onRetry={handleRetry} />
+                        <MessageBubble
+                            key={msg.id}
+                            msg={msg}
+                            onRetry={handleRetry}
+                            onClarify={(name) => sendMessage(name)}
+                        />
                     ))}
                     {isLoading && (
                         <div className="flex justify-start mb-3">
@@ -440,6 +700,22 @@ export function AskAIPanel({ projectId, onCommandSuccess, isOpen, onClose }: Ask
                     )}
                     <div ref={bottomRef} />
                 </div>
+
+                {/* Suggestions Footer */}
+                {!isLoading && suggestions.length > 0 && (
+                    <div className="px-4 py-2 flex flex-wrap gap-2 border-t border-slate-50 bg-slate-50/30">
+                        {suggestions.map((s, i) => (
+                            <button
+                                key={i}
+                                onClick={() => sendMessage(s)}
+                                className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-600 hover:border-indigo-300 hover:text-indigo-600 transition-all flex items-center gap-1.5"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 {/* Input */}
                 <form onSubmit={handleSubmit} className="ask-ai-input-area">

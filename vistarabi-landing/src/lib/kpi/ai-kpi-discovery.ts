@@ -10,7 +10,7 @@ import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { getDerivedKPIsForDomain, checkDerivedKPIDependencies, type DerivedKPIDefinition } from './derived-kpi-library';
 
 // Model override for KPI discovery — needs at least 4B parameters to produce valid JSON
-const KPI_DISCOVERY_MODEL = 'qwen3:4b';
+const KPI_DISCOVERY_MODEL = 'qwen2.5:3b';
 
 // AI KPI Proposal - invented KPIs suggested by AI
 export interface AIKPIProposal {
