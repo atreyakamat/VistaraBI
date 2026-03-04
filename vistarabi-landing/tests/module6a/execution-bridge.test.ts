@@ -95,8 +95,8 @@ describe('execution-bridge.test — Command → State Engine Mapping', () => {
             granularity: 'monthly',
             globalFilters: [],
             kpis: [
-                { kpiId: 'kpi-001', kpiName: 'Total Revenue', value: 100000, dataset: [], datasetSize: 0, performance: { cacheHit: false }, unit: 'currency', summary: null, anomaly: null, guardrail: null } as any,
-                { kpiId: 'kpi-002', kpiName: 'Order Count', value: 500, dataset: [], datasetSize: 0, performance: { cacheHit: false }, unit: 'count', summary: null, anomaly: null, guardrail: null } as any,
+                { kpiId: 'kpi-001', kpiName: 'Total Revenue', primaryValue: 100000, dataset: [], datasetSize: 0, performance: { cacheHit: false }, unit: 'currency', summary: null, anomaly: null, guardrail: null } as any,
+                { kpiId: 'kpi-002', kpiName: 'Order Count', primaryValue: 500, dataset: [], datasetSize: 0, performance: { cacheHit: false }, unit: 'count', summary: null, anomaly: null, guardrail: null } as any,
             ],
             computedAt: new Date().toISOString(),
             errors: [],
@@ -259,5 +259,100 @@ describe('execution-bridge.test — Command → State Engine Mapping', () => {
         expect(threw).toBe(false);  // Bridge must NEVER throw
         expect(result?.success).toBe(false);
         expect(result?.error?.code).toBe('EXECUTION_FAILED');
+    });
+    it('CREATE_CARD: AI card cap — 8 AI cards → AI_CARD_LIMIT_REACHED', async () => {
+        // Build a state with 8 AI-generated cards already present
+        const aiCards = Array.from({ length: 8 }, (_, i) => ({
+            id: `ai-card-${i}`,
+            stateId: 'state-001',
+            kpiId: `kpi-ai-${i}`,
+            kpiName: `AI KPI ${i}`,
+            chartType: 'bar',
+            layout: { position: i, colSpan: 1, rowSpan: 1, cardSize: 'md' },
+            groupBy: null,
+            filterOverrides: [],
+            comparisonMode: null,
+            isPinned: false,
+            isAIGenerated: true,  // ← all AI-generated
+            isDrillDown: false,
+            parentCardId: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        }));
+
+        vi.mocked(hydrateDashboard).mockResolvedValue({ ...mockState, cards: aiCards } as any);
+
+        const command: Module6Command = {
+            action: 'CREATE_CARD',
+            intent_id: intentId,
+            ai_generated: true,
+            dataset_version_id: datasetVersionId,
+            kpi_id: 'kpi-new',
+        };
+
+        const result = await executeCommand('proj-001', command);
+        expect(result.success).toBe(false);
+        expect(result.error?.code).toBe('AI_CARD_LIMIT_REACHED');
+        expect(result.error?.recoverable).toBe(true);  // User can remove a card and retry
+        expect(vi.mocked(upsertCard)).not.toHaveBeenCalled();
+    });
+
+    it('CREATE_CARD: AI card cap — 7 AI cards → success (below limit)', async () => {
+        const aiCards = Array.from({ length: 7 }, (_, i) => ({
+            id: `ai-card-${i}`,
+            stateId: 'state-001',
+            kpiId: `kpi-ai-${i}`,
+            kpiName: `AI KPI ${i}`,
+            chartType: 'bar',
+            layout: { position: i, colSpan: 1, rowSpan: 1, cardSize: 'md' },
+            groupBy: null, filterOverrides: [], comparisonMode: null,
+            isPinned: false, isAIGenerated: true, isDrillDown: false,
+            parentCardId: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+        }));
+
+        vi.mocked(hydrateDashboard).mockResolvedValue({ ...mockState, cards: aiCards } as any);
+
+        const command: Module6Command = {
+            action: 'CREATE_CARD',
+            intent_id: intentId,
+            ai_generated: true,
+            dataset_version_id: datasetVersionId,
+            kpi_id: 'kpi-new',
+        };
+
+        const result = await executeCommand('proj-001', command);
+        expect(result.success).toBe(true);  // 7 < 8, allowed
+        expect(vi.mocked(upsertCard)).toHaveBeenCalledOnce();
+    });
+
+    it('CREATE_CARD: AI card cap — user cards do not count toward limit', async () => {
+        // 8 user-created cards (not AI) — limit should not trigger
+        const userCards = Array.from({ length: 8 }, (_, i) => ({
+            id: `user-card-${i}`,
+            stateId: 'state-001',
+            kpiId: `kpi-user-${i}`,
+            kpiName: `User KPI ${i}`,
+            chartType: 'bar',
+            layout: { position: i, colSpan: 1, rowSpan: 1, cardSize: 'md' },
+            groupBy: null, filterOverrides: [], comparisonMode: null,
+            isPinned: false, isAIGenerated: false,  // ← user-created
+            isDrillDown: false, parentCardId: null,
+            createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+        }));
+
+        vi.mocked(hydrateDashboard).mockResolvedValue({ ...mockState, cards: userCards } as any);
+
+        const command: Module6Command = {
+            action: 'CREATE_CARD',
+            intent_id: intentId,
+            ai_generated: true,
+            dataset_version_id: datasetVersionId,
+            kpi_id: 'kpi-new',
+        };
+
+        const result = await executeCommand('proj-001', command);
+        // 0 AI cards → limit not reached → success
+        expect(result.success).toBe(true);
+        expect(vi.mocked(upsertCard)).toHaveBeenCalledOnce();
     });
 });

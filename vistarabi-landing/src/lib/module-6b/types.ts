@@ -10,7 +10,8 @@ export type EventType =
     | 'DROP'
     | 'ANOMALY'
     | 'VOLATILITY_SHIFT'
-    | 'INSUFFICIENT_DATA';
+    | 'INSUFFICIENT_DATA'
+    | 'NO_SIGNIFICANT_EVENT';
 
 // ─── Confidence Level ─────────────────────────────────────────────────────────
 

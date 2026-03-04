@@ -60,8 +60,8 @@ export function buildEvidencePacket(
     const confidenceLevel: ConfidenceLevel = classifyConfidence(result);
     const { start: period_start, end: period_end } = extractPeriodBounds(result);
 
-    // Extract anomaly data from the worst detected point
-    const worstAnomaly = result.anomaly?.worstPoint ?? null;
+    const isAnomaly = result.anomaly?.detected === true;
+    const worstAnomaly = isAnomaly ? (result.anomaly?.worstPoint ?? null) : null;
 
     // Build partial packet (without traceable_fields) first
     const partial: Omit<EventEvidencePacket, 'traceable_fields' | 'event_id'> = {
