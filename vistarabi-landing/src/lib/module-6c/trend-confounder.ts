@@ -68,8 +68,11 @@ function computeOLSSlope(values: (number | null)[]): SlopeResult {
 
     const mse = sse / df;
     const seSlopeSquared = mse / ssXX;
+
+    // When all residuals are zero (perfect linear trend), t → ∞ → always significant
     if (seSlopeSquared <= 0) {
-        return { slope, tStat: 0, significant: false, direction: slope > 0 ? 'up' : 'down' };
+        const direction = slope > 0 ? 'up' : slope < 0 ? 'down' : 'flat';
+        return { slope, tStat: Infinity, significant: slope !== 0, direction };
     }
 
     const tStat = slope / Math.sqrt(seSlopeSquared);
