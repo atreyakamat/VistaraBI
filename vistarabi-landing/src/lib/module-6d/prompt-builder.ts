@@ -15,13 +15,20 @@ import { MAX_QUERY_LENGTH } from './types';
 const INJECTION_PATTERNS: RegExp[] = [
     // SQL injection patterns
     /\bSELECT\b/gi,
+    /\bFROM\b(?!\s+the\b)/gi,    // FROM keyword (allow "from the" in natural language)
+    /\bWHERE\b/gi,
     /\bINSERT\b/gi,
+    /\bINTO\b/gi,
     /\bUPDATE\b/gi,
+    /\bSET\b(?=\s+\w+\s*=)/gi,   // SET col = val (not "set up")
     /\bDELETE\b/gi,
     /\bDROP\b/gi,
     /\bCREATE\b/gi,
     /\bALTER\b/gi,
     /\bTRUNCATE\b/gi,
+    /\bUNION\b/gi,
+    /\bJOIN\b/gi,
+    /\bEXEC(UTE)?\b/gi,
     /--[^\n]*/g,                // SQL line comments
     /\/\*[\s\S]*?\*\//g,        // SQL block comments
 

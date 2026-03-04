@@ -53,5 +53,10 @@ export async function writeReasoningAuditRecord(payload: ReasoningAuditPayload):
         errorCode: payload.errorCode,
     };
 
-    await writeAuditRecord(record);
+    try {
+        await writeAuditRecord(record);
+    } catch (err: any) {
+        // Audit failure is non-fatal — log but never propagate to caller
+        console.error('[Module6D/audit] Failed to write reasoning audit record:', err.message ?? err);
+    }
 }

@@ -94,9 +94,10 @@ export async function handleReasoningQuery(
             adapterResponse = await callCloudModel(systemPrompt, userMessage, routing.temperature, routing.modelId);
         }
     } catch (err: unknown) {
-        const isModelError = err instanceof ModelCallError;
-        const code = isModelError ? err.code : 'ADAPTER_FAILED';
-        const msg = isModelError ? err.message : 'Model adapter call failed with an unexpected error';
+        const e = err as any;
+        const isModelError = e?.name === 'ModelCallError' || typeof e?.code === 'string';
+        const code = isModelError ? (e.code as string) : 'ADAPTER_FAILED';
+        const msg = isModelError ? (e.message as string) : 'Model adapter call failed with an unexpected error';
         const isTimeout = code === 'LOCAL_TIMEOUT' || code === 'CLOUD_TIMEOUT';
 
         // Write audit record for failed call

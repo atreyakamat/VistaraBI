@@ -3,28 +3,36 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ─── Mocks (must be declared before imports that use them) ─────────────────────
 
-vi.mock('@/lib/module-6d/local-adapter', () => ({
+vi.mock('../../src/lib/module-6d/local-adapter', () => ({
     callLocalModel: vi.fn(),
 }));
 
-vi.mock('@/lib/module-6d/cloud-adapter', () => ({
+vi.mock('../../src/lib/module-6d/cloud-adapter', () => ({
     callCloudModel: vi.fn(),
 }));
 
-vi.mock('@/lib/module-6d/audit-logger', () => ({
+vi.mock('../../src/lib/module-6d/audit-logger', () => ({
     writeReasoningAuditRecord: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/lib/module-6/audit-log', () => ({
+vi.mock('../../src/lib/module-6/audit-log', () => ({
     writeAuditRecord: vi.fn().mockResolvedValue(undefined),
     readAuditRecord: vi.fn().mockResolvedValue(null),
 }));
 
 const { handleReasoningQuery } = await import('../../src/lib/module-6d/index');
-const { callLocalModel } = await import('@/lib/module-6d/local-adapter');
-const { callCloudModel } = await import('@/lib/module-6d/cloud-adapter');
-const { writeReasoningAuditRecord } = await import('@/lib/module-6d/audit-logger');
-const { ModelCallError } = await import('@/lib/module-6d/types');
+const { callLocalModel } = await import('../../src/lib/module-6d/local-adapter');
+const { callCloudModel } = await import('../../src/lib/module-6d/cloud-adapter');
+const { writeReasoningAuditRecord } = await import('../../src/lib/module-6d/audit-logger');
+
+// Duck-typed error factory — avoids module-boundary instanceof issues in Vitest
+function makeModelError(code: string, message: string, recoverable: boolean) {
+    const err = new Error(message) as any;
+    err.name = 'ModelCallError';
+    err.code = code;
+    err.recoverable = recoverable;
+    return err;
+}
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -103,7 +111,7 @@ describe('pipeline — handleReasoningQuery() Tier-2 (LOCAL)', () => {
 
     it('LOCAL_TIMEOUT → timeout status (recoverable)', async () => {
         vi.mocked(callLocalModel).mockRejectedValueOnce(
-            new ModelCallError('LOCAL_TIMEOUT', 'Timed out', true)
+            makeModelError('LOCAL_TIMEOUT', 'Timed out', true)
         );
 
         const result = await handleReasoningQuery('proj-001', 'EVENT_NARRATION', EVIDENCE, 'Explain?');
@@ -121,7 +129,7 @@ describe('pipeline — handleReasoningQuery() Tier-2 (LOCAL)', () => {
 
     it('audit record written even on failure (unconditional)', async () => {
         vi.mocked(callLocalModel).mockRejectedValueOnce(
-            new ModelCallError('LOCAL_CALL_FAILED', 'Connection error', false)
+            makeModelError('LOCAL_CALL_FAILED', 'Connection error', false)
         );
 
         await handleReasoningQuery('proj-001', 'CORRELATION_EXPLANATION', EVIDENCE, 'Why?');
@@ -130,6 +138,12 @@ describe('pipeline — handleReasoningQuery() Tier-2 (LOCAL)', () => {
 });
 
 describe('pipeline — handleReasoningQuery() Tier-3 (CLOUD)', () => {
+    beforeEach(() => {
+        vi.mocked(callLocalModel).mockClear();
+        vi.mocked(callCloudModel).mockClear();
+        vi.mocked(writeReasoningAuditRecord).mockClear();
+        delete process.env.ENABLE_CLOUD_ROUTING;
+    });
     afterEach(() => { delete process.env.ENABLE_CLOUD_ROUTING; });
 
     it('ADVANCED_SYNTHESIS + cloud enabled → callCloudModel', async () => {
@@ -164,7 +178,7 @@ describe('pipeline — handleReasoningQuery() Tier-3 (CLOUD)', () => {
     it('CLOUD_TIMEOUT → timeout status', async () => {
         process.env.ENABLE_CLOUD_ROUTING = 'true';
         vi.mocked(callCloudModel).mockRejectedValueOnce(
-            new ModelCallError('CLOUD_TIMEOUT', 'Qwen timed out', true)
+            makeModelError('CLOUD_TIMEOUT', 'Qwen timed out', true)
         );
 
         const result = await handleReasoningQuery(
