@@ -1,7 +1,7 @@
 // model-router.test.ts — Module 6D routing, feature flag, and rejection tests
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { routeTask, isRoutingDecision, isCloudRoutingEnabled } from '../../src/lib/module-6d/model-router';
-import { LOCAL_MODEL_ID, CLOUD_MODEL_ID } from '../../src/lib/module-6d/types';
+import { routeTask, isRoutingDecision, isCloudRoutingEnabled } from '../../src/lib/module-6/infrastructure/model-router';
+import { LOCAL_MODEL_ID, CLOUD_MODEL_ID } from '../../src/lib/module-6/infrastructure/types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

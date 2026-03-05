@@ -4,7 +4,7 @@
 // Temperature: 0.1 (near-deterministic, slight variation for natural language)
 // No retries. Single pass only.
 
-import { callLocalModel } from '@/lib/module-6d/local-adapter';
+import { callLocalModel } from '@/lib/module-6/infrastructure/local-adapter';
 import type { EventEvidencePacket } from './types';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────

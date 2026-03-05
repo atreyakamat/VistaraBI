@@ -1,6 +1,6 @@
 // event-engine.test.ts — Module 6B deterministic classification tests
 import { describe, it, expect } from 'vitest';
-import { classifyEvent, classifyConfidence, extractPeriodBounds, THRESHOLDS } from '../../src/lib/module-6b/event-engine';
+import { classifyEvent, classifyConfidence, extractPeriodBounds, THRESHOLDS } from '../../src/lib/module-6/events/event-engine';
 import type { EnrichedKPIResult } from '../../src/lib/dashboard-state/types';
 
 // ─── Test Fixture Factory ─────────────────────────────────────────────────────

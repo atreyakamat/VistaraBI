@@ -1,6 +1,6 @@
 // trend-confounder.test.ts — Module 6C trend detection and first-differencing tests
 import { describe, it, expect } from 'vitest';
-import { detectSharedTrend, applyFirstDifferencing } from '../../src/lib/module-6c/trend-confounder';
+import { detectSharedTrend, applyFirstDifferencing } from '../../src/lib/module-6/correlations/trend-confounder';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

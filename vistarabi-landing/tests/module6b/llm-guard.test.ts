@@ -2,9 +2,9 @@
 // Tests the validateNumericClaims function with LLM-style outputs
 // and full pipeline integration scenarios.
 import { describe, it, expect } from 'vitest';
-import { validateNumericClaims } from '../../src/lib/module-6b/numeric-guard';
-import { buildEvidencePacket } from '../../src/lib/module-6b/evidence-packet';
-import type { EventEvidencePacket } from '../../src/lib/module-6b/types';
+import { validateNumericClaims } from '../../src/lib/module-6/events/numeric-guard';
+import { buildEvidencePacket } from '../../src/lib/module-6/events/evidence-packet';
+import type { EventEvidencePacket } from '../../src/lib/module-6/events/types';
 import type { EnrichedKPIResult } from '../../src/lib/dashboard-state/types';
 
 // ─── Packet Fixtures ──────────────────────────────────────────────────────────

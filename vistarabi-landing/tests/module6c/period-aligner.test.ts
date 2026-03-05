@@ -1,6 +1,6 @@
 // period-aligner.test.ts — Module 6C period alignment and null ratio tests
 import { describe, it, expect } from 'vitest';
-import { alignCorrelationSeries } from '../../src/lib/module-6c/period-aligner';
+import { alignCorrelationSeries } from '../../src/lib/module-6/correlations/period-aligner';
 import type { EnrichedKPIResult } from '../../src/lib/dashboard-state/types';
 
 // ─── Fixture ──────────────────────────────────────────────────────────────────

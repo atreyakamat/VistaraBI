@@ -112,13 +112,8 @@ describe('Module 5A: Dashboard Layout Engine', () => {
         it('should generate valid DashboardConfigSchema structure', async () => {
             // Mock DB returns
             mockDb.project.findUnique.mockResolvedValue({ id: 'p1', name: 'Test Proj' });
-<<<<<<< Updated upstream
-            const mockKPIs: ApprovedKPI[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
-=======
             const mockKPIs: any[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev' }] }
->>>>>>> Stashed changes
+                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
             ];
             mockDb.kPIBlueprint.findUnique.mockResolvedValue({ kpis: mockKPIs });
             mockDb.domainDetection.findUnique.mockResolvedValue({ detectedDomain: 'ECOMMERCE' });
@@ -177,13 +172,8 @@ describe('Module 5A: Dashboard Layout Engine', () => {
     describe('Determinism', () => {
         it('should produce identical output for same input', async () => {
             mockDb.project.findUnique.mockResolvedValue({ id: 'p1' });
-<<<<<<< Updated upstream
-            const mockKPIs: ApprovedKPI[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
-=======
             const mockKPIs: any[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date() }
->>>>>>> Stashed changes
+                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
             ];
             mockDb.kPIBlueprint.findUnique.mockResolvedValue({ kpis: mockKPIs });
             mockDb.domainDetection.findUnique.mockResolvedValue({ detectedDomain: 'ECOMMERCE' });
@@ -203,13 +193,8 @@ describe('Module 5A: Dashboard Layout Engine', () => {
 
         it('should increment version on regeneration', async () => {
             mockDb.project.findUnique.mockResolvedValue({ id: 'p1' });
-<<<<<<< Updated upstream
-            const mockKPIs: ApprovedKPI[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
-=======
             const mockKPIs: any[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date() }
->>>>>>> Stashed changes
+                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
             ];
             mockDb.kPIBlueprint.findUnique.mockResolvedValue({ kpis: mockKPIs });
             mockDb.domainDetection.findUnique.mockResolvedValue({ detectedDomain: 'ECOMMERCE' });
@@ -228,13 +213,8 @@ describe('Module 5A: Dashboard Layout Engine', () => {
 
     describe('Dynamic Updates', () => {
         it('should integrate new KPIs into correct sections', () => {
-<<<<<<< Updated upstream
-            const mockKPIs: ApprovedKPI[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
-=======
             const mockKPIs: any[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev' }] }
->>>>>>> Stashed changes
+                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
             ];
             const newKPI: any = {
                 kpiId: '6', kpiName: 'New Metric', formula: 'SUM(z)',
@@ -271,7 +251,7 @@ describe('Module 5A: Dashboard Layout Engine', () => {
                 aggregations: [{ function: 'SUM', column: 'x' }]
             }));
 
-            const sections = buildSections(largeSet, 'ECOMMERCE', '#000');
+            const sections = buildSections(largeSet as any[], 'ECOMMERCE', '#000');
             const totalCards = sections.reduce((sum, s) => sum + s.cards.length, 0);
 
             expect(totalCards).toBe(50);

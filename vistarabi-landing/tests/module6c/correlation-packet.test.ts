@@ -1,7 +1,7 @@
 // correlation-packet.test.ts — Module 6C evidence packet construction tests
 import { describe, it, expect } from 'vitest';
-import { buildCorrelationPacket, CorrelationPacketError } from '../../src/lib/module-6c/correlation-packet';
-import type { CorrelationPacketArgs } from '../../src/lib/module-6c/correlation-packet';
+import { buildCorrelationPacket, CorrelationPacketError } from '../../src/lib/module-6/correlations/correlation-packet';
+import type { CorrelationPacketArgs } from '../../src/lib/module-6/correlations/correlation-packet';
 
 // ─── Fixture ──────────────────────────────────────────────────────────────────
 

@@ -3,6 +3,9 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// ─── Environment Mocks ────────────────────────────────────────────
+process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+
 // ─── Hoisted Mocks ────────────────────────────────────────────────
 
 const mockDb = vi.hoisted(() => ({
@@ -12,9 +15,23 @@ const mockDb = vi.hoisted(() => ({
     kPIBlueprint: { findUnique: vi.fn() },
 }));
 
+const mockPool = vi.hoisted(() => ({
+    query: vi.fn(),
+    getClient: vi.fn(),
+    destroyPool: vi.fn(),
+}));
+
 vi.mock('../../src/lib/prisma', () => ({
     __esModule: true,
     default: mockDb,
+}));
+
+vi.mock('../../src/lib/execution/pool', () => ({
+    __esModule: true,
+    default: mockPool,
+    query: mockPool.query,
+    getClient: mockPool.getClient,
+    destroyPool: mockPool.destroyPool,
 }));
 
 vi.mock('../../src/lib/visualization/data-loader', () => ({
@@ -83,7 +100,54 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         vi.clearAllMocks();
         clearAllCaches();
         mockDb.kPIBlueprint.findUnique.mockResolvedValue({
-            kpis: [{ id: 'kpi-rev', kpiLibraryId: 'kpi-rev', kpiId: 'kpi-rev', name: 'Revenue', kpiName: 'Revenue', category: 'revenue', formula: 'SUM(amount)', aggregations: [{ function: 'SUM', column: 'amount' }], groupBys: [] }]
+            kpis: [{ 
+                id: 'kpi-rev', 
+                kpiLibraryId: 'kpi-rev', 
+                kpiId: 'kpi-rev', 
+                name: 'Revenue', 
+                kpiName: 'Revenue', 
+                category: 'revenue', 
+                sourceTable: 'sales.csv',
+                formula: 'SUM(amount)', 
+                aggregations: [{ function: 'SUM', column: 'amount' }], 
+                groupBys: [],
+                lineage: { formula: 'SUM(amount)', tables: ['sales.csv'], joins: [] }
+            }]
+        });
+
+        // Mock information_schema check
+        mockPool.query.mockImplementation((text: string, params: any[]) => {
+            if (text.includes('information_schema.columns')) {
+                return Promise.resolve({ rows: [{ column_name: 'amount' }, { column_name: 'category' }, { column_name: 'date' }] });
+            }
+            
+            if (params && params.includes('EMPTY')) {
+                return Promise.resolve({ rows: [] });
+            }
+            if (text.includes('IN ($1)')) { // Category filter
+                return Promise.resolve({ rows: [{ period: '2024-03-01', value: 300 }] });
+            }
+            if (text.includes('BETWEEN')) { // Date range filter
+                return Promise.resolve({ rows: [{ period: '2024-02-01', value: 200 }] });
+            }
+            if (text.includes('GROUP BY')) {
+                return Promise.resolve({
+                    rows: [
+                        { category: 'Electronics', sum_amount: 550 },
+                        { category: 'Clothing', sum_amount: 300 },
+                        { category: 'Food', sum_amount: 50 }
+                    ]
+                });
+            }
+
+            // Default mock for data queries
+            return Promise.resolve({
+                rows: [
+                    { period: '2024-03-01', value: 375 },
+                    { period: '2024-02-01', value: 200 },
+                    { period: '2024-01-01', value: 300 }
+                ]
+            });
         });
     });
 
@@ -190,6 +254,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         it('should recommend a chart type based on data profile', async () => {
             const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
+                granularity: 'monthly',
             });
 
             // Time-series data → should recommend line or area
@@ -219,16 +284,9 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should handle empty source data gracefully', async () => {
-            const emptyDataMap: ProjectDataMap = {
-                projectId: 'proj-1',
-                sources: new Map([['src-1', {
-                    sourceId: 'src-1', sourceName: 'sales.csv',
-                    columns: ['amount'], rows: [],
-                }]]),
-            };
-
             const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
+                filters: [{ type: 'value', column: 'category', value: 'EMPTY' } as any]
             });
 
             expect(result.primaryValue).toBe(0);
@@ -261,13 +319,13 @@ describe('Module 5B — KPI Executor Pipeline', () => {
             mockDb.dashboardConfig.findUnique.mockResolvedValue({
                 projectId: 'proj-1',
                 sections: [{
-                    id: 'sect-1', title: 'Revenue', cards: [{
-                        kpiId: 'kpi-rev', kpiName: 'Revenue',
-                        chartSelection: { chartType: 'line', chartLibrary: 'chartjs' },
+                    id: 'sect-1', title: 'Revenue', description: 'Section description', icon: 'chart-line', order: 1, collapsed: false, cards: [{
+                        kpiId: 'kpi-rev', kpiName: 'Revenue', formula: 'SUM(amount)', category: 'revenue', cardSize: 'sm', position: 1, confidence: 0.95,
+                        chartSelection: { chartType: 'line', chartLibrary: 'chartjs', fallbackType: 'bar', fallbackLibrary: 'chartjs', confidence: 0.9, reason: 'Trend analysis' },
                     }]
                 }],
                 sidebarConfig: { projectId: 'proj-1', projectName: 'Test', items: [] },
-                metadata: {},
+                metadata: { domain: 'SALES', domainName: 'Sales', domainIcon: 'sales', domainColor: 'blue', totalKPIs: 1, totalSections: 1, generatedAt: new Date().toISOString(), version: 1 },
                 version: 1,
             });
             mockDb.kPILineageRegistry.findUnique.mockResolvedValue({

@@ -3,7 +3,7 @@
 // All validation logic is downstream — this module only concerns itself with
 // making one clean HTTP call and returning the raw model output.
 
-import { callLocalModel } from '@/lib/module-6d/local-adapter';
+import { callLocalModel } from '@/lib/module-6/infrastructure/local-adapter';
 import { MODULE6_ERROR_CODES } from './types';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────

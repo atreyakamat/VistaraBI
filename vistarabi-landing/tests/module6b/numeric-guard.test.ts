@@ -1,7 +1,7 @@
 // numeric-guard.test.ts — Module 6B numeric hallucination detection tests
 import { describe, it, expect } from 'vitest';
-import { validateNumericClaims, extractEvidenceNumbers, matchesEvidence } from '../../src/lib/module-6b/numeric-guard';
-import type { EventEvidencePacket } from '../../src/lib/module-6b/types';
+import { validateNumericClaims, extractEvidenceNumbers, matchesEvidence } from '../../src/lib/module-6/events/numeric-guard';
+import type { EventEvidencePacket } from '../../src/lib/module-6/events/types';
 
 // ─── Fixture ──────────────────────────────────────────────────────────────────
 

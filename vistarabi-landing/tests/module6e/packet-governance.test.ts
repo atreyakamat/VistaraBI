@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { governPackets } from '../../src/lib/module-6e/packet-governance';
-import type { EventEvidencePacket, CorrelationEvidencePacket } from '../../src/lib/module-6e/types';
+import { governPackets } from '../../src/lib/module-6/synthesis/packet-governance';
+import type { EventEvidencePacket, CorrelationEvidencePacket } from '../../src/lib/module-6/synthesis/types';
 
 const makeEvent = (overrides: Partial<EventEvidencePacket> = {}): EventEvidencePacket => Object.freeze({
     event_id: 'ev-001', kpi_id: 'kpi-rev', kpi_name: 'Revenue', unit: 'currency',

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildSynthesisPrompt } from '../../src/lib/module-6e/synthesis-prompt-builder';
-import type { EventEvidencePacket, CorrelationEvidencePacket, ConflictDescriptor } from '../../src/lib/module-6e/types';
+import { buildSynthesisPrompt } from '../../src/lib/module-6/synthesis/synthesis-prompt-builder';
+import type { EventEvidencePacket, CorrelationEvidencePacket, ConflictDescriptor } from '../../src/lib/module-6/synthesis/types';
 
 const EV: EventEvidencePacket = Object.freeze({
     event_id: 'ev-001', kpi_id: 'kpi-rev', kpi_name: 'Revenue', unit: 'currency',

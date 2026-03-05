@@ -1,7 +1,7 @@
 // numeric-guard.test.ts — Module 6D model-agnostic numeric validation tests
 import { describe, it, expect } from 'vitest';
-import { validateNumericClaims, extractEvidenceNumbers, matchesEvidence } from '../../src/lib/module-6d/numeric-guard';
-import type { EvidenceInput } from '../../src/lib/module-6d/types';
+import { validateNumericClaims, extractEvidenceNumbers, matchesEvidence } from '../../src/lib/module-6/infrastructure/numeric-guard';
+import type { EvidenceInput } from '../../src/lib/module-6/infrastructure/types';
 
 // ─── Fixture ──────────────────────────────────────────────────────────────────
 

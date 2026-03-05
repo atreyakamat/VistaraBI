@@ -13,8 +13,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/prisma';
-import { sanitizeUserQuery } from '@/lib/module-6d/prompt-builder';
-import { getSessionMemory, updateSessionMemory, resolvePronouns, injectContext, getFollowUpSuggestions } from '@/lib/module-6f/orchestrator';
+import { sanitizeUserQuery } from '@/lib/module-6/infrastructure/prompt-builder';
+import { getSessionMemory, updateSessionMemory, resolvePronouns, injectContext, getFollowUpSuggestions } from '@/lib/module-6/orchestration/orchestrator';
 
 // ─── Utility: Levenshtein Distance & Fuzzy Match ──────────────────────────────
 
@@ -146,15 +146,15 @@ function classifyRoute(message: string): QueryRoute | 'KPI_VALUE_QUERY' | 'TREND
  */
 async function extractKpiPair(message: string, projectId: string): Promise<{ kpiAId: string; kpiBId: string } | null> {
     try {
-        const state = await (db as any).dashboardState.findFirst({
+        const state = await db.dashboardState.findFirst({
             where: { projectId },
             orderBy: { createdAt: 'desc' },
             select: { cards: true },
         });
 
         if (!state?.cards) return null;
-        const cards = (state.cards as any[]) || [];
-        const kpiIds = cards.map((c: any) => c.kpiId).filter(Boolean);
+        const cards = state.cards as unknown as Array<{ kpiId: string; kpiName: string }>;
+        const kpiIds = cards.map(c => c.kpiId).filter(Boolean);
         if (kpiIds.length < 2) return null;
 
         const msgLower = message.toLowerCase();
@@ -210,7 +210,7 @@ async function extractSingleKpi(message: string, projectId: string) {
     }
 
     // Pass 2: Fuzzy match and collect candidates > 0.65 for clarification
-    const candidates: any[] = [];
+    const candidates: Array<{ kpi: typeof kpis[0]; score: number }> = [];
     for (const kpi of kpis) {
         const score = fuzzyMatchKPI(message, kpi.name);
         if (score > 0.65) {
@@ -324,7 +324,7 @@ export async function POST(
                         route: 'KPI_VALUE_QUERY',
                         kpiName: kpi.name,
                         value: value.toString(),
-                        unit: (kpi as any).unit || '',
+                        unit: (kpi as { unit?: string }).unit || '',
                         period: 'Total', // Default scalar aggregation
                         delta: execResult.delta,
                         deltaPercent: execResult.deltaPercent,
@@ -342,12 +342,12 @@ export async function POST(
                 }
                 case '6A': {
                     const { handleAskAI } = await import('@/lib/module-6');
-                    result = (await handleAskAI(projectId, sessionId, sanitized, user.userId)) as any;
+                    result = (await handleAskAI(projectId, sessionId, sanitized, user.userId)) as unknown as Record<string, unknown>;
                     break;
                 }
                 case '6B': {
-                    const { handleEventQuery } = await import('@/lib/module-6b');
-                    result = (await handleEventQuery(projectId, activeQuery)) as any;
+                    const { handleEventQuery } = await import('@/lib/module-6/events');
+                    result = (await handleEventQuery(projectId, activeQuery)) as unknown as Record<string, unknown>;
 
                     if (result.status === 'success') {
                         updateSessionMemory(sessionId, {
@@ -358,14 +358,14 @@ export async function POST(
                 }
                 case 'CONTEXTUAL_EXPLANATION': {
                     // This is Task 5: Orchestrated "Why"
-                    const { handleEventQuery } = await import('@/lib/module-6b');
+                    const { handleEventQuery } = await import('@/lib/module-6/events');
                     const eventRes = await handleEventQuery(projectId, activeQuery);
 
                     if (eventRes.status !== 'success' || !eventRes.evidence) {
-                        result = eventRes as any;
+                        result = eventRes as unknown as Record<string, unknown>;
                     } else {
                         // Found primary event. Now scan for correlations involving this KPI to add depth.
-                        const { handleSynthesisQuery } = await import('@/lib/module-6e');
+                        const { handleSynthesisQuery } = await import('@/lib/module-6/synthesis');
                         const targetKpiId = eventRes.evidence.kpi_id;
 
                         // We'll mock/pull relevant correlations if possible, or just synthesize the event.
@@ -375,7 +375,7 @@ export async function POST(
                             [eventRes.evidence],
                             [], // In V1, we only pass the event packet for rich narration.
                             activeQuery
-                        )) as any;
+                        )) as unknown as Record<string, unknown>;
 
                         // Special: If synthesis is successful, it becomes the narrative.
                         updateSessionMemory(sessionId, {
@@ -386,7 +386,7 @@ export async function POST(
                     break;
                 }
                 case '6C': {
-                    const { handleCorrelationQuery } = await import('@/lib/module-6c');
+                    const { handleCorrelationQuery } = await import('@/lib/module-6/correlations');
                     // We might need memory injection again for extraction specifically
                     const extractedQuery = injectContext(activeQuery, mem);
                     const pair = await extractKpiPair(extractedQuery, projectId);
@@ -394,7 +394,7 @@ export async function POST(
                     if (!pair) {
                         result = { status: 'rejected', message: 'Could not identify two KPIs to correlate. Please name the KPIs in your message.' };
                     } else {
-                        result = (await handleCorrelationQuery(projectId, pair.kpiAId, pair.kpiBId, 'monthly', [0], extractedQuery)) as any;
+                        result = (await handleCorrelationQuery(projectId, pair.kpiAId, pair.kpiBId, 'monthly', [0], extractedQuery)) as unknown as Record<string, unknown>;
                         if (result.status === 'success') {
                             updateSessionMemory(sessionId, { lastIntent: 'correlation_analysis' });
                         }
@@ -402,10 +402,10 @@ export async function POST(
                     break;
                 }
                 case '6E': {
-                    const { handleSynthesisQuery } = await import('@/lib/module-6e');
-                    const { getLatestEvidencePackets } = await import('@/lib/module-6e/packet-loader');
+                    const { handleSynthesisQuery } = await import('@/lib/module-6/synthesis');
+                    const { getLatestEvidencePackets } = await import('@/lib/module-6/synthesis/packet-loader');
                     const { events, correlations } = await getLatestEvidencePackets(projectId);
-                    result = (await handleSynthesisQuery(projectId, events, correlations, sanitized)) as any;
+                    result = (await handleSynthesisQuery(projectId, events, correlations, sanitized)) as unknown as Record<string, unknown>;
                     break;
                 }
                 case 'TREND_ANALYSIS': {
@@ -487,8 +487,8 @@ export async function POST(
 
                     const nameA = kpiA?.name || 'KPI A';
                     const nameB = kpiB?.name || 'KPI B';
-                    const unitA = (kpiA as any)?.unit || '';
-                    const unitB = (kpiB as any)?.unit || '';
+                    const unitA = (kpiA as { unit?: string })?.unit || '';
+                    const unitB = (kpiB as { unit?: string })?.unit || '';
 
                     result = {
                         status: 'success',
@@ -516,8 +516,9 @@ export async function POST(
                     result = { status: 'rejected', route: 'UNSUPPORTED_SCOPE', message: 'This type of query is outside the platform\'s structured reasoning capabilities.' };
                     break;
             }
-        } catch (routeErr: any) {
-            console.error(`[ask-ai] Route ${finalRoute} handler failed:`, routeErr.message);
+        } catch (routeErr: unknown) {
+            const message = routeErr instanceof Error ? routeErr.message : String(routeErr);
+            console.error(`[ask-ai] Route ${finalRoute} handler failed:`, message);
             return NextResponse.json({ status: 'error', route: finalRoute, message: 'An error occurred. Please try again.' });
         }
 
@@ -527,15 +528,40 @@ export async function POST(
             structuredCommand: _cmd,
             evidence: _ev,
             ...safeResult
-        } = result as any;
+        } = result as Record<string, unknown>;
 
         // Add follow-up suggestions based on updated memory
         const suggestions = getFollowUpSuggestions(getSessionMemory(sessionId));
 
-        return NextResponse.json({ route: finalRoute, ...safeResult, suggestions });
+        // Generate conversational wrapper over the 6A-E layers
+        let conversationalPreamble = '';
+        if (safeResult.status === 'success' || safeResult.status === 'clarification_required') {
+            try {
+                const { callLocalModel } = await import('@/lib/module-6/infrastructure/local-adapter');
+                const systemPrompt = `You are VistaraBI, an evidence-governed BI copilot. 
+Write a 1-sentence, natural, conversational response acknowledging the result. 
+RULES:
+1. DO NOT hallucinate numbers. Use only the numbers provided.
+2. DO NOT use words like "because", "due to", or infer causation unless explicitly in the payload.
+3. Keep it extremely brief and friendly. No markdown. If the payload is 'clarification_required', ask the user to clarify.`;
 
-    } catch (err: any) {
-        console.error('[ask-ai] Unhandled error:', err.message);
+                const userPrompt = `The user said: "${activeQuery}"
+The underlying analytical engines (6A-6E) produced this structured payload:
+${JSON.stringify({ ...safeResult, dataset: undefined })} // Intentionally omitting dataset arrays from prompt to save context length`;
+
+                const response = await callLocalModel(systemPrompt, userPrompt, 0.3);
+                conversationalPreamble = response.text || '';
+            } catch (err) {
+                console.warn('[ask-ai] Failed to generate conversational wrapper:', err);
+                conversationalPreamble = (safeResult.narrative as string) || (safeResult.summarySentence as string) || (safeResult.explanation as string) || '';
+            }
+        }
+
+        return NextResponse.json({ route: finalRoute, ...safeResult, conversationalPreamble, suggestions });
+
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error('[ask-ai] Unhandled error:', message);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

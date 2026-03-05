@@ -1,8 +1,8 @@
 // prompt-builder.test.ts — Module 6D prompt builder and injection sanitization tests
 import { describe, it, expect } from 'vitest';
-import { sanitizeUserQuery, buildReasoningPrompt } from '../../src/lib/module-6d/prompt-builder';
-import { MAX_QUERY_LENGTH } from '../../src/lib/module-6d/types';
-import type { EvidenceInput } from '../../src/lib/module-6d/types';
+import { sanitizeUserQuery, buildReasoningPrompt } from '../../src/lib/module-6/infrastructure/prompt-builder';
+import { MAX_QUERY_LENGTH } from '../../src/lib/module-6/infrastructure/types';
+import type { EvidenceInput } from '../../src/lib/module-6/infrastructure/types';
 
 // ─── Minimal Evidence Fixture ──────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkCausation } from '../../src/lib/module-6e/causation-guard';
+import { checkCausation } from '../../src/lib/module-6/synthesis/causation-guard';
 
 describe('causation-guard — checkCausation()', () => {
     it('clean text → passes', () => {

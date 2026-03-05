@@ -3,8 +3,8 @@
 // for a given project from the audit log.
 // This is a thin adapter — it never accesses raw data, only already-computed packets.
 
-import type { EventEvidencePacket } from '@/lib/module-6b/types';
-import type { CorrelationEvidencePacket } from '@/lib/module-6c/types';
+import type { EventEvidencePacket } from '@/lib/module-6/events/types';
+import type { CorrelationEvidencePacket } from '@/lib/module-6/correlations/types';
 import { readAuditRecord } from '@/lib/module-6/audit-log';
 
 export interface EvidencePacketCollection {

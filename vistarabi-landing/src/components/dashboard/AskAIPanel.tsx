@@ -28,7 +28,8 @@ interface ChatMessage {
     timestamp: Date;
 }
 
-type ChatContent =
+type ChatContentBase = { conversationalPreamble?: string };
+type ChatContent = ChatContentBase & (
     | { type: 'text'; text: string }
     | { type: 'insight'; kpiName: string; narrative: string; confidence: string; unit?: string }
     | { type: 'correlation'; kpiA: string; kpiB: string; rValue?: number; confidence: string; lag?: number; narrative?: string }
@@ -70,7 +71,8 @@ type ChatContent =
         type: 'clarification';
         message: string;
         options: Array<{ id: string; name: string }>;
-    };
+    }
+);
 
 interface AskAIPanelProps {
     projectId: string;
@@ -141,7 +143,8 @@ function parseResponse(data: any): ChatContent {
             period: data.period || 'Total',
             delta: data.delta,
             deltaPercent: data.deltaPercent,
-            deltaDirection: data.deltaDirection
+            deltaDirection: data.deltaDirection,
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
@@ -154,7 +157,8 @@ function parseResponse(data: any): ChatContent {
             deltaPercent: data.deltaPercent || 0,
             volatilityIndex: data.volatilityIndex || 0,
             summarySentence: data.summarySentence || 'Trend analysis complete.',
-            dataset: data.dataset || []
+            dataset: data.dataset || [],
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
@@ -169,7 +173,8 @@ function parseResponse(data: any): ChatContent {
             unitA: data.unitA || '',
             unitB: data.unitB || '',
             ratio: data.ratio || 0,
-            summarySentence: data.summarySentence || 'Comparison complete.'
+            summarySentence: data.summarySentence || 'Comparison complete.',
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
@@ -193,6 +198,7 @@ function parseResponse(data: any): ChatContent {
             narrative: ev.explanation || ev.message || '',
             confidence: ev.confidence_level || ev.confidence || 'moderate',
             unit: ev.unit,
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
@@ -214,6 +220,7 @@ function parseResponse(data: any): ChatContent {
             confidence: ev.confidence_level || 'moderate',
             lag: ev.lag_applied !== 0 ? ev.lag_applied : undefined,
             narrative: data.explanation,
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
@@ -225,6 +232,7 @@ function parseResponse(data: any): ChatContent {
             conflictCount: data.conflictSummary?.length ?? 0,
             packetCount: data.supportingPacketIds?.length ?? 0,
             reasoningTier: data.reasoningTier || (route === 'CONTEXTUAL_EXPLANATION' ? 'CONTEXTUAL_SYNTHESIS' : 'MULTI_PACKET_SYNTHESIS'),
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
@@ -514,7 +522,8 @@ function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?
                     <span className="material-symbols-outlined text-sm text-indigo-600">psychology</span>
                 </div>
                 <div className="flex-1">
-                    {c.type === 'text' && <p className="text-sm text-slate-700 leading-relaxed">{c.text}</p>}
+                    {c.conversationalPreamble && <p className="text-sm text-slate-800 leading-relaxed mb-3">{c.conversationalPreamble}</p>}
+                    {c.type === 'text' && !c.conversationalPreamble && <p className="text-sm text-slate-700 leading-relaxed">{c.text}</p>}
                     {c.type === 'insight' && <InsightCard c={c} />}
                     {c.type === 'correlation' && <CorrelationCard c={c} />}
                     {c.type === 'synthesis' && <SynthesisCard c={c} />}

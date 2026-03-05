@@ -3,15 +3,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ─── Mocks (must be declared before imports that use them) ─────────────────────
 
-vi.mock('../../src/lib/module-6d/local-adapter', () => ({
+vi.mock('../../src/lib/module-6/infrastructure/local-adapter', () => ({
     callLocalModel: vi.fn(),
 }));
 
-vi.mock('../../src/lib/module-6d/cloud-adapter', () => ({
+vi.mock('../../src/lib/module-6/infrastructure/cloud-adapter', () => ({
     callCloudModel: vi.fn(),
 }));
 
-vi.mock('../../src/lib/module-6d/audit-logger', () => ({
+vi.mock('../../src/lib/module-6/infrastructure/audit-logger', () => ({
     writeReasoningAuditRecord: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -20,10 +20,10 @@ vi.mock('../../src/lib/module-6/audit-log', () => ({
     readAuditRecord: vi.fn().mockResolvedValue(null),
 }));
 
-const { handleReasoningQuery } = await import('../../src/lib/module-6d/index');
-const { callLocalModel } = await import('../../src/lib/module-6d/local-adapter');
-const { callCloudModel } = await import('../../src/lib/module-6d/cloud-adapter');
-const { writeReasoningAuditRecord } = await import('../../src/lib/module-6d/audit-logger');
+const { handleReasoningQuery } = await import('../../src/lib/module-6/infrastructure/index');
+const { callLocalModel } = await import('../../src/lib/module-6/infrastructure/local-adapter');
+const { callCloudModel } = await import('../../src/lib/module-6/infrastructure/cloud-adapter');
+const { writeReasoningAuditRecord } = await import('../../src/lib/module-6/infrastructure/audit-logger');
 
 // Duck-typed error factory — avoids module-boundary instanceof issues in Vitest
 function makeModelError(code: string, message: string, recoverable: boolean) {

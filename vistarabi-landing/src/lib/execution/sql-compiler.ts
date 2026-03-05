@@ -19,7 +19,7 @@ import type { ApprovedKPIWithRelations, AggregationRule, GroupByDefinition, Line
 
 export interface CompiledQuery {
     text: string;
-    values: any[];
+    values: unknown[];
 }
 
 export interface ExecutionFilters {
@@ -174,14 +174,14 @@ function compileJoinClause(lineage: LineageDefinition | null): string {
 
 interface WhereResult {
     clause: string;
-    params: any[];
+    params: unknown[];
 }
 
 function compileWhereClause(filters: ExecutionFilters | undefined, paramOffset: number = 0): WhereResult {
     if (!filters) return { clause: '', params: [] };
 
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
     let idx = paramOffset + 1;
 
     // Date range filter
@@ -306,13 +306,15 @@ export function compileFullQuery(ctx: CompilationContext): CompiledQuery {
 
     const dateColumn = filters?.dateColumn;
 
+    const formula = kpi.lineage?.formula || (kpi as { formula?: string }).formula;
+
     const selectClause = compileSelectClause(
         kpi.aggregations,
         kpi.groupBys,
         granularity,
         dateColumn,
         drillByColumn,
-        (kpi as any).lineage?.formula || (kpi as any).formula
+        formula
     );
     const fromClause = compileFromClause(kpi.sourceTable);
     const joinClause = compileJoinClause(kpi.lineage);
@@ -388,7 +390,9 @@ export function compileScalarQuery(ctx: CompilationContext): CompiledQuery {
         throw new Error(`[SQL Compiler] KPI "${kpi.name}" has no AggregationRules — cannot compile`);
     }
 
-    const selectClause = compileSelectClause(kpi.aggregations, [], undefined, undefined, undefined, (kpi as any).lineage?.formula || (kpi as any).formula);
+    const formula = kpi.lineage?.formula || (kpi as { formula?: string }).formula;
+
+    const selectClause = compileSelectClause(kpi.aggregations, [], undefined, undefined, undefined, formula);
     const fromClause = compileFromClause(kpi.sourceTable);
     const joinClause = compileJoinClause(kpi.lineage);
     const { clause: whereClause, params } = compileWhereClause(filters);

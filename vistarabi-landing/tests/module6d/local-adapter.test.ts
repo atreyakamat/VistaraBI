@@ -1,7 +1,7 @@
 // local-adapter.test.ts — Module 6D Ollama adapter tests
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { callLocalModel } from '../../src/lib/module-6d/local-adapter';
-import { ModelCallError } from '../../src/lib/module-6d/types';
+import { callLocalModel } from '../../src/lib/module-6/infrastructure/local-adapter';
+import { ModelCallError } from '../../src/lib/module-6/infrastructure/types';
 
 // ─── Mock fetch ───────────────────────────────────────────────────────────────
 

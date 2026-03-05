@@ -1,6 +1,6 @@
 // audit-logger.test.ts — Module 6D reasoning audit record tests
 import { describe, it, expect, vi } from 'vitest';
-import type { ModelAuditMetadata } from '../../src/lib/module-6d/types';
+import type { ModelAuditMetadata } from '../../src/lib/module-6/infrastructure/types';
 
 // ─── Mock writeAuditRecord ────────────────────────────────────────────────────
 
@@ -10,7 +10,7 @@ vi.mock('@/lib/module-6/audit-log', () => ({
     readAuditRecord: vi.fn().mockResolvedValue(null),
 }));
 
-const { writeReasoningAuditRecord } = await import('../../src/lib/module-6d/audit-logger');
+const { writeReasoningAuditRecord } = await import('../../src/lib/module-6/infrastructure/audit-logger');
 const { writeAuditRecord } = await import('@/lib/module-6/audit-log');
 
 // ─── Fixture ─────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 // task-classifier.test.ts — Module 6D deterministic classifier tests
 import { describe, it, expect } from 'vitest';
-import { classifyReasoningTask, getUnsupportedReasoningMessage } from '../../src/lib/module-6d/task-classifier';
+import { classifyReasoningTask, getUnsupportedReasoningMessage } from '../../src/lib/module-6/infrastructure/task-classifier';
 
 describe('task-classifier — classifyReasoningTask()', () => {
     it('INTENT_TRANSLATION → valid', () => {

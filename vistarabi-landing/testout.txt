@@ -1,0 +1,76 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m[2m5A-01: Should generate valid dashboard schema from blueprint
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m[2m5A-01: Should generate valid dashboard schema from blueprint
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m[2m5A-01: Should generate valid dashboard schema from blueprint
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v2
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v2
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v2
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 2: Module 5B ΓÇö Rendering Engine[2m > [22m[2m5B-01: Should render dashboard with correct KPI values
+[22m[39m[Visualization] Computing dashboard data for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 2: Module 5B ΓÇö Rendering Engine[2m > [22m[2m5B-01: Should render dashboard with correct KPI values
+[22m[39m[KPIComputer] Revenue = 0 (0ms)
+[Visualization] Computed 1 KPIs in 1ms (0 skipped)
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 2: Module 5B ΓÇö Rendering Engine[2m > [22m[2m5B-02: Should propagate filters correctly
+[22m[39m[Visualization] Computing dashboard data for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 2: Module 5B ΓÇö Rendering Engine[2m > [22m[2m5B-02: Should propagate filters correctly
+[22m[39m[KPIComputer] Revenue = 0 (0ms)
+[Visualization] Computed 1 KPIs in 1ms (0 skipped)
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 4: System Contract[2m > [22m[2mShould write dashboardConfig via upsert (read inputs, write output)
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 4: System Contract[2m > [22m[2mShould write dashboardConfig via upsert (read inputs, write output)
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 4: System Contract[2m > [22m[2mShould write dashboardConfig via upsert (read inputs, write output)
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v2
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 4: System Contract[2m > [22m[2mShould handle missing blueprint gracefully
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+ [32mΓ£ô[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m5A-01: Should generate valid dashboard schema from blueprint[32m 5[2mms[22m[39m
+ [32mΓ£ô[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 1: Module 5A ΓÇö Structure Engine[2m > [22m5A-02: Should be deterministic (idempotent)[32m 3[2mms[22m[39m
+ [31m├ù[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 2: Module 5B ΓÇö Rendering Engine[2m > [22m5B-01: Should render dashboard with correct KPI values[32m 8[2mms[22m[39m
+[31m   ΓåÆ expected +0 to be 750 // Object.is equality[39m
+ [31m├ù[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 2: Module 5B ΓÇö Rendering Engine[2m > [22m5B-02: Should propagate filters correctly[32m 2[2mms[22m[39m
+[31m   ΓåÆ expected +0 to be 250 // Object.is equality[39m
+ [31m├ù[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 2: Module 5B ΓÇö Rendering Engine[2m > [22m5B-03: Should support drill-down via computeSingleKPI[32m 1[2mms[22m[39m
+[31m   ΓåÆ expected +0 to be 3 // Object.is equality[39m
+ [32mΓ£ô[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 3: Module 5C ΓÇö Explainability & Insights[2m > [22m5C-01: Should produce KPI insight with anomaly detection[32m 1[2mms[22m[39m
+ [32mΓ£ô[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 3: Module 5C ΓÇö Explainability & Insights[2m > [22m5C-02: Should detect spike anomaly on large delta[32m 0[2mms[22m[39m
+ [32mΓ£ô[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 3: Module 5C ΓÇö Explainability & Insights[2m > [22m5C-03: Should generate dashboard-level insights[32m 1[2mms[22m[39m
+ [32mΓ£ô[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 3: Module 5C ΓÇö Explainability & Insights[2m > [22m5C-04: Should rank top movers correctly[32m 1[2mms[22m[39m
+ [32mΓ£ô[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 4: System Contract[2m > [22mShould write dashboardConfig via upsert (read inputs, write output)[32m 1[2mms[22m[39m
+ [32mΓ£ô[39m tests/module-5/integration.test.ts[2m > [22mModule 5: Global Dashboard Intelligence Integration[2m > [22mPart 4: System Contract[2m > [22mShould handle missing blueprint gracefully[32m 0[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m8 passed[39m[22m[90m (11)[39m
+[2m   Start at [22m 09:23:22
+[2m   Duration [22m 784ms[2m (transform 222ms, setup 0ms, import 569ms, tests 24ms, environment 0ms)[22m
+

@@ -1,6 +1,6 @@
 // lag-engine.test.ts — Module 6C lag engine + Bonferroni correction tests
 import { describe, it, expect } from 'vitest';
-import { computeWithLags } from '../../src/lib/module-6c/lag-engine';
+import { computeWithLags } from '../../src/lib/module-6/correlations/lag-engine';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 

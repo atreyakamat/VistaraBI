@@ -11,7 +11,7 @@ import type {
     ExecutionOptions,
     DashboardExecutionResult,
 } from './types';
-import type { DashboardConfigSchema, DashboardKPICard, ChartType, ChartLibrary } from '../dashboard/types';
+import type { DashboardConfigSchema as DashboardConfigType, DashboardKPICard, ChartType, ChartLibrary } from '../dashboard/types';
 import db from '../prisma';
 import pool from './pool';
 import { compileFullQuery, compileComparisonQuery, compileScalarQuery, type CompilationContext, type ExecutionFilters } from './sql-compiler';
@@ -25,6 +25,7 @@ import {
 } from './cache';
 import { loadBlueprintWithKPIs } from '../kpi/blueprint-loader';
 import { getAllKPIs } from '../kpi/kpi-library';
+import { DashboardConfigSchema } from '../dashboard/schemas';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -466,17 +467,17 @@ export async function executeDrill(
 
 // ─── Internal Helpers ─────────────────────────────────────────────
 
-async function loadDashboardConfig(projectId: string): Promise<DashboardConfigSchema | null> {
+async function loadDashboardConfig(projectId: string): Promise<DashboardConfigType | null> {
     const record = await (db as any).dashboardConfig.findUnique({ where: { projectId } });
     if (!record) return null;
 
-    return {
+    return DashboardConfigSchema.parse({
         projectId: record.projectId,
-        sections: record.sections as any,
-        sidebarConfig: record.sidebarConfig as any,
-        metadata: record.metadata as any,
+        sections: record.sections,
+        sidebarConfig: record.sidebarConfig,
+        metadata: record.metadata,
         version: record.version,
-    };
+    }) as DashboardConfigType;
 }
 
 async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]> {

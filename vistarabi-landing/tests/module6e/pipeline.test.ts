@@ -2,15 +2,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-vi.mock('../../src/lib/module-6d/local-adapter', () => ({
+vi.mock('../../src/lib/module-6/infrastructure/local-adapter', () => ({
     callLocalModel: vi.fn(),
 }));
 
-vi.mock('../../src/lib/module-6d/cloud-adapter', () => ({
+vi.mock('../../src/lib/module-6/infrastructure/cloud-adapter', () => ({
     callCloudModel: vi.fn(),
 }));
 
-vi.mock('../../src/lib/module-6e/synthesis-audit-logger', () => ({
+vi.mock('../../src/lib/module-6/synthesis/synthesis-audit-logger', () => ({
     writeSynthesisAuditRecord: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -19,12 +19,12 @@ vi.mock('../../src/lib/module-6/audit-log', () => ({
     readAuditRecord: vi.fn().mockResolvedValue(null),
 }));
 
-const { handleSynthesisQuery } = await import('../../src/lib/module-6e/index');
-const { callLocalModel } = await import('../../src/lib/module-6d/local-adapter');
-const { callCloudModel } = await import('../../src/lib/module-6d/cloud-adapter');
-const { writeSynthesisAuditRecord } = await import('../../src/lib/module-6e/synthesis-audit-logger');
+const { handleSynthesisQuery } = await import('../../src/lib/module-6/synthesis/index');
+const { callLocalModel } = await import('../../src/lib/module-6/infrastructure/local-adapter');
+const { callCloudModel } = await import('../../src/lib/module-6/infrastructure/cloud-adapter');
+const { writeSynthesisAuditRecord } = await import('../../src/lib/module-6/synthesis/synthesis-audit-logger');
 
-import type { EventEvidencePacket, CorrelationEvidencePacket } from '../../src/lib/module-6e/types';
+import type { EventEvidencePacket, CorrelationEvidencePacket } from '../../src/lib/module-6/synthesis/types';
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 

@@ -1,6 +1,6 @@
 // statistics-gate.test.ts — Module 6C Pearson + significance computation tests
 import { describe, it, expect } from 'vitest';
-import { computeCorrelationMetrics, zScoreNormalize } from '../../src/lib/module-6c/statistics-gate';
+import { computeCorrelationMetrics, zScoreNormalize } from '../../src/lib/module-6/correlations/statistics-gate';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

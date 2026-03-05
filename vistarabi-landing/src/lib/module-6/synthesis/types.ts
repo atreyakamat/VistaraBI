@@ -3,9 +3,9 @@
 // Module 6E is purely interpretive — it never mutates dashboard state,
 // never recomputes statistics, and never calls statistics-core.
 
-import type { EventEvidencePacket, ConfidenceLevel } from '@/lib/module-6b/types';
-import type { CorrelationEvidencePacket, CorrelationConfidenceLevel } from '@/lib/module-6c/types';
-import type { ModelTier, ModelAuditMetadata } from '@/lib/module-6d/types';
+import type { EventEvidencePacket, ConfidenceLevel } from '@/lib/module-6/events/types';
+import type { CorrelationEvidencePacket, CorrelationConfidenceLevel } from '@/lib/module-6/correlations/types';
+import type { ModelTier, ModelAuditMetadata } from '@/lib/module-6/infrastructure/types';
 
 // Re-export packet types for convenience
 export type { EventEvidencePacket, CorrelationEvidencePacket };

@@ -2,8 +2,8 @@
 // All type definitions for the Tiered Model Routing & Orchestration layer.
 // Module 6D is purely interpretive — it never mutates dashboard state.
 
-import type { CorrelationEvidencePacket } from '@/lib/module-6c/types';
-import type { EventEvidencePacket } from '@/lib/module-6b/types';
+import type { CorrelationEvidencePacket } from '@/lib/module-6/correlations/types';
+import type { EventEvidencePacket } from '@/lib/module-6/events/types';
 
 // ─── Reasoning Task Classification ────────────────────────────────────────────
 

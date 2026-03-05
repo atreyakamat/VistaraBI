@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { classifySynthesisTask, getUnsupportedScopeMessage } from '../../src/lib/module-6e/synthesis-classifier';
+import { classifySynthesisTask, getUnsupportedScopeMessage } from '../../src/lib/module-6/synthesis/synthesis-classifier';
 
 describe('synthesis-classifier — classifySynthesisTask()', () => {
     it('1 event, 0 correlations → SINGLE_PACKET_SUMMARY', () => {

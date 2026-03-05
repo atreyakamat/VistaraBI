@@ -40,9 +40,9 @@ pool.on('error', (err) => {
  * Execute a parameterized query using a pooled connection.
  * Connection is automatically returned to the pool after execution.
  */
-export async function query<T extends Record<string, any> = Record<string, any>>(
+export async function query<T extends Record<string, unknown> = Record<string, unknown>>(
     text: string,
-    params: any[] = []
+    params: unknown[] = []
 ): Promise<QueryResult<T>> {
     const start = Date.now();
     try {
@@ -52,8 +52,9 @@ export async function query<T extends Record<string, any> = Record<string, any>>
             console.warn(`[Pool] Slow query (${durationMs}ms):`, text.slice(0, 120));
         }
         return result;
-    } catch (err: any) {
-        console.error('[Pool] Query error:', err.message);
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error('[Pool] Query error:', message);
         console.error('[Pool] Query text:', text.slice(0, 200));
         throw err;
     }

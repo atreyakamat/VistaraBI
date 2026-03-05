@@ -2,7 +2,7 @@
 // Narrates a CorrelationEvidencePacket with strict statistical guardrails.
 // Temperature: 0.1 | No retries | Single pass only.
 
-import { callLocalModel } from '@/lib/module-6d/local-adapter';
+import { callLocalModel } from '@/lib/module-6/infrastructure/local-adapter';
 import type { CorrelationEvidencePacket } from './types';
 
 const TEMPERATURE = 0.1;

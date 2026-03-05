@@ -1,6 +1,6 @@
 // kpi-pair-validator.test.ts — Module 6C eligibility gate tests
 import { describe, it, expect } from 'vitest';
-import { validateKPIPair } from '../../src/lib/module-6c/kpi-pair-validator';
+import { validateKPIPair } from '../../src/lib/module-6/correlations/kpi-pair-validator';
 import type { EnrichedKPIResult } from '../../src/lib/dashboard-state/types';
 
 // ─── Fixture Factory ──────────────────────────────────────────────────────────

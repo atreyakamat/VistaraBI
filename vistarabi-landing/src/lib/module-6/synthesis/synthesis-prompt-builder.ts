@@ -9,7 +9,7 @@ import type {
     ConflictDescriptor,
     SynthesisTaskType,
 } from './types';
-import { sanitizeUserQuery } from '@/lib/module-6d/prompt-builder';
+import { sanitizeUserQuery } from '@/lib/module-6/infrastructure/prompt-builder';
 
 // ─── Serializers ──────────────────────────────────────────────────────────────
 

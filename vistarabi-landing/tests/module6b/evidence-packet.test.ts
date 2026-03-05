@@ -1,6 +1,6 @@
 // evidence-packet.test.ts — Module 6B evidence packet construction tests
 import { describe, it, expect } from 'vitest';
-import { buildEvidencePacket, EvidencePacketError } from '../../src/lib/module-6b/evidence-packet';
+import { buildEvidencePacket, EvidencePacketError } from '../../src/lib/module-6/events/evidence-packet';
 import type { EnrichedKPIResult } from '../../src/lib/dashboard-state/types';
 
 // ─── Fixture ──────────────────────────────────────────────────────────────────

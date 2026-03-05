@@ -17,9 +17,9 @@ import { buildSynthesisPrompt } from './synthesis-prompt-builder';
 import { checkCausation } from './causation-guard';
 import { validateCrossPacketNumerics } from './cross-packet-numeric-guard';
 import { writeSynthesisAuditRecord } from './synthesis-audit-logger';
-import { callLocalModel } from '@/lib/module-6d/local-adapter';
-import { callCloudModel } from '@/lib/module-6d/cloud-adapter';
-import { isCloudRoutingEnabled } from '@/lib/module-6d/model-router';
+import { callLocalModel } from '@/lib/module-6/infrastructure/local-adapter';
+import { callCloudModel } from '@/lib/module-6/infrastructure/cloud-adapter';
+import { isCloudRoutingEnabled } from '@/lib/module-6/infrastructure/model-router';
 import {
     SYNTHESIS_TIER_MAP,
     SYNTHESIS_TEMPERATURE,
@@ -32,7 +32,7 @@ import type {
     SynthesisAuditMetadata,
     ConflictDescriptor,
 } from './types';
-import { LOCAL_MODEL_ID, CLOUD_MODEL_ID, type AdapterResponse } from '@/lib/module-6d/types';
+import { LOCAL_MODEL_ID, CLOUD_MODEL_ID, type AdapterResponse } from '@/lib/module-6/infrastructure/types';
 
 // ─── Main Pipeline ────────────────────────────────────────────────────────────
 
