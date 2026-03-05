@@ -40,7 +40,7 @@ async function main() {
         const chunk = rows.slice(i, i + 100);
         const valuesPart = chunk.map((r: any) => {
             const vals = columns.map((c: string) => {
-                let v = r[c] ?? r[c.toLowerCase()];
+                const v = r[c] ?? r[c.toLowerCase()];
                 if (v === null || v === undefined) return 'NULL';
                 return `'${String(v).replace(/'/g, "''")}'`;
             });

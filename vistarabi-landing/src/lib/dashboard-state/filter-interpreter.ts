@@ -49,13 +49,13 @@ export function parseBusinessFilter(
     const qOnlyMatch = expr.match(/^Q([1-4])$/i);
     if (qOnlyMatch) {
         const currentYear = ref.getFullYear();
-        return parseQuarter(parseInt(qOnlyMatch[1], 10), currentYear);
+        return parseQuarter(parseInt(qOnlyMatch[1], 10) as 1 | 2 | 3 | 4, currentYear);
     }
 
     // ── 3. Quarter + Year: "Q1 2025", "Q3-2024" ──
     const qYearMatch = expr.match(/^Q([1-4])[- ]*(\d{4})$/i);
     if (qYearMatch) {
-        return parseQuarter(parseInt(qYearMatch[1], 10), parseInt(qYearMatch[2], 10));
+        return parseQuarter(parseInt(qYearMatch[1], 10) as 1 | 2 | 3 | 4, parseInt(qYearMatch[2], 10));
     }
 
     // ── 4. Relative: "Last N days/weeks/months" ──

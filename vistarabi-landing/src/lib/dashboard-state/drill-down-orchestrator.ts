@@ -61,7 +61,7 @@ export async function orchestrateDrillDown(
         ? Math.max(...state.cards.map(c => c.position))
         : 0;
 
-    const existingOverrides = (sourceCard.filterOverrides as NormalizedCategoryFilter[]) || [];
+    const existingOverrides = (sourceCard.filterOverrides as unknown as NormalizedCategoryFilter[]) || [];
 
     // Determine chart type for drill-down (prefer 'bar' for categorical breakdown)
     const resolvedChartType: ChartType = chartType ||

@@ -171,6 +171,7 @@ export function resolveKPI(
         description: rule.description,
         domain,
         category: rule.category,
+        unit: (rule as any).unit || 'count',
         sourceTable: stripExtension(primarySource.name),
         formula,
         aggregations,

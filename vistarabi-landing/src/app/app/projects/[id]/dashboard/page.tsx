@@ -110,7 +110,7 @@ export default function DashboardPage() {
             // Each KPIExecutionResult has: primaryValue, previousValue, dataset[],
             //   deltaPercent, deltaDirection, recommendedChartType, recommendedChartLibrary
             const dataRes = await fetch(`/api/projects/${projectId}/dashboard/data`);
-            let kpiDataMap: Record<string, any> = {};
+            const kpiDataMap: Record<string, any> = {};
 
             if (dataRes.ok) {
                 const dashData = await dataRes.json();

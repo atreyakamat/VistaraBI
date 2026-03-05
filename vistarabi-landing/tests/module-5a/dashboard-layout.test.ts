@@ -113,7 +113,7 @@ describe('Module 5A: Dashboard Layout Engine', () => {
             // Mock DB returns
             mockDb.project.findUnique.mockResolvedValue({ id: 'p1', name: 'Test Proj' });
             const mockKPIs: ApprovedKPI[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date() }
+                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
             ];
             mockDb.kPIBlueprint.findUnique.mockResolvedValue({ kpis: mockKPIs });
             mockDb.domainDetection.findUnique.mockResolvedValue({ detectedDomain: 'ECOMMERCE' });
@@ -173,7 +173,7 @@ describe('Module 5A: Dashboard Layout Engine', () => {
         it('should produce identical output for same input', async () => {
             mockDb.project.findUnique.mockResolvedValue({ id: 'p1' });
             const mockKPIs: ApprovedKPI[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date() }
+                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
             ];
             mockDb.kPIBlueprint.findUnique.mockResolvedValue({ kpis: mockKPIs });
             mockDb.domainDetection.findUnique.mockResolvedValue({ detectedDomain: 'ECOMMERCE' });
@@ -194,7 +194,7 @@ describe('Module 5A: Dashboard Layout Engine', () => {
         it('should increment version on regeneration', async () => {
             mockDb.project.findUnique.mockResolvedValue({ id: 'p1' });
             const mockKPIs: ApprovedKPI[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date() }
+                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
             ];
             mockDb.kPIBlueprint.findUnique.mockResolvedValue({ kpis: mockKPIs });
             mockDb.domainDetection.findUnique.mockResolvedValue({ detectedDomain: 'ECOMMERCE' });
@@ -214,7 +214,7 @@ describe('Module 5A: Dashboard Layout Engine', () => {
     describe('Dynamic Updates', () => {
         it('should integrate new KPIs into correct sections', () => {
             const mockKPIs: ApprovedKPI[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date() }
+                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
             ];
             const newKPI: ApprovedKPI = {
                 kpiId: '6', kpiName: 'New Metric', formula: 'SUM(z)',

@@ -1,4 +1,5 @@
 import { generateCompletion } from './src/lib/ai/ollama-client';
+// @ts-ignore
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });

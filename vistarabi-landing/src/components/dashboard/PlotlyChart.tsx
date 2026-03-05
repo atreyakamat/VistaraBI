@@ -10,7 +10,7 @@ import type { ComponentType } from 'react';
 // Dynamically import Plotly to avoid SSR issues.
 // Cast to ComponentType<any> because next/dynamic loses generic PlotParams typing,
 // which causes TS2769 overload errors when passing Plotly-specific event handlers.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const Plot = dynamic(() => import('react-plotly.js'), {
     ssr: false,
     loading: () => (

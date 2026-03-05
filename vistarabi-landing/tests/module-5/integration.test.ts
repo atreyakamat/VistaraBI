@@ -117,7 +117,7 @@ beforeEach(() => {
     (db as any).dashboardConfig.findUnique.mockResolvedValue(JSON.parse(JSON.stringify(mockDashboardConfig)));
     (db as any).project.findUnique.mockResolvedValue({ id: PROJECT_ID, name: 'Integration Project' });
     (db as any).kPIBlueprint.findUnique.mockResolvedValue({
-        kpis: [{ kpiId: 'kpi-rev', name: 'Revenue', kpiName: 'Revenue', confidence: 1, category: 'financial', formula: 'SUM(amount)', matchedColumns: [], addedAt: new Date() }]
+        kpis: [{ kpiId: 'kpi-rev', name: 'Revenue', kpiName: 'Revenue', confidence: 1, category: 'financial', formula: 'SUM(amount)', matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'amount', sourceId: 'src-sales' }] }]
     });
     (db as any).domainDetection.findUnique.mockResolvedValue({ detectedDomain: 'SALES' });
     (db as any).source.count.mockResolvedValue(1);

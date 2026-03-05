@@ -256,7 +256,7 @@ function incompleteBetaApprox(x: number, a: number, b: number): number {
 function lgamma(z: number): number {
     const c = [76.18009172947146, -86.50532032941677, 24.01409824083091,
         -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
-    let x = z;
+    const x = z;
     let y = x;
     const tmp = x + 5.5;
     const ser = c.reduce((acc, ci) => { y += 1; return acc + ci / y; }, 1.000000000190015);

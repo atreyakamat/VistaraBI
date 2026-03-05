@@ -210,7 +210,7 @@ async function extractSingleKpi(message: string, projectId: string) {
     }
 
     // Pass 2: Fuzzy match and collect candidates > 0.65 for clarification
-    let candidates: any[] = [];
+    const candidates: any[] = [];
     for (const kpi of kpis) {
         const score = fuzzyMatchKPI(message, kpi.name);
         if (score > 0.65) {
