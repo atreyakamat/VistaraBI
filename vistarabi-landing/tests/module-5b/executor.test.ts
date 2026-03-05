@@ -9,6 +9,7 @@ const mockDb = vi.hoisted(() => ({
     dashboardConfig: { findUnique: vi.fn(), upsert: vi.fn(), update: vi.fn() },
     kPILineageRegistry: { findUnique: vi.fn() },
     source: { findMany: vi.fn() },
+    kPIBlueprint: { findUnique: vi.fn() },
 }));
 
 vi.mock('../../src/lib/prisma', () => ({
@@ -81,13 +82,16 @@ describe('Module 5B — KPI Executor Pipeline', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         clearAllCaches();
+        mockDb.kPIBlueprint.findUnique.mockResolvedValue({
+            kpis: [{ id: 'kpi-rev', kpiLibraryId: 'kpi-rev', kpiId: 'kpi-rev', name: 'Revenue', kpiName: 'Revenue', category: 'revenue', formula: 'SUM(amount)', aggregations: [{ function: 'SUM', column: 'amount' }], groupBys: [] }]
+        });
     });
 
     // ── Single KPI Execution ──────────────────────────────────────
 
     describe('executeKPI', () => {
         it('should produce a valid KPIExecutionResult', async () => {
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
             });
 
@@ -106,7 +110,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should compute correct primary value (SUM)', async () => {
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
             });
 
@@ -116,7 +120,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should apply filters and reduce dataset', async () => {
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
                 filters: [{ type: 'category', column: 'category', values: ['Electronics'] }],
             });
@@ -126,7 +130,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should apply date range filter', async () => {
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
                 dateFrom: '2024-02-01',
                 dateTo: '2024-02-28',
@@ -137,7 +141,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should use groupBy for drill-down', async () => {
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
                 groupBy: 'category',
             });
@@ -149,21 +153,21 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should return cache hit on second call', async () => {
-            const first = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const first = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
             });
             expect(first.performance.cacheHit).toBe(false);
 
-            const second = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const second = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
             });
             expect(second.performance.cacheHit).toBe(true);
         });
 
         it('should bypass cache when skipCache is true', async () => {
-            await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, { skipAIExplanation: true });
+            await executeKPI('proj-1', 'kpi-rev', { skipAIExplanation: true });
 
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
                 skipCache: true,
             });
@@ -171,7 +175,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should populate profiling data correctly', async () => {
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
             });
 
@@ -184,7 +188,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should recommend a chart type based on data profile', async () => {
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
             });
 
@@ -195,7 +199,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
 
         it('should report animation flag based on profiler record count', async () => {
             // Small datasets: profiler.recordCount < 5000 → disableAnimation=false
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
             });
 
@@ -205,7 +209,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should build lineage summary correctly', async () => {
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
             });
 
@@ -223,7 +227,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
                 }]]),
             };
 
-            const result = await executeKPI('proj-1', 'kpi-rev', lineage, emptyDataMap, {
+            const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
             });
 
@@ -233,12 +237,12 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         });
 
         it('should use granularity option for time bucketing', async () => {
-            const daily = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const daily = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
                 granularity: 'daily',
             });
 
-            const monthly = await executeKPI('proj-1', 'kpi-rev', lineage, dataMap, {
+            const monthly = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
                 skipCache: true,
                 granularity: 'monthly',

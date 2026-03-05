@@ -4,15 +4,12 @@
 // Temperature: 0.1 (near-deterministic, slight variation for natural language)
 // No retries. Single pass only.
 
-import Anthropic from '@anthropic-ai/sdk';
+import { callLocalModel } from '@/lib/module-6d/local-adapter';
 import type { EventEvidencePacket } from './types';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
-const MODEL = 'claude-sonnet-4-6';
-const MAX_TOKENS = 800;
 const TEMPERATURE = 0.1;
-const TIMEOUT_MS = 30_000;
 
 // ─── System Prompt ─────────────────────────────────────────────────────────────
 // This prompt is the narrative guardrail. It defines exactly what the LLM may say.
@@ -46,19 +43,6 @@ export class LLMEventCallError extends Error {
     }
 }
 
-// ─── Client ───────────────────────────────────────────────────────────────────
-
-function getClient(): Anthropic {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-        throw new LLMEventCallError(
-            'MISSING_API_KEY',
-            'ANTHROPIC_API_KEY is not set. Module 6B requires this environment variable.'
-        );
-    }
-    return new Anthropic({ apiKey, timeout: TIMEOUT_MS });
-}
-
 // ─── Main Call ────────────────────────────────────────────────────────────────
 
 /**
@@ -74,8 +58,6 @@ export async function callEventLLM(
     userQuery: string,
     packet: EventEvidencePacket
 ): Promise<string> {
-    const client = getClient();
-
     // Compact serialization of evidence — no raw arrays
     const evidenceJson = JSON.stringify({
         kpi_name: packet.kpi_name,
@@ -102,29 +84,11 @@ User question: "${userQuery}"
 
 Provide your evidence-based explanation now:`;
 
-    let response: Anthropic.Message;
-
     try {
-        response = await client.messages.create({
-            model: MODEL,
-            max_tokens: MAX_TOKENS,
-            temperature: TEMPERATURE,
-            system: SYSTEM_PROMPT,
-            messages: [
-                { role: 'user', content: userMessage },
-            ],
-        });
+        const response = await callLocalModel(SYSTEM_PROMPT, userMessage, TEMPERATURE);
+        return response.text;
     } catch (err: any) {
-        if (err.name === 'APITimeoutError' || err.code === 'ETIMEDOUT') {
-            throw new LLMEventCallError('LLM_TIMEOUT', `Claude API timed out after ${TIMEOUT_MS / 1000}s`);
-        }
-        throw new LLMEventCallError('LLM_CALL_FAILED', `Claude API error: ${err.message ?? 'unknown'}`);
+        const code = err.name === 'ModelCallError' ? err.code : 'LLM_CALL_FAILED';
+        throw new LLMEventCallError(code, err.message ?? 'Local model call failed');
     }
-
-    const block = response.content.find(b => b.type === 'text');
-    if (!block || block.type !== 'text') {
-        throw new LLMEventCallError('LLM_CALL_FAILED', 'Claude returned no text content block');
-    }
-
-    return block.text;
 }

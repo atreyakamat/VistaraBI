@@ -50,8 +50,8 @@ export async function computeDashboardData(
     // 2. Load KPI lineage registry from Module 4D-B
     const lineageEntries = await loadLineageRegistry(projectId);
 
-    // 3. (Data load removed, visualization module now leans on executor but we keep types for legacy)
-    const dataMap = { projectId, sources: new Map() } as ProjectDataMap;
+    // 3. Load project data
+    const dataMap = await loadProjectData(projectId);
 
     // 4. Apply global filters to data if present
     let filteredDataMap = dataMap;
@@ -155,7 +155,7 @@ export async function computeSingleKPI(
 
     if (!lineage) return null;
 
-    const dataMap = { projectId, sources: new Map() } as ProjectDataMap;
+    const dataMap = await loadProjectData(projectId);
     let filteredDataMap = dataMap;
 
     if (options?.filters && options.filters.filters.length > 0) {

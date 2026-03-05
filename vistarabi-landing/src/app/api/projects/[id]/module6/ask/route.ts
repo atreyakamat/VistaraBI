@@ -17,9 +17,9 @@ interface AskAIRequestBody {
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-    const projectId = params.id;
+    const { id: projectId } = await params;
 
     // Parse body
     let body: AskAIRequestBody;

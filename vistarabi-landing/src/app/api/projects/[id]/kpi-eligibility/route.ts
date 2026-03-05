@@ -13,9 +13,9 @@ import type { SemanticColumnMap, SourceInfo } from '@/lib/kpi/semantic-types';
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-    const projectId = params.id;
+    const { id: projectId } = await params;
 
     try {
         const body = await req.json();
@@ -128,9 +128,9 @@ export async function POST(
 
 export async function GET(
     _req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
-    const projectId = params.id;
+    const { id: projectId } = await params;
 
     try {
         const blueprint = await db.kPIBlueprint.findUnique({

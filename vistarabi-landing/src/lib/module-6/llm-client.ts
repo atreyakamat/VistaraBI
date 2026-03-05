@@ -3,15 +3,12 @@
 // All validation logic is downstream — this module only concerns itself with
 // making one clean HTTP call and returning the raw model output.
 
-import Anthropic from '@anthropic-ai/sdk';
+import { callLocalModel } from '@/lib/module-6d/local-adapter';
 import { MODULE6_ERROR_CODES } from './types';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
-const MODEL = 'claude-sonnet-4-6';
-const MAX_TOKENS = 600;
 const TEMPERATURE = 0;            // Deterministic — zero temperature
-const TIMEOUT_MS = 30_000;        // 30 seconds — no retry, so fail fast
 
 // ─── System Prompt ─────────────────────────────────────────────────────────────
 // This prompt is the guardrail. It must be included on every call without modification.
@@ -63,19 +60,6 @@ export class LLMCallError extends Error {
     }
 }
 
-// ─── Client ───────────────────────────────────────────────────────────────────
-
-function getClient(): Anthropic {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-        throw new LLMCallError(
-            MODULE6_ERROR_CODES.MISSING_API_KEY,
-            'ANTHROPIC_API_KEY is not set. Module 6A requires this environment variable.'
-        );
-    }
-    return new Anthropic({ apiKey, timeout: TIMEOUT_MS });
-}
-
 // ─── Main Call ────────────────────────────────────────────────────────────────
 
 /**
@@ -91,8 +75,6 @@ export async function callLLM(
     userQuery: string,
     contextJson: string
 ): Promise<string> {
-    const client = getClient();
-
     const userMessage = `Dashboard context:
 ${contextJson}
 
@@ -100,39 +82,11 @@ User request: "${userQuery}"
 
 Output your JSON command now:`;
 
-    let response: Anthropic.Message;
-
     try {
-        response = await client.messages.create({
-            model: MODEL,
-            max_tokens: MAX_TOKENS,
-            temperature: TEMPERATURE,
-            system: SYSTEM_PROMPT,
-            messages: [
-                { role: 'user', content: userMessage },
-            ],
-        });
+        const response = await callLocalModel(SYSTEM_PROMPT, userMessage, TEMPERATURE);
+        return response.text;
     } catch (err: any) {
-        if (err.name === 'APITimeoutError' || err.code === 'ETIMEDOUT') {
-            throw new LLMCallError(
-                MODULE6_ERROR_CODES.LLM_TIMEOUT,
-                `Claude API call timed out after ${TIMEOUT_MS / 1000}s`
-            );
-        }
-        throw new LLMCallError(
-            MODULE6_ERROR_CODES.LLM_CALL_FAILED,
-            `Claude API error: ${err.message || 'unknown error'}`
-        );
+        const code = err.name === 'ModelCallError' ? err.code : MODULE6_ERROR_CODES.LLM_CALL_FAILED;
+        throw new LLMCallError(code, err.message ?? 'Local model call failed');
     }
-
-    // Extract text content from the response
-    const block = response.content.find(b => b.type === 'text');
-    if (!block || block.type !== 'text') {
-        throw new LLMCallError(
-            MODULE6_ERROR_CODES.LLM_CALL_FAILED,
-            'Claude returned no text content block'
-        );
-    }
-
-    return block.text;
 }
