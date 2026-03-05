@@ -16,7 +16,9 @@ export async function POST(
 
         const { id } = await params;
         const project = await db.project.findUnique({ where: { id } });
-        if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        if (!project || project.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
 
         // Check Ollama availability
         console.log('[AI-KPI] Checking Ollama health...');
@@ -85,11 +87,12 @@ export async function POST(
                 domain,
             }
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error('[AI-KPI] Error:', error);
         return NextResponse.json({
             error: 'Failed to generate AI KPIs',
-            details: error.message,
+            details: message,
             aiKpis: [],
         }, { status: 500 });
     }

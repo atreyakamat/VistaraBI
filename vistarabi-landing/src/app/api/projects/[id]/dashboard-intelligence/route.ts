@@ -3,6 +3,8 @@
 // The main execution route for the full Module 5.5 enrichment pipeline.
 
 import { NextRequest, NextResponse } from 'next/server';
+import db from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import { runDashboardIntelligence, previewDashboardIntelligence } from '@/lib/dashboard-state/module-5-5';
 import type { DashboardIntelligenceOptions } from '@/lib/dashboard-state/types';
 import type { TimeGranularity } from '@/lib/visualization/types';
@@ -13,6 +15,14 @@ export async function POST(
 ) {
     try {
         const { id } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: id } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
         const body = await request.json() as {
             businessFilters?: string[];
             normalizedFilters?: DashboardIntelligenceOptions['normalizedFilters'];
@@ -48,8 +58,9 @@ export async function POST(
         const result = await runDashboardIntelligence(id, options);
         return NextResponse.json(result);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         console.error('[DashboardIntelligence POST]', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

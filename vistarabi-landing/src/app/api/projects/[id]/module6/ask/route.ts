@@ -4,6 +4,8 @@
 // Raw LLM output is never returned to the frontend.
 
 import { NextRequest, NextResponse } from 'next/server';
+import db from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import { handleAskAI } from '@/lib/module-6';
 
 // ─── Request Body ────────────────────────────────────────────────────────────
@@ -20,6 +22,14 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
     const { id: projectId } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: projectId } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
 
     // Parse body
     let body: AskAIRequestBody;

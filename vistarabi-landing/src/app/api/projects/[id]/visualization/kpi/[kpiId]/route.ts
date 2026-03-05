@@ -2,6 +2,8 @@
 // GET: Compute data for a specific KPI with optional time-series and grouping
 
 import { NextRequest, NextResponse } from 'next/server';
+import db from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import { computeSingleKPI } from '@/lib/visualization';
 import type { TimeGranularity, FilterState, Filter } from '@/lib/visualization/types';
 
@@ -11,6 +13,14 @@ export async function GET(
 ) {
     try {
         const { id, kpiId } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: id } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
         const searchParams = request.nextUrl.searchParams;
 
         const granularity = searchParams.get('granularity') as TimeGranularity | null;

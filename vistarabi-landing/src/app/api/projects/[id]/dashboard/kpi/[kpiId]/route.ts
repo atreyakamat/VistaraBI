@@ -3,6 +3,8 @@
 // Returns a single KPIExecutionResult with drill-down support
 
 import { NextRequest, NextResponse } from 'next/server';
+import db from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import { executeKPI, executeDrill } from '@/lib/execution';
 import type { TimeGranularity } from '@/lib/visualization/types';
 
@@ -12,6 +14,14 @@ export async function GET(
 ) {
     try {
         const { id, kpiId } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: id } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
         const searchParams = request.nextUrl.searchParams;
 
         // Check for drill-down
@@ -30,12 +40,13 @@ export async function GET(
         });
 
         return NextResponse.json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error('[API] KPI execution error:', error);
         return NextResponse.json(
             {
                 status: 'error',
-                message: error.message || 'Data temporarily unavailable',
+                message: message || 'Data temporarily unavailable',
                 recoverable: true,
             },
             { status: 500 }

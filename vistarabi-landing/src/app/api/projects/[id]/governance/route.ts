@@ -113,10 +113,11 @@ export async function POST(
             success: true,
             governance: result,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error('Governance action error:', error);
         return NextResponse.json({
-            error: error.message || 'Internal server error'
+            error: message || 'Internal server error'
         }, { status: 500 });
     }
 }

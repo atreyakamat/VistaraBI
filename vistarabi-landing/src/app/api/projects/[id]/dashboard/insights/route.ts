@@ -3,6 +3,8 @@
 // Returns KPIInsight[], InsightFeedItem[], SmartAlert[] for the entire dashboard
 
 import { NextResponse } from 'next/server';
+import db from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import { generateKPIInsight, generateDashboardInsights } from '@/lib/insights';
 
 export async function GET(
@@ -11,6 +13,14 @@ export async function GET(
 ) {
     try {
         const { id: projectId } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: projectId } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
 
         // Fetch execution results from internal dashboard/data endpoint
         const baseUrl = request.url.split('/api/')[0];
@@ -26,36 +36,36 @@ export async function GET(
         }
 
         const dashData = await dataRes.json();
-        const execResults: any[] = dashData.kpis || [];
+        const execResults: Record<string, unknown>[] = dashData.kpis || [];
 
         // Generate insight for each KPI from execution results
-        const kpiInsights = execResults.map((exec: any) => {
+        const kpiInsights = execResults.map((exec: Record<string, unknown>) => {
             return generateKPIInsight({
-                kpiId: exec.kpiId,
-                kpiName: exec.kpiName || exec.kpiId,
-                category: exec.category || 'general',
-                currentValue: exec.primaryValue ?? 0,
-                previousValue: exec.previousValue ?? undefined,
-                delta: exec.delta ?? undefined,
-                deltaPercent: exec.deltaPercent ?? undefined,
-                trend: exec.deltaDirection ?? undefined,
-                dataPoints: exec.dataset || [],
+                kpiId: exec.kpiId as string,
+                kpiName: (exec.kpiName || exec.kpiId) as string,
+                category: (exec.category || 'general') as string,
+                currentValue: (exec.primaryValue ?? 0) as number,
+                previousValue: exec.previousValue as number | undefined,
+                delta: exec.delta as number | undefined,
+                deltaPercent: exec.deltaPercent as number | undefined,
+                trend: exec.deltaDirection as 'up' | 'down' | 'flat' | undefined,
+                dataPoints: (exec.dataset || []) as any[],
                 profiling: exec.profiling ? {
-                    volatilityIndex: exec.profiling.volatilityIndex,
-                    distributionSkew: exec.profiling.distributionSkew,
-                    recordCount: exec.profiling.recordCount,
+                    volatilityIndex: (exec.profiling as any).volatilityIndex,
+                    distributionSkew: (exec.profiling as any).distributionSkew,
+                    recordCount: (exec.profiling as any).recordCount,
                 } : undefined,
                 lineage: exec.lineage ? {
-                    tables: exec.lineage.tables || [],
-                    joins: (exec.lineage.joins || []).map((j: any) => ({
+                    tables: (exec.lineage as any).tables || [],
+                    joins: ((exec.lineage as any).joins || []).map((j: Record<string, unknown>) => ({
                         from: j.from || '',
                         to: j.to || '',
                         on: j.on || undefined,
                     })),
-                    formula: exec.lineage.formula || '',
-                    aggregations: exec.lineage.aggregations || [],
+                    formula: (exec.lineage as any).formula || '',
+                    aggregations: (exec.lineage as any).aggregations || [],
                 } : undefined,
-                aiExplanation: exec.aiExplanation?.summary || null,
+                aiExplanation: (exec.aiExplanation as any)?.summary || null,
             });
         });
 
@@ -63,10 +73,11 @@ export async function GET(
         const response = generateDashboardInsights(projectId, kpiInsights);
 
         return NextResponse.json(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error('[Insights API] Error:', error);
         return NextResponse.json(
-            { error: error.message || 'Failed to generate insights' },
+            { error: message || 'Failed to generate insights' },
             { status: 500 }
         );
     }

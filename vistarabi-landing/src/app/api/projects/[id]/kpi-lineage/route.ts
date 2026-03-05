@@ -134,7 +134,7 @@ export async function POST(
             projectId: id,
             version: registry.version,
             stats: registry.stats,
-            message: `Traced lineage for ${(registry.stats as any)?.totalKPIs || 0} KPIs`,
+            message: `Traced lineage for ${(registry.stats as Record<string, unknown>)?.totalKPIs || 0} KPIs`,
             generatedAt: registry.generatedAt,
         });
     } catch (error) {

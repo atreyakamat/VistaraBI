@@ -39,7 +39,7 @@ export async function GET(
         }
 
         const dashData = await dataRes.json();
-        const exec = (dashData.kpis || []).find((k: any) => k.kpiId === kpiId);
+        const exec = (dashData.kpis || []).find((k: Record<string, unknown>) => k.kpiId === kpiId);
 
         if (!exec) {
             return NextResponse.json({
@@ -60,7 +60,7 @@ export async function GET(
             dataPoints: exec.dataset || [],
             lineage: exec.lineage ? {
                 tables: exec.lineage.tables || [],
-                joins: (exec.lineage.joins || []).map((j: any) => ({
+                joins: (exec.lineage.joins || []).map((j: Record<string, unknown>) => ({
                     from: j.from || '',
                     to: j.to || '',
                     on: j.on || undefined,

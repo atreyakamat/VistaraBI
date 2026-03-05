@@ -38,21 +38,21 @@ export async function GET(
         }
 
         const dashData = await dataRes.json();
-        const execResults: any[] = dashData.kpis || [];
+        const execResults: Record<string, unknown>[] = dashData.kpis || [];
 
         // Generate insight for each KPI from execution results
-        const kpiInsights = execResults.map((exec: any) => {
+        const kpiInsights = execResults.map((exec: Record<string, unknown>) => {
             return generateKPIInsight({
-                kpiId: exec.kpiId,
-                kpiName: exec.kpiName || exec.kpiId,
-                category: exec.category || 'general',
-                currentValue: exec.primaryValue ?? 0,
-                previousValue: exec.previousValue ?? undefined,
-                delta: exec.delta ?? undefined,
-                deltaPercent: exec.deltaPercent ?? undefined,
-                trend: exec.deltaDirection ?? undefined,
-                dataPoints: exec.dataset || [],
-                aiExplanation: exec.aiExplanation?.summary || null,
+                kpiId: exec.kpiId as string,
+                kpiName: (exec.kpiName || exec.kpiId) as string,
+                category: (exec.category || 'general') as string,
+                currentValue: (exec.primaryValue ?? 0) as number,
+                previousValue: exec.previousValue as number | undefined,
+                delta: exec.delta as number | undefined,
+                deltaPercent: exec.deltaPercent as number | undefined,
+                trend: exec.deltaDirection as 'up' | 'down' | 'flat' | undefined,
+                dataPoints: (exec.dataset || []) as any[],
+                aiExplanation: (exec.aiExplanation as any)?.summary || null,
             });
         });
 

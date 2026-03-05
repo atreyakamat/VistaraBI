@@ -4,8 +4,9 @@
 // Accepts semantic column mappings, runs Module 4.5, returns DomainContextObject.
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/prisma';
-import type { RelationshipEntry } from '@/lib/prisma';
+import type { RelationshipEntry, DomainType } from '@/lib/prisma';
 import { runModule4_5, evaluateKPIEligibilityOnly } from '@/lib/kpi/module-4-5';
 import type { SemanticColumnMap, SourceInfo } from '@/lib/kpi/semantic-types';
 
@@ -16,6 +17,14 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
     const { id: projectId } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: projectId } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
 
     try {
         const body = await req.json();
@@ -39,7 +48,7 @@ export async function POST(
                 { status: 400 }
             );
         }
-        const domain = governance.activeDomain as any;
+        const domain = governance.activeDomain as DomainType;
 
         // Load sources
         const dbSources = await db.source.findMany({
@@ -115,10 +124,11 @@ export async function POST(
             eligibilityLog: domainContext.eligibilityLog,
         });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         console.error('[Module4.5 API] Error:', err);
         return NextResponse.json(
-            { error: err.message || 'Internal error running KPI eligibility engine' },
+            { error: message || 'Internal error running KPI eligibility engine' },
             { status: 500 }
         );
     }
@@ -131,6 +141,14 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
     const { id: projectId } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: projectId } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
 
     try {
         const blueprint = await db.kPIBlueprint.findUnique({
@@ -167,8 +185,9 @@ export async function GET(
             })),
         });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         console.error('[Module4.5 API GET] Error:', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

@@ -4,6 +4,8 @@
 // PATCH /api/projects/:id/dashboard-state → update single card or global filters
 
 import { NextRequest, NextResponse } from 'next/server';
+import db from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import {
     hydrateDashboard,
     persistDashboardState,
@@ -22,6 +24,14 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: id } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
         const state = await hydrateDashboard(id);
 
         if (!state) {
@@ -32,9 +42,10 @@ export async function GET(
         }
 
         return NextResponse.json(state);
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         console.error('[DashboardState GET]', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
@@ -46,6 +57,14 @@ export async function POST(
 ) {
     try {
         const { id } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: id } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
         const body = await request.json() as {
             domain?: string;
             globalFilters?: NormalizedFilter[];
@@ -59,9 +78,10 @@ export async function POST(
         });
 
         return NextResponse.json(state, { status: 201 });
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         console.error('[DashboardState POST]', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
@@ -73,6 +93,14 @@ export async function PATCH(
 ) {
     try {
         const { id } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: id } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
         const body = await request.json() as {
             action: 'pin' | 'unpin' | 'upsert_card' | 'remove_card' | 'update_filters';
             cardId?: string;
@@ -109,8 +137,9 @@ export async function PATCH(
             default:
                 return NextResponse.json({ error: `Unknown action: ${body.action}` }, { status: 400 });
         }
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         console.error('[DashboardState PATCH]', err);
-        return NextResponse.json({ error: err.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

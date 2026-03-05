@@ -41,8 +41,9 @@ NO MARKDOWN. NO BACKTICKS. JUST RAW JSON.`;
         console.log('[AIFilter] Parsed filters:', parsed);
 
         return NextResponse.json(parsed);
-    } catch (e: any) {
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
         console.error('[AIFilter] Error parsing AI query:', e);
-        return NextResponse.json({ error: e.message || 'AI request failed' }, { status: 500 });
+        return NextResponse.json({ error: message || 'AI request failed' }, { status: 500 });
     }
 }

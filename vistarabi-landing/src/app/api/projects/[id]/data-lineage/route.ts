@@ -38,38 +38,38 @@ export async function GET(
             });
         }
 
-        const entityGraph = lineage.entityGraph as any;
+        const entityGraph = lineage.entityGraph as Record<string, unknown>;
         return NextResponse.json({
             projectId: id,
             status: 'READY',
             entityGraph: {
-                nodes: (entityGraph?.nodes || []).map((n: any) => ({
+                nodes: ((entityGraph?.nodes as any[]) || []).map((n: Record<string, unknown>) => ({
                     id: n.id,
                     name: n.name,
                     entityType: n.entityType,
-                    columnCount: n.columns.length,
+                    columnCount: (n.columns as any[])?.length || 0,
                     primaryKey: n.primaryKeyCandidate,
-                    foreignKeyCount: n.foreignKeys.length,
+                    foreignKeyCount: (n.foreignKeys as any[])?.length || 0,
                 })),
-                edges: (entityGraph?.edges || []).map((e: any) => ({
+                edges: ((entityGraph?.edges as any[]) || []).map((e: Record<string, unknown>) => ({
                     id: e.id,
                     from: e.fromNode,
                     to: e.toNode,
                     joinType: e.joinType,
                     joinCondition: e.joinCondition, // Pass full object or format here? Previous code formatted it.
-                    condition: `${e.joinCondition?.fromColumn || '?'} = ${e.joinCondition?.toColumn || '?'}`,
+                    condition: `${(e.joinCondition as any)?.fromColumn || '?'} = ${(e.joinCondition as any)?.toColumn || '?'}`,
                     confidence: e.confidence,
                 })),
             },
-            kpiLineages: (lineage.kpiLineages as any[] || []).map((l: any) => ({
+            kpiLineages: ((lineage.kpiLineages as Record<string, unknown>[]) || []).map((l: Record<string, unknown>) => ({
                 kpiId: l.kpiId,
                 kpiName: l.kpiName,
                 formula: l.formula,
                 category: l.category,
-                sourceCount: l.sources?.length || 0,
-                sources: (l.sources as any[])?.map((s: any) => s.sourceName) || [],
-                joinCount: l.joins?.length || 0,
-                aggregations: (l.aggregations as any[])?.map((a: any) => `${a.function}(${a.column})`) || [],
+                sourceCount: (l.sources as any[])?.length || 0,
+                sources: ((l.sources as Record<string, unknown>[]) || []).map((s: Record<string, unknown>) => s.sourceName) || [],
+                joinCount: (l.joins as any[])?.length || 0,
+                aggregations: ((l.aggregations as Record<string, unknown>[]) || []).map((a: Record<string, unknown>) => `${a.function}(${a.column})`) || [],
                 explanation: l.explanation,
             })),
             generatedAt: lineage.generatedAt,
@@ -116,18 +116,18 @@ export async function POST(
         console.log('[API] Generating data lineage for project:', id);
         const lineage = await generateDataLineage(id);
 
-        const entityGraph = lineage.entityGraph as any;
-        const kpiLineages = lineage.kpiLineages as any[];
+        const entityGraph = lineage.entityGraph as Record<string, unknown>;
+        const kpiLineages = lineage.kpiLineages as Record<string, unknown>[];
 
         return NextResponse.json({
             success: true,
             projectId: id,
             summary: {
-                entityNodes: entityGraph?.nodes?.length || 0,
-                entityEdges: entityGraph?.edges?.length || 0,
+                entityNodes: (entityGraph?.nodes as any[])?.length || 0,
+                entityEdges: (entityGraph?.edges as any[])?.length || 0,
                 kpiLineagesTraced: kpiLineages?.length || 0,
             },
-            message: `Generated lineage: ${entityGraph?.nodes?.length || 0} entities, ${entityGraph?.edges?.length || 0} relationships, ${kpiLineages?.length || 0} KPI traces`,
+            message: `Generated lineage: ${(entityGraph?.nodes as any[])?.length || 0} entities, ${(entityGraph?.edges as any[])?.length || 0} relationships, ${kpiLineages?.length || 0} KPI traces`,
             generatedAt: lineage.generatedAt,
         });
     } catch (error) {

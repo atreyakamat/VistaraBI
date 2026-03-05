@@ -3,6 +3,8 @@
 // POST: Generate/regenerate dashboard config
 
 import { NextRequest, NextResponse } from 'next/server';
+import db from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import { generateDashboardConfig, getDashboardConfig } from '@/lib/dashboard';
 
 export async function GET(
@@ -11,6 +13,14 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: id } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
 
         const config = await getDashboardConfig(id);
 
@@ -37,6 +47,14 @@ export async function POST(
 ) {
     try {
         const { id } = await params;
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+        const _authProject = await db.project.findUnique({ where: { id: id } });
+        if (!_authProject || _authProject.userId !== user.userId) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
 
         const config = await generateDashboardConfig(id);
 

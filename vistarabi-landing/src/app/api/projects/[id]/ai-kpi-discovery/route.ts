@@ -77,9 +77,9 @@ export async function POST(
         // can submit them directly to the kpi-blueprint POST without a 400.
         const enriched = result.proposals.map(p => {
             // If AI_INVENTED proposals already stored _aggregation via our new logic, surface it
-            const privateAgg = (p as any)._aggregation;
+            const privateAgg = (p as { _aggregation?: unknown })._aggregation;
             const aggregations: { function: string; column: string }[] = privateAgg
-                ? [privateAgg]
+                ? [privateAgg as { function: string; column: string }]
                 : (() => {
                     // Parse from formula for library derived KPIs
                     // e.g. "SUM(order_value) / COUNT(order_id)" → [{SUM, order_value}]

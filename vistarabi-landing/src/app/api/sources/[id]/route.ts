@@ -30,7 +30,7 @@ export async function GET(
         }
 
         // Return source with preview data (first 100 rows)
-        const sourceData = source.data as any[];
+        const sourceData = source.data as Record<string, unknown>[];
         const previewData = sourceData?.slice(0, 100) || [];
 
         return NextResponse.json({

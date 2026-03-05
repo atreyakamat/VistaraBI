@@ -78,8 +78,9 @@ export async function POST(
         // ── Enforce Data Contract ──
         try {
             validateKPIPayload(kpi);
-        } catch (err: any) {
-            return NextResponse.json({ error: err.message }, { status: 400 });
+        } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+            return NextResponse.json({ error: message }, { status: 400 });
         }
 
         // ── Get or create Blueprint ──
@@ -118,8 +119,8 @@ export async function POST(
                 category: kpi.category || 'general',
                 sourceTable: kpi.sourceTable || 'unknown',
                 aggregations: {
-                    create: kpi.aggregations.map((a: any) => ({
-                        function: toAggregationFunction(a.function) as any,
+                    create: kpi.aggregations.map((a: Record<string, string>) => ({
+                        function: toAggregationFunction(a.function) as string,
                         column: a.column,
                     })),
                 },

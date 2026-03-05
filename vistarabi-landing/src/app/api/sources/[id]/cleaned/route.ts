@@ -34,7 +34,7 @@ export async function GET(
         }
 
         // Return first 100 rows for preview
-        const datasetData = cleanedDataset.cleanedData as any[];
+        const datasetData = cleanedDataset.cleanedData as Record<string, unknown>[];
         const previewData = datasetData?.slice(0, 100) || [];
 
         return NextResponse.json({
