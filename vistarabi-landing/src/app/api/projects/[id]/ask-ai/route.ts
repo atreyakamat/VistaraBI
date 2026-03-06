@@ -83,17 +83,17 @@ const CORRELATION_PATTERNS = [
 ];
 
 const COMPARISON_PATTERNS = [
-    /\b(compar|vs\.?|versus|against)\b/i,
+    /\b(compar[a-z]*|vs\.?|versus|against)\b/i,
 ];
 
 const EVENT_PATTERNS = [
-    /\b(why|explain|what happened|spike|drop|loss|profit|anomaly|change)\b/i,
+    /\b(why|explain|what happened|spike|drop|loss|profit|anomaly|anomalous|anomalies|change)\b/i,
     /\b(went up|went down|increased|decreased|surge|fell|jumped|tanked)\b/i,
     /\b(tell me|how is|performance of|what's going on with|status of|how much|what is|what are|value of|current)\b/i,
 ];
 
 const SYNTHESIS_PATTERNS = [
-    /\b(overview|summary|synthesis|overall|pattern|signal|insight)\b/i,
+    /\b(overview|summary|synthesis|synthesize|overall|pattern|signal|insight)\b/i,
     /\b(risk|volatile|exposure)\b/i,
     /\b(how are we doing|general update|big picture|tl;?dr|what should i know)\b/i,
 ];
@@ -116,12 +116,12 @@ function classifyRoute(message: string): QueryRoute | 'KPI_VALUE_QUERY' | 'TREND
     if (TREND_PATTERNS.some(p => p.test(message))) return 'TREND_ANALYSIS';
     if (COMPARISON_PATTERNS.some(p => p.test(message))) return 'COMPARISON_ANALYSIS';
 
-    const isWhyQuery = /\b(why|explain|reason|what happened to|how come|whats going on with)\b/i.test(message);
+    const isWhyQuery = /\b(why|explain|reason|what happened to|how come|whats going on with|anomaly|anomalous|anomalies)\b/i.test(message);
 
     // Check exclusion for scalar querying
     const hasComplexIntent =
         isWhyQuery ||
-        /\b(compar|correlate|versus|vs|against|overview|summary|risk|risk|pattern|trend|trending)\b/i.test(message) ||
+        /\b(compar|correlate|versus|vs|against|overview|summary|synthesize|risk|risk|pattern|trend|trending)\b/i.test(message) ||
         SYNTHESIS_PATTERNS.some(p => p.test(message)) ||
         CORRELATION_PATTERNS.some(p => p.test(message));
 
