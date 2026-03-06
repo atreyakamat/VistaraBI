@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { generateCompletion } from '@/lib/ai/ollama-client';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function POST(req: Request) {
     try {
+        const user = await getCurrentUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+        }
+
         const { query } = await req.json();
 
         if (!query) {
