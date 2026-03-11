@@ -14,6 +14,7 @@ import { SmartAlertBanner } from './SmartAlertBanner';
 import { FilterBar, type DashboardFilters } from './FilterBar';
 import { AIFilter } from './AIFilter';
 import { AskAIPanel } from './AskAIPanel';
+import { GoalStrategyPanel } from './GoalStrategyPanel';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from './types';
 import { getAvailableRanges, type DateRange, type Granularity } from './ChartContainer';
 
@@ -59,6 +60,7 @@ export function DashboardShell({
     const [activeSection, setActiveSection] = useState<string | undefined>();
     const [insightPanelOpen, setInsightPanelOpen] = useState(false);
     const [askAiOpen, setAskAiOpen] = useState(false);
+    const [goalPanelOpen, setGoalPanelOpen] = useState(false);
     const [drillStack, setDrillStack] = useState<DrillState[]>([]);
     const [filters, setFilters] = useState<DashboardFilters>({
         granularity: 'monthly',
@@ -487,15 +489,36 @@ export function DashboardShell({
             )}
 
             {/* Ask AI FAB */}
-            <button
-                className={`ask-ai-fab${askAiOpen ? ' open' : ''}`}
-                onClick={() => setAskAiOpen(true)}
-                aria-label="Ask AI"
-                title="Ask AI"
-            >
-                <span className="material-symbols-outlined text-base">auto_awesome</span>
-                Ask AI
-            </button>
+            <div className="fixed bottom-8 right-8 flex flex-col gap-3 items-end z-40">
+                <button
+                    className={`ask-ai-fab${goalPanelOpen ? ' open' : ''}`}
+                    onClick={() => setGoalPanelOpen(true)}
+                    aria-label="Target Goals"
+                    title="Goal Strategy Engine"
+                    style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', position: 'static' }}
+                >
+                    <span className="material-symbols-outlined text-base">target</span>
+                    Strategy
+                </button>
+
+                <button
+                    className={`ask-ai-fab${askAiOpen ? ' open' : ''}`}
+                    onClick={() => setAskAiOpen(true)}
+                    aria-label="Ask AI"
+                    title="Ask AI"
+                    style={{ position: 'static' }}
+                >
+                    <span className="material-symbols-outlined text-base">auto_awesome</span>
+                    Ask AI
+                </button>
+            </div>
+
+            {/* Goal Strategy Panel */}
+            <GoalStrategyPanel
+                projectId={projectId}
+                isOpen={goalPanelOpen}
+                onClose={() => setGoalPanelOpen(false)}
+            />
 
             {/* Ask AI Panel */}
             <AskAIPanel

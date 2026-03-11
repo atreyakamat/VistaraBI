@@ -9,21 +9,23 @@ describe('Module 7: Goal Engine Pipeline', () => {
         const raw = "Increase sales by 15% next month";
         const parsed = await parseGoal(raw);
         expect(parsed.targetMetric).toBe('revenue');
-        expect(parsed.targetValue).toBe('+20%'); // Stubbed for now
+        // Our regex matches the first occurrence of percentage/value
+        expect(parsed.targetValue).toBe('15%');
+        expect(parsed.timeframe).toBe('next month');
     });
 
-    it('should decompose a goal into sub-KPIs', () => {
-        const parsed = { targetMetric: 'revenue', targetValue: '+20%', timeframe: 'Q4' };
+    it('should decompose a goal into factors', () => {
+        const parsed = { targetMetric: 'revenue', targetValue: '+20%', timeframe: 'this quarter', kpiId: 'ec-001' };
         const decomposed = decomposeGoal(parsed, 'ECOMMERCE');
-        expect(decomposed.subMetrics.length).toBeGreaterThan(0);
-        expect(decomposed.subMetrics[0].metric).toBe('traffic');
+        expect(decomposed.factors.length).toBeGreaterThan(0);
+        expect(decomposed.factors[0].metric).toBe('Order Count');
     });
 
     it('should rank actions correctly based on the formula', () => {
         const actions = [
             {
                 id: '1',
-                actionName: 'A1',
+                actionName: 'High Performance Action',
                 description: '...',
                 estimatedEffectiveness: 10,
                 domainFit: 10,
@@ -32,7 +34,7 @@ describe('Module 7: Goal Engine Pipeline', () => {
             },
             {
                 id: '2',
-                actionName: 'A2',
+                actionName: 'Low Performance Action',
                 description: '...',
                 estimatedEffectiveness: 5,
                 domainFit: 5,
@@ -44,9 +46,10 @@ describe('Module 7: Goal Engine Pipeline', () => {
         const ranked = rankActions(actions, 2);
         
         expect(ranked[0].id).toBe('1');
-        expect(ranked[0].confidenceScore).toBe(100); // Max score
+        expect(ranked[0].confidenceScore).toBe(100); // Max possible score
         
         expect(ranked[1].id).toBe('2');
-        expect(ranked[1].confidenceScore).toBeLessThan(20);
+        // Score: (5 * 5 * 1 * 5) / 10000 * 100 = 125 / 100 = 1.25 -> 1
+        expect(ranked[1].confidenceScore).toBe(1);
     });
 });

@@ -1,128 +1,89 @@
-# Module 7: Goal Engine Architecture & Implementation Plan
+# Module 7: Goal Strategy Engine (Refined Architecture)
 
 ## Overview & Purpose
-Module 7 translates high-level business goals (e.g., "I want to grow revenue 20% this quarter") into actionable, data-backed execution plans. It bridges the gap between descriptive analytics (what happened) and prescriptive analytics (what should we do).
+Module 7 is the **prescriptive intelligence layer** of the VistaraBI platform. While Modules 4–6 focus on understanding data, generating KPIs, and interactive analysis, Module 7 translates high-level business goals (e.g., *"Increase revenue by 20% this quarter"*) into a structured, data-backed execution strategy.
 
-By leveraging historical data, domain context, and local AI (Ollama), Module 7 provides a precise roadmap with execution strategies, budget scenarios, and confidence scores.
+It bridges the gap between descriptive analytics (what happened) and prescriptive action (what should we do next), ensuring recommendations are grounded in the user's real data and the KPI relationships discovered in Module 4.
 
 ---
 
-## 🏗️ System Architecture
-
-The Goal Engine is composed of 6 core components operating in a linear pipeline.
+## 🛤️ Evolution of the Platform
+The platform follows a natural progression where each module builds on the structured output of the previous one:
 
 ```text
-┌──────────────────────────────────────────────────────────┐ 
-│              Module 7: Goal Engine                       │ 
-│                                                          │ 
-│  INPUT: User goal + Domain + Historical data            │ 
-│                                                          │ 
-│  Component 1: Goal Parser                              │ 
-│    • Extract: metric, target, timeframe               │ 
-│    • Technology: Regex + Ollama confirmation          │ 
-│                                                          │ 
-│  Component 2: Goal Decomposer                          │ 
-│    • Break goal into sub-KPIs                         │ 
-│    • Calculate required changes                        │ 
-│    • Technology: Math formulas (domain-specific)       │ 
-│                                                          │ 
-│  Component 3: Action Generator (Ollama)               │ 
-│    • Generate 10 creative actions with metadata       │ 
-│    • Return: name, effectiveness, domain_fit, cost    │ 
-│    • Technology: Ollama                               │ 
-│                                                          │ 
-│  Component 4: Action Ranker                            │ 
-│    • Score each action: (Eff×DomFit×Cost×Speed)/4   │ 
-│    • Select top 3 actions                             │ 
-│    • Technology: Math scoring formula                  │ 
-│                                                          │ 
-│  Component 5: Scenario Builder (Ollama)               │ 
-│    • Generate 3 execution plans per action            │ 
-│    • Budget: Low ($), Medium ($$), High ($$$)        │ 
-│    • Technology: Ollama for detailed planning         │ 
-│                                                          │ 
-│  Component 6: Location Splitter                        │ 
-│    • If multi-store: Break goal per location         │ 
-│    • Customize actions by store performance           │ 
-│    • Technology: SQL grouping + logic                 │ 
-│                                                          │ 
-│  OUTPUT: 3 actions × 3 scenarios, by location, with   │ 
-│          confidence scores and execution plans         │ 
-└──────────────────────────────────────────────────────────┘
+Dataset → Module 4 (KPI Reasoning) → Module 5 (Dashboard) → Module 6 (AI Interaction) → Module 7 (Goal Strategy)
 ```
 
----
-
-## 💻 Backend Implementation Breakdown
-
-To ensure a smooth, error-free implementation, the backend will be broken down into discrete files under `src/lib/module-7/`.
-
-### 1. `goal-parser.ts`
-*   **Purpose:** Takes the raw natural language string and extracts structured parameters.
-*   **Input:** `"Increase sales by 15% next month"`
-*   **Output:** `{ targetMetric: "sales", targetValue: "+15%", timeframe: "next month", kpiId: "..." }`
-*   **Logic:** Uses regex for quick hits, falling back to a lightweight Ollama prompt to map the natural language metric to an existing approved KPI from Module 4.
-
-### 2. `goal-decomposer.ts`
-*   **Purpose:** Breaks the main goal into contributing factors based on the Domain.
-*   **Example:** If Goal = Increase Revenue (E-Commerce), Decomposer splits it into:
-    *   Increase Traffic
-    *   Increase Conversion Rate
-    *   Increase Average Order Value (AOV)
-*   **Logic:** Uses domain-specific mathematical models to determine how much each sub-KPI needs to change to hit the master goal.
-
-### 3. `action-generator.ts`
-*   **Purpose:** Brainstorms raw ideas.
-*   **Input:** Goal context, Domain, and decomposed sub-KPIs.
-*   **Output:** An array of 10 structured JSON actions.
-*   **Prompt Strategy:** Forces Ollama to return strictly formatted JSON with fields: `actionName`, `estimatedEffectiveness` (1-10), `domainFit` (1-10), `costToImplement` (1-10), and `speedToMarket` (1-10).
-
-### 4. `action-ranker.ts`
-*   **Purpose:** Filters the brainstorming down to reality.
-*   **Logic:** A deterministic mathematical function that calculates an aggregate confidence score for each action generated in step 3.
-*   **Formula:** `Score = (Effectiveness × DomainFit × Cost × Speed) / 4`
-*   **Output:** Selects the top 3 highest-scoring actions.
-
-### 5. `scenario-builder.ts`
-*   **Purpose:** Takes the top 3 actions and builds out concrete execution plans based on budget.
-*   **Logic:** Prompts Ollama with the specific action and asks for three variants:
-    *   **Low Budget ($):** Bootstrapped, manual effort.
-    *   **Medium Budget ($$):** Software tools, light ad spend.
-    *   **High Budget ($$$):** Agency hiring, massive ad spend, deep integrations.
-
-### 6. `location-splitter.ts` (Optional/Contextual)
-*   **Purpose:** Handles businesses with physical locations (Retail, Manufacturing, Healthcare).
-*   **Logic:** Detects if the dataset has a "Location" or "Store" dimension. If so, it adjusts the goal proportionately based on historical performance (e.g., asking an underperforming store to grow 25% while a mature store grows 5%).
-
-### API Endpoint (`src/app/api/projects/[id]/goals/route.ts`)
-*   A dedicated POST endpoint that strings these 6 components together in a pipeline pattern and streams or returns the final structured roadmap to the frontend.
+1.  **Module 4:** Creates the KPI Blueprint.
+2.  **Module 5:** Generates the dashboard and execution engine.
+3.  **Module 6:** Enables AI chat and contextual commands.
+4.  **Module 7:** Answers: *"Given everything we know, what should you actually do next?"*
 
 ---
 
-## 🖥️ Frontend Implementation Breakdown
+## 🏗️ The Decision Pipeline
+Module 7 operates as a linear pipeline, transforming a natural language goal into a "Strategy Canvas."
 
-The user interface must be clean, conversational, and deeply integrated into the dashboard.
+### Stage 1: Goal Parser
+*   **Input:** "Increase revenue by 20% this quarter"
+*   **Action:** Extracts `metric`, `target_change`, and `timeframe`.
+*   **Tech:** Regex patterns for speed + lightweight Ollama confirmation for validation.
 
-### 1. Goal Input Interface (`GoalInputBar.tsx`)
-*   **Location:** Integrated into the "Ask AI" section of the dashboard.
-*   **Design:** A prominent text input bar, distinct from the standard Q&A chat. It should have a placeholder like: *"What is your primary goal for this quarter? (e.g., 'Reduce churn by 5%')"*
-*   **Interaction:** When a user submits a goal, it shows a multi-step loading state corresponding to the backend pipeline (e.g., *"Parsing Goal..."* -> *"Analyzing Data..."* -> *"Generating Strategies..."*).
+### Stage 2: Goal → KPI Mapping
+*   **Action:** Maps the parsed metric to a validated KPI from the **Module 4 Blueprint**.
+*   **Logic:** Ensures goals are tied to approved business formulas (e.g., `kpi_revenue_total`) rather than raw columns.
 
-### 2. Goal Roadmap View (`GoalRoadmap.tsx`)
-*   **Layout:** Once the AI finishes processing, the UI should present a structured dashboard overlay or dedicated tab.
-*   **Components:**
-    *   **Header:** Restates the goal clearly (e.g., "Target: 20% Revenue Growth by Q4").
-    *   **Sub-KPI Breakdown:** Visual indicators showing what underlying metrics need to move to achieve the goal.
-    *   **Strategy Columns:** 3 columns representing the Top 3 Ranked Actions.
-    *   **Budget Toggles:** Inside each Strategy column, a toggle (Low / Medium / High) that flips the execution details based on the output of the Scenario Builder.
-    *   **Location Tabs (if applicable):** A sidebar or dropdown to switch the view between different store locations.
+### Stage 3: Goal Decomposer
+*   **Action:** Breaks the target KPI into contributing factors using the blueprint's formulas.
+*   **Example:** `Revenue = Units × AOV × (1 - Discount Rate)`. If Revenue must grow 20%, the decomposer calculates paths like "Units +20%" or "AOV +10% & Units +10%".
+*   **Tech:** Deterministic math based on historical data.
+
+### Stage 4: Strategy Generation (AI Layer)
+*   **Action:** Ollama generates creative, context-aware strategies for the identified sub-KPIs.
+*   **Output:** Action names, effectiveness, domain fit, cost range, and time to impact.
+
+### Stage 5: Strategy Ranking
+*   **Action:** Scores generated strategies using a normalized formula: `(Effectiveness × Domain Fit × Cost Efficiency × Speed) / 4`.
+*   **Goal:** Selects the top 3 highest-confidence actions.
+
+### Stage 6: Scenario Builder
+*   **Action:** Generates three execution plans per action representing different investment levels:
+    *   **Lean:** Bootstrapped/Manual.
+    *   **Balanced:** Standard tools/Light spend.
+    *   **Premium:** Aggressive investment/Agencies.
+
+### Stage 7: Location Strategy Split
+*   **Action:** Customizes the strategy by location/store performance if a location dimension exists.
+*   **Example:** Aggressive strategies for high-performers, conservative for laggards.
 
 ---
 
-## 🗄️ Database Updates Required
+## 🖥️ UI Placement: The Right Intelligence Sidebar
+Module 7 is integrated into the **Right Intelligence Sidebar** to maintain a consistent workflow of "Analyze → Ask → Act."
 
-To make goals trackable over time, we will need to update `prisma/schema.prisma` before implementation:
+**Sidebar Structure:**
+*   **Tab 1:** AI Chat (Module 6)
+*   **Tab 2:** Forecasting Engine
+*   **Tab 3:** **Goal Strategy Engine (Module 7)**
 
+The interface features a dedicated goal input field that triggers the multi-step loading sequence (*"Parsing Goal..."* → *"Analyzing Data..."* → *"Generating Strategies..."*) before revealing the **Strategy Canvas**.
+
+---
+
+## 💻 Backend File Architecture
+Implementation is contained within `src/lib/module-7/`:
+
+*   `goal-engine.ts`: The central orchestrator for the pipeline.
+*   `goal-parser.ts`: Natural language extraction logic.
+*   `goal-decomposer.ts`: Mathematical factor analysis.
+*   `action-generator.ts`: Ollama strategy brainstorming.
+*   `action-ranker.ts`: Scoring and filtering logic.
+*   `scenario-builder.ts`: Detailed 3x3 plan generation.
+*   `location-splitter.ts`: Performance-based localization.
+
+---
+
+## 🗄️ Database Schema
 ```prisma
 model ProjectGoal {
   id              String   @id @default(uuid())
@@ -132,7 +93,7 @@ model ProjectGoal {
   targetKpiId     String?  // Links to ApprovedKPI
   targetValue     String
   timeframe       String
-  generatedPlan   Json     // Stores the 3x3 scenarios and actions
+  generatedPlan   Json     // Stores the 3x3 scenarios and Strategy Canvas
   status          String   @default("ACTIVE") // ACTIVE, ACHIEVED, ABANDONED
   createdAt       DateTime @default(now())
 }
@@ -140,12 +101,9 @@ model ProjectGoal {
 
 ---
 
-## 🚦 Execution Plan (How to build this next)
-
-When ready to implement, we will follow these strict steps:
-
-1.  **Phase 1 (DB & Stubs):** Update Prisma schema, run migrations, and create the empty skeleton files in `src/lib/module-7`.
-2.  **Phase 2 (The Math & Parsing):** Implement `goal-parser.ts`, `goal-decomposer.ts`, and `action-ranker.ts`. Write unit tests for these deterministic functions.
-3.  **Phase 3 (The AI):** Implement `action-generator.ts` and `scenario-builder.ts` with strict JSON-schema Ollama prompting.
-4.  **Phase 4 (The API):** Build the `route.ts` endpoint that connects Phases 2 and 3 into a single pipeline.
-5.  **Phase 5 (Frontend):** Build the `GoalInputBar` and the `GoalRoadmap` components in React.
+## 🚦 Final Output: The Strategy Canvas
+The end result is a structured document for the user containing:
+1.  **Restated Goal:** (e.g., "Revenue +20% in 90 days")
+2.  **Top 3 Actions:** With confidence scores.
+3.  **Execution Scenarios:** Lean / Balanced / Premium toggles.
+4.  **Location Breakdown:** Specific strategies for different stores.

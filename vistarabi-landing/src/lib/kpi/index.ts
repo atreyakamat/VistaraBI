@@ -125,6 +125,7 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
         ...result,
         computableKPIs: result.computableKPIs as any,
         partialKPIs: result.partialKPIs as any,
+        sampleData: result.sampleData as any,
     };
 
     // Store results
