@@ -61,7 +61,7 @@ function buildFallbackScenarios(actionName: string): BudgetScenario[] {
             executionPlan: [
                 `Subscribe to a dedicated SaaS tool that automates "${actionName}".`,
                 'Assign one team member as the dedicated owner with a clear KPI target.',
-                'Set up automated weekly reporting via the tool's dashboard.',
+                'Set up automated weekly reporting via the tool\'s dashboard.',
             ],
             timeline: '1-2 months',
             expectedKpiLift: '8–15%',

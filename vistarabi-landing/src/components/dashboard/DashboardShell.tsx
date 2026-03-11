@@ -170,6 +170,16 @@ export function DashboardShell({
                             </span>
                         )}
                     </button>
+
+                    {/* Goal Strategy Engine Toggle */}
+                    <button
+                        onClick={() => setGoalPanelOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-100 hover:bg-violet-200 text-violet-700 transition-colors"
+                        title="Goal Strategy Engine"
+                    >
+                        <span className="material-symbols-outlined text-base">target</span>
+                        Strategy
+                    </button>
                 </Header>
 
                 <div className="p-8 space-y-8">
@@ -539,6 +549,13 @@ export function DashboardShell({
                 trendingDown={trendingDown}
                 isOpen={insightPanelOpen}
                 onClose={() => setInsightPanelOpen(false)}
+            />
+
+            {/* Goal Strategy Panel — Module 7 */}
+            <GoalStrategyPanel
+                projectId={projectId}
+                isOpen={goalPanelOpen}
+                onClose={() => setGoalPanelOpen(false)}
             />
         </div>
     );
