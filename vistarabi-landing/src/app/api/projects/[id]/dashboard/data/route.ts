@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import { executeDashboard } from '@/lib/execution';
+import { executeDashboard, ensureDataMaterialized } from '@/lib/execution';
 import type { ExecutionOptions } from '@/lib/execution';
 import type { TimeGranularity } from '@/lib/visualization/types';
 
@@ -61,6 +61,9 @@ export async function GET(
         }
 
         console.log('[API] Executing dashboard data for project:', id);
+
+        // Ensure physical table exists before execution
+        await ensureDataMaterialized(id);
 
         const result = await executeDashboard(id, options);
 

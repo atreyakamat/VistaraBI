@@ -2,6 +2,7 @@
 // Public API for dashboard data execution
 
 export { executeDashboard, executeKPI, executeDrill } from './kpi-executor';
+export { ensureDataMaterialized } from './data-materializer';
 export { invalidateProject, invalidateKPI, invalidateExplanations, getCacheStats, clearAllCaches } from './cache';
 export { destroyPool } from './pool';
 export { profileDataset } from './data-profiler';

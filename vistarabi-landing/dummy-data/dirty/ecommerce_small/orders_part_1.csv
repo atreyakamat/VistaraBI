@@ -1,0 +1,11 @@
+order_id,customer_id,order_date,revenue,quantity,category,status
+ORD-101,C-501,2024-01-01,150.50,2,Electronics,Completed
+ORD-102,C-502,01/02/2024,,1,electrnics,Pending
+ORD-103,C-503,2024.01.03,200.00,3,Home,Shipped
+ORD-104,C-504,2024-01-04,0.00,1,Fashion,Cancelled
+ORD-105,C-505,2024-01-05,450.00,,Electronics,Completed
+ORD-106,C-506,Saturday Jan 6 2024,120.00,2,Home & Kitchen,Completed
+ORD-107,C-501,2024-01-07,89.99,1,Fashion,Returned
+ORD-108,C-508,2024-01-08,invalid,4,Electronics,Pending
+ORD-109,C-509,2024-01-09,310.00,2,Home,Completed
+ORD-110,C-510,2024-01-10,55.00,1,,Shipped
