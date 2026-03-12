@@ -35,7 +35,7 @@ export const TASK_TIER_MAP: Record<Exclude<ReasoningTaskType, 'UNSUPPORTED'>, Mo
 
 // ─── Model Configuration ──────────────────────────────────────────────────────
 
-export const LOCAL_MODEL_ID = 'qwen3:8b';
+export const LOCAL_MODEL_ID = 'qwen3.5:2b';
 export const CLOUD_MODEL_ID = 'qwen-max';
 
 export const TASK_TEMPERATURE_MAP: Record<Exclude<ReasoningTaskType, 'UNSUPPORTED'>, number> = {
@@ -46,9 +46,9 @@ export const TASK_TEMPERATURE_MAP: Record<Exclude<ReasoningTaskType, 'UNSUPPORTE
     STRATEGIC_SUMMARY: 0.1,
 };
 
-export const LOCAL_TIMEOUT_MS = 500;
-export const CLOUD_TIMEOUT_MS = 2000;
-export const MAX_TOKENS = 800;
+export const LOCAL_TIMEOUT_MS = 2000;
+export const CLOUD_TIMEOUT_MS = 5000;
+export const MAX_TOKENS = 8192;
 export const MAX_QUERY_LENGTH = 500;  // chars, after sanitization
 
 // ─── Adapter Response ─────────────────────────────────────────────────────────

@@ -26,6 +26,7 @@ import {
 import { loadBlueprintWithKPIs } from '../kpi/blueprint-loader';
 import { getAllKPIs } from '../kpi/kpi-library';
 import { DashboardConfigSchema } from '../dashboard/schemas';
+import { ensureDataMaterialized } from './data-materializer';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -46,6 +47,10 @@ export async function executeKPI(
     options: ExecutionOptions = {}
 ): Promise<KPIExecutionResult> {
     const startTime = Date.now();
+
+    // ── Step 0: Ensure table exists ──
+    await ensureDataMaterialized(projectId);
+
     const timings = { dataLoadMs: 0, computeMs: 0, profilingMs: 0, queryMs: 0 };
     let rowsReturned = 0;
 
@@ -85,27 +90,79 @@ export async function executeKPI(
     }
 
     // Fetch schema dynamically to bridge Semantic Library names -> physical table columns
-    const colRes = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = $1`, [kpi.sourceTable]);
+    const colRes = await pool.query(`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`, [kpi.sourceTable]);
     const actualCols = colRes.rows.map(r => r.column_name.toLowerCase());
+    const colTypes = Object.fromEntries(colRes.rows.map(r => [r.column_name.toLowerCase(), r.data_type.toLowerCase()]));
 
-    const libraryDefinition = getAllKPIs().find(k => k.id === kpi.kpiLibraryId);
-    const aliases = libraryDefinition?.columnAliases || {};
+    const allLibraryKPIs = getAllKPIs();
+    const globalAliases: Record<string, string[]> = {};
+    for (const lk of allLibraryKPIs) {
+        for (const [col, al] of Object.entries(lk.columnAliases || {})) {
+            globalAliases[col] = Array.from(new Set([...(globalAliases[col] || []), ...al]));
+        }
+    }
+
+    const libraryDefinition = allLibraryKPIs.find(k => k.id === kpi.kpiLibraryId);
+    const aliases = { ...globalAliases, ...(libraryDefinition?.columnAliases || {}) };
 
     const resolveColumn = (col: string) => {
         const lower = col.toLowerCase();
         if (actualCols.includes(lower)) return lower;
+
+        // Path A: The requested column has aliases, check if any alias is in the table
         if (aliases[lower]) {
             const match = aliases[lower].find(a => actualCols.includes(a.toLowerCase()));
             if (match) return match.toLowerCase();
         }
-        // Fallback fuzzy match
+
+        // Path B: The requested column IS an alias for something in the table.
+        // E.g. user requested 'revenue', which is an alias for 'order_value' in the library.
+        for (const [semanticName, aliasList] of Object.entries(aliases)) {
+            if (aliasList.some(a => a.toLowerCase() === lower)) {
+                if (actualCols.includes(semanticName.toLowerCase())) return semanticName.toLowerCase();
+                // If the semantic name itself isn't in the table, check OTHER aliases for that same semantic name
+                const peerMatch = aliasList.find(a => actualCols.includes(a.toLowerCase()));
+                if (peerMatch) return peerMatch.toLowerCase();
+            }
+        }
+
+        // Path C: Fuzzy match against physical columns
         const fuzzy = actualCols.find(c => c.includes(lower) || lower.includes(c));
-        return fuzzy || lower;
+        if (fuzzy) return fuzzy;
+
+        // Path D: Fuzzy match against ALIASES
+        for (const [semanticName, aliasList] of Object.entries(aliases)) {
+            const fuzzyAlias = aliasList.find(a => a.toLowerCase().includes(lower) || lower.includes(a.toLowerCase()));
+            if (fuzzyAlias) {
+                const physicalMatch = [semanticName, ...aliasList].find(a => actualCols.includes(a.toLowerCase()));
+                if (physicalMatch) return physicalMatch.toLowerCase();
+            }
+        }
+
+        // Path E: Last Resort - Fallback to common ID/Date columns if the requested name implies it
+        if (lower.includes('id') || lower.includes('user') || lower.includes('visitor') || lower.includes('customer')) {
+            const commonId = actualCols.find(c => c.includes('customer_id') || c.includes('user_id') || c.includes('order_id') || c.endsWith('_id'));
+            if (commonId) return commonId;
+        }
+        if (lower.includes('date') || lower.includes('time') || lower.includes('period')) {
+            const commonDate = actualCols.find(c => c.includes('order_date') || c.includes('date') || c.includes('time') || c.includes('timestamp') || c.includes('created'));
+            if (commonDate) return commonDate;
+        }
+
+        return lower;
     };
 
     // Rewrite metric and dimension columns dynamically based on physical table
     for (const agg of kpi.aggregations) {
         agg.column = resolveColumn(agg.column);
+
+        // Safety Fallback: If SUM is requested on a non-numeric column, it will fail in SQL.
+        // We fallback to COUNT which is a safer default for categorical/textual data.
+        const type = colTypes[agg.column];
+        if (agg.function === 'SUM' && type && !['numeric', 'integer', 'bigint', 'double precision', 'real', 'decimal'].includes(type)) {
+            console.warn(`[Executor] Safety fallback: SUM on non-numeric column "${agg.column}" (${type}) for KPI "${kpi.name}" changed to COUNT`);
+            agg.function = 'COUNT' as any;
+        }
     }
     for (const gb of kpi.groupBys) {
         gb.column = resolveColumn(gb.column);
@@ -364,6 +421,9 @@ export async function executeDashboard(
 ): Promise<DashboardExecutionResult> {
     const startTime = Date.now();
     console.log('[Executor] Executing dashboard for:', projectId);
+
+    // ── Step 0: Ensure table exists ──
+    await ensureDataMaterialized(projectId);
 
     // Load dashboard config
     const config = await loadDashboardConfig(projectId);

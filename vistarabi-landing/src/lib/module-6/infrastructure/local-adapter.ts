@@ -19,9 +19,11 @@ interface OllamaGenerateRequest {
     prompt: string;
     system?: string;
     stream: false;
-    temperature: number;
-    num_predict: number;
-    stop?: string[];
+    options?: {
+        temperature?: number;
+        num_predict?: number;
+        stop?: string[];
+    };
 }
 
 interface OllamaGenerateResponse {
@@ -52,21 +54,46 @@ export async function callLocalModel(
     temperature: number,
     modelId: string = LOCAL_MODEL_ID
 ): Promise<AdapterResponse> {
+    try {
+        console.log(`[LocalAdapter] Attempting local model ${modelId} with 10s timeout...`);
+        return await _doCallLocalModel(systemPrompt, userMessage, temperature, modelId, 10000);
+    } catch (err: any) {
+        console.warn(`[LocalAdapter] Local model ${modelId} failed (${err.message}). Pushing to Ollama cloud fallback (qwen3.5:397b-cloud) with 120s timeout...`);
+        
+        // Push to Ollama cloud fallback
+        try {
+            return await _doCallLocalModel(systemPrompt, userMessage, temperature, 'qwen3.5:397b-cloud', 120000);
+        } catch (cloudErr: any) {
+            console.error(`[LocalAdapter] Ollama Cloud fallback also failed: ${cloudErr.message}`);
+            throw cloudErr;
+        }
+    }
+}
+
+async function _doCallLocalModel(
+    systemPrompt: string,
+    userMessage: string,
+    temperature: number,
+    modelId: string,
+    timeoutMs: number
+): Promise<AdapterResponse> {
     const baseUrl = getOllamaBaseUrl();
     const url = `${baseUrl}/api/generate`;
 
-    const body: OllamaGenerateRequest = {
+    const body = {
         model: modelId,
         system: systemPrompt,
         prompt: userMessage,
         stream: false,
-        temperature,
-        num_predict: MAX_TOKENS,
-        stop: ['\n\n\n'],   // Prevent runaway generation
+        options: {
+            temperature,
+            num_predict: MAX_TOKENS,
+            stop: ['\n\n\n'],   // Prevent runaway generation
+        }
     };
 
     const controller = new AbortController();
-    const timeoutHandle = setTimeout(() => controller.abort(), LOCAL_TIMEOUT_MS);
+    const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
     const startMs = Date.now();
 
     let res: Response;
@@ -82,13 +109,13 @@ export async function callLocalModel(
         if (err.name === 'AbortError') {
             throw new ModelCallError(
                 'LOCAL_TIMEOUT',
-                `Ollama model timed out after ${LOCAL_TIMEOUT_MS}ms`,
+                `Ollama model ${modelId} timed out after ${timeoutMs}ms`,
                 true  // recoverable — user can retry
             );
         }
         throw new ModelCallError(
             'LOCAL_CALL_FAILED',
-            `Ollama API call failed: ${err.message ?? 'unknown error'}`,
+            `Ollama API call failed for ${modelId}: ${err.message ?? 'unknown error'}`,
             false
         );
     } finally {
@@ -98,9 +125,10 @@ export async function callLocalModel(
     const latencyMs = Date.now() - startMs;
 
     if (!res.ok) {
+        const errorText = await res.text();
         throw new ModelCallError(
             'LOCAL_CALL_FAILED',
-            `Ollama returned HTTP ${res.status}`,
+            `Ollama returned HTTP ${res.status} for ${modelId}: ${errorText}`,
             false
         );
     }
@@ -109,12 +137,12 @@ export async function callLocalModel(
     try {
         data = await res.json() as OllamaGenerateResponse;
     } catch {
-        throw new ModelCallError('LOCAL_CALL_FAILED', 'Ollama response was not valid JSON', false);
+        throw new ModelCallError('LOCAL_CALL_FAILED', `Ollama response was not valid JSON for ${modelId}`, false);
     }
 
     const text = data.response?.trim();
     if (!text) {
-        throw new ModelCallError('LOCAL_CALL_FAILED', 'Ollama returned empty response', false);
+        throw new ModelCallError('LOCAL_CALL_FAILED', `Ollama returned empty response for ${modelId}`, false);
     }
 
     return {

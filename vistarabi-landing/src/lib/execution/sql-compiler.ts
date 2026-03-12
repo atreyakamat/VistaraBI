@@ -128,9 +128,16 @@ function compileSelectClause(
 
     // Include the primary KPI computed "value"
     if (formula) {
-        // Strip descriptive pseudo-SQL from library formulas
-        let safeFormula = formula.split(/\s+BY\s+/i)[0].split(/\s+WHERE\s+/i)[0].split(/\s+ORDER\s+BY\s+/i)[0];
-        safeFormula = safeFormula.replace(/COUNT\(([^)]+)\)/gi, 'NULLIF(COUNT($1), 0)');
+        // Strip descriptive pseudo-SQL from library formulas.
+        // We split by specific keyword sequences to avoid leaving trailing fragments like "GROUP".
+        let safeFormula = formula
+            .split(/\s+GROUP\s+BY\s+/i)[0]
+            .split(/\s+ORDER\s+BY\s+/i)[0]
+            .split(/\s+WHERE\s+/i)[0]
+            .split(/\s+LIMIT\s+/i)[0]
+            .split(/\s+BY\s+/i)[0];
+
+        safeFormula = safeFormula.trim().replace(/COUNT\(([^)]+)\)/gi, 'NULLIF(COUNT($1), 0)');
         // A minimal safe wrapper for basic division: but the simplest is just projecting the formula
         parts.push(`(${safeFormula}) AS "value"`);
     } else if (aggregations.length > 0) {

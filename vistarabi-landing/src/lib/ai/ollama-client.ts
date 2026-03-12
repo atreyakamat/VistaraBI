@@ -2,7 +2,7 @@
 // Uses locally hosted Ollama with qwen3:0.6b model
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3:0.6b';
+const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:2b';
 
 export interface OllamaMessage {
     role: 'system' | 'user' | 'assistant';
@@ -88,81 +88,90 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
     // Convert prompt to message array if using Cloud and prompt was provided
     const payloadMessages = prompt ? [{ role: 'user', content: prompt }] : messages;
 
-    const maxRetries = 2;
+    const modelsToTry = useCloud 
+        ? [resolvedModel] // If we're strictly using OpenAI-compatible API, don't force 'qwen3.5:397b-cloud'
+        : Array.from(new Set([resolvedModel, 'qwen3.5:397b-cloud']));
+        
+    const maxRetries = 1; // Since we fallback to the cloud model, 1 attempt each is fine
     let lastError: Error | null = null;
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            console.log(`[AI-Client] Attempt ${attempt}/${maxRetries}`);
+    for (const currentModel of modelsToTry) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`[AI-Client] Generating with model: ${currentModel} (Attempt ${attempt}/${maxRetries})`);
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
+                const controller = new AbortController();
+                // 10s timeout for local model, 120s for the 397b cloud model
+                const timeoutMs = currentModel === 'qwen3.5:397b-cloud' || useCloud ? 120000 : 10000;
+                const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-            const payload = useCloud ? {
-                model: resolvedModel,
-                messages: payloadMessages,
-                temperature,
-                max_tokens: 800,
-            } : {
-                model: resolvedModel,
-                messages: payloadMessages,
-                stream: false,
-                options: {
+                const payload = useCloud ? {
+                    model: currentModel,
+                    messages: payloadMessages,
                     temperature,
-                    num_predict: 800,
-                },
-            };
+                    max_tokens: 8192,
+                } : {
+                    model: currentModel,
+                    messages: payloadMessages,
+                    stream: false,
+                    options: {
+                        temperature,
+                        num_predict: 8192,
+                    },
+                };
 
-            const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-            if (useCloud && cloudApiKey) headers['Authorization'] = `Bearer ${cloudApiKey}`;
+                const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+                if (useCloud && cloudApiKey) headers['Authorization'] = `Bearer ${cloudApiKey}`;
 
-            const response = await fetch(resolvedUrl, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(payload),
-                signal: controller.signal,
-            });
+                const response = await fetch(resolvedUrl, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload),
+                    signal: controller.signal,
+                });
 
-            clearTimeout(timeoutId);
+                clearTimeout(timeoutId);
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`[AI-Client] API error (${response.status}):`, errorText);
-                throw new Error(`AI API error: ${response.status} - ${errorText}`);
-            }
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`[AI-Client] API error (${response.status}) for ${currentModel}:`, errorText);
+                    throw new Error(`AI API error: ${response.status} - ${errorText}`);
+                }
 
-            const data = await response.json();
+                const data = await response.json();
 
-            // Cloud API uses choices[0].message.content, Ollama uses message.content
-            let content = '';
-            if (useCloud) {
-                content = data.choices?.[0]?.message?.content || '';
-            } else {
-                content = data.message?.content || '';
-            }
+                // Cloud API uses choices[0].message.content, Ollama uses message.content
+                let content = '';
+                if (useCloud) {
+                    content = data.choices?.[0]?.message?.content || '';
+                } else {
+                    content = data.message?.content || '';
+                }
 
-            // Strip reasoning blocks for any qwen models (local or cloud reasoning models)
-            content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+                // Strip reasoning blocks for any qwen models (local or cloud reasoning models)
+                content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
-            console.log(`[AI-Client] Response received, length: ${content.length}`);
-            return content;
+                console.log(`[AI-Client] Response received from ${currentModel}, length: ${content.length}`);
+                return content;
 
-        } catch (error: any) {
-            lastError = error;
-            console.error(`[AI-Client] Attempt ${attempt} failed:`, error.message);
+            } catch (error: any) {
+                lastError = error;
+                console.error(`[AI-Client] Attempt ${attempt} with ${currentModel} failed:`, error.message);
 
-            if (error.name === 'AbortError') {
-                console.error('[AI-Client] Request timed out');
-            }
+                if (error.name === 'AbortError') {
+                    console.error('[AI-Client] Request timed out');
+                }
 
-            if (attempt < maxRetries) {
-                console.log('[AI-Client] Retrying in 2 seconds...');
-                await new Promise(r => setTimeout(r, 2000));
+                if (attempt < maxRetries) {
+                    console.log(`[AI-Client] Retrying ${currentModel} in 2 seconds...`);
+                    await new Promise(r => setTimeout(r, 2000));
+                }
             }
         }
+        console.warn(`[AI-Client] Model ${currentModel} failed after ${maxRetries} attempts, trying fallback model...`);
     }
 
-    throw lastError || new Error('AI generation failed after retries');
+    throw lastError || new Error('AI generation failed after all fallback attempts');
 }
 
 // Simpler generate endpoint (more reliable for some prompts on local Ollama)
@@ -176,47 +185,55 @@ async function generateSimple(prompt: string, model: string, temperature: number
         return generateCompletion({ prompt, model, temperature });
     }
 
-    console.log('[Ollama] Using local simple /api/generate endpoint');
+    const modelsToTry = Array.from(new Set([model, 'qwen3.5:397b-cloud']));
+    let lastError: Error | null = null;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 180000);
+    for (const currentModel of modelsToTry) {
+        console.log(`[Ollama] Using local simple /api/generate endpoint with model: ${currentModel}`);
 
-    try {
-        const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model,
-                prompt,
-                stream: false,
-                options: {
-                    temperature,
-                    num_predict: 1200,
-                },
-            }),
-            signal: controller.signal,
-        });
+        const controller = new AbortController();
+        const timeoutMs = currentModel === 'qwen3.5:397b-cloud' ? 120000 : 10000;
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-        clearTimeout(timeoutId);
+        try {
+            const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: currentModel,
+                    prompt,
+                    stream: false,
+                    options: {
+                        temperature,
+                        num_predict: 8192,
+                    },
+                }),
+                signal: controller.signal,
+            });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Ollama generate failed: ${response.status} - ${errorText}`);
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Ollama generate failed for ${currentModel}: ${response.status} - ${errorText}`);
+            }
+
+            const data = await response.json();
+            let text: string = data.response || '';
+
+            // Strip qwen3 <think>...</think> reasoning blocks so only the JSON remains
+            text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+            return text;
+
+        } catch (error: any) {
+            clearTimeout(timeoutId);
+            lastError = error;
+            console.error(`[Ollama] Generate error with ${currentModel} (timeout: ${timeoutMs}ms):`, error.message);
         }
-
-        const data = await response.json();
-        let text: string = data.response || '';
-
-        // Strip qwen3 <think>...</think> reasoning blocks so only the JSON remains
-        text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-
-        return text;
-
-    } catch (error: any) {
-        clearTimeout(timeoutId);
-        console.error('[Ollama] Generate error:', error);
-        throw error;
     }
+
+    throw lastError || new Error('Ollama generation failed after all fallback attempts');
 }
 
 // Build semantic reasoning prompt for ambiguous domain detection
@@ -246,8 +263,8 @@ export async function generateKPISuggestions(
     model?: string
 ): Promise<{ name: string; formula: string; category: string; explanation: string }[]> {
 
-    // Use the provided model or fall back to qwen3:0.6b
-    const kpiModel = model || 'qwen3:0.6b';
+    // Use the provided model or fall back to DEFAULT_MODEL
+    const kpiModel = model || DEFAULT_MODEL;
 
     // Build a simple, clear prompt that works well with small models
     const columnList = columns.slice(0, 15).join(', ');
