@@ -6,22 +6,24 @@ import db from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { executeDashboard } from '@/lib/execution';
 import type { ExecutionOptions } from '@/lib/execution';
-import type { Filter, TimeGranularity } from '@/lib/visualization/types';
+import type { TimeGranularity } from '@/lib/visualization/types';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
+
     try {
-        const { id } = await params;
         const user = await getCurrentUser();
         if (!user) {
             return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
         }
-        const _authProject = await db.project.findUnique({ where: { id: id } });
+        const _authProject = await db.project.findUnique({ where: { id } });
         if (!_authProject || _authProject.userId !== user.userId) {
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
+
         const searchParams = request.nextUrl.searchParams;
 
         // Parse execution options from query params
@@ -63,17 +65,27 @@ export async function GET(
         const result = await executeDashboard(id, options);
 
         return NextResponse.json(result);
+
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error('[API] Dashboard data execution error:', error);
+        console.error('[API] Dashboard data execution error:', message);
 
-        return NextResponse.json(
-            {
-                status: 'error',
-                message: message || 'Data temporarily unavailable',
-                recoverable: true,
+        // Return 200 with empty kpis + the actual error string so the page
+        // can surface the real cause instead of silently rendering an empty dashboard.
+        return NextResponse.json({
+            kpis: [],
+            error: message || 'Data temporarily unavailable',
+            appliedFilters: [],
+            granularity: 'monthly',
+            computedAt: new Date().toISOString(),
+            metadata: {
+                totalKPIs: 0,
+                computedKPIs: 0,
+                skippedKPIs: 0,
+                totalTimeMs: 0,
+                cacheHitCount: 0,
+                cacheMissCount: 0,
             },
-            { status: 500 }
-        );
+        });
     }
 }

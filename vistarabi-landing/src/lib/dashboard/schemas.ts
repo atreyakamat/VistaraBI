@@ -19,7 +19,7 @@ export const ChartSelectionSchema = z.object({
     chartLibrary: ChartLibrarySchema,
     fallbackType: ChartTypeSchema,
     fallbackLibrary: ChartLibrarySchema,
-    confidence: z.number().min(0).max(1),
+    confidence: z.number().min(0).max(100),
     reason: z.string(),
 });
 
@@ -31,7 +31,7 @@ export const DashboardKPICardSchema = z.object({
     chartSelection: ChartSelectionSchema,
     cardSize: CardSizeSchema,
     position: z.number(),
-    confidence: z.number().min(0).max(1),
+    confidence: z.number().min(0).max(100),
     description: z.string().optional(),
     colorAccent: z.string().optional(),
 });

@@ -63,6 +63,7 @@ export default function DashboardPage() {
     const [anomalyCount, setAnomalyCount] = useState(0);
     const [trendingUp, setTrendingUp] = useState(0);
     const [trendingDown, setTrendingDown] = useState(0);
+    const [dataError, setDataError] = useState<string | null>(null);
 
     // 4-Stage Progressive Loading
     const loadDashboard = useCallback(async (isRefresh = false) => {
@@ -114,6 +115,13 @@ export default function DashboardPage() {
 
             if (dataRes.ok) {
                 const dashData = await dataRes.json();
+
+                // Surface execution errors to the user instead of silently showing empty data
+                if (dashData.error) {
+                    console.error('[Dashboard] Data API returned error:', dashData.error);
+                    setDataError(dashData.error);
+                }
+
                 // Map KPI execution results by kpiId for quick lookup
                 for (const kpi of (dashData.kpis || [])) {
                     kpiDataMap[kpi.kpiId] = kpi;
@@ -261,26 +269,46 @@ export default function DashboardPage() {
 
     // Stage 2+: Progressive render with 5C insight layer
     return (
-        <DashboardShell
-            projectId={projectId}
-            projectName={config.sidebarConfig?.projectName || 'Project'}
-            domainIcon={config.metadata.domainIcon || '📊'}
-            domainName={config.metadata.domainName || 'General'}
-            domainColor={config.metadata.domainColor || '#6366f1'}
-            sections={sections}
-            kpis={kpis}
-            explanations={explanations}
-            isLoading={stage < 3}
-            isRefreshing={isRefreshing}
-            onRefresh={() => loadDashboard(true)}
-            // Module 5C props
-            insightFeed={insightFeed}
-            smartAlerts={smartAlerts}
-            strongestUp={strongestUp}
-            strongestDown={strongestDown}
-            anomalyCount={anomalyCount}
-            trendingUp={trendingUp}
-            trendingDown={trendingDown}
-        />
+        <>
+            {dataError && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+                    background: '#fef3c7', borderBottom: '2px solid #f59e0b',
+                    padding: '10px 20px', display: 'flex', alignItems: 'center', gap: 12,
+                    fontSize: 13, color: '#92400e',
+                }}>
+                    <span style={{ fontSize: 16 }}>⚠️</span>
+                    <span style={{ flex: 1 }}><strong>Data Error:</strong> {dataError}</span>
+                    <button
+                        onClick={() => { setDataError(null); loadDashboard(true); }}
+                        style={{ background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 12px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                        Retry
+                    </button>
+                    <button onClick={() => setDataError(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#92400e' }}>✕</button>
+                </div>
+            )}
+            <DashboardShell
+                projectId={projectId}
+                projectName={config.sidebarConfig?.projectName || 'Project'}
+                domainIcon={config.metadata.domainIcon || '📊'}
+                domainName={config.metadata.domainName || 'General'}
+                domainColor={config.metadata.domainColor || '#6366f1'}
+                sections={sections}
+                kpis={kpis}
+                explanations={explanations}
+                isLoading={stage < 3}
+                isRefreshing={isRefreshing}
+                onRefresh={() => loadDashboard(true)}
+                // Module 5C props
+                insightFeed={insightFeed}
+                smartAlerts={smartAlerts}
+                strongestUp={strongestUp}
+                strongestDown={strongestDown}
+                anomalyCount={anomalyCount}
+                trendingUp={trendingUp}
+                trendingDown={trendingDown}
+            />
+        </>
     );
 }

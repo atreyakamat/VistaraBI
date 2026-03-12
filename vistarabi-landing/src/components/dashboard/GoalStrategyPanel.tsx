@@ -302,8 +302,7 @@ function StrategyDocView({ canvas, onBack }: { canvas: StrategyCanvas, onBack: (
 // ─── Strategy Canvas ──────────────────────────────────────────────────────────
 
 
-function StrategyCanvasView({ canvas, onReset, onRefine, onViewDoc }: { canvas: StrategyCanvas; onReset: () => void; onRefine: (m: string) => void; onViewDoc: () => void; }) {
-    const [refineMsg, setRefineMsg] = useState('');
+function StrategyCanvasView({ canvas, onReset }: { canvas: StrategyCanvas; onReset: () => void; }) {
     const realLocations = canvas.locationSplits?.filter(l => l.locationName !== 'Global') ?? [];
 
     return (
@@ -390,6 +389,7 @@ function StrategyCanvasView({ canvas, onReset, onRefine, onViewDoc }: { canvas: 
                 <span className="material-symbols-outlined text-sm">add_circle</span>
                 New Goal
             </button>
+            </div>{/* end scroll container */}
         </div>
     );
 }
