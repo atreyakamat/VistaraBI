@@ -302,7 +302,7 @@ function StrategyDocView({ canvas, onBack }: { canvas: StrategyCanvas, onBack: (
 // ─── Strategy Canvas ──────────────────────────────────────────────────────────
 
 
-function StrategyCanvasView({ canvas, onReset }: { canvas: StrategyCanvas; onReset: () => void; }) {
+function StrategyCanvasView({ canvas, onReset, onRefine, onViewDoc }: { canvas: StrategyCanvas; onReset: () => void; onRefine?: () => void; onViewDoc?: () => void; }) {
     const realLocations = canvas.locationSplits?.filter(l => l.locationName !== 'Global') ?? [];
 
     return (
@@ -390,10 +390,11 @@ function StrategyCanvasView({ canvas, onReset }: { canvas: StrategyCanvas; onRes
                     New Goal
                 </button>
             </div>
-            );
+        </div>
+    );
 }
 
-            // ─── Main Panel ───────────────────────────────────────────────────────────────
+// ─── Main Panel ───────────────────────────────────────────────────────────────
 
             export function GoalStrategyPanel({projectId, isOpen, onClose, initialQuery = ''}: GoalStrategyPanelProps & {initialQuery ?: string}) {
     const [input, setInput] = useState(initialQuery);
