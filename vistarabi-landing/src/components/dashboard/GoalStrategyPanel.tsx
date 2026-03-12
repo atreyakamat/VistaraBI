@@ -248,7 +248,7 @@ function StrategyDocView({ canvas, onBack }: { canvas: StrategyCanvas, onBack: (
 
             <h1 className="text-2xl font-bold mb-2">Strategy Execution Document</h1>
             <p className="text-sm text-slate-500 mb-6">Generated on {new Date(canvas.generatedAt).toLocaleString()}</p>
-            
+
             <h2 className="text-lg font-bold border-b pb-1 mb-3">1. Executive Goal</h2>
             <p className="mb-6"><strong>Objective:</strong> {canvas.goal.changeDirection} {canvas.goal.targetMetric} by {canvas.goal.targetValue} ({canvas.goal.timeframe})</p>
 
@@ -280,7 +280,7 @@ function StrategyDocView({ canvas, onBack }: { canvas: StrategyCanvas, onBack: (
                     </div>
                 </div>
             ))}
-            
+
             {canvas.locationSplits && canvas.locationSplits.length > 0 && canvas.locationSplits[0].locationName !== 'Global' && (
                 <>
                     <h2 className="text-lg font-bold border-b pb-1 mb-3 break-before-page">4. Location Strategy</h2>
@@ -308,114 +308,119 @@ function StrategyCanvasView({ canvas, onReset }: { canvas: StrategyCanvas; onRes
     return (
         <div className="goal-canvas" style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden", padding: 0 }}>
             <div style={{ flex: 1, overflowY: "auto", padding: "1.5rem" }}>
-            {/* Goal Pill */}
-            <div className="goal-canvas-header">
-                <div className="goal-pill">
-                    <span className="material-symbols-outlined text-xs">target</span>
-                    <span className="capitalize font-semibold">{canvas.goal.changeDirection}</span>
-                    <span className="font-bold">{canvas.goal.targetMetric}</span>
-                    <span className="goal-pill-meta">by {canvas.goal.targetValue}</span>
-                    {canvas.goal.timeframe !== 'not specified' && (
-                        <span className="goal-pill-meta">· {canvas.goal.timeframe}</span>
+                {/* Goal Pill */}
+                <div className="goal-canvas-header">
+                    <div className="goal-pill">
+                        <span className="material-symbols-outlined text-xs">target</span>
+                        <span className="capitalize font-semibold">{canvas.goal.changeDirection}</span>
+                        <span className="font-bold">{canvas.goal.targetMetric}</span>
+                        <span className="goal-pill-meta">by {canvas.goal.targetValue}</span>
+                        {canvas.goal.timeframe !== 'not specified' && (
+                            <span className="goal-pill-meta">· {canvas.goal.timeframe}</span>
+                        )}
+                    </div>
+                    {canvas.pipelineMs && (
+                        <span className="goal-pill-time">Generated in {(canvas.pipelineMs / 1000).toFixed(1)}s</span>
                     )}
                 </div>
-                {canvas.pipelineMs && (
-                    <span className="goal-pill-time">Generated in {(canvas.pipelineMs / 1000).toFixed(1)}s</span>
-                )}
-            </div>
 
-            {/* Decomposition */}
-            <div className="goal-section">
-                <div className="goal-section-title">
-                    <span className="material-symbols-outlined text-sm text-violet-500">account_tree</span>
-                    KPI Decomposition
-                </div>
-                <div className="goal-formula">{canvas.decomposed.formula}</div>
-                <ul className="goal-factors">
-                    {canvas.decomposed.factors.map((f, i) => (
-                        <li key={i} className="goal-factor">
-                            <div className="goal-factor-bar-wrap">
-                                <div className="goal-factor-bar" style={{ width: `${Math.round((f.weight ?? 0.5) * 100)}%` }} />
-                            </div>
-                            <div className="goal-factor-info">
-                                <span className="goal-factor-name">{f.metric}</span>
-                                <span className="goal-factor-change">{f.requiredChange}</span>
-                            </div>
-                            <p className="goal-factor-desc">{f.description}</p>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
-            {/* Actions */}
-            <div className="goal-section">
-                <div className="goal-section-title">
-                    <span className="material-symbols-outlined text-sm text-violet-500">auto_awesome</span>
-                    Top Recommended Strategies
-                </div>
-                <div className="goal-actions">
-                    {canvas.scenarios.map((action, i) => (
-                        <ActionCard key={action.id} action={action} index={i} />
-                    ))}
-                </div>
-            </div>
-
-            {/* Location Breakdown */}
-            {realLocations.length > 0 && (
+                {/* Decomposition */}
                 <div className="goal-section">
                     <div className="goal-section-title">
-                        <span className="material-symbols-outlined text-sm text-violet-500">location_on</span>
-                        Location Strategy
+                        <span className="material-symbols-outlined text-sm text-violet-500">account_tree</span>
+                        KPI Decomposition
                     </div>
-                    <div className="goal-locations">
-                        {realLocations.map((loc, i) => {
-                            const tier = TIER_BADGE[loc.performanceTier] ?? TIER_BADGE.MEDIUM;
-                            return (
-                                <div key={i} className="goal-location-row">
-                                    <span className={`goal-loc-badge ${tier.cls}`}>{tier.label}</span>
-                                    <div className="goal-loc-info">
-                                        <span className="goal-loc-name">{loc.locationName}</span>
-                                        <span className="goal-loc-goal">{loc.adjustedGoal}</span>
-                                        <p className="goal-loc-reason">{loc.tierReason}</p>
-                                    </div>
+                    <div className="goal-formula">{canvas.decomposed.formula}</div>
+                    <ul className="goal-factors">
+                        {canvas.decomposed.factors.map((f, i) => (
+                            <li key={i} className="goal-factor">
+                                <div className="goal-factor-bar-wrap">
+                                    <div className="goal-factor-bar" style={{ width: `${Math.round((f.weight ?? 0.5) * 100)}%` }} />
                                 </div>
-                            );
-                        })}
+                                <div className="goal-factor-info">
+                                    <span className="goal-factor-name">{f.metric}</span>
+                                    <span className="goal-factor-change">{f.requiredChange}</span>
+                                </div>
+                                <p className="goal-factor-desc">{f.description}</p>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* Actions */}
+                <div className="goal-section">
+                    <div className="goal-section-title">
+                        <span className="material-symbols-outlined text-sm text-violet-500">auto_awesome</span>
+                        Top Recommended Strategies
+                    </div>
+                    <div className="goal-actions">
+                        {canvas.scenarios.map((action, i) => (
+                            <ActionCard key={action.id} action={action} index={i} />
+                        ))}
                     </div>
                 </div>
-            )}
 
-            <button className="goal-reset-btn" onClick={onReset}>
-                <span className="material-symbols-outlined text-sm">add_circle</span>
-                New Goal
-            </button>
-            </div>{/* end scroll container */}
-        </div>
-    );
+                {/* Location Breakdown */}
+                {realLocations.length > 0 && (
+                    <div className="goal-section">
+                        <div className="goal-section-title">
+                            <span className="material-symbols-outlined text-sm text-violet-500">location_on</span>
+                            Location Strategy
+                        </div>
+                        <div className="goal-locations">
+                            {realLocations.map((loc, i) => {
+                                const tier = TIER_BADGE[loc.performanceTier] ?? TIER_BADGE.MEDIUM;
+                                return (
+                                    <div key={i} className="goal-location-row">
+                                        <span className={`goal-loc-badge ${tier.cls}`}>{tier.label}</span>
+                                        <div className="goal-loc-info">
+                                            <span className="goal-loc-name">{loc.locationName}</span>
+                                            <span className="goal-loc-goal">{loc.adjustedGoal}</span>
+                                            <p className="goal-loc-reason">{loc.tierReason}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                <button className="goal-reset-btn" onClick={onReset}>
+                    <span className="material-symbols-outlined text-sm">add_circle</span>
+                    New Goal
+                </button>
+            </div>
+            );
 }
 
-// ─── Main Panel ───────────────────────────────────────────────────────────────
+            // ─── Main Panel ───────────────────────────────────────────────────────────────
 
-export function GoalStrategyPanel({ projectId, isOpen, onClose }: GoalStrategyPanelProps) {
-    const [input, setInput] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [stage, setStage] = useState<string | null>(null);
-    const [canvas, setCanvas] = useState<StrategyCanvas | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [pastGoals, setPastGoals] = useState<PastGoal[]>([]);
-    const [historyOpen, setHistoryOpen] = useState(false);
-    const [isDocView, setIsDocView] = useState(false);
-    const inputRef = useRef<HTMLTextAreaElement>(null);
+            export function GoalStrategyPanel({projectId, isOpen, onClose, initialQuery = ''}: GoalStrategyPanelProps & {initialQuery ?: string}) {
+    const [input, setInput] = useState(initialQuery);
+            const [loading, setLoading] = useState(false);
+            const [stage, setStage] = useState<string | null>(null);
+            const [canvas, setCanvas] = useState<StrategyCanvas | null>(null);
+            const [error, setError] = useState<string | null>(null);
+            const [pastGoals, setPastGoals] = useState<PastGoal[]>([]);
+            const [historyOpen, setHistoryOpen] = useState(false);
+            const [isDocView, setIsDocView] = useState(false);
+            const inputRef = useRef<HTMLTextAreaElement>(null);
 
-    // Focus textarea on open
+    // Focus textarea on open and populate initialQuery if present
     useEffect(() => {
-        if (isOpen) setTimeout(() => inputRef.current?.focus(), 150);
-    }, [isOpen]);
+        if (isOpen) {
+            if (initialQuery) {
+                    setInput(initialQuery);
+                // We don't auto-submit here to let the user review it, but we could if we wanted
+            }
+            setTimeout(() => inputRef.current?.focus(), 150);
+        }
+    }, [isOpen, initialQuery]);
 
     // Load past goals on open
     useEffect(() => {
         if (!isOpen || !projectId) return;
-        fetch(`/api/projects/${projectId}/goals`)
+                fetch(`/api/projects/${projectId}/goals`)
             .then(r => r.json())
             .then(d => { if (d.goals) setPastGoals(d.goals); })
             .catch(() => { });
@@ -423,168 +428,168 @@ export function GoalStrategyPanel({ projectId, isOpen, onClose }: GoalStrategyPa
 
     const animateStages = useCallback(async () => {
         for (const s of PIPELINE_STAGES) {
-            setStage(s.key);
+                    setStage(s.key);
             await new Promise(r => setTimeout(r, 650));
         }
     }, []);
 
-    const handleSubmit = useCallback(async (customQuery?: string | React.MouseEvent<HTMLButtonElement>) => {
+                const handleSubmit = useCallback(async (customQuery?: string | React.MouseEvent<HTMLButtonElement>) => {
         const q = typeof customQuery === 'string' ? customQuery.trim() : input.trim();
-        
-        if (!q || loading) return;
-        setLoading(true);
-        setCanvas(null);
-        setError(null);
-        setStage('PARSING');
 
-        const [res] = await Promise.all([
-            fetch(`/api/projects/${projectId}/goals`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ rawQuery: q }),
+                    if (!q || loading) return;
+                    setLoading(true);
+                    setCanvas(null);
+                    setError(null);
+                    setStage('PARSING');
+
+                    const [res] = await Promise.all([
+                    fetch(`/api/projects/${projectId}/goals`, {
+                        method: 'POST',
+                    headers: {'Content-Type': 'application/json' },
+                    body: JSON.stringify({rawQuery: q }),
             }),
-            animateStages(),
-        ]);
+                    animateStages(),
+                    ]);
 
-        setStage(null);
+                    setStage(null);
 
-        try {
+                    try {
             if (!res.ok) {
-                const e = await res.json().catch(() => ({}));
-                throw new Error(e.error ?? `Server error ${res.status}`);
+                const e = await res.json().catch(() => ({ }));
+                    throw new Error(e.error ?? `Server error ${res.status}`);
             }
-            const data = await res.json();
-            setCanvas(data.strategyCanvas as StrategyCanvas);
+                    const data = await res.json();
+                    setCanvas(data.strategyCanvas as StrategyCanvas);
             setPastGoals(prev => [{
-                id: data.goalId,
-                rawQuery: q,
-                targetValue: data.strategyCanvas?.goal?.targetValue ?? '',
-                timeframe: data.strategyCanvas?.goal?.timeframe ?? '',
-                status: 'ACTIVE',
-                createdAt: new Date().toISOString(),
-                generatedPlan: data.strategyCanvas,
+                        id: data.goalId,
+                    rawQuery: q,
+                    targetValue: data.strategyCanvas?.goal?.targetValue ?? '',
+                    timeframe: data.strategyCanvas?.goal?.timeframe ?? '',
+                    status: 'ACTIVE',
+                    createdAt: new Date().toISOString(),
+                    generatedPlan: data.strategyCanvas,
             }, ...prev].slice(0, 10));
-            setInput('');
+                    setInput('');
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Failed to generate strategy. Please try again.');
+                        setError(err instanceof Error ? err.message : 'Failed to generate strategy. Please try again.');
         } finally {
-            setLoading(false);
+                        setLoading(false);
         }
     }, [input, loading, projectId, animateStages]);
 
-    if (!isOpen) return null;
+                    if (!isOpen) return null;
 
-    return (
-        <>
-            <div className="goal-panel-backdrop" onClick={onClose} aria-label="Close Goal Strategy panel" />
+                    return (
+                    <>
+                        <div className="goal-panel-backdrop" onClick={onClose} aria-label="Close Goal Strategy panel" />
 
-            <div className="goal-panel" role="dialog" aria-label="Goal Strategy Engine" aria-modal="true">
-                {/* Header */}
-                <div className="goal-panel-header">
-                    <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-sm text-violet-600">target</span>
-                        </div>
-                        <div>
-                            <h2 className="text-sm font-semibold text-slate-800">Goal Strategy Engine</h2>
-                            <p className="text-[10px] text-slate-400">Prescriptive intelligence · Module 7</p>
-                        </div>
-                    </div>
-                    <button onClick={onClose} className="ask-ai-close-btn" title="Close">
-                        <span className="material-symbols-outlined text-sm">close</span>
-                    </button>
-                </div>
-
-                {/* Body */}
-                <div className="goal-panel-body">
-                    {/* Input area – always visible unless canvas is showing */}
-                    {!canvas && (
-                        <div className="goal-input-area">
-                            <textarea
-                                ref={inputRef}
-                                className="goal-input"
-                                value={input}
-                                onChange={e => { if (e.target.value.length <= 300) setInput(e.target.value); }}
-                                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
-                                placeholder="Describe your business goal…&#10;e.g. Increase revenue by 20% this quarter"
-                                disabled={loading}
-                                rows={3}
-                                maxLength={300}
-                                aria-label="Business goal input"
-                            />
-                            {/* Example chips */}
-                            <div className="goal-chips">
-                                {EXAMPLE_GOALS.map((ex, i) => (
-                                    <button
-                                        key={i} className="goal-chip"
-                                        onClick={() => setInput(ex)}
-                                        disabled={loading}
-                                    >{ex}</button>
-                                ))}
+                        <div className="goal-panel" role="dialog" aria-label="Goal Strategy Engine" aria-modal="true">
+                            {/* Header */}
+                            <div className="goal-panel-header">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-sm text-violet-600">target</span>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-sm font-semibold text-slate-800">Goal Strategy Engine</h2>
+                                        <p className="text-[10px] text-slate-400">Prescriptive intelligence · Module 7</p>
+                                    </div>
+                                </div>
+                                <button onClick={onClose} className="ask-ai-close-btn" title="Close">
+                                    <span className="material-symbols-outlined text-sm">close</span>
+                                </button>
                             </div>
-                            <button
-                                className="goal-submit-btn"
-                                onClick={() => handleSubmit()}
-                                disabled={loading || !input.trim()}
-                                aria-label="Generate strategy"
-                            >
-                                {loading
-                                    ? <><span className="goal-btn-spinner" />Analyzing…</>
-                                    : <><span className="material-symbols-outlined text-sm">auto_fix_high</span>Generate Strategy</>
-                                }
-                            </button>
-                            {input.length > 250 && (
-                                <p className="text-[10px] text-amber-500 mt-1">{300 - input.length} characters remaining</p>
-                            )}
-                        </div>
-                    )}
 
-                    {/* Pipeline Progress */}
-                    {loading && stage && <PipelineProgress activeStage={stage} />}
-
-                    {/* Error */}
-                    {error && !loading && (
-                        <div className="goal-error-card">
-                            <span className="material-symbols-outlined text-sm text-rose-500">error</span>
-                            <p className="text-sm text-slate-700 flex-1">{error}</p>
-                            <button className="ask-ai-retry-btn" onClick={() => handleSubmit()}>Retry</button>
-                        </div>
-                    )}
-
-                    {/* Strategy Canvas */}
-                    {canvas && !loading && (
-                        <StrategyCanvasView canvas={canvas} onReset={() => { setCanvas(null); setError(null); }} />
-                    )}
-
-                    {/* Goal History */}
-                    {pastGoals.length > 0 && !loading && (
-                        <div className="goal-history">
-                            <button className="goal-history-toggle" onClick={() => setHistoryOpen(o => !o)}>
-                                <span className="material-symbols-outlined text-sm">history</span>
-                                Past Goals ({pastGoals.length})
-                                <span className="material-symbols-outlined text-sm ml-auto">
-                                    {historyOpen ? 'expand_less' : 'expand_more'}
-                                </span>
-                            </button>
-                            {historyOpen && (
-                                <ul className="goal-history-list">
-                                    {pastGoals.map(g => (
-                                        <li
-                                            key={g.id} className="goal-history-item"
-                                            role="button" tabIndex={0}
-                                            onClick={() => { if (g.generatedPlan) { setCanvas(g.generatedPlan); setHistoryOpen(false); } }}
-                                            onKeyDown={e => { if (e.key === 'Enter' && g.generatedPlan) { setCanvas(g.generatedPlan); setHistoryOpen(false); } }}
+                            {/* Body */}
+                            <div className="goal-panel-body">
+                                {/* Input area – always visible unless canvas is showing */}
+                                {!canvas && (
+                                    <div className="goal-input-area">
+                                        <textarea
+                                            ref={inputRef}
+                                            className="goal-input"
+                                            value={input}
+                                            onChange={e => { if (e.target.value.length <= 300) setInput(e.target.value); }}
+                                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
+                                            placeholder="Describe your business goal…&#10;e.g. Increase revenue by 20% this quarter"
+                                            disabled={loading}
+                                            rows={3}
+                                            maxLength={300}
+                                            aria-label="Business goal input"
+                                        />
+                                        {/* Example chips */}
+                                        <div className="goal-chips">
+                                            {EXAMPLE_GOALS.map((ex, i) => (
+                                                <button
+                                                    key={i} className="goal-chip"
+                                                    onClick={() => setInput(ex)}
+                                                    disabled={loading}
+                                                >{ex}</button>
+                                            ))}
+                                        </div>
+                                        <button
+                                            className="goal-submit-btn"
+                                            onClick={() => handleSubmit()}
+                                            disabled={loading || !input.trim()}
+                                            aria-label="Generate strategy"
                                         >
-                                            <span className="goal-history-query">{g.rawQuery}</span>
-                                            <span className="goal-history-date">{fmtDate(g.createdAt)}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
+                                            {loading
+                                                ? <><span className="goal-btn-spinner" />Analyzing…</>
+                                                : <><span className="material-symbols-outlined text-sm">auto_fix_high</span>Generate Strategy</>
+                                            }
+                                        </button>
+                                        {input.length > 250 && (
+                                            <p className="text-[10px] text-amber-500 mt-1">{300 - input.length} characters remaining</p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Pipeline Progress */}
+                                {loading && stage && <PipelineProgress activeStage={stage} />}
+
+                                {/* Error */}
+                                {error && !loading && (
+                                    <div className="goal-error-card">
+                                        <span className="material-symbols-outlined text-sm text-rose-500">error</span>
+                                        <p className="text-sm text-slate-700 flex-1">{error}</p>
+                                        <button className="ask-ai-retry-btn" onClick={() => handleSubmit()}>Retry</button>
+                                    </div>
+                                )}
+
+                                {/* Strategy Canvas */}
+                                {canvas && !loading && (
+                                    <StrategyCanvasView canvas={canvas} onReset={() => { setCanvas(null); setError(null); }} onRefine={() => { }} onViewDoc={() => setIsDocView(true)} />
+                                )}
+
+                                {/* Goal History */}
+                                {pastGoals.length > 0 && !loading && (
+                                    <div className="goal-history">
+                                        <button className="goal-history-toggle" onClick={() => setHistoryOpen(o => !o)}>
+                                            <span className="material-symbols-outlined text-sm">history</span>
+                                            Past Goals ({pastGoals.length})
+                                            <span className="material-symbols-outlined text-sm ml-auto">
+                                                {historyOpen ? 'expand_less' : 'expand_more'}
+                                            </span>
+                                        </button>
+                                        {historyOpen && (
+                                            <ul className="goal-history-list">
+                                                {pastGoals.map(g => (
+                                                    <li
+                                                        key={g.id} className="goal-history-item"
+                                                        role="button" tabIndex={0}
+                                                        onClick={() => { if (g.generatedPlan) { setCanvas(g.generatedPlan); setHistoryOpen(false); } }}
+                                                        onKeyDown={e => { if (e.key === 'Enter' && g.generatedPlan) { setCanvas(g.generatedPlan); setHistoryOpen(false); } }}
+                                                    >
+                                                        <span className="goal-history-query">{g.rawQuery}</span>
+                                                        <span className="goal-history-date">{fmtDate(g.createdAt)}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    )}
-                </div>
-            </div>
-        </>
-    );
+                    </>
+                    );
 }

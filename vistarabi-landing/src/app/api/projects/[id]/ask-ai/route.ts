@@ -68,7 +68,7 @@ function fuzzyMatchKPI(query: string, kpiName: string): number {
 
 // ─── Intent Classification ────────────────────────────────────────────────────
 
-type QueryRoute = '6A' | '6B' | '6C' | '6E' | 'UNSUPPORTED';
+type QueryRoute = '6A' | '6B' | '6C' | '6E' | '7A' | 'UNSUPPORTED';
 
 const COMMAND_PATTERNS = [
     /\b(show|add|create|remove|delete|update|build|make|put|new|generate)\b.*\b(card|chart|kpi|metric)\b/i,
@@ -103,6 +103,11 @@ const TREND_PATTERNS = [
     /\b(growth|trajectory|direction)\b/i
 ];
 
+const GOAL_PATTERNS = [
+    /\b(increase|reduce|decrease|grow|boost|improve|maximize|minimize|optimize)\b.*\b(by|to|in|for|before|over)\b/i,
+    /\b(set a goal|target)\b/i
+];
+
 // New deterministic scalar query patterns
 const SCALAR_PATTERNS = [
     /\b(what is|what are|what was|what's|whats|whais|wha is|how much|give me|show me|value of|total|current|number of|count of)\b/i,
@@ -113,6 +118,7 @@ const SCALAR_PATTERNS = [
 
 function classifyRoute(message: string): QueryRoute | 'KPI_VALUE_QUERY' | 'TREND_ANALYSIS' | 'COMPARISON_ANALYSIS' | 'CONTEXTUAL_EXPLANATION' | 'UNSUPPORTED' | 'UNSUPPORTED_SCOPE' {
     if (COMMAND_PATTERNS.some(p => p.test(message))) return '6A';
+    if (GOAL_PATTERNS.some(p => p.test(message))) return '7A';
     if (TREND_PATTERNS.some(p => p.test(message))) return 'TREND_ANALYSIS';
     if (COMPARISON_PATTERNS.some(p => p.test(message))) return 'COMPARISON_ANALYSIS';
 
@@ -406,6 +412,19 @@ export async function POST(
                     const { getLatestEvidencePackets } = await import('@/lib/module-6/synthesis/packet-loader');
                     const { events, correlations } = await getLatestEvidencePackets(projectId);
                     result = (await handleSynthesisQuery(projectId, events, correlations, sanitized)) as unknown as Record<string, unknown>;
+                    break;
+                }
+                case '7A': {
+                    // For Module 7 Goal strategies, we can return a directive for the client to open the Goal panel
+                    // or trigger the Module 7 API directly. For now, we will return a directive.
+                    result = {
+                        status: 'success',
+                        route: '7A',
+                        directive: 'OPEN_GOAL_ENGINE',
+                        message: "I've routed this to the Goal Strategy Engine.",
+                        confidence: 'deterministic'
+                    };
+                    updateSessionMemory(sessionId, { lastIntent: 'goal_generation' });
                     break;
                 }
                 case 'TREND_ANALYSIS': {

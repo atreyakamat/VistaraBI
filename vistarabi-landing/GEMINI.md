@@ -7,9 +7,9 @@ This document provides essential context and instructions for AI agents working 
 **VistaraBI** is an intelligent business analytics platform designed to transform raw data files (CSV, JSON, XML, etc.) into actionable insights. It combines rule-based data detection, AI-driven semantic reasoning, and human governance.
 
 ### Core Tech Stack
-- **Frontend**: Next.js 16 (App Router), React 19, TailwindCSS 4, Framer Motion.
-- **Backend**: Next.js API Routes, TypeScript.
-- **Database**: PostgreSQL with Prisma ORM.
+- **Frontend**: Next.js 16.1 (App Router), React 19.2, TailwindCSS 4.0, Framer Motion.
+- **Backend**: Next.js API Routes, TypeScript 5.x.
+- **Database**: PostgreSQL with Prisma ORM 5.10.
 - **AI**: Local Ollama integration (typically `qwen3:0.6b`) for privacy-first semantic reasoning.
 - **Testing**: Vitest for unit/integration testing.
 
@@ -21,6 +21,21 @@ The project follows a modular evolution:
 - **Module 4**: KPI Engine & Data Lineage.
 - **Module 5**: Analytics, Dashboards & Forecasting.
 - **Module 6**: AI Command Execution & Governance.
+- **Module 7**: Goal Strategy Engine (Prescriptive Intelligence).
+
+---
+
+## 🤖 SAM (Smart Agent Manager)
+
+**SAM** is the autonomous TDD (Test-Driven Development) orchestration system used to develop VistaraBI. It coordinates a team of specialized AI agents:
+- **Atlas (Architect)**: Validates PRDs and technical feasibility.
+- **Titan (Test Architect)**: Writes failing tests (RED phase).
+- **Dyna (Developer)**: Writes minimal code to pass tests (GREEN phase).
+- **Argus (Reviewer)**: Improves code quality (REFACTOR phase).
+
+### SAM Commands
+- `npx sam-agents`: Launch the SAM interactive installer/updater.
+- `activate_skill('sam-orchestrator')`: (Gemini CLI) Start the TDD pipeline.
 
 ---
 
@@ -71,10 +86,11 @@ The project follows a modular evolution:
 ## ⚠️ Current Challenges & Refactoring Goals
 
 Refer to `CODEBASE_AUDIT_AND_REFACTORING_PLAN.md` for detailed technical debt status.
-1. **Type Drift**: Manually maintained interfaces for JSON columns need transition to Zod-backed validation.
-2. **Test Decoupling**: Many tests currently fail if a live database is not present; these need refactoring to use isolated mocks.
-3. **AI Pipeline Consolidation**: Module 6 is currently fragmented and needs unification into a cohesive pipeline.
-4. **KPI Registry Scalability**: Transitioning from a static registry to a more dynamic, configuration-driven model.
+1. **Type Drift**: Manually maintained interfaces for JSON columns need transition to Zod-backed validation (Zod 4.x).
+2. **Test Decoupling**: Many tests currently fail if a live database is not present; these need refactoring to use isolated mocks via `vitest-mock-extended`.
+3. **AI Pipeline Consolidation**: Module 6 is currently fragmented across multiple sub-directories and needs unification into a cohesive pipeline.
+4. **KPI Registry Scalability**: Transitioning from a static registry to a database-driven, configuration-driven model.
+5. **Eliminating `any`**: Refactoring critical data-processing layers (`src/lib/execution`) to remove remaining `any` types.
 
 ---
 
@@ -82,10 +98,12 @@ Refer to `CODEBASE_AUDIT_AND_REFACTORING_PLAN.md` for detailed technical debt st
 
 - `src/app/`: Next.js App Router pages and API routes.
 - `src/lib/`: Core business logic, split by module and functionality.
+  - `src/lib/module-7/`: Goal Strategy Engine logic.
 - `prisma/schema.prisma`: The source of truth for the data model.
 - `tests/`: Comprehensive testing suites.
+- `_sam/`: SAM Agent definitions and TDD workflows.
 - `README.md`: High-level project summary and quick start.
-- `MODULE_X_COMPLETE.md`: Technical documentation for specific completed modules.
+- `MODULE_7_ARCHITECTURE.md`: Technical documentation for the prescriptive intelligence layer.
 
 ---
 

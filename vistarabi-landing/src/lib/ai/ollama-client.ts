@@ -1,8 +1,8 @@
 // Ollama Client for AI Semantic Reasoning
-// Uses locally hosted Ollama with qwen2.5:3b model
+// Uses locally hosted Ollama with qwen3:0.6b model
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:3b';
+const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3:0.6b';
 
 export interface OllamaMessage {
     role: 'system' | 'user' | 'assistant';

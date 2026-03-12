@@ -40,9 +40,13 @@ describe('Module 7: Ollama Integration Backend Test', () => {
             ok: true,
             status: 200,
             json: async () => mockResponse,
+            text: async () => JSON.stringify(mockResponse),
         });
 
-        const result = await generateCompletion('How to increase revenue?', 'saas');
+        const result = await generateCompletion({
+            prompt: 'How to increase revenue?',
+            temperature: 0.7
+        });
         
         expect(result).toContain('Increase marketing spend');
         expect(fetch).toHaveBeenCalledWith(
@@ -54,13 +58,16 @@ describe('Module 7: Ollama Integration Backend Test', () => {
         );
     });
 
-    it('should return null or fallback when Ollama fails during generation', async () => {
+    it('should throw an error when Ollama fails during generation after retries', async () => {
         (fetch as any).mockResolvedValue({
             ok: false,
             status: 500,
+            text: async () => 'Internal Server Error',
         });
 
-        const result = await generateCompletion('Test query', 'retail');
-        expect(result).toBeNull();
+        // generateCompletion throws after maxRetries
+        await expect(generateCompletion({
+            prompt: 'Test query'
+        })).rejects.toThrow(/Ollama generate failed: 500/);
     });
 });

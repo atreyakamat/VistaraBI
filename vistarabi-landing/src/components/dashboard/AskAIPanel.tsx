@@ -72,11 +72,17 @@ type ChatContent = ChatContentBase & (
         message: string;
         options: Array<{ id: string; name: string }>;
     }
+    | {
+        type: 'directive';
+        directive: string;
+        message: string;
+    }
 );
 
 interface AskAIPanelProps {
     projectId: string;
     onCommandSuccess?: () => void;  // Called when 6A creates a card → trigger dashboard refresh
+    onOpenGoalEngine?: (query: string) => void;  // Called when 7A requires goal engine to open
     isOpen: boolean;
     onClose: () => void;
 }
@@ -88,7 +94,15 @@ function genId() {
 }
 
 function parseResponse(data: any): ChatContent {
-    const { route, status } = data;
+    const { route, status, directive } = data;
+
+    if (directive === 'OPEN_GOAL_ENGINE') {
+        return {
+            type: 'directive',
+            directive: data.directive,
+            message: data.message || "I've routed this to the Goal Strategy Engine.",
+        };
+    }
 
     if (status === 'suppressed') {
         return {
@@ -503,6 +517,20 @@ function ClarificationCard({ c, onSelect }: { c: Extract<ChatContent, { type: 'c
     );
 }
 
+function DirectiveCard({ c }: { c: Extract<ChatContent, { type: 'directive' }> }) {
+    return (
+        <div className="ask-ai-insight-card p-4 rounded-xl border border-indigo-100 bg-white shadow-sm w-full max-w-sm">
+            <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-outlined text-indigo-600 text-lg">route</span>
+                <h3 className="text-sm font-bold text-slate-800">Routing Request</h3>
+            </div>
+            <p className="text-sm text-slate-600">
+                {c.message}
+            </p>
+        </div>
+    );
+}
+
 function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?: () => void; onClarify?: (name: string) => void }) {
     const isUser = msg.role === 'user';
     const c = msg.content;
@@ -534,6 +562,7 @@ function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?
                     {c.type === 'trend_analysis' && <TrendCard c={c} />}
                     {c.type === 'comparison' && <ComparisonCard c={c} />}
                     {c.type === 'clarification' && <ClarificationCard c={c} onSelect={onClarify || (() => { })} />}
+                    {c.type === 'directive' && <DirectiveCard c={c} />}
                     <span className="text-[10px] text-slate-400 mt-1 block">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -545,7 +574,7 @@ function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
-export function AskAIPanel({ projectId, onCommandSuccess, isOpen, onClose }: AskAIPanelProps) {
+export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, isOpen, onClose }: AskAIPanelProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: genId(),
@@ -627,6 +656,13 @@ export function AskAIPanel({ projectId, onCommandSuccess, isOpen, onClose }: Ask
             // Trigger dashboard refresh on successful 6A command
             if (content.type === 'command' && content.requiresRefresh) {
                 onCommandSuccess?.();
+            }
+
+            // Trigger goal engine on 7A directive
+            if (content.type === 'directive' && content.directive === 'OPEN_GOAL_ENGINE') {
+                if (onOpenGoalEngine) {
+                    setTimeout(() => onOpenGoalEngine(messageText.trim()), 800); // slight delay for better UX
+                }
             }
         } catch {
             clearTimeout(clientTimeout);

@@ -1,6 +1,6 @@
 // src/lib/module-6f/orchestrator.ts
 
-export type IntentRoute = 'metric_retrieval' | 'trend_analysis' | 'comparison' | 'contextual_explanation' | 'correlation_analysis' | 'synthesis' | 'command' | 'unsupported';
+export type IntentRoute = 'metric_retrieval' | 'trend_analysis' | 'comparison' | 'contextual_explanation' | 'correlation_analysis' | 'synthesis' | 'command' | 'goal_generation' | 'unsupported';
 
 export interface ConversationMemory {
     sessionId: string;

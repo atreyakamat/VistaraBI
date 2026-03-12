@@ -61,6 +61,7 @@ export function DashboardShell({
     const [insightPanelOpen, setInsightPanelOpen] = useState(false);
     const [askAiOpen, setAskAiOpen] = useState(false);
     const [goalPanelOpen, setGoalPanelOpen] = useState(false);
+    const [goalQuery, setGoalQuery] = useState('');
     const [drillStack, setDrillStack] = useState<DrillState[]>([]);
     const [filters, setFilters] = useState<DashboardFilters>({
         granularity: 'monthly',
@@ -528,6 +529,7 @@ export function DashboardShell({
                 projectId={projectId}
                 isOpen={goalPanelOpen}
                 onClose={() => setGoalPanelOpen(false)}
+                initialQuery={goalQuery}
             />
 
             {/* Ask AI Panel */}
@@ -536,6 +538,11 @@ export function DashboardShell({
                 isOpen={askAiOpen}
                 onClose={() => setAskAiOpen(false)}
                 onCommandSuccess={onRefresh}
+                onOpenGoalEngine={(query) => {
+                    setGoalQuery(query);
+                    setAskAiOpen(false);
+                    setGoalPanelOpen(true);
+                }}
             />
 
             {/* Insight Panel (right sidebar overlay) */}
@@ -551,11 +558,12 @@ export function DashboardShell({
                 onClose={() => setInsightPanelOpen(false)}
             />
 
-            {/* Goal Strategy Panel — Module 7 */}
+            {/* Goal Strategy Panel */}
             <GoalStrategyPanel
                 projectId={projectId}
                 isOpen={goalPanelOpen}
                 onClose={() => setGoalPanelOpen(false)}
+                initialQuery={goalQuery}
             />
         </div>
     );
