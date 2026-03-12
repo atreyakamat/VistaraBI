@@ -246,25 +246,34 @@ export async function generateKPISuggestions(
     model?: string
 ): Promise<{ name: string; formula: string; category: string; explanation: string }[]> {
 
-    // Use the provided model or fall back to qwen3:4b (needs 4B+ params for reliable JSON output)
-    const kpiModel = model || 'qwen3:4b';
+    // Use the provided model or fall back to qwen3:0.6b
+    const kpiModel = model || 'qwen3:0.6b';
 
     // Build a simple, clear prompt that works well with small models
     const columnList = columns.slice(0, 15).join(', ');
     const sampleJson = JSON.stringify(sampleRows.slice(0, 5));
 
-    const prompt = `You are a data analyst. Given these columns: ${columnList}
+    const prompt = `Task: Act as a data analyst. Generate exactly 3-5 KPIs for a business in the ${domain} domain.
 
-Sample rows: ${sampleJson}
+Input Columns: ${columnList}
+Sample Data: ${sampleJson}
 
-Business domain: ${domain}
+Constraints:
+1. Use ONLY the column names provided above in the formula.
+2. Formulas must use SQL-like aggregations: SUM(col), AVG(col), COUNT(col).
+3. Response MUST be a valid JSON array of objects.
 
-Generate 5 KPIs. Each KPI MUST use only the exact column names listed above.
+Output format:
+[
+  {
+    "name": "KPI Name",
+    "formula": "SUM(column_name)",
+    "category": "category",
+    "explanation": "why this matters"
+  }
+]
 
-Respond ONLY with a JSON array, no other text:
-[{"name": "Total Revenue", "formula": "SUM(order_value)", "category": "revenue", "explanation": "Total revenue across all orders"}]
-
-JSON array:`;
+JSON Array:`;
 
     console.log('[Ollama-KPI] Generating KPI suggestions with model:', kpiModel);
 

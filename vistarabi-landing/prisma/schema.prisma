@@ -7,7 +7,449 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  projects  Project[]
+}
+
+model Project {
+  id                    String                @id @default(uuid())
+  userId                String
+  name                  String
+  description           String?
+  createdAt             DateTime              @default(now())
+  aiDomainReasoning     AIDomainReasoning?
+  aiKpiProposals        AIKpiProposal[]
+  dashboardConfig       DashboardConfig?
+  dashboardState        DashboardState?
+  dataLineage           DataLineage?
+  domainDetection       DomainDetection?
+  domainGovernance      DomainGovernance?
+  domainHistories       DomainHistory[]
+  kpiBlueprint          KPIBlueprint?
+  kpiBlueprintHistories KPIBlueprintHistory[]
+  kpiDiscovery          KPIDiscovery?
+  kpiLineageRegistry    KPILineageRegistry?
+  user                  User                  @relation(fields: [userId], references: [id])
+  projectGoals          ProjectGoal[]
+  relationships         Relationship[]
+  relationshipRegistry  RelationshipRegistry?
+  sources               Source[]
+}
+
+model Source {
+  id                   String                @id @default(uuid())
+  projectId            String
+  fileName             String
+  fileType             String
+  status               SourceStatus          @default(PENDING)
+  rowCount             Int                   @default(0)
+  colCount             Int                   @default(0)
+  columns              String[]
+  data                 Json
+  qualityScore         QualityScore?
+  error                String?
+  uploadedAt           DateTime              @default(now())
+  cleanedDataset       CleanedDataset?
+  cleaningLog          CleaningLog?
+  columnHealths        ColumnHealth[]
+  columnMetas          ColumnMeta[]
+  outlierRecords       OutlierRecord[]
+  qualityIntelligence  QualityIntelligence?
+  project              Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  transformationAudits TransformationAudit[]
+}
+
+model ColumnMeta {
+  id             String   @id @default(uuid())
+  sourceId       String
+  originalName   String
+  normalizedName String
+  dataType       DataType
+  nullPercent    Float
+  uniquePercent  Float
+  sampleValues   Json
+  source         Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+model Relationship {
+  id          String  @id @default(uuid())
+  projectId   String
+  sourceAId   String
+  sourceBId   String
+  sourceAName String
+  sourceBName String
+  columnA     String
+  columnB     String
+  confidence  Float
+  matchType   String
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model CleanedDataset {
+  id              String         @id @default(uuid())
+  sourceId        String         @unique
+  cleanedData     Json
+  cleanedRowCount Int
+  cleanedColCount Int
+  cleanedColumns  String[]
+  status          CleaningStatus
+  error           String?
+  cleanedAt       DateTime       @default(now())
+  source          Source         @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+model CleaningLog {
+  id                   String   @id @default(uuid())
+  sourceId             String   @unique
+  nullsFilled          Int
+  duplicatesRemoved    Int
+  datesNormalized      Int
+  currenciesNormalized Int
+  textsStandardized    Int
+  emptyColumnsRemoved  Int
+  originalRowCount     Int
+  cleanedRowCount      Int
+  createdAt            DateTime @default(now())
+  source               Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+model QualityIntelligence {
+  id                String       @id @default(uuid())
+  sourceId          String       @unique
+  overallGrade      QualityGrade
+  completenessScore Float
+  consistencyScore  Float
+  accuracyScore     Float
+  riskLevel         RiskLevel
+  totalRecords      Int
+  healthyRecords    Int
+  riskyRecords      Int
+  calculatedAt      DateTime     @default(now())
+  source            Source       @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+model ColumnHealth {
+  id           String       @id @default(uuid())
+  sourceId     String
+  columnName   String
+  healthStatus HealthStatus
+  completeness Float
+  consistency  Float
+  outlierCount Int
+  uniqueness   Float
+  issues       String[]
+  source       Source       @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+model OutlierRecord {
+  id              String  @id @default(uuid())
+  sourceId        String
+  columnName      String
+  rowIndex        Int
+  value           Json
+  detectionMethod String
+  severity        String
+  expectedRange   String?
+  source          Source  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+model TransformationAudit {
+  id                 String   @id @default(uuid())
+  sourceId           String
+  transformationType String
+  affectedColumn     String?
+  affectedRowCount   Int
+  beforeValue        String?
+  afterValue         String?
+  timestamp          DateTime @default(now())
+  source             Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+model DomainDetection {
+  id               String       @id @default(uuid())
+  projectId        String       @unique
+  detectedDomain   DomainType?
+  confidence       Float
+  status           DomainStatus
+  scoringBreakdown Json
+  matchedColumns   String[]
+  explanation      String
+  detectedAt       DateTime     @default(now())
+  project          Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model DomainGovernance {
+  id               String           @id @default(uuid())
+  projectId        String           @unique
+  activeDomain     DomainType?
+  governanceStatus GovernanceStatus
+  isLocked         Boolean
+  version          Int
+  changedBy        String
+  changeReason     String
+  lastUpdated      DateTime         @default(now())
+  project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model DomainHistory {
+  id             String           @id @default(uuid())
+  projectId      String
+  version        Int
+  previousDomain DomainType?
+  newDomain      DomainType?
+  previousStatus GovernanceStatus
+  newStatus      GovernanceStatus
+  changedBy      String
+  changeReason   String
+  confidence     Float
+  changedAt      DateTime         @default(now())
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AIDomainReasoning {
+  id                      String      @id @default(uuid())
+  projectId               String      @unique
+  ruleBasedDomain         DomainType?
+  ruleBasedConfidence     Float
+  matchedColumns          String[]
+  unmatchedColumns        String[]
+  aiRecommendedDomain     DomainType?
+  aiSemanticConfidence    Float
+  aiAlternativeDomain     DomainType?
+  aiAlternativeConfidence Float
+  aiReasoning             String
+  aiSemanticSignals       String[]
+  aiColumnInsights        String
+  combinedConfidence      Float
+  finalDomain             DomainType?
+  wasAutoAssigned         Boolean
+  ollamaModel             String
+  processingTimeMs        Int
+  createdAt               DateTime    @default(now())
+  project                 Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model KPIDiscovery {
+  id                String     @id @default(uuid())
+  projectId         String     @unique
+  domain            DomainType
+  totalKPIsAnalyzed Int
+  computableKPIs    Json[]
+  partialKPIs       Json[]
+  availableColumns  String[]
+  sampleData        Json?
+  discoveredAt      DateTime   @default(now())
+  project           Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model KPIBlueprint {
+  id        String        @id @default(uuid())
+  projectId String        @unique
+  domain    String        @default("GENERAL")
+  version   Int           @default(1)
+  isLocked  Boolean       @default(false)
+  lockedAt  DateTime?
+  lockedBy  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  kpis      ApprovedKPI[]
+  project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model ApprovedKPI {
+  id           String              @id @default(uuid())
+  blueprintId  String
+  kpiLibraryId String?
+  name         String
+  description  String?
+  sourceTable  String
+  category     String              @default("general")
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  unit         String?
+  aggregations AggregationRule[]
+  blueprint    KPIBlueprint        @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  groupBys     GroupByDefinition[]
+  lineage      LineageDefinition?
+
+  @@index([blueprintId])
+  @@index([kpiLibraryId])
+}
+
+model AggregationRule {
+  id       String              @id @default(uuid())
+  kpiId    String
+  function AggregationFunction
+  column   String
+  kpi      ApprovedKPI         @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  @@index([kpiId])
+}
+
+model GroupByDefinition {
+  id     String      @id @default(uuid())
+  kpiId  String
+  column String
+  kpi    ApprovedKPI @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  @@index([kpiId])
+}
+
+model LineageDefinition {
+  id      String      @id @default(uuid())
+  kpiId   String      @unique
+  formula String
+  tables  Json
+  joins   Json
+  kpi     ApprovedKPI @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+}
+
+model KPIBlueprintHistory {
+  id        String   @id @default(uuid())
+  projectId String
+  version   Int
+  action    String
+  kpiId     String
+  kpiName   String
+  changedBy String
+  changedAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AIKpiProposal {
+  id              String    @id @default(uuid())
+  projectId       String
+  kpiName         String
+  formula         String
+  rationale       String
+  confidenceScore Float
+  proposedAt      DateTime  @default(now())
+  status          String
+  metadata        Json?
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model DataLineage {
+  id          String   @id @default(uuid())
+  projectId   String   @unique
+  entityGraph Json
+  kpiLineages Json
+  generatedAt DateTime @default(now())
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model RelationshipRegistry {
+  id          String   @id @default(uuid())
+  projectId   String   @unique
+  entries     Json
+  generatedAt DateTime @default(now())
+  version     Int
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model KPILineageRegistry {
+  id          String   @id @default(uuid())
+  projectId   String   @unique
+  entries     Json
+  generatedAt DateTime @default(now())
+  version     Int
+  stats       Json
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model DashboardConfig {
+  id            String   @id @default(uuid())
+  projectId     String   @unique
+  sections      Json
+  sidebarConfig Json
+  metadata      Json
+  version       Int
+  generatedAt   DateTime @default(now())
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model DashboardState {
+  id            String          @id @default(uuid())
+  projectId     String          @unique
+  domain        String
+  version       Int             @default(1)
+  globalFilters Json
+  granularity   String          @default("monthly")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  cards         DashboardCard[]
+  project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model DashboardCard {
+  id              String         @id @default(uuid())
+  stateId         String
+  kpiId           String
+  kpiName         String
+  chartType       String
+  cardSize        String         @default("md")
+  position        Int
+  colSpan         Int            @default(1)
+  rowSpan         Int            @default(1)
+  groupBy         String?
+  filterOverrides Json
+  comparisonMode  String?
+  isPinned        Boolean        @default(false)
+  isAIGenerated   Boolean        @default(false)
+  isDrillDown     Boolean        @default(false)
+  parentCardId    String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  state           DashboardState @relation(fields: [stateId], references: [id], onDelete: Cascade)
+
+  @@index([stateId])
+  @@index([kpiId])
+}
+
+model AuditLog {
+  id                     String   @id @default(uuid())
+  sessionId              String
+  userId                 String?
+  intentId               String   @unique
+  rawUserQuery           String
+  normalizedUserQuery    String
+  llmRawOutput           String?
+  validationStagesPassed Int      @default(0)
+  validationFailedAt     String?
+  structuredCommand      Json?
+  executionStatus        String
+  errorCode              String?
+  createdAt              DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([intentId])
+  @@index([createdAt])
+}
+
+model ProjectGoal {
+  id            String   @id @default(uuid())
+  projectId     String
+  rawQuery      String
+  targetKpiId   String?
+  targetValue   String
+  timeframe     String
+  generatedPlan Json
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
 enum SourceStatus {
   PENDING
   PROCESSING
@@ -105,472 +547,3 @@ enum AggregationFunction {
   MIN
   MAX
 }
-
-// Models
-
-model User {
-  id        String    @id @default(uuid())
-  name      String
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  projects  Project[]
-}
-
-model Project {
-  id                      String                  @id @default(uuid())
-  userId                  String
-  user                    User                    @relation(fields: [userId], references: [id])
-  name                    String
-  description             String?
-  createdAt               DateTime                @default(now())
-  
-  // Relations
-  sources                 Source[]
-  relationships           Relationship[]          // Legacy relationships
-  domainDetection         DomainDetection?
-  domainGovernance        DomainGovernance?
-  aiDomainReasoning       AIDomainReasoning?
-  kpiDiscovery            KPIDiscovery?
-  kpiBlueprint            KPIBlueprint?
-  dataLineage             DataLineage?
-  relationshipRegistry    RelationshipRegistry?
-  kpiLineageRegistry      KPILineageRegistry?
-  dashboardConfig         DashboardConfig?
-  dashboardState          DashboardState?
-  
-  domainHistories         DomainHistory[]
-  kpiBlueprintHistories   KPIBlueprintHistory[]
-  aiKpiProposals          AIKpiProposal[]
-  projectGoals            ProjectGoal[]
-}
-
-model Source {
-  id              String                @id @default(uuid())
-  projectId       String
-  project         Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  fileName        String
-  fileType        String
-  status          SourceStatus          @default(PENDING)
-  rowCount        Int                   @default(0)
-  colCount        Int                   @default(0)
-  columns         String[]              // Array of strings
-  data            Json                  // Storing raw data rows as JSON array
-  qualityScore    QualityScore?
-  error           String?
-  uploadedAt      DateTime              @default(now())
-
-  // Relations
-  columnMetas     ColumnMeta[]
-  cleanedDataset  CleanedDataset?
-  cleaningLog     CleaningLog?
-  qualityIntelligence QualityIntelligence?
-  columnHealths   ColumnHealth[]
-  outlierRecords  OutlierRecord[]
-  transformationAudits TransformationAudit[]
-}
-
-model ColumnMeta {
-  id              String      @id @default(uuid())
-  sourceId        String
-  source          Source      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  originalName    String
-  normalizedName  String
-  dataType        DataType
-  nullPercent     Float
-  uniquePercent   Float
-  sampleValues    Json        // Array of sample values
-}
-
-// Legacy Relationship Model
-model Relationship {
-  id              String      @id @default(uuid())
-  projectId       String
-  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  sourceAId       String
-  sourceBId       String
-  sourceAName     String
-  sourceBName     String
-  columnA         String
-  columnB         String
-  confidence      Float
-  matchType       String
-}
-
-model CleanedDataset {
-  id              String      @id @default(uuid())
-  sourceId        String      @unique
-  source          Source      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  cleanedData     Json        // Array of cleaned rows
-  cleanedRowCount Int
-  cleanedColCount Int
-  cleanedColumns  String[]
-  status          CleaningStatus
-  error           String?
-  cleanedAt       DateTime    @default(now())
-}
-
-model CleaningLog {
-  id                  String      @id @default(uuid())
-  sourceId            String      @unique
-  source              Source      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  nullsFilled         Int
-  duplicatesRemoved   Int
-  datesNormalized     Int
-  currenciesNormalized Int
-  textsStandardized   Int
-  emptyColumnsRemoved Int
-  originalRowCount    Int
-  cleanedRowCount     Int
-  createdAt           DateTime    @default(now())
-}
-
-model QualityIntelligence {
-  id                  String      @id @default(uuid())
-  sourceId            String      @unique
-  source              Source      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  overallGrade        QualityGrade
-  completenessScore   Float
-  consistencyScore    Float
-  accuracyScore       Float
-  riskLevel           RiskLevel
-  totalRecords        Int
-  healthyRecords      Int
-  riskyRecords        Int
-  calculatedAt        DateTime    @default(now())
-}
-
-model ColumnHealth {
-  id              String      @id @default(uuid())
-  sourceId        String
-  source          Source      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  columnName      String
-  healthStatus    HealthStatus
-  completeness    Float
-  consistency     Float
-  outlierCount    Int
-  uniqueness      Float
-  issues          String[]
-}
-
-model OutlierRecord {
-  id              String      @id @default(uuid())
-  sourceId        String
-  source          Source      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  columnName      String
-  rowIndex        Int
-  value           Json        // Can be string, number, etc.
-  detectionMethod String      // 'IQR' | 'Z_SCORE'
-  severity        String      // 'MILD' | 'MODERATE' | 'EXTREME'
-  expectedRange   String?
-}
-
-model TransformationAudit {
-  id                  String      @id @default(uuid())
-  sourceId            String
-  source              Source      @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  transformationType  String
-  affectedColumn      String?
-  affectedRowCount    Int
-  beforeValue         String?
-  afterValue          String?
-  timestamp           DateTime    @default(now())
-}
-
-// Module 3: Domain models
-
-model DomainDetection {
-  id                  String      @id @default(uuid())
-  projectId           String      @unique
-  project             Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  detectedDomain      DomainType?
-  confidence          Float
-  status              DomainStatus
-  scoringBreakdown    Json        // Record<DomainType, number>
-  matchedColumns      String[]
-  explanation         String
-  detectedAt          DateTime    @default(now())
-}
-
-model DomainGovernance {
-  id                  String      @id @default(uuid())
-  projectId           String      @unique
-  project             Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  activeDomain        DomainType?
-  governanceStatus    GovernanceStatus
-  isLocked            Boolean
-  version             Int
-  changedBy           String
-  changeReason        String
-  lastUpdated         DateTime    @default(now())
-}
-
-model DomainHistory {
-  id                  String      @id @default(uuid())
-  projectId           String
-  project             Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  version             Int
-  previousDomain      DomainType?
-  newDomain           DomainType?
-  previousStatus      GovernanceStatus
-  newStatus           GovernanceStatus
-  changedBy           String
-  changeReason        String
-  confidence          Float
-  changedAt           DateTime    @default(now())
-}
-
-model AIDomainReasoning {
-  id                      String      @id @default(uuid())
-  projectId               String      @unique
-  project                 Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  ruleBasedDomain         DomainType?
-  ruleBasedConfidence     Float
-  matchedColumns          String[]
-  unmatchedColumns        String[]
-  aiRecommendedDomain     DomainType?
-  aiSemanticConfidence    Float
-  aiAlternativeDomain     DomainType?
-  aiAlternativeConfidence Float
-  aiReasoning             String
-  aiSemanticSignals       String[]
-  aiColumnInsights        String
-  combinedConfidence      Float
-  finalDomain             DomainType?
-  wasAutoAssigned         Boolean
-  ollamaModel             String
-  processingTimeMs        Int
-  createdAt               DateTime    @default(now())
-}
-
-// Module 4: KPI & Lineage models
-
-model KPIDiscovery {
-  id                  String      @id @default(uuid())  // Added ID for Prisma
-  projectId           String      @unique
-  project             Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  domain              DomainType
-  totalKPIsAnalyzed   Int
-  computableKPIs      Json[]      // Array of KPI objects
-  partialKPIs         Json[]      // Array of KPI objects
-  availableColumns    String[]    // List of all columns analyzed
-  sampleData          Json?       // Sample rows from the source
-  discoveredAt        DateTime    @default(now())
-}
-
-model KPIBlueprint {
-  id              String        @id @default(uuid())
-  projectId       String        @unique
-  domain          String        @default("GENERAL")
-  version         Int           @default(1)
-  isLocked        Boolean       @default(false)
-  lockedAt        DateTime?
-  lockedBy        String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  kpis            ApprovedKPI[]
-
-  @@index([projectId])
-}
-
-model ApprovedKPI {
-  id            String              @id @default(uuid())
-  blueprintId   String
-  kpiLibraryId  String?             // Reference to the domain KPI definition (e.g. 'ec-001')
-  name          String
-  description   String?
-  sourceTable   String
-  category      String              @default("general")
-  unit          String?             // R3: e.g. "currency", "count", "ratio", "percent", "days"
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-
-  blueprint     KPIBlueprint        @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
-  aggregations  AggregationRule[]
-  groupBys      GroupByDefinition[]
-  lineage       LineageDefinition?
-
-  @@index([blueprintId])
-  @@index([kpiLibraryId])
-}
-
-model AggregationRule {
-  id          String              @id @default(uuid())
-  kpiId       String
-  function    AggregationFunction
-  column      String
-
-  kpi         ApprovedKPI         @relation(fields: [kpiId], references: [id], onDelete: Cascade)
-
-  @@index([kpiId])
-}
-
-model GroupByDefinition {
-  id        String      @id @default(uuid())
-  kpiId     String
-  column    String
-
-  kpi       ApprovedKPI @relation(fields: [kpiId], references: [id], onDelete: Cascade)
-
-  @@index([kpiId])
-}
-
-model LineageDefinition {
-  id        String      @id @default(uuid())
-  kpiId     String      @unique
-  formula   String
-  tables    Json        // String[]
-  joins     Json        // JoinPath[] — complex, kept as JSON
-
-  kpi       ApprovedKPI @relation(fields: [kpiId], references: [id], onDelete: Cascade)
-}
-
-model KPIBlueprintHistory {
-  id              String      @id @default(uuid())
-  projectId       String
-  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  version         Int
-  action          String      // 'ADD' | 'REMOVE' | 'LOCK'
-  kpiId           String
-  kpiName         String
-  changedBy       String
-  changedAt       DateTime    @default(now())
-}
-
-model AIKpiProposal {
-  id              String      @id @default(uuid())
-  projectId       String
-  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  kpiName         String
-  formula         String
-  rationale       String
-  confidenceScore Float
-  proposedAt      DateTime    @default(now())
-  status          String      // 'PENDING' | 'ACCEPTED' | 'REJECTED'
-  metadata        Json?       // Stores extra fields like category, contributingColumns, etc.
-  reviewedAt      DateTime?
-  reviewedBy      String?
-}
-
-model DataLineage {
-  id              String      @id @default(uuid())
-  projectId       String      @unique
-  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  entityGraph     Json        // EntityRelationshipGraph object
-  kpiLineages     Json        // KPILineage[] array
-  generatedAt     DateTime    @default(now())
-}
-
-model RelationshipRegistry {
-  id              String      @id @default(uuid())
-  projectId       String      @unique
-  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  entries         Json        // RelationshipEntry[] array
-  generatedAt     DateTime    @default(now())
-  version         Int
-}
-
-model KPILineageRegistry {
-  id              String      @id @default(uuid())
-  projectId       String      @unique
-  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  entries         Json        // KPILineageEntry[] array
-  generatedAt     DateTime    @default(now())
-  version         Int
-  stats           Json        // Statistics object
-}
-
-// Module 5: Dashboard models
-
-model DashboardConfig {
-  id              String      @id @default(uuid())
-  projectId       String      @unique
-  project         Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  sections        Json        // DashboardSection[] - KPI groupings
-  sidebarConfig   Json        // SidebarConfig - navigation structure
-  metadata        Json        // DashboardMetadata - domain, theme, version info
-  version         Int
-  generatedAt     DateTime    @default(now())
-}
-
-// Module 5.5 — Dashboard State (persisted, versioned)
-
-model DashboardState {
-  id              String          @id @default(uuid())
-  projectId       String          @unique
-  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  domain          String
-  version         Int             @default(1)
-  globalFilters   Json            // NormalizedFilter[] — business-resolved filters
-  granularity     String          @default("monthly")
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  cards           DashboardCard[]
-
-  @@index([projectId])
-}
-
-model DashboardCard {
-  id              String          @id @default(uuid())
-  stateId         String
-  state           DashboardState  @relation(fields: [stateId], references: [id], onDelete: Cascade)
-  kpiId           String          // kpiLibraryId (e.g. 'ec-001')
-  kpiName         String
-  chartType       String
-  cardSize        String          @default("md")
-  position        Int
-  colSpan         Int             @default(1)
-  rowSpan         Int             @default(1)
-  groupBy         String?
-  filterOverrides Json            // NormalizedFilter[]
-  comparisonMode  String?         // 'prev_period' | 'prev_year' | 'custom'
-  isPinned        Boolean         @default(false)
-  isAIGenerated   Boolean         @default(false)
-  isDrillDown     Boolean         @default(false)
-  parentCardId    String?         // Source card for drill-down
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-
-  @@index([stateId])
-  @@index([kpiId])
-}
-
-// Module 6A: Append-only audit log for every AI command attempt
-model AuditLog {
-  id                     String   @id @default(uuid())
-  sessionId              String
-  userId                 String?
-  intentId               String   @unique
-  rawUserQuery           String
-  normalizedUserQuery    String
-  llmRawOutput           String?
-  validationStagesPassed Int      @default(0)
-  validationFailedAt     String?  // e.g. "STAGE_3_DCO" or null if all passed
-  structuredCommand      Json?    // validated Module6Command, or null on rejection
-  executionStatus        String   // "success" | "rejected" | "already_processed" | "execution_failed"
-  errorCode              String?
-  createdAt              DateTime @default(now())
-
-  @@index([sessionId])
-  @@index([intentId])
-  @@index([createdAt])
-}
-
-// Module 7: Goal Engine
-model ProjectGoal {
-  id              String   @id @default(uuid())
-  projectId       String
-  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  rawQuery        String
-  targetKpiId     String?  // Links to ApprovedKPI
-  targetValue     String
-  timeframe       String
-  generatedPlan   Json     // Stores the 3x3 scenarios and actions
-  status          String   @default("ACTIVE") // ACTIVE, ACHIEVED, ABANDONED
-  createdAt       DateTime @default(now())
-}
-
-

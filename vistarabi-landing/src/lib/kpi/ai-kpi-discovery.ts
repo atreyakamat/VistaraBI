@@ -9,8 +9,8 @@ import { checkOllamaHealth, generateKPISuggestions } from '@/lib/ai/ollama-clien
 import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { getDerivedKPIsForDomain, checkDerivedKPIDependencies, type DerivedKPIDefinition } from './derived-kpi-library';
 
-// Model override for KPI discovery — needs at least 4B parameters to produce valid JSON
-const KPI_DISCOVERY_MODEL = 'qwen2.5:3b';
+// Model override for KPI discovery — using qwen3:0.6b as it is lightweight and recommended
+const KPI_DISCOVERY_MODEL = process.env.OLLAMA_MODEL || 'qwen3:0.6b';
 
 // AI KPI Proposal - invented KPIs suggested by AI
 export interface AIKPIProposal {
