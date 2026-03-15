@@ -54,19 +54,14 @@ export async function callLocalModel(
     temperature: number,
     modelId: string = LOCAL_MODEL_ID
 ): Promise<AdapterResponse> {
+    console.log(`[LocalAdapter] Enforcing cloud model. Pushing to Ollama cloud fallback (qwen3.5:397b-cloud) with 120s timeout...`);
+    
+    // Force use of Ollama cloud fallback exclusively
     try {
-        console.log(`[LocalAdapter] Attempting local model ${modelId} with 10s timeout...`);
-        return await _doCallLocalModel(systemPrompt, userMessage, temperature, modelId, 10000);
-    } catch (err: any) {
-        console.warn(`[LocalAdapter] Local model ${modelId} failed (${err.message}). Pushing to Ollama cloud fallback (qwen3.5:397b-cloud) with 120s timeout...`);
-        
-        // Push to Ollama cloud fallback
-        try {
-            return await _doCallLocalModel(systemPrompt, userMessage, temperature, 'qwen3.5:397b-cloud', 120000);
-        } catch (cloudErr: any) {
-            console.error(`[LocalAdapter] Ollama Cloud fallback also failed: ${cloudErr.message}`);
-            throw cloudErr;
-        }
+        return await _doCallLocalModel(systemPrompt, userMessage, temperature, 'qwen3.5:397b-cloud', 120000);
+    } catch (cloudErr: any) {
+        console.error(`[LocalAdapter] Ollama Cloud fallback failed: ${cloudErr.message}`);
+        throw cloudErr;
     }
 }
 

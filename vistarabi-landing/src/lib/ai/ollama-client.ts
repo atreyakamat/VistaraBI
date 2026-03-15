@@ -90,7 +90,7 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
 
     const modelsToTry = useCloud 
         ? [resolvedModel] // If we're strictly using OpenAI-compatible API, don't force 'qwen3.5:397b-cloud'
-        : Array.from(new Set([resolvedModel, 'qwen3.5:397b-cloud']));
+        : ['qwen3.5:397b-cloud']; // Force use of cloud fallback only
         
     const maxRetries = 1; // Since we fallback to the cloud model, 1 attempt each is fine
     let lastError: Error | null = null;
@@ -185,7 +185,7 @@ async function generateSimple(prompt: string, model: string, temperature: number
         return generateCompletion({ prompt, model, temperature });
     }
 
-    const modelsToTry = Array.from(new Set([model, 'qwen3.5:397b-cloud']));
+    const modelsToTry = ['qwen3.5:397b-cloud']; // Force use of cloud fallback only
     let lastError: Error | null = null;
 
     for (const currentModel of modelsToTry) {
