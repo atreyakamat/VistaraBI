@@ -1,6 +1,6 @@
-// Module 6D — Local Model Adapter (Ollama qwen3:8b)
-// Communicates with Ollama HTTP API.
-// Single attempt only — no retry.
+// Module 6D — Local Model Adapter (Ollama + Cloud Routing)
+// Communicates with Ollama HTTP API (Local or Cloud).
+// Attempts cloud first (if configured), falls back to local on failure.
 // Throws ModelCallError on timeout or API failure.
 
 import { ModelCallError, LOCAL_TIMEOUT_MS, MAX_TOKENS, LOCAL_MODEL_ID } from './types';
@@ -8,8 +8,16 @@ import type { AdapterResponse } from './types';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-function getOllamaBaseUrl(): string {
-    return (process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434').replace(/\/$/, '');
+function getLocalOllamaBaseUrl(): string {
+    return (process.env.OLLAMA_URL ?? 'http://localhost:11434').replace(/\/$/, '');
+}
+
+function getCloudConfig() {
+    return {
+        url: process.env.CLOUD_AI_BASE_URL?.replace(/\/$/, ''),
+        key: process.env.CLOUD_AI_API_KEY,
+        model: process.env.CLOUD_AI_MODEL ?? 'qwen3.5:397b-cloud'
+    };
 }
 
 // ─── Request Shape ────────────────────────────────────────────────────────────
@@ -36,43 +44,39 @@ interface OllamaGenerateResponse {
 // ─── Adapter ──────────────────────────────────────────────────────────────────
 
 /**
- * Call local Ollama qwen3:8b model.
- *
- * Rules:
- *  - Timeout: LOCAL_TIMEOUT_MS (500ms default)
- *  - Stream: always false (single response required)
- *  - Temperature: caller-specified (0.0 for INTENT_TRANSLATION, 0.1 for narration)
- *  - No retry — single attempt
- *
- * Throws ModelCallError on:
- *  - Network failure or Ollama not running → 'LOCAL_CALL_FAILED' (recoverable: false)
- *  - Timeout → 'LOCAL_TIMEOUT' (recoverable: true — user can retry later)
+ * Smart Router: Cloud First, Local Fallback
  */
 export async function callLocalModel(
     systemPrompt: string,
     userMessage: string,
     temperature: number,
-    modelId: string = LOCAL_MODEL_ID
+    localModelId: string = process.env.OLLAMA_MODEL || LOCAL_MODEL_ID
 ): Promise<AdapterResponse> {
-    console.log(`[LocalAdapter] Enforcing cloud model. Pushing to Ollama cloud fallback (qwen3.5:397b-cloud) with 120s timeout...`);
-    
-    // Force use of Ollama cloud fallback exclusively
-    try {
-        return await _doCallLocalModel(systemPrompt, userMessage, temperature, 'qwen3.5:397b-cloud', 120000);
-    } catch (cloudErr: any) {
-        console.error(`[LocalAdapter] Ollama Cloud fallback failed: ${cloudErr.message}`);
-        throw cloudErr;
+    const cloud = getCloudConfig();
+
+    if (cloud.url && cloud.key) {
+        console.log(`[AI Router] Attempting Cloud Model: ${cloud.model} at ${cloud.url}`);
+        try {
+            return await _doCallOllama(systemPrompt, userMessage, temperature, cloud.model, cloud.url, cloud.key, 120000);
+        } catch (cloudErr: any) {
+            console.warn(`[AI Router] Cloud model failed (${cloudErr.message}). Falling back to local...`);
+            // Fall through to local
+        }
     }
+
+    console.log(`[AI Router] Using Local Model: ${localModelId}`);
+    return await _doCallOllama(systemPrompt, userMessage, temperature, localModelId, getLocalOllamaBaseUrl(), undefined, 120000);
 }
 
-async function _doCallLocalModel(
+async function _doCallOllama(
     systemPrompt: string,
     userMessage: string,
     temperature: number,
     modelId: string,
-    timeoutMs: number
+    baseUrl: string,
+    apiKey?: string,
+    timeoutMs: number = 120000
 ): Promise<AdapterResponse> {
-    const baseUrl = getOllamaBaseUrl();
     const url = `${baseUrl}/api/generate`;
 
     const body = {
@@ -87,6 +91,14 @@ async function _doCallLocalModel(
         }
     };
 
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+    };
+
+    if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
     const controller = new AbortController();
     const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
     const startMs = Date.now();
@@ -95,7 +107,7 @@ async function _doCallLocalModel(
     try {
         res = await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify(body),
             signal: controller.signal,
         });
@@ -104,13 +116,13 @@ async function _doCallLocalModel(
         if (err.name === 'AbortError') {
             throw new ModelCallError(
                 'LOCAL_TIMEOUT',
-                `Ollama model ${modelId} timed out after ${timeoutMs}ms`,
-                true  // recoverable — user can retry
+                `Model ${modelId} timed out after ${timeoutMs}ms`,
+                true
             );
         }
         throw new ModelCallError(
             'LOCAL_CALL_FAILED',
-            `Ollama API call failed for ${modelId}: ${err.message ?? 'unknown error'}`,
+            `API call failed for ${modelId}: ${err.message ?? 'unknown error'}`,
             false
         );
     } finally {
@@ -123,7 +135,7 @@ async function _doCallLocalModel(
         const errorText = await res.text();
         throw new ModelCallError(
             'LOCAL_CALL_FAILED',
-            `Ollama returned HTTP ${res.status} for ${modelId}: ${errorText}`,
+            `API returned HTTP ${res.status} for ${modelId}: ${errorText}`,
             false
         );
     }
@@ -132,12 +144,12 @@ async function _doCallLocalModel(
     try {
         data = await res.json() as OllamaGenerateResponse;
     } catch {
-        throw new ModelCallError('LOCAL_CALL_FAILED', `Ollama response was not valid JSON for ${modelId}`, false);
+        throw new ModelCallError('LOCAL_CALL_FAILED', `Response was not valid JSON for ${modelId}`, false);
     }
 
     const text = data.response?.trim();
     if (!text) {
-        throw new ModelCallError('LOCAL_CALL_FAILED', `Ollama returned empty response for ${modelId}`, false);
+        throw new ModelCallError('LOCAL_CALL_FAILED', `Returned empty response for ${modelId}`, false);
     }
 
     return {
