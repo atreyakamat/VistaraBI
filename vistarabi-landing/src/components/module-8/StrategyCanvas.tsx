@@ -282,9 +282,9 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
                   />
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: number, name: string) => [
-                      <span key={name} className="font-bold text-slate-700">${value.toFixed(0)}</span>, 
-                      <span key={name+"_label"} className="text-slate-500">{name}</span>
+                    formatter={(value: any, name: any) => [
+                      <span key={String(name)} className="font-bold text-slate-700">${Number(value).toFixed(0)}</span>, 
+                      <span key={String(name)+"_label"} className="text-slate-500">{String(name)}</span>
                     ]}
                     labelFormatter={(label) => <span className="font-bold text-slate-900 mb-2 block">Day {label}</span>}
                   />

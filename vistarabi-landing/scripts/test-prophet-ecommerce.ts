@@ -45,10 +45,10 @@ async function runTest() {
       console.log(`\n✅ Prophet generated ${forecast.length} days of forecast.`);
       
       // Analyze the forecast for November spike and Weekend drops
-      let novemberForecasts = [];
-      let standardForecasts = [];
+      const novemberForecasts: number[] = [];
+      const standardForecasts: number[] = [];
       
-      forecast.forEach((f: any) => {
+      (forecast as any[]).forEach((f: any) => {
         const date = new Date(f.date);
         if (date.getMonth() === 10) { // November
           novemberForecasts.push(f.yhat);

@@ -33,6 +33,7 @@ It answers the question: *"If I do X, what is the scientific probability that I 
 
 ---
 
+
 ## 4. Technical Implementation Logic
 
 ### A. Non-Linear Impact Modeling (Sigmoid Curve)
