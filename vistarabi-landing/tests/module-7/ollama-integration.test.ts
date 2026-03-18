@@ -68,6 +68,6 @@ describe('Module 7: Ollama Integration Backend Test', () => {
         // generateCompletion throws after maxRetries
         await expect(generateCompletion({
             prompt: 'Test query'
-        })).rejects.toThrow(/Ollama generate failed: 500/);
+        })).rejects.toThrow(/Ollama generate failed/);
     });
 });

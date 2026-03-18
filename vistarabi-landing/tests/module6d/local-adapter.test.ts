@@ -30,15 +30,15 @@ describe('local-adapter — callLocalModel()', () => {
 
         const result = await callLocalModel('You are a narrator.', 'What happened?', 0.1);
         expect(result.text).toBe('Revenue increased by 12% month-over-month.');
-        expect(result.modelId).toBe('qwen3:8b');
+        expect(result.modelId).toBe('qwen3.5:2b');
         expect(result.inputTokens).toBe(10);
         expect(result.outputTokens).toBe(20);
         expect(typeof result.latencyMs).toBe('number');
         expect(result.latencyMs).toBeGreaterThanOrEqual(0);
     });
 
-    it('uses OLLAMA_BASE_URL env var', async () => {
-        process.env.OLLAMA_BASE_URL = 'http://custom-host:11434';
+    it('uses OLLAMA_URL env var', async () => {
+        process.env.OLLAMA_URL = 'http://custom-host:11434';
         mockFetch.mockResolvedValueOnce(makeOllamaResponse('OK'));
 
         await callLocalModel('sys', 'user', 0.1);
@@ -46,7 +46,7 @@ describe('local-adapter — callLocalModel()', () => {
         const calledUrl = mockFetch.mock.calls[0][0] as string;
         expect(calledUrl).toContain('custom-host:11434');
 
-        delete process.env.OLLAMA_BASE_URL;
+        delete process.env.OLLAMA_URL;
     });
 
     it('defaults to localhost:11434 when env not set', async () => {

@@ -115,10 +115,22 @@ describe('Module 5B — KPI Executor Pipeline', () => {
             }]
         });
 
-        // Mock information_schema check
-        mockPool.query.mockImplementation((text: string, params: any[]) => {
+        // Mock source.findMany so ensureDataMaterialized exits cleanly (no sources → no-op)
+        mockDb.source.findMany.mockResolvedValue([]);
+
+        // Mock pool queries
+        mockPool.query.mockImplementation((text: string, params?: any[]) => {
+            // ensureDataMaterialized: information_schema.tables existence check → table exists with data
+            if (text.includes('information_schema.tables')) {
+                return Promise.resolve({ rows: [{ exists: true }] });
+            }
+            // ensureDataMaterialized: COUNT check → table has rows, skip materialization
+            if (text.includes('COUNT(*)') || text.includes('COUNT (*)')  || text.trim().startsWith('SELECT COUNT')) {
+                return Promise.resolve({ rows: [{ count: '10' }] });
+            }
+            // information_schema.columns schema introspection for KPI executor
             if (text.includes('information_schema.columns')) {
-                return Promise.resolve({ rows: [{ column_name: 'amount' }, { column_name: 'category' }, { column_name: 'date' }] });
+                return Promise.resolve({ rows: [{ column_name: 'amount', data_type: 'numeric' }, { column_name: 'category', data_type: 'text' }, { column_name: 'date', data_type: 'timestamp' }] });
             }
             
             if (params && params.includes('EMPTY')) {
@@ -140,7 +152,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
                 });
             }
 
-            // Default mock for data queries
+            // Default mock for time-series data queries
             return Promise.resolve({
                 rows: [
                     { period: '2024-03-01', value: 375 },

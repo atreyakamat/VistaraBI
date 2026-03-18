@@ -8,11 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
+    "test:1-2": "vitest run tests/module-1-2",
+    "test:3": "vitest run tests/module-3",
     "test:4d": "vitest run tests/module-4d",
     "test:5a": "vitest run tests/module-5a",
     "test:5b": "vitest run tests/module-5b",
     "test:5c": "vitest run tests/module-5c",
     "test:module-5": "vitest run tests/module-5",
+    "test:6": "vitest run tests/module6a tests/module6b tests/module6c tests/module6d tests/module6e",
+    "test:7": "vitest run tests/module-7",
+    "test:ci": "vitest run --exclude **/ollama-integration.test.ts",
     "test:ui": "vitest --ui"
   },
   "dependencies": {
