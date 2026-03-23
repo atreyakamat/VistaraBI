@@ -411,8 +411,17 @@ function StrategyCanvasView({ canvas, onReset, onRefine, onViewDoc, onSimulateAc
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 
 export function GoalStrategyPanel({
-    projectId, isOpen, onClose, initialQuery = '', onSimulationComplete
-}: GoalStrategyPanelProps & { initialQuery?: string; onSimulationComplete?: (ctx: StrategyCanvasResult) => void }) {
+    projectId, isOpen, onClose, initialQuery = '', onSimulationComplete,
+    domainName = 'Intelligence Workspace',
+    activeKPIs = [],
+    askAiMessages = []
+}: GoalStrategyPanelProps & { 
+    initialQuery?: string; 
+    onSimulationComplete?: (ctx: StrategyCanvasResult) => void;
+    domainName?: string;
+    activeKPIs?: Array<{name: string, category: string}>;
+    askAiMessages?: Array<{role: string, text: string}>;
+}) {
     const [input, setInput] = useState(initialQuery);
     const [loading, setLoading] = useState(false);
     const [stage, setStage] = useState<string | null>(null);
@@ -530,6 +539,14 @@ export function GoalStrategyPanel({
     
           const canvasEl = await html2canvas(chartElement, { scale: 2 });
           const chartImageBase64 = canvasEl.toDataURL('image/png');
+
+          // Capture the dashboard charts
+          let dashboardImageBase64 = null;
+          const dashboardElement = document.getElementById('dashboard-grid-container');
+          if (dashboardElement) {
+              const dashCanvas = await html2canvas(dashboardElement, { scale: 1.5 });
+              dashboardImageBase64 = dashCanvas.toDataURL('image/png');
+          }
     
           let targetGoalVal = 75000;
           if (canvas) {
@@ -541,14 +558,27 @@ export function GoalStrategyPanel({
     
           const payload = {
             chartImage: chartImageBase64,
+            dashboardImage: dashboardImageBase64,
+            domain: domainName,
+            selectedKPIs: activeKPIs,
+            actions: canvas?.scenarios?.map(a => ({ title: a.actionName, impact: a.tier })) || [],
+            forecastData: {
+                kpi: canvas?.goal.targetMetric || 'Primary KPI',
+                trend: simulationContext.probabilityOfSuccess > 0.5 ? 'Upward trajectory' : 'Stagnant or downward trajectory',
+                confidence: simulationContext.reliabilityScore > 80 ? 'High' : 'Moderate'
+            },
             metrics: {
               probability: simulationContext.probabilityOfSuccess,
               reliability: simulationContext.reliabilityScore,
-              gap: gap
+              gap: gap,
+              target: targetGoalVal
             },
             chatSummary: chatMessages.length > 0 
                 ? chatMessages.map(m => `${m.role.toUpperCase()}: ${m.text}`).join('\n')
-                : `User selected action: ${simulatingAction?.actionName}. Tested simulated outcomes for achieving ${canvas?.goal.targetMetric}.`
+                : `User selected action: ${simulatingAction?.actionName}. Tested simulated outcomes for achieving ${canvas?.goal.targetMetric}.`,
+            globalChatSummary: askAiMessages.length > 0 
+                ? askAiMessages.map(m => `${m.role.toUpperCase()}: ${m.text}`).join('\n') 
+                : 'No recent exploratory questions logged.'
           };
     
           const response = await fetch('/api/v1/report/generate', {

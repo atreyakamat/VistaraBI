@@ -84,6 +84,7 @@ interface AskAIPanelProps {
     onCommandSuccess?: () => void;  // Called when 6A creates a card → trigger dashboard refresh
     onOpenGoalEngine?: (query: string) => void;  // Called when 7A requires goal engine to open
     strategyContext?: import('@/lib/module-8/types').StrategyCanvasResult; // M6→M8 State Injection
+    onMessagesChange?: (msgs: { role: string; text: string }[]) => void; // Added for Report Generation
     isOpen: boolean;
     onClose: () => void;
 }
@@ -575,7 +576,7 @@ function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
-export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, strategyContext, isOpen, onClose }: AskAIPanelProps) {
+export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, strategyContext, onMessagesChange, isOpen, onClose }: AskAIPanelProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: genId(),
@@ -598,6 +599,20 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
+
+    // Lift message state up for global reporting
+    useEffect(() => {
+        if (onMessagesChange) {
+            onMessagesChange(messages.map(m => ({ 
+                role: m.role, 
+                text: 'text' in m.content && typeof m.content.text === 'string'
+                         ? m.content.text 
+                         : 'narrative' in m.content && typeof m.content.narrative === 'string'
+                             ? m.content.narrative
+                             : `[${m.content.type.toUpperCase()} Response]`
+            })));
+        }
+    }, [messages, onMessagesChange]);
 
     // Focus input when panel opens
     useEffect(() => {

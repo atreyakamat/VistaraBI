@@ -41,6 +41,8 @@ export interface ExecutiveReportProps {
     target?: number;
   };
   chartImage: string;
+  dashboardImage?: string | null;
+  globalChatSummary?: string;
 }
 
 export const ExecutiveReport = ({ 
@@ -51,7 +53,9 @@ export const ExecutiveReport = ({
   actions, 
   forecastData,
   metrics, 
-  chartImage 
+  chartImage,
+  dashboardImage,
+  globalChatSummary
 }: ExecutiveReportProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -95,7 +99,26 @@ export const ExecutiveReport = ({
         </View>
       </View>
 
-      {/* 4. AI Chat & Action Intelligence */}
+      {/* 4. Dashboard Visuals */}
+      {dashboardImage && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Dashboard Performance Monitors</Text>
+          <View style={styles.chartContainer}>
+            <Image src={dashboardImage} style={styles.chartImage} />
+            <Text style={[styles.metricLabel, { marginTop: 8 }]}>Current Key Performance Indicators View</Text>
+          </View>
+        </View>
+      )}
+
+      {/* 5. AI Chat Exploration (Ask AI) */}
+      {globalChatSummary && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Global Data Exploration (Module 6)</Text>
+          <Text style={styles.bodyText}>{globalChatSummary}</Text>
+        </View>
+      )}
+
+      {/* 6. AI Strategic Insights (Module 7 & 8 Actions) */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>AI Strategic Insights (Module 6 & 7)</Text>
         <Text style={styles.bodyText}>{aiInsights}</Text>

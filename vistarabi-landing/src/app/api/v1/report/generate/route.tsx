@@ -38,11 +38,13 @@ export async function POST(request: Request) {
     const { 
       chartImage, 
       metrics, 
-      chatSummary, 
       domain, 
       selectedKPIs, 
       actions, 
-      forecastData 
+      forecastData,
+      chatSummary,
+      dashboardImage,
+      globalChatSummary
     } = body;
 
     if (!chartImage || !metrics || !domain) {
@@ -67,6 +69,8 @@ export async function POST(request: Request) {
         forecastData={forecastData}
         metrics={metrics}
         chartImage={chartImage}
+        dashboardImage={dashboardImage}
+        globalChatSummary={globalChatSummary}
       />
     );
 

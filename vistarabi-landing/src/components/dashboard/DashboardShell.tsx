@@ -67,6 +67,7 @@ export function DashboardShell({
     // Active StrategyCanvasResult shared between GoalStrategyPanel and AskAIPanel
     // (implements the State Injection Pipeline from MODULE_6_7_8_INTEGRATION_PLAN.md)
     const [activeStrategyContext, setActiveStrategyContext] = useState<StrategyCanvasResult | null>(null);
+    const [askAiMessages, setAskAiMessages] = useState<{ role: string; text: string }[]>([]);
     const [drillStack, setDrillStack] = useState<DrillState[]>([]);
     const [filters, setFilters] = useState<DashboardFilters>({
         granularity: 'monthly',
@@ -537,6 +538,9 @@ export function DashboardShell({
                     onClose={() => setGoalPanelOpen(false)}
                     initialQuery={goalQuery}
                     onSimulationComplete={(ctx) => setActiveStrategyContext(ctx)}
+                    domainName={domainName}
+                    activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
+                    askAiMessages={askAiMessages}
                 />
             </DashboardErrorBoundary>
 
@@ -548,6 +552,7 @@ export function DashboardShell({
                     onClose={() => setAskAiOpen(false)}
                     onCommandSuccess={onRefresh}
                     strategyContext={activeStrategyContext ?? undefined}
+                    onMessagesChange={setAskAiMessages}
                     onOpenGoalEngine={(query) => {
                         setGoalQuery(query);
                         setAskAiOpen(false);
