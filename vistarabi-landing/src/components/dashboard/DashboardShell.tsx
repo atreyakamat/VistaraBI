@@ -17,6 +17,8 @@ import { AskAIPanel } from './AskAIPanel';
 import { GoalStrategyPanel } from './GoalStrategyPanel';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from './types';
 import { getAvailableRanges, type DateRange, type Granularity } from './ChartContainer';
+import type { StrategyCanvasResult } from '@/lib/module-8/types';
+import { DashboardErrorBoundary } from './DashboardErrorBoundary';
 
 interface DrillState {
     kpiId: string;
@@ -62,6 +64,9 @@ export function DashboardShell({
     const [askAiOpen, setAskAiOpen] = useState(false);
     const [goalPanelOpen, setGoalPanelOpen] = useState(false);
     const [goalQuery, setGoalQuery] = useState('');
+    // Active StrategyCanvasResult shared between GoalStrategyPanel and AskAIPanel
+    // (implements the State Injection Pipeline from MODULE_6_7_8_INTEGRATION_PLAN.md)
+    const [activeStrategyContext, setActiveStrategyContext] = useState<StrategyCanvasResult | null>(null);
     const [drillStack, setDrillStack] = useState<DrillState[]>([]);
     const [filters, setFilters] = useState<DashboardFilters>({
         granularity: 'monthly',
@@ -524,26 +529,32 @@ export function DashboardShell({
                 </button>
             </div>
 
-            {/* Goal Strategy Panel */}
-            <GoalStrategyPanel
-                projectId={projectId}
-                isOpen={goalPanelOpen}
-                onClose={() => setGoalPanelOpen(false)}
-                initialQuery={goalQuery}
-            />
+            {/* Goal Strategy Panel — single instance, wired to state injection */}
+            <DashboardErrorBoundary label="Goal Strategy Engine">
+                <GoalStrategyPanel
+                    projectId={projectId}
+                    isOpen={goalPanelOpen}
+                    onClose={() => setGoalPanelOpen(false)}
+                    initialQuery={goalQuery}
+                    onSimulationComplete={(ctx) => setActiveStrategyContext(ctx)}
+                />
+            </DashboardErrorBoundary>
 
-            {/* Ask AI Panel */}
-            <AskAIPanel
-                projectId={projectId}
-                isOpen={askAiOpen}
-                onClose={() => setAskAiOpen(false)}
-                onCommandSuccess={onRefresh}
-                onOpenGoalEngine={(query) => {
-                    setGoalQuery(query);
-                    setAskAiOpen(false);
-                    setGoalPanelOpen(true);
-                }}
-            />
+            {/* Ask AI Panel — receives live strategy context for state injection */}
+            <DashboardErrorBoundary label="Ask AI Panel">
+                <AskAIPanel
+                    projectId={projectId}
+                    isOpen={askAiOpen}
+                    onClose={() => setAskAiOpen(false)}
+                    onCommandSuccess={onRefresh}
+                    strategyContext={activeStrategyContext ?? undefined}
+                    onOpenGoalEngine={(query) => {
+                        setGoalQuery(query);
+                        setAskAiOpen(false);
+                        setGoalPanelOpen(true);
+                    }}
+                />
+            </DashboardErrorBoundary>
 
             {/* Insight Panel (right sidebar overlay) */}
             <InsightPanel
@@ -556,14 +567,6 @@ export function DashboardShell({
                 trendingDown={trendingDown}
                 isOpen={insightPanelOpen}
                 onClose={() => setInsightPanelOpen(false)}
-            />
-
-            {/* Goal Strategy Panel */}
-            <GoalStrategyPanel
-                projectId={projectId}
-                isOpen={goalPanelOpen}
-                onClose={() => setGoalPanelOpen(false)}
-                initialQuery={goalQuery}
             />
         </div>
     );

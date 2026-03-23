@@ -9,12 +9,15 @@
 //
 // All routing is deterministic and server-side.
 // No model metadata is forwarded to the frontend.
+// State Injection Pipeline: accepts optional strategyContext from M7/M8
+// and enriches the Ollama system prompt with live strategy data.
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/prisma';
 import { sanitizeUserQuery } from '@/lib/module-6/infrastructure/prompt-builder';
 import { getSessionMemory, updateSessionMemory, resolvePronouns, injectContext, getFollowUpSuggestions } from '@/lib/module-6/orchestration/orchestrator';
+import type { StrategyCanvasResult } from '@/lib/module-8/types';
 
 // ─── Utility: Levenshtein Distance & Fuzzy Match ──────────────────────────────
 
@@ -259,7 +262,11 @@ export async function POST(
         if (project.userId !== user.userId) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
 
         // Parse body
-        const body = await request.json() as { sessionId?: string; message?: string };
+        const body = await request.json() as {
+            sessionId?: string;
+            message?: string;
+            strategyContext?: StrategyCanvasResult; // M6→M8 State Injection
+        };
 
         if (!body.message || typeof body.message !== 'string') {
             return NextResponse.json({ error: 'message is required' }, { status: 400 });
@@ -557,12 +564,35 @@ export async function POST(
         if (safeResult.status === 'success' || safeResult.status === 'clarification_required') {
             try {
                 const { callLocalModel } = await import('@/lib/module-6/infrastructure/local-adapter');
-                const systemPrompt = `You are VistaraBI, an evidence-governed BI copilot. 
-Write a 1-sentence, natural, conversational response acknowledging the result. 
+
+                // ─── State Injection Pipeline (Module 6 → Module 8 Context) ───────────
+                // When the frontend passes a live StrategyCanvasResult, we inject it
+                // into the system prompt so the AI answers are strategy-aware.
+                let strategyContextBlock = '';
+                if (body.strategyContext) {
+                    const sc = body.strategyContext;
+                    const prob = (sc.probabilityOfSuccess * 100).toFixed(1);
+                    const primaryDriver = sc.sensitivity.primaryDriver;
+                    const riskFactor = sc.sensitivity.riskFactor;
+                    const baselineEnd = sc.scenarios.baseline[sc.scenarios.baseline.length - 1]?.yhat ?? 0;
+                    strategyContextBlock = `
+--- ACTIVE STRATEGY CONTEXT (DO NOT REVEAL THE RAW JSON TO THE USER) ---
+The user is currently evaluating a strategy simulation.
+Probability of Success: ${prob}%
+Data Reliability Score: ${sc.reliabilityScore}/100
+Baseline Forecast End Value: ${baselineEnd.toFixed(0)}
+Primary Growth Driver: ${primaryDriver}
+Key Risk Factor: ${riskFactor}
+For any strategy-related questions, reference these numbers directly in your answer.
+--- END CONTEXT ---`;
+                }
+
+                const systemPrompt = `You are VistaraBI, an evidence-governed BI copilot.
+Write a 1-sentence, natural, conversational response acknowledging the result.
 RULES:
 1. DO NOT hallucinate numbers. Use only the numbers provided.
 2. DO NOT use words like "because", "due to", or infer causation unless explicitly in the payload.
-3. Keep it extremely brief and friendly. No markdown. If the payload is 'clarification_required', ask the user to clarify.`;
+3. Keep it extremely brief and friendly. No markdown. If the payload is 'clarification_required', ask the user to clarify.${strategyContextBlock}`;
 
                 const userPrompt = `The user said: "${activeQuery}"
 The underlying analytical engines (6A-6E) produced this structured payload:

@@ -1,9 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { 
+    Target, 
+    ArrowLeft, 
+    Zap, 
+    Sparkles, 
+    CheckCircle2, 
+    Lock, 
+    ChevronRight, 
+    Info, 
+    AlertTriangle,
+    Check,
+    Loader2,
+    BarChart3
+} from "lucide-react";
+import { api } from "@/lib/api/client";
+import { KPISkeleton } from "@/components/ui/skeleton";
 
 interface DiscoveredKPI {
     kpiId: string;
@@ -29,16 +45,17 @@ interface ApprovedKPI {
     category?: string;
 }
 
-const CATEGORY_ICONS: Record<string, string> = {
-    revenue: '💰', volume: '📊', conversion: '🎯', customer: '👥',
-    retention: '🔄', engagement: '🔥', growth: '📈', profitability: '💎',
-    operations: '⚙️', efficiency: '⚡', quality: '✅', performance: '🏆',
-    cost: '💵', risk: '⚠️', liquidity: '💧', marketing: '📣', product: '📦',
-    derived: '🔮',
+const CATEGORY_ICONS: Record<string, any> = {
+    revenue: "💰", volume: "📊", conversion: "🎯", customer: "👥",
+    retention: "🔄", engagement: "🔥", growth: "📈", profitability: "💎",
+    operations: "⚙️", efficiency: "⚡", quality: "✅", performance: "🏆",
+    cost: "💵", risk: "⚠️", liquidity: "💧", marketing: "📣", product: "📦",
+    derived: "🔮",
 };
 
 export default function KPIWorkspacePage() {
     const params = useParams();
+    const router = useRouter();
     const projectId = params.id as string;
 
     const [project, setProject] = useState<any>(null);
@@ -50,7 +67,7 @@ export default function KPIWorkspacePage() {
     const [aiRequested, setAiRequested] = useState(false);
     const [adding, setAdding] = useState<string | null>(null);
     const [finalizing, setFinalizing] = useState(false);
-    const [activeTab, setActiveTab] = useState<'domain' | 'ai' | 'blueprint'>('domain');
+    const [activeTab, setActiveTab] = useState<"domain" | "ai" | "blueprint">("domain");
 
     useEffect(() => {
         fetchData();
@@ -60,39 +77,25 @@ export default function KPIWorkspacePage() {
         setLoading(true);
         try {
             const [projRes, bpRes] = await Promise.all([
-                fetch(`/api/projects/${projectId}`),
-                fetch(`/api/projects/${projectId}/kpi-blueprint`),
+                api.get(`/api/projects/${projectId}`),
+                api.get<{ blueprint: any }>(`/api/projects/${projectId}/kpi-blueprint`),
             ]);
 
-            if (projRes.ok) setProject(await projRes.json());
-            if (bpRes.ok) {
-                const data = await bpRes.json();
-                setBlueprint(data.blueprint);
-            }
+            if (projRes.data) setProject(projRes.data);
+            if (bpRes.data) setBlueprint(bpRes.data.blueprint);
 
-            // First try to get existing discovery
-            const kpiGetRes = await fetch(`/api/projects/${projectId}/kpis`);
-            if (kpiGetRes.ok) {
-                const data = await kpiGetRes.json();
-                if (data.discovery?.computableKPIs?.length > 0) {
-                    setDiscoveredKPIs(data.discovery.computableKPIs);
-                    console.log('[KPI Page] Loaded existing discovery:', data.discovery.computableKPIs.length);
-                } else {
-                    // No existing discovery - trigger it now
-                    console.log('[KPI Page] No existing discovery, triggering...');
-                    const kpiPostRes = await fetch(`/api/projects/${projectId}/kpis`, { method: 'POST' });
-                    if (kpiPostRes.ok) {
-                        const postData = await kpiPostRes.json();
-                        setDiscoveredKPIs(postData.discovery?.computableKPIs || []);
-                        console.log('[KPI Page] Discovery complete:', postData.discovery?.computableKPIs?.length || 0);
-                    } else {
-                        const err = await kpiPostRes.json();
-                        console.error('[KPI Page] Discovery failed:', err);
-                    }
+            // Fetch existing discovery or trigger it
+            const kpiRes = await api.get<{ discovery: { computableKPIs: DiscoveredKPI[] } }>(`/api/projects/${projectId}/kpis`);
+            if (kpiRes.data?.discovery?.computableKPIs?.length) {
+                setDiscoveredKPIs(kpiRes.data.discovery.computableKPIs);
+            } else {
+                const kpiPostRes = await api.post<{ discovery: { computableKPIs: DiscoveredKPI[] } }>(`/api/projects/${projectId}/kpis`);
+                if (kpiPostRes.data) {
+                    setDiscoveredKPIs(kpiPostRes.data.discovery?.computableKPIs || []);
                 }
             }
         } catch (err) {
-            console.error('Fetch error:', err);
+            console.error("Fetch error:", err);
         } finally {
             setLoading(false);
         }
@@ -102,13 +105,10 @@ export default function KPIWorkspacePage() {
         setAiLoading(true);
         setAiRequested(true);
         try {
-            // First run discovery to find derived and invented KPIs
-            const discoveryRes = await fetch(`/api/projects/${projectId}/ai-kpi-discovery`, { method: 'POST' });
-            const discoveryData = await discoveryRes.json();
-
-            if (discoveryData.proposals && discoveryData.proposals.length > 0) {
-                // Convert proposals to DiscoveredKPI format
-                const aiProposals = discoveryData.proposals.map((p: any) => ({
+            const discoveryRes = await api.post<{ proposals: any[] }>(`/api/projects/${projectId}/ai-kpi-discovery`);
+            
+            if (discoveryRes.data?.proposals?.length) {
+                const aiProposals = discoveryRes.data.proposals.map((p) => ({
                     kpiId: p.id,
                     kpiName: p.kpiName,
                     confidence: p.confidenceScore,
@@ -123,15 +123,13 @@ export default function KPIWorkspacePage() {
                 }));
                 setAiKPIs(aiProposals);
             } else {
-                // Fallback to simple AI KPI generation
-                const res = await fetch(`/api/projects/${projectId}/ai-kpis`, { method: 'POST' });
-                const data = await res.json();
-                if (data.aiKpis) {
-                    setAiKPIs(data.aiKpis);
+                const res = await api.post<{ aiKpis: DiscoveredKPI[] }>(`/api/projects/${projectId}/ai-kpis`);
+                if (res.data) {
+                    setAiKPIs(res.data.aiKpis);
                 }
             }
         } catch (err) {
-            console.error('AI KPI error:', err);
+            console.error("AI KPI error:", err);
         } finally {
             setAiLoading(false);
         }
@@ -145,48 +143,43 @@ export default function KPIWorkspacePage() {
 
         try {
             if (isSelected) {
-                const res = await fetch(`/api/projects/${projectId}/kpi-blueprint?kpiId=${kpi.kpiId}`, { method: 'DELETE' });
-                if (res.ok) setBlueprint((await res.json()).blueprint);
+                const res = await api.delete<{ blueprint: any }>(`/api/projects/${projectId}/kpi-blueprint?kpiId=${kpi.kpiId}`);
+                if (res.data) setBlueprint(res.data.blueprint);
             } else {
-                const res = await fetch(`/api/projects/${projectId}/kpi-blueprint`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        kpi: {
-                            id: kpi.kpiId,
-                            name: kpi.kpiName,
-                            aggregations: kpi.aggregations || kpi.matchedColumns.map(c => ({ function: 'SUM', column: c })),
-                            sourceTable: 'merged_data',
-                            groupBy: null,
-                            lineage: {
-                                tables: ['merged_data'],
-                                joins: [],
-                                formula: kpi.formulaExpression
-                            },
-                            category: kpi.category
+                const res = await api.post<{ blueprint: any }>(`/api/projects/${projectId}/kpi-blueprint`, {
+                    kpi: {
+                        id: kpi.kpiId,
+                        name: kpi.kpiName,
+                        aggregations: kpi.aggregations || kpi.matchedColumns.map(c => ({ function: "SUM", column: c })),
+                        sourceTable: "merged_data",
+                        groupBy: null,
+                        lineage: {
+                            tables: ["merged_data"],
+                            joins: [],
+                            formula: kpi.formulaExpression
                         },
-                    }),
+                        category: kpi.category
+                    },
                 });
-                if (res.ok) setBlueprint((await res.json()).blueprint);
+                if (res.data) setBlueprint(res.data.blueprint);
             }
         } catch (err) {
-            console.error('Toggle error:', err);
+            console.error("Toggle error:", err);
         } finally {
             setAdding(null);
         }
     };
 
     const finalize = async () => {
-        if (!confirm('Finalize and lock this KPI Blueprint? This cannot be undone.')) return;
+        if (!confirm("Finalize and lock this KPI Blueprint? This cannot be undone.")) return;
         setFinalizing(true);
         try {
-            const res = await fetch(`/api/projects/${projectId}/kpi-blueprint/finalize`, { method: 'POST' });
-            if (res.ok) {
-                setBlueprint((await res.json()).blueprint);
-                alert('Blueprint finalized!');
+            const res = await api.post<{ blueprint: any }>(`/api/projects/${projectId}/kpi-blueprint/finalize`);
+            if (res.data) {
+                setBlueprint(res.data.blueprint);
             }
         } catch (err) {
-            console.error('Finalize error:', err);
+            console.error("Finalize error:", err);
         } finally {
             setFinalizing(false);
         }
@@ -202,268 +195,362 @@ export default function KPIWorkspacePage() {
             <motion.div
                 key={kpi.kpiId}
                 layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${selected
-                    ? 'bg-green-50 border-green-400 shadow-md'
-                    : 'bg-[var(--surface)] border-[var(--border)] hover:border-purple-300'
-                    } ${blueprint?.isLocked ? 'opacity-60 cursor-not-allowed' : ''}`}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
                 onClick={() => !blueprint?.isLocked && !isLoading && toggleKPI(kpi)}
+                className={`group relative p-6 rounded-3xl border-2 transition-all overflow-hidden ${
+                    selected
+                        ? "bg-gradient-to-br from-[var(--accent)]/5 to-[var(--accent)]/10 border-[var(--accent)]/50 shadow-xl shadow-[var(--accent)]/5"
+                        : "bg-[var(--card)] border-[var(--border)] hover:border-[var(--accent)]/30 hover:bg-[var(--background)]"
+                } ${blueprint?.isLocked ? "opacity-75" : "cursor-pointer active:scale-[0.99]"}`}
             >
-                <div className="flex items-start gap-3">
-                    {/* Checkbox */}
-                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${selected ? 'bg-green-500 border-green-500' : 'border-gray-300'
-                        }`}>
+                <div className="flex items-start gap-6">
+                    {/* Status Icon */}
+                    <div className={`mt-1 w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                        selected 
+                            ? "bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20" 
+                            : "bg-[var(--background)] text-[var(--muted)] border border-[var(--border)] group-hover:border-[var(--accent)]/30"
+                    }`}>
                         {isLoading ? (
-                            <span className="animate-spin text-white text-xs">⟳</span>
+                            <Loader2 className="w-5 h-5 animate-spin" />
                         ) : selected ? (
-                            <span className="text-white text-sm">✓</span>
-                        ) : null}
+                            <Check className="w-6 h-6" />
+                        ) : (
+                            <span className="text-lg">{CATEGORY_ICONS[kpi.category] || "📊"}</span>
+                        )}
                     </div>
 
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xl">{CATEGORY_ICONS[kpi.category] || '📊'}</span>
-                            <span className="font-semibold">{kpi.kpiName}</span>
-
-                            {selected && (
-                                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-                                    ✓ Selected
-                                </span>
-                            )}
-                            {kpi.supportStatus === 'FULLY_SUPPORTED' && (
-                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs rounded-full font-medium">
-                                    ✅ Fully Supported
-                                </span>
-                            )}
-                            {kpi.supportStatus === 'PARTIALLY_SUPPORTED' && (
-                                <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full font-medium">
-                                    ⚠️ Partially Supported
-                                </span>
-                            )}
-                            {kpi.supportStatus === 'UNSUPPORTED' && (
-                                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full font-medium">
-                                    ❌ Unsupported
-                                </span>
-                            )}
-                            {kpi.isDerived && (
-                                <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
-                                    🔮 Derived
-                                </span>
-                            )}
-                            {(kpi as any).sourceType === 'AI_INVENTED' && (
-                                <span className="px-2 py-0.5 bg-cyan-100 text-cyan-700 text-xs rounded-full font-medium">
-                                    ✨ AI Invented
-                                </span>
-                            )}
-                            {(kpi as any).sourceType === 'LIBRARY_DERIVED' && (
-                                <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs rounded-full font-medium">
-                                    📚 Library
-                                </span>
-                            )}
+                    <div className="flex-1 space-y-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <h4 className={`text-xl font-bold tracking-tight transition-colors ${selected ? "text-[var(--accent)]" : "text-[var(--foreground)]"}`}>
+                                    {kpi.kpiName}
+                                </h4>
+                                <div className="flex gap-2">
+                                    {kpi.supportStatus === "FULLY_SUPPORTED" && (
+                                        <div className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                                            Supported
+                                        </div>
+                                    )}
+                                    {kpi.isDerived && (
+                                        <div className="px-2 py-0.5 bg-purple-500/10 text-purple-600 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                                            Derived
+                                        </div>
+                                    )}
+                                    {(kpi as any).sourceType === 'AI_INVENTED' && (
+                                        <div className="px-2 py-0.5 bg-cyan-500/10 text-cyan-600 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                                            AI Suggestion
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--muted)]">
+                                <span>{kpi.category}</span>
+                                <ChevronRight className="w-3 h-3" />
+                                <span>{Math.round(kpi.confidence)}% Confidence</span>
+                            </div>
                         </div>
 
-                        <p className="text-sm text-[var(--muted)] mt-1">{kpi.explanation}</p>
+                        <p className="text-[var(--muted)] text-sm leading-relaxed max-w-2xl">
+                            {kpi.explanation}
+                        </p>
 
                         {(kpi as any).businessMeaning && (
-                            <p className="text-xs text-purple-600 mt-1 italic">
-                                💡 {(kpi as any).businessMeaning}
-                            </p>
+                            <div className="flex items-start gap-2 text-xs font-medium text-purple-600 bg-purple-50 p-3 rounded-xl">
+                                <Sparkles className="w-4 h-4 shrink-0 mt-0.5" />
+                                <p>{(kpi as any).businessMeaning}</p>
+                            </div>
                         )}
 
-                        <div className="mt-2 p-2 bg-gray-50 rounded-lg">
-                            <code className="text-xs text-gray-600">{kpi.formulaExpression}</code>
-                        </div>
-
-                        {kpi.matchedColumns && kpi.matchedColumns.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                                {kpi.matchedColumns.map((col, idx) => (
-                                    <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
+                            <div className="flex flex-wrap gap-2">
+                                {kpi.matchedColumns.map((col) => (
+                                    <span key={col} className="px-2.5 py-1 bg-[var(--background)] border border-[var(--border)] text-[var(--muted)] text-[10px] font-bold rounded-lg uppercase tracking-wider">
                                         {col}
                                     </span>
                                 ))}
                             </div>
-                        )}
+                            <code className="px-3 py-1 bg-black/5 rounded-lg text-xs font-mono text-[var(--muted)]">
+                                {kpi.formulaExpression}
+                            </code>
+                        </div>
                     </div>
                 </div>
+
+                {/* Selected Overlay Gradient */}
+                {selected && (
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[var(--accent)]/10 to-transparent -translate-y-1/2 translate-x-1/2 rounded-full blur-2xl" />
+                )}
             </motion.div>
         );
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-                <div className="text-center">
-                    <div className="text-5xl mb-4 animate-bounce">📊</div>
-                    <p className="text-lg font-medium">Loading your data columns...</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen bg-[var(--background)]">
+        <div className="min-h-screen bg-[var(--background)] flex flex-col">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-[var(--surface)]/90 backdrop-blur-xl border-b border-[var(--border)]">
-                <div className="max-w-6xl mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Link href={`/app/projects/${projectId}`} className="text-[var(--muted)] hover:text-[var(--foreground)]">
-                                ← Back
-                            </Link>
-                            <div>
-                                <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-cyan-500 bg-clip-text text-transparent">
-                                    KPI Blueprint
-                                </h1>
-                                <p className="text-sm text-[var(--muted)]">{project?.name}</p>
+            <header className="sticky top-0 z-[60] border-b border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-xl">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link 
+                            href={`/app/projects/${projectId}`}
+                            className="p-2 -ml-2 rounded-xl hover:bg-[var(--border)]/40 transition-colors text-[var(--muted)] hover:text-[var(--foreground)]"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </Link>
+                        <div className="h-6 w-px bg-[var(--border)]" />
+                        <div className="flex flex-col">
+                            <h1 className="text-sm font-bold text-[var(--foreground)] leading-none">
+                                KPI Blueprint Engine
+                            </h1>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">
+                                    {project?.name || "Loading Project"}
+                                </span>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm text-[var(--muted)]">
-                                {blueprint?.kpis?.length || 0} selected
-                            </span>
-                            {blueprint?.isLocked && (
-                                <Link href={`/app/projects/${projectId}/dashboard`}>
-                                    <button className="px-5 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all">
-                                        📊 View Dashboard
-                                    </button>
-                                </Link>
-                            )}
-                            {blueprint && !blueprint.isLocked && blueprint.kpis?.length > 0 && (
-                                <button onClick={finalize} disabled={finalizing}
-                                    className="px-5 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-medium shadow-lg disabled:opacity-50">
-                                    {finalizing ? '🔒 Finalizing...' : '🔒 Finalize'}
-                                </button>
-                            )}
-                            {blueprint?.isLocked && (
-                                <span className="px-4 py-2 bg-green-100 text-green-700 rounded-xl font-medium">✅ Locked</span>
-                            )}
+                    <div className="flex items-center gap-4">
+                        <div className="hidden md:flex items-center gap-2 text-sm font-bold">
+                            <Target className="w-4 h-4 text-[var(--accent)]" />
+                            <span className="text-[var(--foreground)]">{blueprint?.kpis?.length || 0}</span>
+                            <span className="text-[var(--muted)]">Active KPIs</span>
                         </div>
+
+                        <div className="h-6 w-px bg-[var(--border)] mx-1" />
+
+                        {blueprint?.isLocked ? (
+                            <Link 
+                                href={`/app/projects/${projectId}/dashboard`}
+                                className="px-4 py-2 bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] text-white text-xs font-bold rounded-xl shadow-lg shadow-[var(--accent)]/20 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
+                            >
+                                <BarChart3 className="w-4 h-4" />
+                                Open Dashboard
+                            </Link>
+                        ) : (
+                            <button
+                                onClick={finalize}
+                                disabled={finalizing || !blueprint?.kpis?.length}
+                                className="px-4 py-2 bg-[var(--foreground)] text-white text-xs font-bold rounded-xl disabled:opacity-50 flex items-center gap-2 hover:bg-[var(--foreground)]/90 transition-all active:scale-95"
+                            >
+                                <Lock className="w-4 h-4" />
+                                {finalizing ? "Finalizing..." : "Finalize Blueprint"}
+                            </button>
+                        )}
                     </div>
                 </div>
             </header>
 
-            <main className="max-w-6xl mx-auto px-6 py-8">
-                {/* Tabs */}
-                <div className="flex gap-2 mb-6 p-1.5 bg-[var(--surface)] rounded-2xl w-fit border border-[var(--border)]">
-                    <button onClick={() => setActiveTab('domain')}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'domain' ? 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white' : 'text-[var(--muted)]'}`}>
-                        📋 Domain KPIs ({discoveredKPIs.length})
-                    </button>
-                    <button onClick={() => setActiveTab('ai')}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'ai' ? 'bg-gradient-to-r from-purple-500 to-cyan-500 text-white' : 'text-[var(--muted)]'}`}>
-                        🔮 AI Suggestions {aiKPIs.length > 0 && `(${aiKPIs.length})`}
-                    </button>
-                    <button onClick={() => setActiveTab('blueprint')}
-                        className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${activeTab === 'blueprint' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white' : 'text-[var(--muted)]'}`}>
-                        ✅ Blueprint ({blueprint?.kpis?.length || 0})
-                    </button>
-                </div>
-
-                {/* Content */}
+            <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12">
                 <AnimatePresence mode="wait">
-                    {activeTab === 'domain' && (
-                        <motion.div key="domain" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                            <div className="mb-4">
-                                <h2 className="text-lg font-bold">Domain KPIs</h2>
-                                <p className="text-sm text-[var(--muted)]">Industry standard KPIs for your domain, matched securely against your database schema.</p>
-                            </div>
-                            <div className="grid gap-6">
-                                {discoveredKPIs.length === 0 ? (
-                                    <div className="text-center py-12 bg-[var(--surface)] rounded-2xl border border-dashed border-[var(--border)]">
-                                        <div className="text-4xl mb-3">📁</div>
-                                        <p className="font-medium mb-2">No KPIs found</p>
-                                        <p className="text-sm text-[var(--muted)] mb-4">Set a domain and upload tables.</p>
+                    {loading ? (
+                        <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <KPISkeleton />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="content"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="space-y-12"
+                        >
+                            {/* Blueprint Summary */}
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                                <div className="space-y-2">
+                                    <h2 className="text-4xl font-bold tracking-tight text-[var(--foreground)]">Strategic Intelligence</h2>
+                                    <p className="text-lg text-[var(--muted)] max-w-2xl">
+                                        VistaraBI has inferred these KPIs based on your data architecture and domain logic. Select the ones you want to measure.
+                                    </p>
+                                </div>
+                                
+                                {blueprint?.isLocked && (
+                                    <div className="px-6 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                                            <CheckCircle2 className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-emerald-700">Blueprint Locked</div>
+                                            <div className="text-xs text-emerald-600 font-medium">Measurement schema is active</div>
+                                        </div>
                                     </div>
-                                ) : (
-                                    <>
-                                        <div className="space-y-3">
-                                            <h3 className="font-semibold text-emerald-600">✅ Fully Supported</h3>
-                                            {discoveredKPIs.filter(k => k.supportStatus === 'FULLY_SUPPORTED').length > 0
-                                                ? discoveredKPIs.filter(k => k.supportStatus === 'FULLY_SUPPORTED').map(kpi => renderKPICard(kpi))
-                                                : <p className="text-sm text-[var(--muted)]">No fully supported KPIs found.</p>}
-                                        </div>
-                                        <div className="space-y-3">
-                                            <h3 className="font-semibold text-yellow-600">⚠️ Partially Supported</h3>
-                                            {discoveredKPIs.filter(k => k.supportStatus === 'PARTIALLY_SUPPORTED').length > 0
-                                                ? discoveredKPIs.filter(k => k.supportStatus === 'PARTIALLY_SUPPORTED').map(kpi => renderKPICard(kpi))
-                                                : <p className="text-sm text-[var(--muted)]">No partially supported KPIs found.</p>}
-                                        </div>
-                                        <div className="space-y-3 opacity-60 hover:opacity-100 transition-opacity">
-                                            <h3 className="font-semibold text-red-500">❌ Unsupported</h3>
-                                            {discoveredKPIs.filter(k => k.supportStatus === 'UNSUPPORTED').length > 0
-                                                ? discoveredKPIs.filter(k => k.supportStatus === 'UNSUPPORTED').map(kpi => renderKPICard(kpi))
-                                                : <p className="text-sm text-[var(--muted)]">No unsupported KPIs!</p>}
-                                        </div>
-                                    </>
                                 )}
                             </div>
-                        </motion.div>
-                    )}
 
-                    {activeTab === 'ai' && (
-                        <motion.div key="ai" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                            <div className="mb-4">
-                                <h2 className="text-lg font-bold">AI-Derived KPIs</h2>
-                                <p className="text-sm text-[var(--muted)]">Let Ollama AI suggest derived KPIs by analyzing your data.</p>
-                            </div>
+                            {/* Workspace Navigation */}
+                            <div className="space-y-8">
+                                <div className="flex border-b border-[var(--border)]">
+                                    <div className="flex gap-10">
+                                        {[
+                                            { id: 'domain', label: 'Domain Core', count: discoveredKPIs.length, icon: Target },
+                                            { id: 'ai', label: 'AI Synthesis', count: aiKPIs.length, icon: Sparkles },
+                                            { id: 'blueprint', label: 'Active Blueprint', count: blueprint?.kpis?.length || 0, icon: CheckCircle2 }
+                                        ].map((tab) => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id as any)}
+                                                className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative flex items-center gap-2 ${
+                                                    activeTab === tab.id
+                                                        ? "text-[var(--accent)]"
+                                                        : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                                                }`}
+                                            >
+                                                <tab.icon className="w-4 h-4" />
+                                                {tab.label}
+                                                <span className={`ml-1 text-[10px] px-1.5 py-0.5 rounded-md ${
+                                                    activeTab === tab.id ? "bg-[var(--accent)] text-white" : "bg-[var(--border)] text-[var(--muted)]"
+                                                }`}>
+                                                    {tab.count}
+                                                </span>
+                                                {activeTab === tab.id && (
+                                                    <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--accent)] rounded-full" />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
 
-                            {!aiRequested ? (
-                                <div className="text-center py-12 bg-[var(--surface)] rounded-2xl border border-dashed border-[var(--border)]">
-                                    <div className="text-4xl mb-4">🔮</div>
-                                    <p className="text-[var(--muted)] mb-4">Click below to generate AI-derived KPIs from your data</p>
-                                    <button onClick={requestAIKPIs}
-                                        className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl">
-                                        ✨ Generate AI KPIs
-                                    </button>
-                                </div>
-                            ) : aiLoading ? (
-                                <div className="text-center py-12">
-                                    <div className="text-4xl mb-4 animate-pulse">🔮</div>
-                                    <p className="text-[var(--muted)]">Ollama is analyzing your data...</p>
-                                </div>
-                            ) : (
-                                <div className="grid gap-3">
-                                    {aiKPIs.length === 0 ? (
-                                        <div className="text-center py-12 text-[var(--muted)]">
-                                            <p>No AI suggestions available. Try again later.</p>
+                                <div className="min-h-[500px]">
+                                    {activeTab === 'domain' && (
+                                        <div className="space-y-10">
+                                            {discoveredKPIs.length === 0 ? (
+                                                <div className="py-20 text-center bg-[var(--card)] rounded-3xl border-2 border-dashed border-[var(--border)] space-y-4">
+                                                    <Target className="w-12 h-12 mx-auto text-[var(--muted)] opacity-20" />
+                                                    <p className="text-[var(--muted)] font-medium">No domain KPIs discovered. Try re-detecting the domain.</p>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {['FULLY_SUPPORTED', 'PARTIALLY_SUPPORTED', 'UNSUPPORTED'].map((status) => {
+                                                        const kpis = discoveredKPIs.filter(k => k.supportStatus === status);
+                                                        if (kpis.length === 0) return null;
+                                                        
+                                                        return (
+                                                            <div key={status} className="space-y-6">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`w-2 h-2 rounded-full ${
+                                                                        status === 'FULLY_SUPPORTED' ? "bg-emerald-500" :
+                                                                        status === 'PARTIALLY_SUPPORTED' ? "bg-yellow-500" : "bg-red-500"
+                                                                    }`} />
+                                                                    <h3 className="text-sm font-bold uppercase tracking-widest text-[var(--foreground)]">
+                                                                        {status.replace('_', ' ')}
+                                                                    </h3>
+                                                                </div>
+                                                                <div className="grid gap-4">
+                                                                    {kpis.map(kpi => renderKPICard(kpi))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </>
+                                            )}
                                         </div>
-                                    ) : (
-                                        aiKPIs.map(kpi => renderKPICard(kpi))
+                                    )}
+
+                                    {activeTab === 'ai' && (
+                                        <div className="space-y-8">
+                                            {!aiRequested ? (
+                                                <div className="py-24 text-center bg-gradient-to-br from-[var(--card)] to-[var(--background)] rounded-[40px] border-2 border-dashed border-[var(--border)] space-y-8 shadow-sm">
+                                                    <div className="w-24 h-24 mx-auto bg-gradient-to-br from-purple-500 to-cyan-500 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-purple-500/20 animate-pulse-glow">
+                                                        <Sparkles className="w-12 h-12" />
+                                                    </div>
+                                                    <div className="space-y-2 max-w-lg mx-auto">
+                                                        <h3 className="text-3xl font-bold tracking-tight text-[var(--foreground)]">AI Synthesis</h3>
+                                                        <p className="text-[var(--muted)]">
+                                                            Let Ollama analyze cross-column relationships to synthesize unique business metrics tailored specifically to your dataset.
+                                                        </p>
+                                                    </div>
+                                                    <button 
+                                                        onClick={requestAIKPIs}
+                                                        className="px-10 py-5 bg-[var(--foreground)] text-white font-bold rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl"
+                                                    >
+                                                        Synthesize Derived KPIs
+                                                    </button>
+                                                </div>
+                                            ) : aiLoading ? (
+                                                <div className="py-32 text-center space-y-6">
+                                                    <div className="relative w-20 h-20 mx-auto">
+                                                        <div className="absolute inset-0 bg-purple-500/20 rounded-full animate-ping" />
+                                                        <div className="relative bg-white border-2 border-purple-500 rounded-2xl p-4 animate-bounce">
+                                                            <Sparkles className="w-10 h-10 text-purple-600" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <p className="text-xl font-bold text-[var(--foreground)]">Deep Semantic Analysis</p>
+                                                        <p className="text-[var(--muted)] animate-pulse">Analyzing column distributions and identifying latent patterns...</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="grid gap-4">
+                                                    {aiKPIs.length === 0 ? (
+                                                        <p className="text-center py-20 text-[var(--muted)]">No AI suggestions generated for this dataset.</p>
+                                                    ) : (
+                                                        aiKPIs.map(kpi => renderKPICard(kpi))
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'blueprint' && (
+                                        <div className="space-y-6">
+                                            {!blueprint || blueprint.kpis?.length === 0 ? (
+                                                <div className="py-20 text-center bg-[var(--card)] rounded-3xl border border-[var(--border)] space-y-4">
+                                                    <BarChart3 className="w-12 h-12 mx-auto text-[var(--muted)] opacity-20" />
+                                                    <p className="text-[var(--muted)] font-medium">Your blueprint is currently empty.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="grid gap-4">
+                                                    {blueprint.kpis.map(kpi => {
+                                                        const fullKpi = [...discoveredKPIs, ...aiKPIs].find(k => k.kpiId === kpi.id) || {
+                                                            kpiId: kpi.id, kpiName: kpi.name, confidence: 100,
+                                                            explanation: `Strategic metric targeting ${kpi.sourceTable}`, 
+                                                            matchedColumns: kpi.aggregations.map(a => a.column),
+                                                            formulaExpression: kpi.lineage?.formula || 'Custom', 
+                                                            category: kpi.category || 'derived', 
+                                                            isComputable: true, 
+                                                            supportStatus: 'FULLY_SUPPORTED'
+                                                        };
+                                                        return renderKPICard(fullKpi);
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                            )}
-                        </motion.div>
-                    )}
-
-                    {activeTab === 'blueprint' && (
-                        <motion.div key="blueprint" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                            <div className="mb-4">
-                                <h2 className="text-lg font-bold">Your KPI Blueprint</h2>
-                                <p className="text-sm text-[var(--muted)]">Selected KPIs that will power your analytics.</p>
                             </div>
-                            {!blueprint || blueprint.kpis?.length === 0 ? (
-                                <div className="text-center py-12 bg-[var(--surface)] rounded-2xl border border-dashed border-[var(--border)]">
-                                    <div className="text-4xl mb-3">📋</div>
-                                    <p className="text-[var(--muted)]">No KPIs selected. Select from the other tabs.</p>
-                                </div>
-                            ) : (
-                                <div className="grid gap-3">
-                                    {blueprint.kpis.map(kpi => {
-                                        const fullKpi = [...discoveredKPIs, ...aiKPIs].find(k => k.kpiId === kpi.id) || {
-                                            kpiId: kpi.id, kpiName: kpi.name, confidence: 100,
-                                            explanation: `Formula matching table ${kpi.sourceTable}`, matchedColumns: kpi.aggregations.map(a => a.column),
-                                            formulaExpression: kpi.lineage?.formula || 'Custom', category: kpi.category || 'unknown', isComputable: true, supportStatus: 'FULLY_SUPPORTED'
-                                        };
-                                        return renderKPICard(fullKpi);
-                                    })}
-                                </div>
-                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
             </main>
+
+            {/* Sticky Action Bar */}
+            {!loading && !blueprint?.isLocked && blueprint && blueprint.kpis.length > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xl px-6">
+                    <motion.div 
+                        initial={{ y: 100 }} 
+                        animate={{ y: 0 }}
+                        className="bg-[var(--foreground)] text-white p-4 rounded-3xl shadow-2xl flex items-center justify-between gap-6"
+                    >
+                        <div className="flex items-center gap-4 ml-2">
+                            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                <Zap className="w-5 h-5 text-yellow-400" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold">{blueprint.kpis.length} KPIs Selected</div>
+                                <div className="text-[10px] font-medium text-white/50 uppercase tracking-wider">Ready for Finalization</div>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={finalize}
+                            disabled={finalizing}
+                            className="bg-white text-[var(--foreground)] px-6 py-3 rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2"
+                        >
+                            {finalizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                            Lock Blueprint
+                        </button>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }

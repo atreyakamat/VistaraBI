@@ -7,15 +7,23 @@ import { StrategyCanvasResult } from '@/lib/module-8/types';
 
 interface AIChatPanelProps {
   simulationContext: StrategyCanvasResult | null;
+  onMessagesChange?: (messages: { role: string, text: string }[]) => void;
 }
 
-export default function AIChatPanel({ simulationContext }: AIChatPanelProps) {
+export default function AIChatPanel({ simulationContext, onMessagesChange }: AIChatPanelProps) {
   const [messages, setMessages] = useState([
     { 
       role: 'ai', 
       text: "I am the Vistara AI Strategist. I have live access to your Strategy Canvas. Whenever you adjust the sliders, I analyze the new Monte Carlo probabilities. How can I help you optimize this goal?" 
     }
   ]);
+
+  // Update parent whenever messages change
+  useEffect(() => {
+    if (onMessagesChange) {
+      onMessagesChange(messages);
+    }
+  }, [messages, onMessagesChange]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);

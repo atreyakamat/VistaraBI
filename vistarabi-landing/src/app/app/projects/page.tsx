@@ -3,7 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+    FolderKanban, 
+    Plus, 
+    ChevronRight, 
+    Trash2, 
+    X, 
+    Search,
+    LayoutGrid,
+    LayoutList,
+    Clock,
+    MoreVertical
+} from "lucide-react";
+import { api } from "@/lib/api/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Project {
     id: string;
@@ -20,6 +34,7 @@ export default function ProjectsPage() {
     const [newName, setNewName] = useState("");
     const [newDesc, setNewDesc] = useState("");
     const [creating, setCreating] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         fetchProjects();
@@ -27,16 +42,12 @@ export default function ProjectsPage() {
 
     const fetchProjects = async () => {
         try {
-            const res = await fetch("/api/projects");
-            if (!res.ok) {
-                if (res.status === 401) {
-                    router.push("/login");
-                    return;
-                }
-                throw new Error("Failed to fetch");
+            const res = await api.get<{ projects: Project[] }>("/api/projects");
+            if (res.error) {
+                if (res.status === 401) router.push("/login");
+                return;
             }
-            const data = await res.json();
-            setProjects(data.projects);
+            if (res.data) setProjects(res.data.projects);
         } catch (error) {
             console.error("Error fetching projects:", error);
         } finally {
@@ -50,15 +61,13 @@ export default function ProjectsPage() {
 
         setCreating(true);
         try {
-            const res = await fetch("/api/projects", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: newName, description: newDesc }),
+            const res = await api.post<{ project: Project }>("/api/projects", { 
+                name: newName, 
+                description: newDesc 
             });
 
-            if (res.ok) {
-                const data = await res.json();
-                setProjects([data.project, ...projects]);
+            if (res.data) {
+                setProjects([res.data.project, ...projects]);
                 setShowCreate(false);
                 setNewName("");
                 setNewDesc("");
@@ -70,161 +79,252 @@ export default function ProjectsPage() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-                <div className="animate-spin w-8 h-8 border-4 border-[var(--accent)] border-t-transparent rounded-full" />
-            </div>
-        );
-    }
+    const handleDelete = async (id: string, e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) return;
+
+        try {
+            const res = await api.delete(`/api/projects/${id}`);
+            if (res.status === 200 || res.status === 204) {
+                setProjects(projects.filter(p => p.id !== id));
+            }
+        } catch (error) {
+            console.error("Error deleting project:", error);
+        }
+    };
+
+    const filteredProjects = projects.filter(p => 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
-        <div className="min-h-screen bg-[var(--background)]">
+        <div className="min-h-screen bg-[var(--background)] flex flex-col">
             {/* Header */}
-            <header className="border-b border-[var(--border)] bg-[var(--card)]">
+            <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Link href="/app" className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center">
-                                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
+                        <Link href="/app" className="flex items-center gap-3 group">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center shadow-lg shadow-[var(--accent)]/10 group-hover:scale-105 transition-transform">
+                                <FolderKanban className="w-6 h-6 text-white" />
                             </div>
-                            <span className="text-xl font-semibold text-[var(--foreground)]">VistaraBI</span>
+                            <div className="flex flex-col">
+                                <span className="text-xl font-bold tracking-tight text-[var(--foreground)] leading-none">VistaraBI</span>
+                                <span className="text-[10px] font-bold text-[var(--muted)] tracking-widest uppercase mt-1">Intelligence</span>
+                            </div>
                         </Link>
-                        <span className="text-[var(--muted)]">/</span>
-                        <span className="font-medium text-[var(--foreground)]">Projects</span>
+                        <span className="text-[var(--border)] font-light text-2xl">/</span>
+                        <span className="font-semibold text-[var(--foreground)]">Projects</span>
                     </div>
+                    
+                    <button
+                        onClick={() => setShowCreate(true)}
+                        className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-[var(--primary)] text-white font-bold rounded-xl hover:bg-[var(--accent)] transition-all shadow-lg shadow-[var(--accent)]/20 active:scale-95"
+                    >
+                        <Plus className="w-5 h-5" />
+                        New Project
+                    </button>
                 </div>
             </header>
 
             {/* Main */}
-            <main className="max-w-7xl mx-auto px-6 py-12">
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h1 className="text-2xl font-semibold text-[var(--foreground)]">Your Projects</h1>
-                        <p className="text-[var(--muted)]">Create and manage your business data projects</p>
+            <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                    <div className="space-y-2">
+                        <h1 className="text-4xl font-bold text-[var(--foreground)] tracking-tight">Your Projects</h1>
+                        <p className="text-lg text-[var(--muted)]">Manage your data environments and strategic insights</p>
                     </div>
-                    <button
-                        onClick={() => setShowCreate(true)}
-                        className="px-5 py-2.5 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent)] transition-colors flex items-center gap-2"
-                    >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        New Project
-                    </button>
+                    
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <div className="relative flex-1 md:w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                            <input
+                                type="text"
+                                placeholder="Search projects..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 bg-[var(--card)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/5 transition-all text-sm"
+                            />
+                        </div>
+                        <button
+                            onClick={() => setShowCreate(true)}
+                            className="md:hidden p-2.5 bg-[var(--primary)] text-white rounded-xl shadow-lg"
+                        >
+                            <Plus className="w-6 h-6" />
+                        </button>
+                    </div>
                 </div>
 
-                {/* Create Modal */}
+                {/* Projects Grid */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <AnimatePresence mode="popLayout">
+                        {loading ? (
+                            Array.from({ length: 6 }).map((_, i) => (
+                                <div key={i} className="bg-[var(--card)] rounded-2xl p-6 border border-[var(--border)] space-y-4">
+                                    <Skeleton className="w-12 h-12 rounded-xl" />
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-6 w-3/4" />
+                                        <Skeleton className="h-4 w-1/2" />
+                                    </div>
+                                    <Skeleton className="h-4 w-1/3" />
+                                </div>
+                            ))
+                        ) : filteredProjects.length === 0 ? (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="col-span-full py-20 text-center space-y-6"
+                            >
+                                <div className="w-20 h-20 mx-auto rounded-3xl bg-[var(--accent)]/5 flex items-center justify-center">
+                                    <FolderKanban className="w-10 h-10 text-[var(--muted)] opacity-20" />
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-2xl font-bold text-[var(--foreground)]">No projects found</h3>
+                                    <p className="text-[var(--muted)]">
+                                        {searchQuery ? `No results for "${searchQuery}"` : "Create your first project to get started"}
+                                    </p>
+                                </div>
+                                {!searchQuery && (
+                                    <button
+                                        onClick={() => setShowCreate(true)}
+                                        className="px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-2xl hover:bg-[var(--accent)] transition-all"
+                                    >
+                                        Create First Project
+                                    </button>
+                                )}
+                            </motion.div>
+                        ) : (
+                            filteredProjects.map((project, index) => (
+                                <motion.div
+                                    key={project.id}
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    transition={{ duration: 0.2, delay: index * 0.05 }}
+                                >
+                                    <Link
+                                        href={`/app/projects/${project.id}`}
+                                        className="block group h-full relative bg-[var(--card)] rounded-3xl p-8 border border-[var(--border)] hover:border-[var(--accent)]/50 hover:shadow-2xl hover:shadow-[var(--accent)]/5 transition-all overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[var(--primary)] to-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        
+                                        <div className="flex items-start justify-between mb-6">
+                                            <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--accent)] transition-all duration-300">
+                                                <FolderKanban className="w-7 h-7 text-[var(--accent)] group-hover:text-white" />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={(e) => handleDelete(project.id, e)}
+                                                    className="p-2 rounded-lg text-[var(--muted)] hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                                <div className="p-2 rounded-lg text-[var(--muted)] group-hover:text-[var(--accent)] transition-colors">
+                                                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            <div>
+                                                <h3 className="text-xl font-bold text-[var(--foreground)] line-clamp-1 group-hover:text-[var(--accent)] transition-colors">{project.name}</h3>
+                                                <p className="text-sm text-[var(--muted)] line-clamp-2 mt-2 h-10">
+                                                    {project.description || "No description provided."}
+                                                </p>
+                                            </div>
+                                            
+                                            <div className="pt-4 border-t border-[var(--border)] flex items-center gap-2 text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">
+                                                <Clock className="w-3 h-3" />
+                                                <span>Created {new Date(project.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </motion.div>
+                            ))
+                        )}
+                    </AnimatePresence>
+                </div>
+            </main>
+
+            {/* Create Modal */}
+            <AnimatePresence>
                 {showCreate && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="bg-[var(--card)] rounded-2xl p-6 w-full max-w-md shadow-2xl"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowCreate(false)}
+                            className="absolute inset-0 bg-[var(--foreground)]/20 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-lg bg-[var(--card)] rounded-3xl shadow-2xl p-8 border border-[var(--border)]"
                         >
-                            <h2 className="text-xl font-semibold text-[var(--foreground)] mb-4">Create New Project</h2>
-                            <form onSubmit={handleCreate} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+                            <button
+                                onClick={() => setShowCreate(false)}
+                                className="absolute top-6 right-6 p-2 rounded-full hover:bg-[var(--background)] text-[var(--muted)] transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                            
+                            <div className="mb-8">
+                                <h2 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">New Project</h2>
+                                <p className="text-[var(--muted)] mt-1">Initialize a new data analysis environment</p>
+                            </div>
+
+                            <form onSubmit={handleCreate} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider">
                                         Project Name
                                     </label>
                                     <input
                                         type="text"
                                         value={newName}
                                         onChange={(e) => setNewName(e.target.value)}
-                                        placeholder="e.g., Q4 Sales Analysis"
-                                        className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--accent)]"
+                                        placeholder="e.g., E-Commerce Q1 Audit"
+                                        className="w-full px-5 py-4 bg-[var(--background)] border border-[var(--border)] rounded-2xl focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/5 transition-all font-medium"
                                         autoFocus
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
-                                        Description (optional)
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-[var(--foreground)] uppercase tracking-wider">
+                                        Description
                                     </label>
                                     <textarea
                                         value={newDesc}
                                         onChange={(e) => setNewDesc(e.target.value)}
-                                        placeholder="What is this project about?"
-                                        rows={3}
-                                        className="w-full px-4 py-3 bg-[var(--background)] border border-[var(--border)] rounded-xl focus:outline-none focus:border-[var(--accent)] resize-none"
+                                        placeholder="Briefly describe the goals of this project..."
+                                        rows={4}
+                                        className="w-full px-5 py-4 bg-[var(--background)] border border-[var(--border)] rounded-2xl focus:outline-none focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/5 transition-all resize-none"
                                     />
                                 </div>
-                                <div className="flex gap-3 pt-2">
+                                <div className="flex gap-4 pt-4">
                                     <button
                                         type="button"
                                         onClick={() => setShowCreate(false)}
-                                        className="flex-1 py-3 border border-[var(--border)] text-[var(--foreground)] font-medium rounded-xl hover:bg-[var(--background)] transition-colors"
+                                        className="flex-1 py-4 border-2 border-[var(--border)] text-[var(--foreground)] font-bold rounded-2xl hover:bg-[var(--background)] transition-all active:scale-95"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={creating || !newName.trim()}
-                                        className="flex-1 py-3 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent)] disabled:opacity-50 transition-colors"
+                                        className="flex-1 py-4 bg-[var(--primary)] text-white font-bold rounded-2xl hover:bg-[var(--accent)] disabled:opacity-50 transition-all shadow-lg shadow-[var(--accent)]/20 active:scale-95"
                                     >
-                                        {creating ? "Creating..." : "Create"}
+                                        {creating ? "Creating..." : "Create Project"}
                                     </button>
                                 </div>
                             </form>
                         </motion.div>
                     </div>
                 )}
-
-                {/* Projects Grid */}
-                {projects.length === 0 ? (
-                    <div className="text-center py-16">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center">
-                            <svg className="w-8 h-8 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-lg font-medium text-[var(--foreground)] mb-2">No projects yet</h3>
-                        <p className="text-[var(--muted)] mb-4">Create your first project to start uploading data</p>
-                        <button
-                            onClick={() => setShowCreate(true)}
-                            className="px-5 py-2.5 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent)] transition-colors"
-                        >
-                            Create Project
-                        </button>
-                    </div>
-                ) : (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {projects.map((project, index) => (
-                            <motion.div
-                                key={project.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                            >
-                                <Link
-                                    href={`/app/projects/${project.id}`}
-                                    className="block bg-[var(--card)] rounded-2xl p-6 border border-[var(--border)] hover:border-[var(--accent)]/30 hover:shadow-lg transition-all group"
-                                >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="w-12 h-12 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center group-hover:bg-[var(--accent)] transition-colors">
-                                            <svg className="w-6 h-6 text-[var(--accent)] group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                                            </svg>
-                                        </div>
-                                        <svg className="w-5 h-5 text-[var(--muted)] group-hover:text-[var(--accent)] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="font-semibold text-[var(--foreground)] mb-1">{project.name}</h3>
-                                    {project.description && (
-                                        <p className="text-sm text-[var(--muted)] line-clamp-2 mb-3">{project.description}</p>
-                                    )}
-                                    <p className="text-xs text-[var(--muted)]">
-                                        Created {new Date(project.createdAt).toLocaleDateString()}
-                                    </p>
-                                </Link>
-                            </motion.div>
-                        ))}
-                    </div>
-                )}
-            </main>
+            </AnimatePresence>
         </div>
     );
 }

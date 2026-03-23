@@ -1,0 +1,255 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { POST } from '../../src/app/api/v1/report/generate/route';
+
+// vi.mock calls are hoisted — use vi.hoisted() to share the spy reference
+const mockCallLocalModel = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ text: 'Mocked executive summary text.' })
+);
+
+vi.mock('@/lib/module-6/infrastructure/local-adapter', () => ({
+  callLocalModel: mockCallLocalModel
+}));
+
+vi.mock('@react-pdf/renderer', () => {
+  return {
+    renderToStream: vi.fn().mockResolvedValue('mocked-pdf-stream'),
+    Document: ({ children }: any) => children,
+    Page: ({ children }: any) => children,
+    Text: ({ children }: any) => children,
+    View: ({ children }: any) => children,
+    StyleSheet: { create: (s: any) => s },
+    Image: ({ src }: any) => src,
+  };
+});
+
+describe('Module 9: Executive Board Report Engine API', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCallLocalModel.mockResolvedValue({ text: 'Mocked executive summary text.' });
+  });
+
+  it('should return 400 if required fields are missing', async () => {
+    const req = new Request('http://localhost:3000/api/v1/report/generate', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    
+    const body = await res.json();
+    expect(body.error).toBe('Missing required fields');
+  });
+
+  it('should return 400 if chartImage is missing', async () => {
+    const req = new Request('http://localhost:3000/api/v1/report/generate', {
+      method: 'POST',
+      body: JSON.stringify({ metrics: { probability: 0.8, gap: 100 } }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('Missing required fields');
+  });
+
+  it('should generate a PDF and return it as a stream with proper headers', async () => {
+    const payload = {
+      chartImage: 'data:image/png;base64,mockbase64',
+      metrics: {
+        probability: 0.85,
+        reliability: 90,
+        gap: 15000
+      },
+      chatSummary: 'Discussed increasing ad spend.'
+    };
+
+    const req = new Request('http://localhost:3000/api/v1/report/generate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    const res = await POST(req);
+    
+    // Check if response is successful and has correct headers
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toBe('application/pdf');
+    expect(res.headers.get('Content-Disposition')).toBe('attachment; filename="Executive_Report.pdf"');
+    
+    // Check that it's returning a readable stream (the mocked string)
+    const bodyText = await res.text();
+    expect(bodyText).toBe('mocked-pdf-stream');
+  });
+
+  it('should call the LLM with a prompt containing the probability percentage', async () => {
+    const payload = {
+      chartImage: 'data:image/png;base64,abc123',
+      metrics: {
+        probability: 0.72,  // 72%
+        reliability: 85,
+        gap: 5000
+      },
+      chatSummary: 'User explored email campaign strategy.'
+    };
+
+    const req = new Request('http://localhost:3000/api/v1/report/generate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    await POST(req);
+
+    // Verify Ollama was called once
+    expect(mockCallLocalModel).toHaveBeenCalledTimes(1);
+
+    // Verify the prompt contains the probability value
+    const [systemPrompt, userPrompt, temperature] = mockCallLocalModel.mock.calls[0];
+    const fullPromptText = `${systemPrompt} ${userPrompt}`;
+    expect(fullPromptText).toContain('72.0%');
+
+    // Verify it uses low temperature for professional consistency (per spec)
+    expect(temperature).toBeLessThanOrEqual(0.3);
+  });
+
+  it('should call the LLM with a prompt identifying it as an Executive Assistant', async () => {
+    const payload = {
+      chartImage: 'data:image/png;base64,abc123',
+      metrics: { probability: 0.5, reliability: 70, gap: 10000 },
+      chatSummary: 'Initial strategy discussion.'
+    };
+
+    const req = new Request('http://localhost:3000/api/v1/report/generate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    await POST(req);
+
+    const [systemPrompt, userPrompt] = mockCallLocalModel.mock.calls[0];
+    // Per spec: "You are an AI Executive Assistant" appears in the user/task prompt
+    // while the system prompt instructs the writing style
+    const fullText = `${systemPrompt} ${userPrompt}`.toLowerCase();
+    expect(fullText).toContain('executive');
+  });
+
+  it('should include the chatSummary in the LLM prompt context', async () => {
+    const chatSummary = 'The user decided to launch a targeted email campaign with 15% uplift.';
+    const payload = {
+      chartImage: 'data:image/png;base64,abc123',
+      metrics: { probability: 0.65, reliability: 80, gap: 8000 },
+      chatSummary,
+    };
+
+    const req = new Request('http://localhost:3000/api/v1/report/generate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    await POST(req);
+
+    const [, userPrompt] = mockCallLocalModel.mock.calls[0];
+    expect(userPrompt).toContain(chatSummary);
+  });
+
+  it('should use fallback chat summary text when chatSummary is not provided', async () => {
+    const payload = {
+      chartImage: 'data:image/png;base64,abc123',
+      metrics: { probability: 0.5, reliability: 70, gap: 10000 },
+      // chatSummary intentionally omitted
+    };
+
+    const req = new Request('http://localhost:3000/api/v1/report/generate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    const res = await POST(req);
+
+    // Should not crash and should still return 200
+    expect(res.status).toBe(200);
+    expect(mockCallLocalModel).toHaveBeenCalledTimes(1);
+  });
+
+  it('should include the strategy gap value in the LLM prompt', async () => {
+    const payload = {
+      chartImage: 'data:image/png;base64,abc123',
+      metrics: { probability: 0.55, reliability: 75, gap: 12500 },
+      chatSummary: 'Gap analysis conversation.'
+    };
+
+    const req = new Request('http://localhost:3000/api/v1/report/generate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    await POST(req);
+
+    const [, userPrompt] = mockCallLocalModel.mock.calls[0];
+    expect(userPrompt).toContain('12500');
+  });
+});
+
+// ─── ReportTemplate Component Unit Tests ─────────────────────────────────────
+
+describe('Module 9: ReportTemplate Component', () => {
+  it('renders without throwing when given valid props', async () => {
+    const { ExecutiveReport } = await import('../../src/lib/module-9/ReportTemplate');
+
+    expect(() =>
+      ExecutiveReport({
+        summaryText: 'The strategy is on track to achieve its revenue target.',
+        metrics: { probability: 0.82, reliability: 90, gap: 5000 },
+        chartImage: 'data:image/png;base64,abc123',
+      })
+    ).not.toThrow();
+  });
+
+  it('returns a truthy React-PDF Document element', async () => {
+    const { ExecutiveReport } = await import('../../src/lib/module-9/ReportTemplate');
+
+    const element = ExecutiveReport({
+      summaryText: 'Strategic summary text here.',
+      metrics: { probability: 0.75, reliability: 85, gap: 10000 },
+      chartImage: 'data:image/png;base64,xyz',
+    });
+
+    expect(element).toBeTruthy();
+  });
+
+  it('handles empty chartImage without crashing', async () => {
+    const { ExecutiveReport } = await import('../../src/lib/module-9/ReportTemplate');
+
+    expect(() =>
+      ExecutiveReport({
+        summaryText: 'Summary here.',
+        metrics: { probability: 0.5, reliability: 70, gap: 20000 },
+        chartImage: '',  // empty — conditional render in template
+      })
+    ).not.toThrow();
+  });
+
+  it('accepts 0% probability without crashing', async () => {
+    const { ExecutiveReport } = await import('../../src/lib/module-9/ReportTemplate');
+
+    expect(() =>
+      ExecutiveReport({
+        summaryText: 'Low probability scenario.',
+        metrics: { probability: 0, reliability: 40, gap: 50000 },
+        chartImage: 'data:image/png;base64,x',
+      })
+    ).not.toThrow();
+  });
+
+  it('accepts 100% probability without crashing', async () => {
+    const { ExecutiveReport } = await import('../../src/lib/module-9/ReportTemplate');
+
+    expect(() =>
+      ExecutiveReport({
+        summaryText: 'Highly achievable goal.',
+        metrics: { probability: 1.0, reliability: 100, gap: 0 },
+        chartImage: 'data:image/png;base64,x',
+      })
+    ).not.toThrow();
+  });
+});
+

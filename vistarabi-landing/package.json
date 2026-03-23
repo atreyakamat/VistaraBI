@@ -17,6 +17,7 @@
     "test:module-5": "vitest run tests/module-5",
     "test:6": "vitest run tests/module6a tests/module6b tests/module6c tests/module6d tests/module6e",
     "test:7": "vitest run tests/module-7",
+    "test:9": "vitest run tests/module-9",
     "test:ci": "vitest run --exclude **/ollama-integration.test.ts",
     "test:ui": "vitest --ui"
   },

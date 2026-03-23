@@ -3,7 +3,23 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+    LayoutDashboard, 
+    ChevronRight, 
+    ArrowLeft, 
+    Upload, 
+    Trash2, 
+    Settings, 
+    Database, 
+    GitBranch, 
+    Target,
+    Zap,
+    AlertCircle,
+    Info,
+    RefreshCw,
+    BarChart3
+} from "lucide-react";
 import UploadZone from "@/components/app/UploadZone";
 import SourceCard from "@/components/app/SourceCard";
 import DataPreview from "@/components/app/DataPreview";
@@ -12,6 +28,8 @@ import CleaningSummary from "@/components/app/CleaningSummary";
 import QualityDashboard from "@/components/app/QualityDashboard";
 import DomainBadge from "@/components/app/DomainBadge";
 import DomainSelectionPopup from "@/components/app/DomainSelectionPopup";
+import { api } from "@/lib/api/client";
+import { ProjectSkeleton } from "@/components/ui/skeleton";
 import { SourceStatus, QualityScore, QualityGrade, RiskLevel, DataType, DomainType, DomainStatus } from "@/lib/prisma";
 
 interface Project {
@@ -68,7 +86,6 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
     const [deleting, setDeleting] = useState(false);
     const [previewSource, setPreviewSource] = useState<SourceWithPreview | null>(null);
     const [previewColumnMeta, setPreviewColumnMeta] = useState<ColumnInfo[] | undefined>();
-    const [showRelationships, setShowRelationships] = useState(false);
     const [activeTab, setActiveTab] = useState<"sources" | "relationships">("sources");
     const [error, setError] = useState<string | null>(null);
     const [cleaningSummary, setCleaningSummary] = useState<any>(null);
@@ -82,73 +99,60 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
     const fetchProject = async () => {
         try {
-            console.log('Fetching project:', id);
-            const res = await fetch(`/api/projects/${id}`);
-            console.log('Response status:', res.status);
+            const res = await api.get<{ project: Project, sources: Source[] }>(`/api/projects/${id}`);
 
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                console.error('Project fetch error:', res.status, errorData);
-
+            if (res.error) {
                 if (res.status === 401) {
                     router.push("/login");
                     return;
                 }
-                setError(`Error ${res.status}: ${errorData.error || 'Failed to fetch project'} `);
-                setLoading(false);
+                setError(res.error);
                 return;
             }
-            const data = await res.json();
-            console.log('Project loaded:', data.project?.name);
-            setProject(data.project);
 
-            // Fetch cleaned status and quality grades for each source
-            const sourcesWithExtendedInfo = await Promise.all(
-                (data.sources || []).map(async (source: Source) => {
-                    if (source.status === 'READY') {
-                        try {
-                            const [cleanedRes, qualityRes] = await Promise.all([
-                                fetch(`/api/sources/${source.id}/cleaned`),
-                                fetch(`/api/sources/${source.id}/quality`),
-                            ]);
+            if (res.data) {
+                setProject(res.data.project);
 
-                            const qualityData = qualityRes.ok ? await qualityRes.json() : null;
+                // Fetch cleaned status and quality grades for each source in parallel
+                const sourcesWithExtendedInfo = await Promise.all(
+                    res.data.sources.map(async (source) => {
+                        if (source.status === 'READY') {
+                            try {
+                                const [cleanedRes, qualityRes] = await Promise.all([
+                                    api.get(`/api/sources/${source.id}/cleaned`),
+                                    api.get<{ quality: { overallGrade: QualityGrade, riskLevel: RiskLevel } }>(`/api/sources/${source.id}/quality`),
+                                ]);
 
-                            return {
-                                ...source,
-                                cleaned: cleanedRes.ok,
-                                qualityGrade: qualityData?.quality?.overallGrade,
-                                riskLevel: qualityData?.quality?.riskLevel,
-                            };
-                        } catch {
-                            return { ...source, cleaned: false };
+                                return {
+                                    ...source,
+                                    cleaned: cleanedRes.status === 200,
+                                    qualityGrade: qualityRes.data?.quality?.overallGrade,
+                                    riskLevel: qualityRes.data?.quality?.riskLevel,
+                                };
+                            } catch {
+                                return { ...source, cleaned: false };
+                            }
                         }
-                    }
-                    return { ...source, cleaned: false };
-                })
-            );
-            setSources(sourcesWithExtendedInfo);
-
-            // Fetch relationships
-            const relRes = await fetch(`/api/projects/${id}/relationships`);
-            if (relRes.ok) {
-                const relData = await relRes.json();
-                setRelationships(relData.relationships || []);
+                        return { ...source, cleaned: false };
+                    })
+                );
+                setSources(sourcesWithExtendedInfo);
             }
 
-            // Fetch domain detection (Module 3 Phase 3A)
-            const domainRes = await fetch(`/api/projects/${id}/domain`);
-            console.log('[Domain] Fetched domain response:', domainRes.status);
-            if (domainRes.ok) {
-                const domainResult = await domainRes.json();
-                console.log('[Domain] Domain data:', domainResult);
-                setDomainData(domainResult.domain);
-            } else {
-                console.log('[Domain] Failed to fetch domain:', await domainRes.text());
+            // Fetch relationships
+            const relRes = await api.get<{ relationships: RelationshipData[] }>(`/api/projects/${id}/relationships`);
+            if (relRes.data) {
+                setRelationships(relRes.data.relationships);
+            }
+
+            // Fetch domain detection
+            const domainRes = await api.get<{ domain: any }>(`/api/projects/${id}/domain`);
+            if (domainRes.data) {
+                setDomainData(domainRes.data.domain);
             }
         } catch (err) {
             console.error("Error fetching project:", err);
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            setError("Failed to load project details.");
         } finally {
             setLoading(false);
         }
@@ -162,13 +166,13 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                 formData.append("files", file);
             });
 
+            // Standard fetch for FormData as api client is for JSON
             const res = await fetch(`/api/projects/${id}/sources`, {
                 method: "POST",
                 body: formData,
             });
 
             if (res.ok) {
-                // Refresh project data
                 await fetchProject();
             }
         } catch (error) {
@@ -182,19 +186,17 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
         if (source.status !== "READY") return;
 
         try {
-            // Fetch source with preview data
-            const sourceRes = await fetch(`/api/sources/${source.id}`);
-            // Fetch column intelligence
-            const intelRes = await fetch(`/api/sources/${source.id}/intelligence`);
+            const [sourceRes, intelRes] = await Promise.all([
+                api.get<{ source: SourceWithPreview }>(`/api/sources/${source.id}`),
+                api.get<{ columns: ColumnInfo[] }>(`/api/sources/${source.id}/intelligence`),
+            ]);
 
-            if (sourceRes.ok) {
-                const data = await sourceRes.json();
-                setPreviewSource(data.source);
+            if (sourceRes.data) {
+                setPreviewSource(sourceRes.data.source);
             }
 
-            if (intelRes.ok) {
-                const intelData = await intelRes.json();
-                setPreviewColumnMeta(intelData.columns);
+            if (intelRes.data) {
+                setPreviewColumnMeta(intelRes.data.columns);
             }
         } catch (error) {
             console.error("Error fetching source:", error);
@@ -203,10 +205,9 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
     const handleViewCleaningSummary = async (sourceId: string) => {
         try {
-            const res = await fetch(`/api/sources/${sourceId}/cleaning-summary`);
-            if (res.ok) {
-                const data = await res.json();
-                setCleaningSummary(data.summary);
+            const res = await api.get<{ summary: any }>(`/api/sources/${sourceId}/cleaning-summary`);
+            if (res.data) {
+                setCleaningSummary(res.data.summary);
             }
         } catch (error) {
             console.error("Error fetching cleaning summary:", error);
@@ -217,13 +218,9 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
         if (!cleaningSummary) return;
 
         try {
-            const res = await fetch(`/api/sources/${cleaningSummary.sourceId}/clean`, {
-                method: 'POST',
-            });
-
-            if (res.ok) {
+            const res = await api.post(`/api/sources/${cleaningSummary.sourceId}/clean`);
+            if (!res.error) {
                 setCleaningSummary(null);
-                // Refresh project data
                 await fetchProject();
             }
         } catch (error) {
@@ -233,25 +230,19 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
     const handleViewQualityDashboard = async (sourceId: string) => {
         try {
-            // Fetch quality intelligence, column health, outliers, and audit log in parallel
             const [qualityRes, columnHealthRes, outliersRes, auditLogRes] = await Promise.all([
-                fetch(`/api/sources/${sourceId}/quality`),
-                fetch(`/api/sources/${sourceId}/column-health`),
-                fetch(`/api/sources/${sourceId}/outliers`),
-                fetch(`/api/sources/${sourceId}/audit-log`),
+                api.get<{ quality: any }>(`/api/sources/${sourceId}/quality`),
+                api.get<{ columnHealths: any[] }>(`/api/sources/${sourceId}/column-health`),
+                api.get<{ outliers: any[] }>(`/api/sources/${sourceId}/outliers`),
+                api.get<{ auditLog: any[] }>(`/api/sources/${sourceId}/audit-log`),
             ]);
 
-            const qualityData = qualityRes.ok ? await qualityRes.json() : null;
-            const columnHealthData = columnHealthRes.ok ? await columnHealthRes.json() : null;
-            const outliersData = outliersRes.ok ? await outliersRes.json() : null;
-            const auditLogData = auditLogRes.ok ? await auditLogRes.json() : null;
-
-            if (qualityData) {
+            if (qualityRes.data) {
                 setQualityDashboard({
-                    quality: qualityData.quality,
-                    columnHealths: columnHealthData?.columnHealths || [],
-                    outliers: outliersData?.outliers || [],
-                    auditLog: auditLogData?.auditLog || [],
+                    quality: qualityRes.data.quality,
+                    columnHealths: columnHealthRes.data?.columnHealths || [],
+                    outliers: outliersRes.data?.outliers || [],
+                    auditLog: auditLogRes.data?.auditLog || [],
                 });
             }
         } catch (error) {
@@ -261,17 +252,12 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
     const handleSelectDomain = async (domain: string) => {
         try {
-            // Use governance API to properly set domain
-            const res = await fetch(`/api/projects/${id}/governance`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'set',
-                    domain,
-                    reason: `User selected ${domain} domain`,
-                }),
+            const res = await api.post(`/api/projects/${id}/governance`, {
+                action: 'set',
+                domain,
+                reason: `User selected ${domain} domain`,
             });
-            if (res.ok) {
+            if (!res.error) {
                 await fetchProject();
                 setShowDomainPopup(false);
             }
@@ -281,10 +267,10 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
     };
 
     const handleDeleteSource = async (sourceId: string) => {
+        if (!confirm("Delete this data source?")) return;
         try {
-            const res = await fetch(`/api/sources/${sourceId}`, { method: 'DELETE' });
-            if (res.ok) {
-                // Refresh project data
+            const res = await api.delete(`/api/sources/${sourceId}`);
+            if (!res.error) {
                 await fetchProject();
             }
         } catch (error) {
@@ -297,8 +283,8 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
         setDeleting(true);
         try {
-            const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
-            if (res.ok) {
+            const res = await api.delete(`/api/projects/${id}`);
+            if (!res.error) {
                 router.push("/app/projects");
             }
         } catch (error) {
@@ -308,63 +294,34 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-                <div className="animate-spin w-8 h-8 border-4 border-[var(--accent)] border-t-transparent rounded-full" />
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-                <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-red-100 flex items-center justify-center">
-                        <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <h2 className="text-xl font-semibold text-[var(--foreground)] mb-2">Failed to Load Project</h2>
-                    <p className="text-[var(--muted)] mb-4">{error}</p>
-                    <button
-                        onClick={() => router.push('/app/projects')}
-                        className="px-5 py-2.5 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent)] transition-colors"
-                    >
-                        Back to Projects
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    if (!project) return null;
-
     return (
-        <div className="min-h-screen bg-[var(--background)]">
-            {/* Header */}
-            <header className="border-b border-[var(--border)] bg-[var(--card)]">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link href="/app" className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center">
-                                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
+        <div className="min-h-screen bg-[var(--background)] flex flex-col">
+            {/* Project Navigation Header */}
+            <header className="sticky top-0 z-[60] border-b border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-xl">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link 
+                            href="/app/projects"
+                            className="p-2 -ml-2 rounded-xl hover:bg-[var(--border)]/40 transition-colors text-[var(--muted)] hover:text-[var(--foreground)]"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </Link>
+                        <div className="h-6 w-px bg-[var(--border)]" />
+                        <div className="flex flex-col">
+                            <h1 className="text-sm font-bold text-[var(--foreground)] leading-none line-clamp-1">
+                                {project?.name || "Loading..."}
+                            </h1>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">
+                                    Project Workspace
+                                </span>
                             </div>
-                            <span className="text-xl font-semibold text-[var(--foreground)]">VistaraBI</span>
-                        </Link>
-                        <span className="text-[var(--muted)]">/</span>
-                        <Link href="/app/projects" className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-                            Projects
-                        </Link>
-                        <span className="text-[var(--muted)]">/</span>
-                        <span className="font-medium text-[var(--foreground)]">{project.name}</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                        {/* Domain Badge and Selection */}
-                        {sources.length > 0 && (
-                            <>
+
+                    <div className="flex items-center gap-4">
+                        <div className="hidden md:flex items-center gap-3">
+                            {sources.length > 0 && (
                                 <DomainBadge
                                     domain={domainData?.detectedDomain || null}
                                     confidence={domainData?.confidence || 0}
@@ -372,162 +329,282 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                                     onClick={() => setShowDomainPopup(true)}
                                     compact
                                 />
-                                <button
-                                    onClick={() => setShowDomainPopup(true)}
-                                    className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 text-white rounded-lg hover:shadow-lg transition-all"
-                                >
-                                    {domainData?.detectedDomain ? '🔄 Change Domain' : '🎯 Domain Selection'}
-                                </button>
-                            </>
-                        )}
+                            )}
+                            <button
+                                onClick={() => setShowDomainPopup(true)}
+                                className="px-3 py-1.5 text-xs font-bold bg-white border border-[var(--border)] text-[var(--foreground)] rounded-lg hover:bg-[var(--background)] transition-all flex items-center gap-2 shadow-sm"
+                            >
+                                <Target className="w-3.5 h-3.5 text-[var(--accent)]" />
+                                {domainData?.detectedDomain ? 'Switch Domain' : 'Define Domain'}
+                            </button>
+                        </div>
+                        
+                        <div className="h-6 w-px bg-[var(--border)] mx-1" />
+                        
                         <button
                             onClick={handleDeleteProject}
                             disabled={deleting}
-                            className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                            className="p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                            title="Delete Project"
                         >
-                            {deleting ? "Deleting..." : "Delete Project"}
+                            <Trash2 className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
             </header>
 
-            {/* Main */}
-            <main className="max-w-7xl mx-auto px-6 py-12">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    {/* Project Header */}
-                    <div className="mb-6">
-                        <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">{project.name}</h1>
-                        {project.description && <p className="text-[var(--muted)]">{project.description}</p>}
-                    </div>
-
-                    {/* Upload Zone */}
-                    <div className="mb-8">
-                        <UploadZone onFilesSelected={handleFilesSelected} uploading={uploading} />
-                    </div>
-
-                    {/* Continue to KPIs - shown when domain is set */}
-                    {domainData?.detectedDomain && sources.length > 0 && (
-                        <div className="mb-8 p-4 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 rounded-2xl border border-purple-200">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="font-semibold">Ready to define your KPIs?</h3>
-                                    <p className="text-sm text-[var(--muted)]">Domain detected: {domainData.detectedDomain}. Set up your measurement blueprint.</p>
-                                </div>
-                                <a
-                                    href={`/app/projects/${id}/kpis`}
-                                    className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all"
-                                >
-                                    📊 Continue to KPIs →
-                                </a>
+            {/* Main Workspace */}
+            <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12">
+                <AnimatePresence mode="wait">
+                    {loading ? (
+                        <motion.div
+                            key="skeleton"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <ProjectSkeleton />
+                        </motion.div>
+                    ) : error ? (
+                        <motion.div
+                            key="error"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="text-center py-20 space-y-6"
+                        >
+                            <div className="w-20 h-20 mx-auto rounded-3xl bg-red-50 flex items-center justify-center">
+                                <AlertCircle className="w-10 h-10 text-red-500" />
                             </div>
-                        </div>
-                    )}
-
-                    {/* Tabs */}
-                    <div className="flex gap-1 mb-6 p-1 bg-[var(--background)] rounded-xl w-fit">
-                        <button
-                            onClick={() => setActiveTab("sources")}
-                            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "sources"
-                                ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-                                : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                                }`}
+                            <div className="space-y-2">
+                                <h2 className="text-2xl font-bold text-[var(--foreground)]">Workspace Error</h2>
+                                <p className="text-[var(--muted)]">{error}</p>
+                            </div>
+                            <button
+                                onClick={() => router.push('/app/projects')}
+                                className="px-8 py-3 bg-[var(--primary)] text-white font-bold rounded-2xl hover:bg-[var(--accent)] transition-all"
+                            >
+                                Back to Projects
+                            </button>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="content"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="space-y-12"
                         >
-                            Data Sources
-                            {sources.length > 0 && (
-                                <span className="ml-2 px-1.5 py-0.5 text-xs bg-[var(--accent)]/10 text-[var(--accent)] rounded">
-                                    {sources.length}
-                                </span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("relationships")}
-                            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeTab === "relationships"
-                                ? "bg-[var(--card)] text-[var(--foreground)] shadow-sm"
-                                : "text-[var(--muted)] hover:text-[var(--foreground)]"
-                                }`}
-                        >
-                            Relationships
-                            {relationships.length > 0 && (
-                                <span className="ml-2 px-1.5 py-0.5 text-xs bg-[var(--accent)]/10 text-[var(--accent)] rounded">
-                                    {relationships.length}
-                                </span>
-                            )}
-                        </button>
-                    </div>
-
-                    {/* Sources Tab */}
-                    {activeTab === "sources" && (
-                        <>
-                            {sources.length === 0 ? (
-                                <div className="text-center py-12 bg-[var(--card)] rounded-2xl border border-[var(--border)]">
-                                    <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-[var(--muted)]/10 flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                        </svg>
+                            {/* Project Header Stats */}
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                                <div className="space-y-1">
+                                    <h2 className="text-3xl font-bold text-[var(--foreground)] tracking-tight">
+                                        Data Architecture
+                                    </h2>
+                                    <p className="text-[var(--muted)] max-w-2xl">
+                                        {project?.description || "Upload and organize your data sources to begin generating semantic insights."}
+                                    </p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="px-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-sm">
+                                        <div className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Sources</div>
+                                        <div className="text-xl font-bold text-[var(--foreground)]">{sources.length}</div>
                                     </div>
-                                    <p className="text-[var(--muted)]">No data sources yet</p>
-                                    <p className="text-sm text-[var(--muted)]">Upload files above to get started</p>
+                                    <div className="px-4 py-2 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-sm">
+                                        <div className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider">Relationships</div>
+                                        <div className="text-xl font-bold text-[var(--foreground)]">{relationships.length}</div>
+                                    </div>
                                 </div>
-                            ) : (
-                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {sources.map((source) => (
-                                        <SourceCard key={source.id} source={source} onClick={() => handleSourceClick(source)} onDelete={handleDeleteSource} />
-                                    ))}
-                                </div>
+                            </div>
+
+                            {/* Module 4 Gateway */}
+                            {domainData?.detectedDomain && sources.length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="relative overflow-hidden bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] rounded-3xl p-8 text-white shadow-xl shadow-[var(--accent)]/20"
+                                >
+                                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                                        <div className="space-y-3">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
+                                                <Zap className="w-3.5 h-3.5" />
+                                                Next Milestone
+                                            </div>
+                                            <h3 className="text-2xl font-bold tracking-tight">Generate Strategy Engine</h3>
+                                            <p className="text-white/80 max-w-lg">
+                                                Your {domainData.detectedDomain} domain is active. Continue to the KPI Engine to define your measurement blueprint and strategic goals.
+                                            </p>
+                                        </div>
+                                        <Link
+                                            href={`/app/projects/${id}/kpis`}
+                                            className="whitespace-nowrap px-8 py-4 bg-white text-[var(--primary)] font-bold rounded-2xl hover:bg-white/90 hover:scale-105 active:scale-95 transition-all shadow-xl"
+                                        >
+                                            Configure KPIs →
+                                        </Link>
+                                    </div>
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
+                                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl" />
+                                </motion.div>
                             )}
-                        </>
+
+                            {/* Workspace Tabs */}
+                            <div className="space-y-8">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-[var(--border)] pb-1">
+                                    <div className="flex gap-8">
+                                        <button
+                                            onClick={() => setActiveTab("sources")}
+                                            className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${
+                                                activeTab === "sources"
+                                                    ? "text-[var(--accent)]"
+                                                    : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                                            }`}
+                                        >
+                                            Data Sources
+                                            {activeTab === "sources" && (
+                                                <motion.div 
+                                                    layoutId="tab" 
+                                                    className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--accent)] rounded-full" 
+                                                />
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveTab("relationships")}
+                                            className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${
+                                                activeTab === "relationships"
+                                                    ? "text-[var(--accent)]"
+                                                    : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                                            }`}
+                                        >
+                                            Relationships
+                                            {activeTab === "relationships" && (
+                                                <motion.div 
+                                                    layoutId="tab" 
+                                                    className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--accent)] rounded-full" 
+                                                />
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    {activeTab === "sources" && (
+                                        <div className="pb-3">
+                                            <UploadZone onFilesSelected={handleFilesSelected} uploading={uploading} />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="min-h-[400px]">
+                                    {activeTab === "sources" ? (
+                                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            <AnimatePresence>
+                                                {sources.length === 0 ? (
+                                                    <motion.div 
+                                                        initial={{ opacity: 0 }}
+                                                        animate={{ opacity: 1 }}
+                                                        className="col-span-full py-20 text-center space-y-6 bg-[var(--card)] rounded-3xl border-2 border-dashed border-[var(--border)]"
+                                                    >
+                                                        <div className="w-16 h-16 mx-auto rounded-2xl bg-[var(--background)] flex items-center justify-center">
+                                                            <Database className="w-8 h-8 text-[var(--muted)]" />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <p className="text-lg font-bold text-[var(--foreground)]">No Data Sources</p>
+                                                            <p className="text-[var(--muted)]">Upload CSV, JSON, or Excel files to begin analysis.</p>
+                                                        </div>
+                                                    </motion.div>
+                                                ) : (
+                                                    sources.map((source, idx) => (
+                                                        <motion.div
+                                                            key={source.id}
+                                                            initial={{ opacity: 0, y: 20 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ delay: idx * 0.05 }}
+                                                        >
+                                                            <SourceCard 
+                                                                source={source} 
+                                                                onClick={() => handleSourceClick(source)} 
+                                                                onDelete={handleDeleteSource} 
+                                                            />
+                                                        </motion.div>
+                                                    ))
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-[var(--card)] rounded-3xl border border-[var(--border)] p-8 shadow-sm h-[600px] overflow-hidden">
+                                            <div className="flex items-center justify-between mb-8">
+                                                <div className="space-y-1">
+                                                    <h4 className="text-xl font-bold text-[var(--foreground)]">Relationship Graph</h4>
+                                                    <p className="text-sm text-[var(--muted)]">Automated schema discovery and cross-source mapping.</p>
+                                                </div>
+                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--background)] rounded-lg text-xs font-medium text-[var(--muted)] border border-[var(--border)]">
+                                                    <Info className="w-4 h-4" />
+                                                    Detected {relationships.length} mapping{relationships.length !== 1 ? 's' : ''}
+                                                </div>
+                                            </div>
+                                            <RelationshipGraph relationships={relationships} onClose={() => {}} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Overlays & Modals */}
+                <AnimatePresence>
+                    {previewSource && (
+                        <DataPreview
+                            source={previewSource}
+                            columnMeta={previewColumnMeta}
+                            onClose={() => {
+                                setPreviewSource(null);
+                                setPreviewColumnMeta(undefined);
+                            }}
+                            onViewCleaningSummary={() => handleViewCleaningSummary(previewSource.id)}
+                            onViewQualityDashboard={() => handleViewQualityDashboard(previewSource.id)}
+                        />
                     )}
 
-                    {/* Relationships Tab */}
-                    {activeTab === "relationships" && (
-                        <RelationshipGraph relationships={relationships} onClose={() => setShowRelationships(false)} />
+                    {cleaningSummary && (
+                        <CleaningSummary
+                            summary={cleaningSummary}
+                            onClose={() => setCleaningSummary(null)}
+                            onReClean={handleReClean}
+                        />
                     )}
-                </motion.div>
 
-                {/* Preview Modal */}
-                {previewSource && (
-                    <DataPreview
-                        source={previewSource}
-                        columnMeta={previewColumnMeta}
-                        onClose={() => {
-                            setPreviewSource(null);
-                            setPreviewColumnMeta(undefined);
-                        }}
-                        onViewCleaningSummary={() => handleViewCleaningSummary(previewSource.id)}
-                    />
-                )}
+                    {qualityDashboard && (
+                        <QualityDashboard
+                            quality={qualityDashboard.quality}
+                            columnHealths={qualityDashboard.columnHealths}
+                            outliers={qualityDashboard.outliers}
+                            auditLog={qualityDashboard.auditLog}
+                            onClose={() => setQualityDashboard(null)}
+                        />
+                    )}
 
-                {/* Cleaning Summary Modal */}
-                {cleaningSummary && (
-                    <CleaningSummary
-                        summary={cleaningSummary}
-                        onClose={() => setCleaningSummary(null)}
-                        onReClean={handleReClean}
-                    />
-                )}
-
-                {/* Quality Dashboard Modal */}
-                {qualityDashboard && (
-                    <QualityDashboard
-                        quality={qualityDashboard.quality}
-                        columnHealths={qualityDashboard.columnHealths}
-                        outliers={qualityDashboard.outliers}
-                        auditLog={qualityDashboard.auditLog}
-                        onClose={() => setQualityDashboard(null)}
-                    />
-                )}
-
-                {/* Unified Domain Selection Modal (Module 3) */}
-                {showDomainPopup && (
-                    <DomainSelectionPopup
-                        projectId={id}
-                        currentDomain={domainData?.detectedDomain || null}
-                        currentConfidence={domainData?.confidence || 0}
-                        onSelectDomain={handleSelectDomain}
-                        onClose={() => setShowDomainPopup(false)}
-                    />
-                )}
+                    {showDomainPopup && (
+                        <DomainSelectionPopup
+                            projectId={id}
+                            currentDomain={domainData?.detectedDomain || null}
+                            currentConfidence={domainData?.confidence || 0}
+                            onSelectDomain={handleSelectDomain}
+                            onClose={() => setShowDomainPopup(false)}
+                        />
+                    )}
+                </AnimatePresence>
             </main>
+
+            {/* Sticky Action Footer - only shown when sources are uploading or processing */}
+            {uploading && (
+                <div className="fixed bottom-8 right-8 z-[100]">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-[var(--foreground)] text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4"
+                    >
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                        <span className="font-bold">Processing datasets...</span>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }

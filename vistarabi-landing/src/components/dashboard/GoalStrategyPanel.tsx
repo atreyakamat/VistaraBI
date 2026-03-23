@@ -410,7 +410,9 @@ function StrategyCanvasView({ canvas, onReset, onRefine, onViewDoc, onSimulateAc
 
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 
-export function GoalStrategyPanel({ projectId, isOpen, onClose, initialQuery = '' }: GoalStrategyPanelProps & { initialQuery?: string }) {
+export function GoalStrategyPanel({
+    projectId, isOpen, onClose, initialQuery = '', onSimulationComplete
+}: GoalStrategyPanelProps & { initialQuery?: string; onSimulationComplete?: (ctx: StrategyCanvasResult) => void }) {
     const [input, setInput] = useState(initialQuery);
     const [loading, setLoading] = useState(false);
     const [stage, setStage] = useState<string | null>(null);
@@ -426,6 +428,7 @@ export function GoalStrategyPanel({ projectId, isOpen, onClose, initialQuery = '
     const [simulationContext, setSimulationContext] = useState<StrategyCanvasResult | null>(null);
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [realHistory, setRealHistory] = useState<{ date: string, value: number }[]>([]);
+    const [chatMessages, setChatMessages] = useState<{ role: string, text: string }[]>([]);
 
     // Fetch real dashboard data to pass into simulator when opened
     useEffect(() => {
@@ -543,7 +546,9 @@ export function GoalStrategyPanel({ projectId, isOpen, onClose, initialQuery = '
               reliability: simulationContext.reliabilityScore,
               gap: gap
             },
-            chatSummary: `User selected action: ${simulatingAction?.actionName}. Tested simulated outcomes for achieving ${canvas?.goal.targetMetric}.`
+            chatSummary: chatMessages.length > 0 
+                ? chatMessages.map(m => `${m.role.toUpperCase()}: ${m.text}`).join('\n')
+                : `User selected action: ${simulatingAction?.actionName}. Tested simulated outcomes for achieving ${canvas?.goal.targetMetric}.`
           };
     
           const response = await fetch('/api/v1/report/generate', {
@@ -618,11 +623,18 @@ export function GoalStrategyPanel({ projectId, isOpen, onClose, initialQuery = '
                     <div id="strategy-canvas-container" className="w-[70%] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                         <StrategyCanvas 
                             initialContext={initialSimulatorContext}
-                            onSimulationComplete={(data) => setSimulationContext(data)} 
+                            onSimulationComplete={(data) => {
+                                setSimulationContext(data);
+                                // Propagate up to DashboardShell for State Injection Pipeline
+                                onSimulationComplete?.(data);
+                            }} 
                         />
                     </div>
                     <div className="w-[30%]">
-                        <AIChatPanel simulationContext={simulationContext} />
+                        <AIChatPanel 
+                            simulationContext={simulationContext} 
+                            onMessagesChange={(msgs) => setChatMessages(msgs)}
+                        />
                     </div>
                 </div>
             </div>

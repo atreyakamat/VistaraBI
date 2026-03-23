@@ -3,9 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+    LayoutDashboard, 
+    FolderKanban, 
+    LogOut, 
+    Plus, 
+    ArrowRight, 
+    User,
+    ChevronRight,
+    BarChart3
+} from "lucide-react";
+import { api } from "@/lib/api/client";
+import { DashboardSkeleton } from "@/components/ui/skeleton";
 
-interface User {
+interface UserData {
     id: string;
     name: string;
     email: string;
@@ -19,7 +31,7 @@ interface Project {
 
 export default function AppPage() {
     const router = useRouter();
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<UserData | null>(null);
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -27,174 +39,213 @@ export default function AppPage() {
         const fetchData = async () => {
             try {
                 const [userRes, projectsRes] = await Promise.all([
-                    fetch("/api/auth/me"),
-                    fetch("/api/projects"),
+                    api.get<{ user: UserData }>("/api/auth/me"),
+                    api.get<{ projects: Project[] }>("/api/projects"),
                 ]);
 
-                if (!userRes.ok) {
+                if (userRes.error || !userRes.data) {
                     router.push("/login");
                     return;
                 }
 
-                const userData = await userRes.json();
-                setUser(userData.user);
+                setUser(userRes.data.user);
 
-                if (projectsRes.ok) {
-                    const projectsData = await projectsRes.json();
-                    setProjects(projectsData.projects);
+                if (projectsRes.data) {
+                    setProjects(projectsRes.data.projects);
                 }
-            } catch {
+            } catch (error) {
+                console.error("Dashboard failed to load", error);
                 router.push("/login");
             } finally {
-                setLoading(false);
+                // Keep loading for a split second to avoid flickers and make it feel "deliberate"
+                setTimeout(() => setLoading(false), 300);
             }
         };
         fetchData();
     }, [router]);
 
     const handleLogout = async () => {
-        await fetch("/api/auth/logout", { method: "POST" });
+        await api.post("/api/auth/logout");
         router.push("/login");
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-                <div className="animate-spin w-8 h-8 border-4 border-[var(--accent)] border-t-transparent rounded-full" />
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen bg-[var(--background)]">
+        <div className="min-h-screen bg-[var(--background)] flex flex-col">
             {/* Header */}
-            <header className="border-b border-[var(--border)] bg-[var(--card)]">
+            <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--card)]/80 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center shadow-lg shadow-[var(--accent)]/20">
+                            <LayoutDashboard className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-xl font-semibold text-[var(--foreground)]">VistaraBI</span>
+                        <span className="text-xl font-bold tracking-tight text-[var(--foreground)]">VistaraBI</span>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <span className="text-sm text-[var(--muted)]">{user?.email}</span>
+                    
+                    <div className="flex items-center gap-6">
+                        <div className="hidden md:flex flex-col items-end">
+                            <span className="text-sm font-semibold text-[var(--foreground)]">{user?.name}</span>
+                            <span className="text-xs text-[var(--muted)]">{user?.email}</span>
+                        </div>
                         <button
                             onClick={handleLogout}
-                            className="px-4 py-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                            className="p-2 rounded-lg hover:bg-[var(--border)]/50 text-[var(--muted)] hover:text-red-500 transition-all group"
+                            title="Logout"
                         >
-                            Logout
+                            <LogOut className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
                         </button>
                     </div>
                 </div>
             </header>
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-6 py-12">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                >
-                    <h1 className="text-3xl font-semibold text-[var(--foreground)] mb-2">
-                        Welcome back, {user?.name}!
-                    </h1>
-                    <p className="text-[var(--muted)] mb-8">
-                        Your BI workspace is ready. Start uploading data to generate insights.
-                    </p>
-
-                    {/* Quick Actions */}
-                    <div className="grid md:grid-cols-2 gap-6 mb-8">
-                        <Link
-                            href="/app/projects"
-                            className="bg-[var(--card)] rounded-2xl p-6 border border-[var(--border)] hover:border-[var(--accent)]/30 hover:shadow-lg transition-all group"
+            <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-12">
+                <AnimatePresence mode="wait">
+                    {loading ? (
+                        <motion.div
+                            key="skeleton"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center group-hover:bg-[var(--accent)] transition-colors">
-                                    <svg className="w-7 h-7 text-[var(--accent)] group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-[var(--foreground)] mb-1">Projects</h3>
-                                    <p className="text-sm text-[var(--muted)]">
-                                        {projects.length === 0
-                                            ? "Create your first project"
-                                            : `${projects.length} project${projects.length !== 1 ? "s" : ""}`}
-                                    </p>
-                                </div>
-                                <svg className="w-5 h-5 text-[var(--muted)] ml-auto group-hover:text-[var(--accent)] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
+                            <DashboardSkeleton />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="content"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
+                            className="space-y-12"
+                        >
+                            <div className="space-y-2">
+                                <h1 className="text-4xl font-bold text-[var(--foreground)] tracking-tight">
+                                    Welcome back, {user?.name.split(" ")[0]}!
+                                </h1>
+                                <p className="text-lg text-[var(--muted)]">
+                                    Your BI workspace is ready. What would you like to build today?
+                                </p>
                             </div>
-                        </Link>
 
-                        <div className="bg-[var(--card)] rounded-2xl p-6 border border-[var(--border)] opacity-60">
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-xl bg-[var(--muted)]/10 flex items-center justify-center">
-                                    <svg className="w-7 h-7 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-[var(--foreground)] mb-1">Dashboards</h3>
-                                    <p className="text-sm text-[var(--muted)]">Coming soon</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Recent Projects */}
-                    {projects.length > 0 && (
-                        <div>
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold text-[var(--foreground)]">Recent Projects</h2>
-                                <Link href="/app/projects" className="text-sm text-[var(--accent)] hover:underline">
-                                    View all
+                            {/* Action Cards */}
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <Link
+                                    href="/app/projects"
+                                    className="group relative bg-[var(--card)] rounded-3xl p-8 border border-[var(--border)] hover:border-[var(--accent)]/50 hover:shadow-2xl hover:shadow-[var(--accent)]/5 transition-all"
+                                >
+                                    <div className="flex flex-col h-full gap-6">
+                                        <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--accent)] transition-all duration-300">
+                                            <FolderKanban className="w-7 h-7 text-[var(--accent)] group-hover:text-white" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h3 className="text-2xl font-bold text-[var(--foreground)]">Projects</h3>
+                                            <p className="text-[var(--muted)]">
+                                                Manage your datasets, configure KPIs, and analyze domain insights.
+                                            </p>
+                                        </div>
+                                        <div className="mt-auto pt-4 flex items-center text-[var(--accent)] font-semibold gap-2 group-hover:gap-3 transition-all">
+                                            <span>
+                                                {projects.length === 0
+                                                    ? "Create first project"
+                                                    : `View ${projects.length} project${projects.length !== 1 ? "s" : ""}`}
+                                            </span>
+                                            <ArrowRight className="w-5 h-5" />
+                                        </div>
+                                    </div>
                                 </Link>
-                            </div>
-                            <div className="grid md:grid-cols-3 gap-4">
-                                {projects.slice(0, 3).map((project) => (
-                                    <Link
-                                        key={project.id}
-                                        href={`/app/projects/${project.id}`}
-                                        className="bg-[var(--card)] rounded-xl p-4 border border-[var(--border)] hover:border-[var(--accent)]/30 transition-all"
-                                    >
-                                        <h4 className="font-medium text-[var(--foreground)] mb-1">{project.name}</h4>
-                                        <p className="text-xs text-[var(--muted)]">
-                                            Created {new Date(project.createdAt).toLocaleDateString()}
-                                        </p>
-                                    </Link>
-                                ))}
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Empty State */}
-                    {projects.length === 0 && (
-                        <div className="bg-[var(--card)] rounded-2xl p-8 border border-dashed border-[var(--border)] text-center">
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center">
-                                <svg className="w-8 h-8 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
+                                <div className="group relative bg-[var(--card)]/50 rounded-3xl p-8 border border-[var(--border)] border-dashed overflow-hidden flex flex-col justify-center items-center text-center">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent to-[var(--border)]/5 group-hover:to-[var(--accent)]/5 transition-all" />
+                                    <div className="relative z-10 space-y-4">
+                                        <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--muted)]/10 flex items-center justify-center text-[var(--muted)]">
+                                            <BarChart3 className="w-7 h-7" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-[var(--muted)]">Unified Dashboard</h3>
+                                            <p className="text-sm text-[var(--muted)] mt-1">Advanced cross-project analytics coming soon.</p>
+                                        </div>
+                                        <div className="px-4 py-1.5 rounded-full bg-[var(--border)] text-[var(--muted)] text-xs font-medium inline-block">
+                                            Q3 2026
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <h3 className="text-xl font-semibold text-[var(--foreground)] mb-2">
-                                Create your first project
-                            </h3>
-                            <p className="text-[var(--muted)] mb-4">
-                                Upload your business data and let VistaraBI transform it into insights
-                            </p>
-                            <Link
-                                href="/app/projects"
-                                className="inline-block px-6 py-3 bg-[var(--primary)] text-white font-semibold rounded-xl hover:bg-[var(--accent)] transition-colors"
-                            >
-                                Get Started
-                            </Link>
-                        </div>
+
+                            {/* Recent Activity */}
+                            {projects.length > 0 && (
+                                <section className="space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-2xl font-bold text-[var(--foreground)]">Recent Projects</h2>
+                                        <Link href="/app/projects" className="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1">
+                                            View all <ChevronRight className="w-4 h-4" />
+                                        </Link>
+                                    </div>
+                                    <div className="grid md:grid-cols-3 gap-6">
+                                        {projects.slice(0, 3).map((project, idx) => (
+                                            <motion.div
+                                                key={project.id}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: idx * 0.1 }}
+                                            >
+                                                <Link
+                                                    href={`/app/projects/${project.id}`}
+                                                    className="block group bg-[var(--card)] rounded-2xl p-6 border border-[var(--border)] hover:border-[var(--accent)]/30 hover:shadow-xl transition-all"
+                                                >
+                                                    <div className="flex flex-col gap-4">
+                                                        <div className="w-10 h-10 rounded-lg bg-[var(--primary)]/5 flex items-center justify-center group-hover:bg-[var(--primary)]/10 transition-colors">
+                                                            <FolderKanban className="w-5 h-5 text-[var(--primary)]" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-[var(--foreground)] group-hover:text-[var(--accent)] transition-colors line-clamp-1">{project.name}</h4>
+                                                            <p className="text-xs text-[var(--muted)] mt-1">
+                                                                Modified {new Date(project.createdAt).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* Empty State */}
+                            {projects.length === 0 && (
+                                <motion.div 
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="bg-gradient-to-br from-[var(--card)] to-[var(--background)] rounded-3xl p-12 border-2 border-dashed border-[var(--border)] text-center space-y-6 shadow-sm"
+                                >
+                                    <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-[var(--primary)]/10 to-[var(--accent)]/10 flex items-center justify-center animate-pulse-glow">
+                                        <Plus className="w-10 h-10 text-[var(--accent)]" />
+                                    </div>
+                                    <div className="max-w-md mx-auto space-y-2">
+                                        <h3 className="text-2xl font-bold text-[var(--foreground)]">
+                                            Ready to transform your data?
+                                        </h3>
+                                        <p className="text-[var(--muted)]">
+                                            Upload your business data and let VistaraBI automatically detect domains, infer KPIs, and generate strategic insights.
+                                        </p>
+                                    </div>
+                                    <Link
+                                        href="/app/projects"
+                                        className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-2xl hover:bg-[var(--accent)] hover:shadow-lg hover:shadow-[var(--accent)]/20 transition-all transform hover:-translate-y-0.5 active:scale-95"
+                                    >
+                                        Create Your First Project
+                                        <ArrowRight className="w-5 h-5" />
+                                    </Link>
+                                </motion.div>
+                            )}
+                        </motion.div>
                     )}
-                </motion.div>
+                </AnimatePresence>
             </main>
+
+            {/* Footer */}
+            <footer className="mt-auto border-t border-[var(--border)] py-8 px-6 text-center text-sm text-[var(--muted)]">
+                <p>© 2026 VistaraBI Intelligence. All rights reserved.</p>
+            </footer>
         </div>
     );
 }

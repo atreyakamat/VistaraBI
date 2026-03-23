@@ -83,6 +83,7 @@ interface AskAIPanelProps {
     projectId: string;
     onCommandSuccess?: () => void;  // Called when 6A creates a card → trigger dashboard refresh
     onOpenGoalEngine?: (query: string) => void;  // Called when 7A requires goal engine to open
+    strategyContext?: import('@/lib/module-8/types').StrategyCanvasResult; // M6→M8 State Injection
     isOpen: boolean;
     onClose: () => void;
 }
@@ -574,7 +575,7 @@ function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
-export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, isOpen, onClose }: AskAIPanelProps) {
+export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, strategyContext, isOpen, onClose }: AskAIPanelProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: genId(),
@@ -633,7 +634,12 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, isOp
             const res = await fetch(`/api/projects/${projectId}/ask-ai`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: messageText.trim(), sessionId: projectId }),
+                body: JSON.stringify({
+                    message: messageText.trim(),
+                    sessionId: projectId,
+                    // State Injection Pipeline: forward live strategy context to the AI
+                    ...(strategyContext ? { strategyContext } : {}),
+                }),
             });
 
             clearTimeout(clientTimeout);
