@@ -18,6 +18,9 @@ export function DashboardSkeleton() {
         <Skeleton className="h-32 rounded-2xl" />
         <Skeleton className="h-32 rounded-2xl" />
       </div>
+    </div>
+  );
+}
 
 export function ProjectSkeleton() {
   return (
@@ -39,6 +42,9 @@ export function ProjectSkeleton() {
         <Skeleton className="h-10 w-24 rounded-lg" />
         <Skeleton className="h-10 w-24 rounded-lg" />
       </div>
+    </div>
+  );
+}
 
 export function KPISkeleton() {
   return (

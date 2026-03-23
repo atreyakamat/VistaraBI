@@ -218,8 +218,8 @@ export interface LineageDefinition {
     id: string;
     kpiId: string;
     formula: string;
-    tables: any;   // Json → string[] at runtime
-    joins: any;    // Json → JoinPath[] at runtime
+    tables: string[];   // Json → string[] at runtime
+    joins: KPIJoinPath[];    // Json → JoinPath[] at runtime
 }
 
 export interface ApprovedKPI {
@@ -269,7 +269,7 @@ export interface FlatApprovedKPI {
     groupBy: string | null;
     lineage: {
         tables: string[];
-        joins: any[];
+        joins: KPIJoinPath[];
         formula: string;
     };
 }

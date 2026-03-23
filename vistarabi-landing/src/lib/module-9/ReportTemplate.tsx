@@ -33,6 +33,7 @@ export interface ExecutiveReportProps {
   selectedKPIs: Array<{ name: string; category: string }>;
   aiInsights: string;
   actions: Array<{ title: string; impact: string }>;
+  businessSuggestions?: string[];
   forecastData?: { kpi: string; trend: string; confidence: string };
   metrics: {
     probability: number;
@@ -51,6 +52,7 @@ export const ExecutiveReport = ({
   selectedKPIs, 
   aiInsights, 
   actions, 
+  businessSuggestions,
   forecastData,
   metrics, 
   chartImage,
@@ -90,7 +92,7 @@ export const ExecutiveReport = ({
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Strategic Measurement Blueprint</Text>
         <View style={styles.kpiList}>
-          {selectedKPIs.map((kpi, i) => (
+          {(selectedKPIs || []).map((kpi, i) => (
             <View key={i} style={styles.kpiItem}>
               <View style={styles.kpiDot} />
               <Text style={styles.kpiName}>{kpi.name} ({kpi.category})</Text>
@@ -110,7 +112,22 @@ export const ExecutiveReport = ({
         </View>
       )}
 
-      {/* 5. AI Chat Exploration (Ask AI) */}
+      {/* 5. Business Suggestions Section */}
+      {businessSuggestions && businessSuggestions.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Board-Level Business Suggestions</Text>
+          <View style={{ marginTop: 5 }}>
+            {businessSuggestions.map((suggestion, i) => (
+              <View key={i} style={styles.kpiItem}>
+                <View style={[styles.kpiDot, { backgroundColor: '#10b981' }]} />
+                <Text style={styles.bodyText}>{suggestion}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* 6. AI Chat Exploration (Ask AI) */}
       {globalChatSummary && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Global Data Exploration (Module 6)</Text>
@@ -122,7 +139,7 @@ export const ExecutiveReport = ({
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>AI Strategic Insights (Module 6 & 7)</Text>
         <Text style={styles.bodyText}>{aiInsights}</Text>
-        {actions.length > 0 && (
+        {(actions || []).length > 0 && (
           <View style={{ marginTop: 8 }}>
             <Text style={[styles.subTitle, { color: '#1e40af' }]}>Recommended Actions:</Text>
             {actions.map((action, i) => (

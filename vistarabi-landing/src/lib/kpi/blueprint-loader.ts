@@ -51,7 +51,7 @@ export function flattenKPI(kpi: ApprovedKPIWithRelations) {
             ? {
                 formula: kpi.lineage.formula,
                 tables: kpi.lineage.tables as string[],
-                joins: kpi.lineage.joins as any[],
+                joins: kpi.lineage.joins as unknown[],
             }
             : null,
         addedAt: kpi.createdAt,
@@ -64,22 +64,32 @@ export function flattenKPI(kpi: ApprovedKPIWithRelations) {
  * Validate that an incoming KPI payload (from API POST) has required fields.
  * Throws if invalid — call this in API routes before touching the DB.
  */
-export function validateKPIPayload(payload: any): void {
-    if (!payload.id || typeof payload.id !== 'string') {
+export function validateKPIPayload(payload: unknown): void {
+    if (!payload || typeof payload !== 'object') {
+        throw new Error('KPI payload must be an object');
+    }
+
+    const p = payload as Record<string, unknown>;
+
+    if (!p.id || typeof p.id !== 'string') {
         throw new Error('KPI payload must include a string id (library reference)');
     }
-    if (!payload.name || typeof payload.name !== 'string') {
+    if (!p.name || typeof p.name !== 'string') {
         throw new Error('KPI payload must include a string name');
     }
-    if (!Array.isArray(payload.aggregations) || payload.aggregations.length === 0) {
+    if (!Array.isArray(p.aggregations) || p.aggregations.length === 0) {
         throw new Error('KPI payload must include at least one aggregation rule');
     }
-    for (const agg of payload.aggregations) {
-        if (!agg.function || !agg.column) {
+    for (const agg of p.aggregations as unknown[]) {
+        if (!agg || typeof agg !== 'object') {
+            throw new Error('Each aggregation rule must be an object');
+        }
+        const a = agg as Record<string, unknown>;
+        if (!a.function || !a.column) {
             throw new Error('Each aggregation rule must specify function and column');
         }
     }
-    if (!payload.sourceTable) {
+    if (!p.sourceTable) {
         throw new Error('KPI payload must specify a sourceTable');
     }
 }

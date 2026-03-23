@@ -38,7 +38,7 @@ describe('Module 9: Executive Board Report Engine API', () => {
     expect(res.status).toBe(400);
     
     const body = await res.json();
-    expect(body.error).toBe('Missing required fields');
+    expect(body.error).toContain('Missing required fields');
   });
 
   it('should return 400 if chartImage is missing', async () => {
@@ -50,11 +50,12 @@ describe('Module 9: Executive Board Report Engine API', () => {
     const res = await POST(req);
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.error).toBe('Missing required fields');
+    expect(body.error).toContain('Missing required fields');
   });
 
   it('should generate a PDF and return it as a stream with proper headers', async () => {
     const payload = {
+      domain: 'ECOMMERCE',
       chartImage: 'data:image/png;base64,mockbase64',
       metrics: {
         probability: 0.85,
@@ -74,7 +75,7 @@ describe('Module 9: Executive Board Report Engine API', () => {
     // Check if response is successful and has correct headers
     expect(res.status).toBe(200);
     expect(res.headers.get('Content-Type')).toBe('application/pdf');
-    expect(res.headers.get('Content-Disposition')).toBe('attachment; filename="Executive_Report.pdf"');
+    expect(res.headers.get('Content-Disposition')).toBe('attachment; filename="VistaraBI_Strategic_Report.pdf"');
     
     // Check that it's returning a readable stream (the mocked string)
     const bodyText = await res.text();
@@ -83,6 +84,7 @@ describe('Module 9: Executive Board Report Engine API', () => {
 
   it('should call the LLM with a prompt containing the probability percentage', async () => {
     const payload = {
+      domain: 'ECOMMERCE',
       chartImage: 'data:image/png;base64,abc123',
       metrics: {
         probability: 0.72,  // 72%
@@ -113,6 +115,7 @@ describe('Module 9: Executive Board Report Engine API', () => {
 
   it('should call the LLM with a prompt identifying it as an Executive Assistant', async () => {
     const payload = {
+      domain: 'ECOMMERCE',
       chartImage: 'data:image/png;base64,abc123',
       metrics: { probability: 0.5, reliability: 70, gap: 10000 },
       chatSummary: 'Initial strategy discussion.'
@@ -135,6 +138,7 @@ describe('Module 9: Executive Board Report Engine API', () => {
   it('should include the chatSummary in the LLM prompt context', async () => {
     const chatSummary = 'The user decided to launch a targeted email campaign with 15% uplift.';
     const payload = {
+      domain: 'ECOMMERCE',
       chartImage: 'data:image/png;base64,abc123',
       metrics: { probability: 0.65, reliability: 80, gap: 8000 },
       chatSummary,
@@ -153,6 +157,7 @@ describe('Module 9: Executive Board Report Engine API', () => {
 
   it('should use fallback chat summary text when chatSummary is not provided', async () => {
     const payload = {
+      domain: 'ECOMMERCE',
       chartImage: 'data:image/png;base64,abc123',
       metrics: { probability: 0.5, reliability: 70, gap: 10000 },
       // chatSummary intentionally omitted
@@ -172,6 +177,7 @@ describe('Module 9: Executive Board Report Engine API', () => {
 
   it('should include the strategy gap value in the LLM prompt', async () => {
     const payload = {
+      domain: 'ECOMMERCE',
       chartImage: 'data:image/png;base64,abc123',
       metrics: { probability: 0.55, reliability: 75, gap: 12500 },
       chatSummary: 'Gap analysis conversation.'

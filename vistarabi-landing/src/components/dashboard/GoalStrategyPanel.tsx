@@ -9,6 +9,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import StrategyCanvas from '@/components/module-8/StrategyCanvas';
 import AIChatPanel from '@/components/module-8/AIChatPanel';
 import { StrategyCanvasResult } from '@/lib/module-8/types';
+import { resolveForecastHistory, type DashboardKpiExecutionItem } from '@/lib/module-8/kpi-history-resolver';
 import { Target, X, FileText } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
@@ -445,19 +446,15 @@ export function GoalStrategyPanel({
         fetch(`/api/projects/${projectId}/dashboard/data`)
             .then(res => res.json())
             .then(d => {
-                // If there is actual data, map it to historical points
-                if (d.data && d.data.length > 0) {
-                    // Very simple generic mapping for demonstration
-                    // In a real app, you would pick the KPI series related to the targetMetric
-                    const history = d.data.map((row: any, i: number) => ({
-                        date: new Date(Date.now() - (d.data.length - i) * 86400000).toISOString().split('T')[0],
-                        value: Object.values(row)[0] as number || 50000
-                    }));
-                    setRealHistory(history);
+                const executionKpis = Array.isArray(d?.kpis) ? (d.kpis as DashboardKpiExecutionItem[]) : [];
+                const targetMetric = canvas?.goal?.targetMetric ?? 'unknown';
+                const resolvedHistory = resolveForecastHistory(targetMetric, executionKpis);
+                if (resolvedHistory.length > 0) {
+                    setRealHistory(resolvedHistory);
                 }
             })
             .catch(() => {});
-    }, [isOpen, projectId]);
+    }, [isOpen, projectId, canvas?.goal?.targetMetric]);
 
     // Focus textarea on open and populate initialQuery if present
     useEffect(() => {

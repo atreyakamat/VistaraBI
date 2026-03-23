@@ -2,7 +2,7 @@
 // Main orchestrator: computes dashboard data from lineage metadata + warehouse data
 
 import db from '../prisma';
-import type { KPILineageEntry } from '../prisma';
+import type { KPILineageEntry, KPIJoinPath, KPIAggregation } from '../prisma';
 import type {
     DashboardDataPayload,
     ChartDataPayload,
@@ -17,7 +17,7 @@ import { loadProjectData, findSourceForColumn } from './data-loader';
 import { computeKPI, computeTimeSeries, computeGroupedKPI } from './kpi-computer';
 import { applyFilters, applyDrillDown, applyCrossFilter, findDrillDownColumns, getFilterOptions } from './filter-engine';
 import type { DashboardConfigSchema, DashboardSection, DashboardKPICard } from '../dashboard/types';
-import { loadBlueprintWithKPIs } from '../kpi/blueprint-loader';
+import { loadBlueprintWithKPIs, type ApprovedKPIWithRelations } from '../kpi/blueprint-loader';
 
 // ─── Main Dashboard Data Computation ──────────────────────────────
 
@@ -248,8 +248,8 @@ async function loadDashboardConfig(projectId: string): Promise<DashboardConfigSc
     return {
         projectId: record.projectId,
         sections: record.sections as unknown as DashboardSection[],
-        sidebarConfig: record.sidebarConfig as any,
-        metadata: record.metadata as any,
+        sidebarConfig: record.sidebarConfig as unknown as DashboardConfigSchema['sidebarConfig'],
+        metadata: record.metadata as unknown as DashboardConfigSchema['metadata'],
         version: record.version,
     };
 }
@@ -261,7 +261,7 @@ async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]
     const blueprint = await loadBlueprintWithKPIs(projectId);
     if (!blueprint || blueprint.kpis.length === 0) return [];
 
-    return blueprint.kpis.map((kpi: any) => ({
+    return blueprint.kpis.map((kpi: ApprovedKPIWithRelations) => ({
         id: kpi.id,
         projectId,
         kpiId: kpi.kpiLibraryId || kpi.id,
@@ -272,12 +272,12 @@ async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]
         sources: [{
             sourceId: kpi.sourceTable,
             sourceName: kpi.sourceTable,
-            columns: kpi.aggregations.map((a: any) => a.column),
+            columns: kpi.aggregations.map(a => a.column),
             role: 'PRIMARY'
         }],
-        joinPaths: (kpi.lineage?.joins as any[]) || [],
-        aggregations: kpi.aggregations.map((a: any) => ({
-            function: a.function as any,
+        joinPaths: (kpi.lineage?.joins as unknown as KPIJoinPath[]) || [],
+        aggregations: kpi.aggregations.map(a => ({
+            function: a.function as KPIAggregation['function'],
             column: a.column,
             sourceId: kpi.sourceTable,
         })),

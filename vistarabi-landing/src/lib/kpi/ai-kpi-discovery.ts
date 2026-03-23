@@ -1,7 +1,6 @@
 // AI KPI Discovery Engine - Module 4 Phase 4C
 // Invents meaningful KPIs from data columns using Ollama
 
-import { randomUUID } from 'crypto';
 import db from '@/lib/prisma';
 import type { DomainType } from '@/lib/prisma';
 import { getGovernedDomain } from '@/lib/domain/governance';
@@ -42,6 +41,17 @@ interface DiscoveryContext {
     allColumns: string[];
     sampleValues: Record<string, unknown[]>;
     existingKpiIds: string[];
+}
+
+interface DiscoveryDebug {
+    steps: string[];
+    ollamaReady?: boolean;
+    context?: {
+        domain: DomainType;
+        columnCount: number;
+        columns: string[];
+    };
+    inventedKpis?: { name: string; formula: string }[];
 }
 
 // Gather context for AI discovery
@@ -207,14 +217,15 @@ async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIPr
                 // Store aggregation so blueprint route can use it
                 _aggregation: agg,
                 _sourceTable: contributingColumns[0] ? 'merged_data' : 'unknown',
-            } as AIKPIProposal & { _aggregation: any; _sourceTable: string });
+            } as AIKPIProposal & { _aggregation: { function: string; column: string }; _sourceTable: string });
         }
 
         console.log('[AI-Discovery] ✓ Created', proposals.length, 'valid AI-invented proposals');
         return proposals;
 
-    } catch (error: any) {
-        console.error('[AI-Discovery] ❌ Ollama error:', error.message || error);
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[AI-Discovery] ❌ Ollama error:', errorMessage);
         return [];
     }
 }
@@ -229,12 +240,10 @@ function matchDerivedKPIs(context: DiscoveryContext): AIKPIProposal[] {
     const proposals: AIKPIProposal[] = [];
 
     for (const derived of derivedKpis) {
-        const { canCompute, missingDependencies } = checkDerivedKPIDependencies(
+        const { canCompute } = checkDerivedKPIDependencies(
             derived,
             context.existingKpiIds
         );
-
-        const metDependencies = derived.dependsOn.filter(dep => context.existingKpiIds.includes(dep));
 
         // For now, include all derived KPIs with a note about dependencies
         // This helps users see what's possible
@@ -275,14 +284,14 @@ export async function runAIKPIDiscovery(projectId: string): Promise<{
     proposals: AIKPIProposal[];
     inventedCount: number;
     derivedCount: number;
-    debug: any;
+    debug: DiscoveryDebug;
 }> {
     console.log('\n========================================');
     console.log('[AI-Discovery] 🚀 STARTING AI KPI DISCOVERY');
     console.log('[AI-Discovery] Project:', projectId);
     console.log('========================================\n');
 
-    const debug: any = { steps: [] };
+    const debug: DiscoveryDebug = { steps: [] };
 
     // Check Ollama
     console.log('[AI-Discovery] Checking Ollama health...');
@@ -348,10 +357,22 @@ export async function runAIKPIDiscovery(projectId: string): Promise<{
     };
 }
 
+interface ProposalMetadata {
+    description: string;
+    category: string;
+    contributingColumns: string[];
+    derivedFrom: string[];
+    isDerived: boolean;
+    businessMeaning: string;
+    whyItMatters: string;
+    ollamaModel: string;
+    sourceType: AIKPIProposal['sourceType'];
+}
+
 // Store proposals in database
 async function storeProposals(projectId: string, proposals: AIKPIProposal[]): Promise<void> {
     const existing = await db.aIKpiProposal.findMany({ where: { projectId } });
-    const existingIds = new Set(existing.map((p: any) => p.id));
+    const existingIds = new Set(existing.map(p => p.id));
     const newProposals = proposals.filter(p => !existingIds.has(p.id));
 
     for (const proposal of newProposals) {
@@ -375,10 +396,10 @@ async function storeProposals(projectId: string, proposals: AIKPIProposal[]): Pr
                     whyItMatters: proposal.whyItMatters,
                     ollamaModel: proposal.ollamaModel,
                     sourceType: proposal.sourceType
-                } as any, // Cast metadata to Json
+                },
                 reviewedAt: proposal.reviewedAt,
                 reviewedBy: proposal.reviewedBy
-            } as any,
+            }
         });
     }
 
@@ -390,8 +411,7 @@ export async function getAIKPIProposals(projectId: string): Promise<AIKPIProposa
     const dbProposals = await db.aIKpiProposal.findMany({ where: { projectId } });
 
     return dbProposals.map(p => {
-        const pAny = p as any;
-        const metadata = (pAny.metadata as any) || {};
+        const metadata = (p.metadata as unknown as ProposalMetadata) || {};
         return {
             id: p.id,
             projectId: p.projectId,
@@ -407,11 +427,11 @@ export async function getAIKPIProposals(projectId: string): Promise<AIKPIProposa
             confidenceScore: p.confidenceScore,
             domain: 'UNKNOWN' as DomainType, // Default or infer from project?
             sourceType: metadata.sourceType || 'AI_INVENTED',
-            status: p.status as any,
+            status: p.status as AIKPIProposal['status'],
             ollamaModel: metadata.ollamaModel || 'unknown',
             createdAt: p.proposedAt,
-            reviewedAt: pAny.reviewedAt || undefined,
-            reviewedBy: pAny.reviewedBy || undefined
+            reviewedAt: p.reviewedAt || undefined,
+            reviewedBy: p.reviewedBy || undefined
         };
     });
 }
@@ -428,15 +448,14 @@ export async function updateProposalStatus(
             status,
             reviewedAt: new Date(),
             reviewedBy: userId,
-        } as any,
+        },
     });
 
     // Simple fetch
     const p = await db.aIKpiProposal.findUnique({ where: { id: proposalId } });
     if (!p) return null;
 
-    const pAny = p as any;
-    const meta = (pAny.metadata as any) || {};
+    const meta = (p.metadata as unknown as ProposalMetadata) || {};
 
     return {
         id: p.id,
@@ -453,11 +472,11 @@ export async function updateProposalStatus(
         confidenceScore: p.confidenceScore,
         domain: 'UNKNOWN' as DomainType,
         sourceType: meta.sourceType || 'AI_INVENTED',
-        status: p.status as any,
+        status: p.status as AIKPIProposal['status'],
         ollamaModel: meta.ollamaModel || 'unknown',
         createdAt: p.proposedAt,
-        reviewedAt: pAny.reviewedAt || undefined,
-        reviewedBy: pAny.reviewedBy || undefined
+        reviewedAt: p.reviewedAt || undefined,
+        reviewedBy: p.reviewedBy || undefined
     };
 }
 

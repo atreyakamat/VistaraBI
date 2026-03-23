@@ -2,7 +2,7 @@
 // Core orchestrator: cache → load → filter → compute → profile → explain → respond
 // Produces structured KPIExecutionResult payloads ready for frontend rendering
 
-import type { KPILineageEntry, KPISourceContribution, ApprovedKPI } from '../prisma';
+import type { KPILineageEntry, KPISourceContribution, ApprovedKPI, KPIJoinPath, KPIAggregation } from '../prisma';
 import type { KPIDataPoint, Filter, CategoryFilter, ValueFilter } from '../visualization/types';
 import type {
     KPIExecutionResult,
@@ -23,7 +23,7 @@ import {
     getCachedResult,
     setCachedResult,
 } from './cache';
-import { loadBlueprintWithKPIs } from '../kpi/blueprint-loader';
+import { loadBlueprintWithKPIs, type ApprovedKPIWithRelations } from '../kpi/blueprint-loader';
 import { getAllKPIs } from '../kpi/kpi-library';
 import { DashboardConfigSchema } from '../dashboard/schemas';
 import { ensureDataMaterialized } from './data-materializer';
@@ -356,13 +356,13 @@ export async function executeKPI(
     // ── Step 9: Lineage Summary ──
     const tablesRaw = kpi.lineage?.tables || [kpi.sourceTable];
     const tables = Array.isArray(tablesRaw) ? tablesRaw as string[] : [kpi.sourceTable];
-    const joinsRaw = (kpi.lineage?.joins as any[]) || [];
+    const joinsRaw = (kpi.lineage?.joins as KPIJoinPath[]) || [];
 
     const lineageSummary = {
         tables,
         joins: joinsRaw.map(j => ({
-            from: `${j.leftTable}.${j.leftColumn}`,
-            to: `${j.rightTable}.${j.rightColumn}`,
+            from: `${j.sourceTable}.${j.sourceColumn}`,
+            to: `${j.targetTable}.${j.targetColumn}`,
             on: j.joinType || 'LEFT',
         })),
         formula: kpi.lineage?.formula || '',
@@ -543,7 +543,7 @@ async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]
     const blueprint = await loadBlueprintWithKPIs(projectId);
     if (!blueprint || blueprint.kpis.length === 0) return [];
 
-    return blueprint.kpis.map((kpi: any) => ({
+    return blueprint.kpis.map((kpi: ApprovedKPIWithRelations) => ({
         id: kpi.id,
         projectId,
         kpiId: kpi.kpiLibraryId || kpi.id,
@@ -554,12 +554,12 @@ async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]
         sources: [{
             sourceId: kpi.sourceTable,
             sourceName: kpi.sourceTable,
-            columns: kpi.aggregations.map((a: any) => a.column),
+            columns: kpi.aggregations.map(a => a.column),
             role: 'PRIMARY'
         }],
-        joinPaths: (kpi.lineage?.joins as any[]) || [],
-        aggregations: kpi.aggregations.map((a: any) => ({
-            function: a.function as any,
+        joinPaths: (kpi.lineage?.joins as unknown as KPIJoinPath[]) || [],
+        aggregations: kpi.aggregations.map(a => ({
+            function: a.function as KPIAggregation['function'],
             column: a.column,
             sourceId: kpi.sourceTable,
         })),

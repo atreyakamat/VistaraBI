@@ -25,6 +25,7 @@ interface DataPreviewProps {
     columnMeta?: ColumnInfo[];
     onClose: () => void;
     onViewCleaningSummary?: () => void;
+    onViewQualityDashboard?: () => void;
 }
 
 const typeColors: Record<DataType, string> = {
@@ -41,7 +42,7 @@ const typeIcons: Record<DataType, string> = {
     BOOLEAN: "✓",
 };
 
-export default function DataPreview({ source, columnMeta, onClose, onViewCleaningSummary }: DataPreviewProps) {
+export default function DataPreview({ source, columnMeta, onClose, onViewCleaningSummary, onViewQualityDashboard }: DataPreviewProps) {
     // Create a map for quick column lookup
     const columnMap = new Map<string, ColumnInfo>();
     if (columnMeta) {

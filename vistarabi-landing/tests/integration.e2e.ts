@@ -1,8 +1,8 @@
 // Integration Test Suite - End-to-End Workflow validation
 
-import { Module1TestSuite } from './module1.test.js';
-import { Module2TestSuite } from './module2.test.js';
-import { generateEcommerceCompany, generateSaaSCompany, exportToCSV } from './data/test-data-generator.js';
+import { Module1TestSuite } from './module1.e2e';
+import { Module2TestSuite } from './module2.e2e';
+import { generateEcommerceCompany, generateSaaSCompany, exportToCSV } from './data/test-data-generator';
 
 interface IntegrationTestResult {
     scenario: string;

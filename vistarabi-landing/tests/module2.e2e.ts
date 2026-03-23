@@ -53,7 +53,12 @@ export class Module2TestSuite {
 
         try {
             const company = generateEcommerceCompany();
-            const originalNulls = this.countNulls(company.datasets.customers);
+            let totalNulls = 0;
+            for (const dataset of Object.values(company.datasets)) {
+                if (Array.isArray(dataset)) {
+                    totalNulls += this.countNulls(dataset);
+                }
+            }
 
             // Simulate null handling
             const expectedFillStrategy = {
@@ -65,10 +70,10 @@ export class Module2TestSuite {
 
             this.addResult({
                 testName: 'Null Handling',
-                passed: originalNulls === company.expectedIssues.nulls,
-                message: `Detected ${originalNulls} null values, expected ${company.expectedIssues.nulls}`,
+                passed: totalNulls === company.expectedIssues.nulls,
+                message: `Detected ${totalNulls} null values, expected ${company.expectedIssues.nulls}`,
                 expectedValue: company.expectedIssues.nulls,
-                actualValue: originalNulls,
+                actualValue: totalNulls,
                 duration: Date.now() - startTime,
             });
         } catch (error) {
@@ -86,28 +91,31 @@ export class Module2TestSuite {
 
         try {
             const company = generateEcommerceCompany();
-            const customers = company.datasets.customers;
-            const originalCount = customers.length;
+            let totalDuplicates = 0;
+            let totalRecords = 0;
 
-            // Count duplicates by creating unique key
-            const uniqueKeys = new Set();
-            let duplicateCount = 0;
+            for (const dataset of Object.values(company.datasets)) {
+                if (Array.isArray(dataset)) {
+                    totalRecords += dataset.length;
+                    const uniqueKeys = new Set();
 
-            for (const customer of customers) {
-                const key = JSON.stringify(customer);
-                if (uniqueKeys.has(key)) {
-                    duplicateCount++;
-                } else {
-                    uniqueKeys.add(key);
+                    for (const record of dataset) {
+                        const key = JSON.stringify(record);
+                        if (uniqueKeys.has(key)) {
+                            totalDuplicates++;
+                        } else {
+                            uniqueKeys.add(key);
+                        }
+                    }
                 }
             }
 
             this.addResult({
                 testName: 'Duplicate Removal',
-                passed: duplicateCount === company.expectedIssues.duplicates,
-                message: `Found ${duplicateCount} duplicates out of ${originalCount} records`,
+                passed: totalDuplicates === company.expectedIssues.duplicates,
+                message: `Found ${totalDuplicates} duplicates out of ${totalRecords} records`,
                 expectedValue: company.expectedIssues.duplicates,
-                actualValue: duplicateCount,
+                actualValue: totalDuplicates,
                 duration: Date.now() - startTime,
             });
         } catch (error) {
@@ -507,15 +515,16 @@ export class Module2TestSuite {
     // ============ Helper Methods ============
 
     private countNulls(data: any[]): number {
-        let nullCount = 0;
+        let rowsWithNulls = 0;
         for (const row of data) {
-            for (const value of Object.values(row)) {
-                if (value === null || value === undefined || value === '') {
-                    nullCount++;
-                }
+            const hasNull = Object.values(row).some(value => 
+                value === null || value === undefined || value === ''
+            );
+            if (hasNull) {
+                rowsWithNulls++;
             }
         }
-        return nullCount;
+        return rowsWithNulls;
     }
 
     private addResult(result: TestResult) {

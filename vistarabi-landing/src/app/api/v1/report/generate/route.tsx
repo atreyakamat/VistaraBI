@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       domain, 
       selectedKPIs, 
       actions, 
+      businessSuggestions,
       forecastData,
       chatSummary,
       dashboardImage,
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
         selectedKPIs={selectedKPIs || []}
         aiInsights={chatSummary || "Strategic insights derived from semantic data analysis."}
         actions={actions || []}
+        businessSuggestions={businessSuggestions || []}
         forecastData={forecastData}
         metrics={metrics}
         chartImage={chartImage}

@@ -4,7 +4,7 @@
 // and relationship graph against each rule's requirements.
 
 import type { DomainType, RelationshipEntry } from '@/lib/prisma';
-import type { SemanticColumnMap, EligibilityLogEntry } from './semantic-types';
+import type { SemanticColumnMap, EligibilityLogEntry, SemanticRole } from './semantic-types';
 import { type KPIRule, getRulesForDomain } from './kpi-rule-registry';
 
 // ─── Eligibility Result ────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ export function evaluateEligibility(
                 ruleName: rule.name,
                 status: 'SKIPPED',
                 reason: result.reason,
-                missingRoles: result.missingRoles as any,
+                missingRoles: result.missingRoles,
             });
             console.log(`${prefix} ❌ SKIPPED: ${rule.name} (${rule.id}) — ${result.reason}`);
         }
@@ -81,7 +81,7 @@ export function evaluateEligibility(
 interface RuleEvalResult {
     eligible: boolean;
     reason: string;
-    missingRoles: string[];
+    missingRoles: SemanticRole[];
 }
 
 function evaluateRule(

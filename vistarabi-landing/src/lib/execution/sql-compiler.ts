@@ -13,7 +13,7 @@
  *  6. This module NEVER executes queries — it only compiles them.
  */
 
-import type { ApprovedKPIWithRelations, AggregationRule, GroupByDefinition, LineageDefinition } from '@/lib/prisma';
+import type { ApprovedKPIWithRelations, AggregationRule, GroupByDefinition, LineageDefinition, KPIJoinPath } from '@/lib/prisma';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -164,8 +164,8 @@ function compileFromClause(sourceTable: string): string {
 function compileJoinClause(lineage: LineageDefinition | null): string {
     if (!lineage) return '';
 
-    const rawJoins = lineage.joins as JoinDefinition[] | null;
-    if (!rawJoins || !Array.isArray(rawJoins) || rawJoins.length === 0) return '';
+    const rawJoins = (lineage.joins || []) as KPIJoinPath[];
+    if (rawJoins.length === 0) return '';
 
     return rawJoins.map(j => {
         const joinType = j.joinType || 'LEFT';
@@ -173,7 +173,7 @@ function compileJoinClause(lineage: LineageDefinition | null): string {
         if (!validJoins.includes(joinType)) {
             throw new Error(`[SQL Compiler] Invalid join type: ${joinType}`);
         }
-        return `${joinType} JOIN ${qi(j.rightTable)} ON ${qi(j.leftTable)}.${qi(j.leftColumn)} = ${qi(j.rightTable)}.${qi(j.rightColumn)}`;
+        return `${joinType} JOIN ${qi(j.targetTable)} ON ${qi(j.sourceTable)}.${qi(j.sourceColumn)} = ${qi(j.targetTable)}.${qi(j.targetColumn)}`;
     }).join('\n');
 }
 

@@ -173,7 +173,7 @@ export function resolveKPI(
         category: rule.category,
         sourceTable: stripExtension(primarySource.name),
         formula,
-        unit: (rule as any).unit || 'count',
+        unit: rule.unit || 'count',
         aggregations,
         joins,
         tables,

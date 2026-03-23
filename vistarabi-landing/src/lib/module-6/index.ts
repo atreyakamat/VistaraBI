@@ -3,6 +3,7 @@
 // This is the ONLY function that should be called from the API route.
 
 import { hydrateDashboard } from '@/lib/dashboard-state/state-engine';
+import type { DashboardCardState } from '@/lib/dashboard-state/types';
 import db from '@/lib/prisma';
 import { buildContext, computeDatasetVersionId, contextToPromptString } from './context-builder';
 import { callLLM, LLMCallError } from './llm-client';
@@ -53,17 +54,17 @@ async function loadSessionContext(projectId: string): Promise<SessionContext | n
         },
     });
 
-    const eligibleKPIs = blueprint?.kpis ?? [];
+    const eligibleKPIs = (blueprint?.kpis ?? []) as Array<{ id: string; name: string; category: string; unit: string | null }>;
 
     // Load dimensions from domain context or column schema
     // Dimensions = all group-by candidate columns (from schema or domain detection)
     const domainContext = await (db as any).domainContext?.findUnique?.({ where: { projectId } })
         ?? null;
 
-    const dimensions: string[] = domainContext?.dimensions ?? state.cards.map((c: any) => c.groupBy).filter(Boolean) ?? [];
-    const availableFilters: string[] = domainContext?.availableFilters ?? [];
+    const dimensions: string[] = (domainContext?.dimensions as string[] ?? []) ?? state.cards.map((c: DashboardCardState) => c.groupBy).filter((g): g is string => !!g) ?? [];
+    const availableFilters: string[] = (domainContext?.availableFilters as string[] ?? []) ?? [];
 
-    const kpiIds = eligibleKPIs.map((k: any) => k.id);
+    const kpiIds = eligibleKPIs.map(k => k.id);
     const datasetVersionId = computeDatasetVersionId(projectId, state.version, kpiIds);
 
     return {
@@ -105,14 +106,15 @@ export async function handleAskAI(
     let sessionCtx: SessionContext | null;
     try {
         sessionCtx = await loadSessionContext(projectId);
-    } catch (err: any) {
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
         return {
             status: 'rejected',
             message: 'Failed to load dashboard session.',
             intent_id: 'unknown',
             error: {
                 code: MODULE6_ERROR_CODES.SESSION_NOT_FOUND,
-                message: err.message ?? 'Session load error',
+                message: msg,
                 recoverable: false,
             },
         };
