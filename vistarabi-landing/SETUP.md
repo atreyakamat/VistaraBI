@@ -17,7 +17,23 @@ Before you begin, ensure you have the following installed on your system:
 
 ## 🛠️ System Dependencies Setup
 
-### 1. Ollama (AI Engine)
+### 2. Python (for Module 8 — Prophet Forecasting)
+Module 8 uses Meta Prophet for baseline forecasting with a TypeScript fallback to linear regression.
+
+**Python 3.9+ is required only if you want Prophet-powered forecasting. The system works without it via the linear fallback.**
+
+1.  **Install Python**: [Download Python](https://www.python.org/downloads/) (v3.9+)
+2.  **Install dependencies** from the root of the repository:
+    ```bash
+    pip install -r requirements.txt
+    ```
+    The `requirements.txt` is located at `VistaraBI/requirements.txt` and includes:
+    - `prophet` — Meta's time-series forecasting library
+    - `pandas` — data manipulation
+    - `numpy`, `pystan`, `holidays` — Prophet dependencies
+
+    > **Note:** If Prophet is not installed, Module 8 will automatically fall back to TypeScript linear regression. All tests will still pass.
+
 VistaraBI uses a local LLM for semantic domain reasoning.
 1.  **Install Ollama**: Follow the installer prompts for your OS.
 2.  **Start Ollama**: Run the application or use `ollama serve` in a terminal.
@@ -119,6 +135,11 @@ To ensure everything is working correctly:
 | `npm run build` | Creates a production build |
 | `npm run lint` | Runs ESLint for code quality |
 | `npx tsc --noEmit` | Checks for TypeScript errors |
+| `npx vitest run` | Runs the full unit test suite |
+| `npx vitest run tests/module-8` | Runs Module 8 (forecasting) tests |
+| `npx vitest run tests/module-9` | Runs Module 9 (report engine) tests |
+| `npx vitest run tests/module6a` | Runs Module 6 route integration tests |
+| `pip install -r requirements.txt` | Install Python deps for Prophet forecasting |
 
 ---
 

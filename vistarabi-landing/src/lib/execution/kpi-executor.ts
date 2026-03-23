@@ -3,7 +3,7 @@
 // Produces structured KPIExecutionResult payloads ready for frontend rendering
 
 import type { KPILineageEntry, KPISourceContribution, ApprovedKPI } from '../prisma';
-import type { KPIDataPoint, Filter } from '../visualization/types';
+import type { KPIDataPoint, Filter, CategoryFilter, ValueFilter } from '../visualization/types';
 import type {
     KPIExecutionResult,
     DataProfilingResult,
@@ -161,7 +161,7 @@ export async function executeKPI(
         const type = colTypes[agg.column];
         if (agg.function === 'SUM' && type && !['numeric', 'integer', 'bigint', 'double precision', 'real', 'decimal'].includes(type)) {
             console.warn(`[Executor] Safety fallback: SUM on non-numeric column "${agg.column}" (${type}) for KPI "${kpi.name}" changed to COUNT`);
-            agg.function = 'COUNT' as any;
+            agg.function = 'COUNT' as typeof agg.function;
         }
     }
     for (const gb of kpi.groupBys) {
@@ -194,14 +194,12 @@ export async function executeKPI(
         dateColumn: possibleDateColumn,
         dateFrom: options.dateFrom,
         dateTo: options.dateTo,
-        categoryFilters: options.filters?.filter(f => f.type === 'category' && (f as any).values).map(f => ({
-            column: f.column,
-            values: (f as any).values,
-        })) || [],
-        equalsFilters: options.filters?.filter(f => (f as any).type === 'value' && (f as any).value).map(f => ({
-            column: f.column,
-            value: (f as any).value,
-        })) || [],
+        categoryFilters: (options.filters ?? [])
+            .filter((f): f is CategoryFilter => f.type === 'category')
+            .map(f => ({ column: f.column, values: f.values })),
+        equalsFilters: (options.filters ?? [])
+            .filter((f): f is ValueFilter => f.type === 'value')
+            .map(f => ({ column: f.column, value: String(f.value) })),
     };
 
     const compilationCtx: CompilationContext = {
@@ -213,7 +211,7 @@ export async function executeKPI(
 
     // ── Step 3: Execute Primary Query ──
     const queryStart = Date.now();
-    let primaryDataPoints: any[] = [];
+    let primaryDataPoints: Record<string, unknown>[] = [];
     let primaryValue = 0;
 
     try {
@@ -237,8 +235,9 @@ export async function executeKPI(
             primaryDataPoints = [{ label: 'Total', value: primaryValue }];
             rowsReturned += 1;
         }
-    } catch (err: any) {
-        console.error(`[Executor] SQL Error on KPI ${kpiId}:`, err.message);
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[Executor] SQL Error on KPI ${kpiId}:`, msg);
         throw err;
     }
 
