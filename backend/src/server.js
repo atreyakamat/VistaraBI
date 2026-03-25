@@ -8,6 +8,9 @@ import { fileURLToPath } from 'url'
 import fs from 'fs'
 import { redisConnection } from './jobs/queue.js'
 
+// Import rate limiting middleware
+import { apiLimiter, uploadLimiter, processingLimiter } from './middleware/rateLimiter.js'
+
 // Import routes
 import healthRoutes from './routes/health.js'
 import uploadRoutes from './routes/upload.js'
@@ -48,15 +51,18 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(morgan('dev'))
 
-// Routes
-app.use('/api/health', healthRoutes)
-app.use('/api/v1/upload', uploadRoutes)
-app.use('/api/v1/clean', cleaningRoutes)
-app.use('/api/v1/domain', domainRoutes)
-app.use('/api/v1/kpi', kpiRoutes)
-app.use('/api/dashboard', dashboardRoutes)
-app.use('/api/projects', projectRoutes)
-app.use('/api/test', testRoutes)
+// Apply general rate limiting to all API routes
+app.use('/api/', apiLimiter)
+
+// Routes with specific rate limiting
+app.use('/api/health', healthRoutes) // Health check excluded from rate limiting
+app.use('/api/v1/upload', uploadLimiter, uploadRoutes) // Stricter limit for uploads
+app.use('/api/v1/clean', processingLimiter, cleaningRoutes) // Limit for data processing
+app.use('/api/v1/domain', processingLimiter, domainRoutes) // Limit for domain detection
+app.use('/api/v1/kpi', processingLimiter, kpiRoutes) // Limit for KPI extraction
+app.use('/api/dashboard', dashboardRoutes) // Uses general API limiter
+app.use('/api/projects', projectRoutes) // Uses general API limiter
+app.use('/api/test', testRoutes) // Uses general API limiter
 
 // Root endpoint
 app.get('/', (req, res) => {
