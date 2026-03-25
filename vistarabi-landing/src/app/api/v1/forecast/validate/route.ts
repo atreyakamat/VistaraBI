@@ -1,8 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateStrategy } from '@/lib/module-8/strategy-validator';
-import { ForecastRequest } from '@/lib/module-8/types';
+import type { ForecastRequest } from '@/lib/module-8/types';
 import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
 import { getCurrentUser } from '@/lib/auth';
+import { z } from 'zod';
+
+const strategicActionSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  expectedUplift: z.number().finite(),
+  rampDays: z.number().int().min(0),
+  startDayOffset: z.number().int().min(0),
+  regressors: z.record(z.string(), z.number().finite()).optional(),
+});
+
+const forecastRequestSchema = z.object({
+  kpiHistory: z.array(
+    z.object({
+      date: z.string().min(1),
+      value: z.number().finite(),
+    })
+  ).min(1),
+  goalValue: z.number().finite(),
+  horizonDays: z.number().int().min(1).max(1825),
+  actions: z.array(strategicActionSchema),
+  confidenceLevel: z.union([z.literal(0.8), z.literal(0.95)]),
+  domain: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   // Auth check
@@ -11,8 +35,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  // Rate limit: 30 forecast requests per minute per user
-  const rl = checkRateLimit(getIdentifier(request, user.userId, 'forecast'), { limit: 30, windowMs: 60_000 });
+  // Rate limit: enforce AI profile for expensive simulation endpoint
+  const rl = checkRateLimit(getIdentifier(request, user.userId, 'forecast'), RATE_LIMITS.FORECAST);
   const rlHeaders = buildRateLimitHeaders(rl);
   if (!rl.success) {
     return NextResponse.json(
@@ -22,23 +46,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body: ForecastRequest = await request.json();
-    
-    // Input validation
-    if (!body.kpiHistory || !Array.isArray(body.kpiHistory) || body.kpiHistory.length === 0) {
-      return NextResponse.json({ error: 'kpiHistory is required and must be a non-empty array' }, { status: 400 });
-    }
-    if (!body.goalValue || typeof body.goalValue !== 'number') {
-      return NextResponse.json({ error: 'goalValue is required and must be a number' }, { status: 400 });
-    }
-    if (!body.horizonDays || typeof body.horizonDays !== 'number' || body.horizonDays < 1 || body.horizonDays > 1825) {
-      return NextResponse.json({ error: 'horizonDays must be a number between 1 and 1825' }, { status: 400 });
-    }
-    if (!body.actions || !Array.isArray(body.actions)) {
-      return NextResponse.json({ error: 'actions must be an array' }, { status: 400 });
+    const body = await request.json();
+    const parsed = forecastRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid forecast request payload', details: parsed.error.issues },
+        { status: 400, headers: rlHeaders }
+      );
     }
 
-    const result = await validateStrategy(body);
+    const result = await validateStrategy(parsed.data as ForecastRequest);
     return NextResponse.json(result, { headers: rlHeaders });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error';

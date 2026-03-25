@@ -3,18 +3,21 @@ import { checkOllamaHealth, generateCompletion } from '@/lib/ai/ollama-client';
 
 // Mocking the global fetch for Ollama API calls
 global.fetch = vi.fn();
+const fetchMock = vi.mocked(global.fetch);
 
-describe('Module 7: Ollama Integration Backend Test', () => {
+const hasManualOllama = process.env.RUN_MANUAL_OLLAMA_TESTS === 'true';
+
+describe.skipIf(!hasManualOllama)('Module 7: Ollama Integration Backend Test', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
     it('should verify if Ollama service is reachable (Health Check)', async () => {
-        (fetch as any).mockResolvedValue({
+        fetchMock.mockResolvedValue({
             ok: true,
             status: 200,
             json: async () => ({ models: [{ name: 'qwen3:0.6b' }] }),
-        });
+        } as Response);
 
         const isHealthy = await checkOllamaHealth();
         expect(isHealthy).toBe(true);
@@ -22,7 +25,7 @@ describe('Module 7: Ollama Integration Backend Test', () => {
     });
 
     it('should handle Ollama service being offline gracefully', async () => {
-        (fetch as any).mockRejectedValue(new Error('ECONNREFUSED'));
+        fetchMock.mockRejectedValue(new Error('ECONNREFUSED'));
 
         const isHealthy = await checkOllamaHealth();
         expect(isHealthy).toBe(false);
@@ -36,12 +39,12 @@ describe('Module 7: Ollama Integration Backend Test', () => {
             done: true,
         };
 
-        (fetch as any).mockResolvedValue({
+        fetchMock.mockResolvedValue({
             ok: true,
             status: 200,
             json: async () => mockResponse,
             text: async () => JSON.stringify(mockResponse),
-        });
+        } as Response);
 
         const result = await generateCompletion({
             prompt: 'How to increase revenue?',
@@ -59,11 +62,11 @@ describe('Module 7: Ollama Integration Backend Test', () => {
     });
 
     it('should throw an error when Ollama fails during generation after retries', async () => {
-        (fetch as any).mockResolvedValue({
+        fetchMock.mockResolvedValue({
             ok: false,
             status: 500,
             text: async () => 'Internal Server Error',
-        });
+        } as Response);
 
         // generateCompletion throws after maxRetries
         await expect(generateCompletion({

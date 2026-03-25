@@ -17,9 +17,11 @@ import type { ApprovedKPIWithRelations, AggregationRule, GroupByDefinition, Line
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export type SqlParameter = string | number | boolean | Date | null;
+
 export interface CompiledQuery {
     text: string;
-    values: unknown[];
+    values: SqlParameter[];
 }
 
 export interface ExecutionFilters {
@@ -181,14 +183,14 @@ function compileJoinClause(lineage: LineageDefinition | null): string {
 
 interface WhereResult {
     clause: string;
-    params: unknown[];
+    params: SqlParameter[];
 }
 
 function compileWhereClause(filters: ExecutionFilters | undefined, paramOffset: number = 0): WhereResult {
     if (!filters) return { clause: '', params: [] };
 
     const conditions: string[] = [];
-    const params: unknown[] = [];
+    const params: SqlParameter[] = [];
     let idx = paramOffset + 1;
 
     // Date range filter

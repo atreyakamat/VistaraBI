@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Rate limit: 3 exports per minute
-  const rl = checkRateLimit(getIdentifier(request, user.userId, 'export'), { limit: 3, windowMs: 60_000 });
+  const rl = checkRateLimit(getIdentifier(request, user.userId, 'export'), RATE_LIMITS.PRIVACY_EXPORT);
   const headers = buildRateLimitHeaders(rl);
   if (!rl.success) {
     return NextResponse.json(

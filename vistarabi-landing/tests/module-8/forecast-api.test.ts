@@ -10,9 +10,13 @@ vi.mock('@/lib/auth', () => ({
 
 // Mock Rate Limiter
 vi.mock('@/lib/security/rate-limiter', () => ({
-  checkRateLimit: vi.fn().mockReturnValue({ success: true, remaining: 10, limit: 30, reset: Date.now() + 60000 }),
+  checkRateLimit: vi.fn().mockReturnValue({ success: true, remaining: 10, limit: 20, reset: Date.now() + 60000 }),
   getIdentifier: vi.fn().mockReturnValue('test-user'),
   buildRateLimitHeaders: vi.fn().mockReturnValue({}),
+  RATE_LIMITS: {
+    FORECAST: { limit: 20, windowMs: 60_000 },
+    AI: { limit: 20, windowMs: 60_000 },
+  },
 }));
 
 // Mock the validateStrategy function

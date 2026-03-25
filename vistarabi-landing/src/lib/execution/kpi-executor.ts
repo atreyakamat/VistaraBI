@@ -34,9 +34,13 @@ const ANIMATION_DISABLE_THRESHOLD = 5000;
 const QUERY_TIMEOUT_MS = 3000;
 const GROUP_BY_ROW_LIMIT = 1000;
 
+/** Type for raw PostgreSQL query results */
+interface PostgresRow {
+    [key: string]: string | number | boolean | Date | null;
+}
+
 // ─── Execute Single KPI ───────────────────────────────────────────
 
-/**
 /**
  * Execute a single KPI and return a structured result.
  * This is the deterministic SQL compiler path.
@@ -90,7 +94,7 @@ export async function executeKPI(
     }
 
     // Fetch schema dynamically to bridge Semantic Library names -> physical table columns
-    const colRes = await pool.query(`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`, [kpi.sourceTable]);
+    const colRes = await pool.query<{ column_name: string; data_type: string }>(`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`, [kpi.sourceTable]);
     const actualCols = colRes.rows.map(r => r.column_name.toLowerCase());
     const colTypes = Object.fromEntries(colRes.rows.map(r => [r.column_name.toLowerCase(), r.data_type.toLowerCase()]));
 
@@ -105,7 +109,7 @@ export async function executeKPI(
     const libraryDefinition = allLibraryKPIs.find(k => k.id === kpi.kpiLibraryId);
     const aliases = { ...globalAliases, ...(libraryDefinition?.columnAliases || {}) };
 
-    const resolveColumn = (col: string) => {
+    const resolveColumn = (col: string): string => {
         const lower = col.toLowerCase();
         if (actualCols.includes(lower)) return lower;
 
@@ -211,27 +215,27 @@ export async function executeKPI(
 
     // ── Step 3: Execute Primary Query ──
     const queryStart = Date.now();
-    let primaryDataPoints: Record<string, unknown>[] = [];
+    let primaryDataPoints: PostgresRow[] = [];
     let primaryValue = 0;
 
     try {
         if (options.granularity || options.groupBy) {
             // Time-series or grouped dataset
             const queryData = compileFullQuery(compilationCtx);
-            const res = await pool.query(queryData.text, queryData.values);
+            const res = await pool.query<PostgresRow>(queryData.text, queryData.values);
             primaryDataPoints = res.rows;
             rowsReturned += res.rows.length;
 
             // Compute the total primary value by looking at the scalar equivalent
             const scalarQuery = compileScalarQuery(compilationCtx);
-            const scalarRes = await pool.query(scalarQuery.text, scalarQuery.values);
-            primaryValue = parseFloat(scalarRes.rows[0]?.value || '0');
+            const scalarRes = await pool.query<{ value: string | number }>(scalarQuery.text, scalarQuery.values);
+            primaryValue = parseFloat(String(scalarRes.rows[0]?.value || '0'));
 
         } else {
             // Scalar single value
             const queryData = compileScalarQuery(compilationCtx);
-            const res = await pool.query(queryData.text, queryData.values);
-            primaryValue = parseFloat(res.rows[0]?.value || '0');
+            const res = await pool.query<{ value: string | number }>(queryData.text, queryData.values);
+            primaryValue = parseFloat(String(res.rows[0]?.value || '0'));
             primaryDataPoints = [{ label: 'Total', value: primaryValue }];
             rowsReturned += 1;
         }
@@ -289,8 +293,8 @@ export async function executeKPI(
 
     if (comparisonQueryDate) {
         try {
-            const res = await pool.query(comparisonQueryDate.text, comparisonQueryDate.values);
-            previousValue = parseFloat(res.rows[0]?.value || '0');
+            const res = await pool.query<{ value: string | number }>(comparisonQueryDate.text, comparisonQueryDate.values);
+            previousValue = parseFloat(String(res.rows[0]?.value || '0'));
         } catch (err) {
             console.warn(`[Executor] Comparison query failed for ${kpiId}, non-fatal.`);
         }
@@ -307,12 +311,12 @@ export async function executeKPI(
 
     // ── Step 6: Data Profiler ──
     const profilingStart = Date.now();
-    const groupCol = options.groupBy || (kpi.groupBys.length > 0 ? kpi.groupBys[0].column : null);
+    const currentGroupCol = options.groupBy || (kpi.groupBys.length > 0 ? kpi.groupBys[0].column : null);
 
     // Quick heuristic profiler since SQL already aggs
     const profiling = profileDataset(formattedDataset, {
         dateColumn: options.granularity ? 'date' : undefined,
-        categoryColumns: groupCol ? ['label'] : [],
+        categoryColumns: currentGroupCol ? ['label'] : [],
         numericColumns: ['value'],
     });
     timings.profilingMs = Date.now() - profilingStart;
@@ -370,7 +374,7 @@ export async function executeKPI(
     };
 
     // ── Step 10: Performance Metadata ──
-    const performance = {
+    const performance: ExecutionPerformance = {
         totalTimeMs: Date.now() - startTime,
         dataLoadTimeMs: 0,
         computeTimeMs: timings.queryMs, // Replaced by queryMs
@@ -398,7 +402,7 @@ export async function executeKPI(
         profiling,
         recommendedChartType: chartSelection.chartType,
         recommendedChartLibrary: chartSelection.chartLibrary,
-        disableAnimation: profiling.recordCount > 5000,
+        disableAnimation: profiling.recordCount > ANIMATION_DISABLE_THRESHOLD,
         aiExplanation,
         lineage: lineageSummary,
         performance,
@@ -485,7 +489,7 @@ export async function executeDashboard(
         projectId,
         kpis,
         appliedFilters: options.filters || [],
-        granularity: options.granularity || 'monthly',
+        granularity: options.granularity ?? 'monthly',
         computedAt: new Date().toISOString(),
         metadata: {
             totalKPIs: kpis.length + skippedCount,
@@ -510,13 +514,6 @@ export async function executeDrill(
     groupByColumn: string,
     options: ExecutionOptions = {}
 ): Promise<KPIExecutionResult> {
-    const lineageEntries = await loadLineageRegistry(projectId);
-    const lineage = lineageEntries.find(e => e.kpiId === kpiId || e.id === kpiId);
-
-    if (!lineage) {
-        throw new Error(`No lineage found for KPI: ${kpiId}`);
-    }
-
     return executeKPI(projectId, kpiId, {
         ...options,
         groupBy: groupByColumn,
@@ -544,30 +541,33 @@ async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]
     const blueprint = await loadBlueprintWithKPIs(projectId);
     if (!blueprint || blueprint.kpis.length === 0) return [];
 
-    return blueprint.kpis.map((kpi: ApprovedKPIWithRelations) => ({
-        id: kpi.id,
-        projectId,
-        kpiId: kpi.kpiLibraryId || kpi.id,
-        kpiName: kpi.name,
-        domain: blueprint.domain || 'General',
-        formula: kpi.lineage?.formula || '',
-        category: kpi.category,
-        sources: [{
-            sourceId: kpi.sourceTable,
-            sourceName: kpi.sourceTable,
-            columns: kpi.aggregations.map(a => a.column),
-            role: 'PRIMARY'
-        }],
-        joinPaths: (kpi.lineage?.joins as unknown as KPIJoinPath[]) || [],
-        aggregations: kpi.aggregations.map(a => ({
-            function: a.function as KPIAggregation['function'],
-            column: a.column,
-            sourceId: kpi.sourceTable,
-        })),
-        technicalExplanation: 'Generated from relational BI Definition Layer',
-        businessExplanation: 'Domain-defined structured metric',
-        aiEnhanced: false,
-        confidence: 100,
-        tracedAt: kpi.updatedAt,
-    } as KPILineageEntry));
+    return blueprint.kpis.map((kpi: ApprovedKPIWithRelations) => {
+        const joinPaths = (kpi.lineage?.joins as unknown as KPIJoinPath[]) || [];
+        return {
+            id: kpi.id,
+            projectId,
+            kpiId: kpi.kpiLibraryId || kpi.id,
+            kpiName: kpi.name,
+            domain: blueprint.domain || 'General',
+            formula: kpi.lineage?.formula || '',
+            category: kpi.category,
+            sources: [{
+                sourceId: kpi.sourceTable,
+                sourceName: kpi.sourceTable,
+                columns: kpi.aggregations.map(a => a.column),
+                role: 'PRIMARY'
+            }],
+            joinPaths,
+            aggregations: kpi.aggregations.map(a => ({
+                function: a.function as KPIAggregation['function'],
+                column: a.column,
+                sourceId: kpi.sourceTable,
+            })),
+            technicalExplanation: 'Generated from relational BI Definition Layer',
+            businessExplanation: 'Domain-defined structured metric',
+            aiEnhanced: false,
+            confidence: 100,
+            tracedAt: kpi.updatedAt,
+        } as KPILineageEntry;
+    });
 }

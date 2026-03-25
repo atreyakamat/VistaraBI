@@ -4,7 +4,6 @@
 
 export interface EvidenceInput {
     traceable_fields?: string[];
-    [key: string]: unknown;
 }
 
 const FLOAT_TOLERANCE = 0.0001;
@@ -37,8 +36,10 @@ export function extractEvidenceNumbers(evidence: EvidenceInput | EvidenceInput[]
 
     const traceableFields = evidence.traceable_fields ?? [];
 
+    const evidenceRecord = evidence as Record<string, unknown>;
+
     for (const field of traceableFields) {
-        const raw = evidence[field];
+        const raw = evidenceRecord[field];
         if (isFiniteNumber(raw)) {
             values.push(raw);
             if (raw < 0) values.push(Math.abs(raw));
@@ -62,7 +63,7 @@ export function extractEvidenceNumbers(evidence: EvidenceInput | EvidenceInput[]
     ];
     
     for (const field of fallbackFields) {
-        const raw = evidence[field];
+        const raw = evidenceRecord[field];
         if (isFiniteNumber(raw)) {
             values.push(raw);
             if (raw < 0) values.push(Math.abs(raw));

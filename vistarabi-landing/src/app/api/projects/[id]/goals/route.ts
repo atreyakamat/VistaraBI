@@ -5,22 +5,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { executeGoalPipeline } from '@/lib/module-7/goal-engine';
+import { getCurrentUser } from '@/lib/auth';
+import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
+import { safeParseGeneratedPlan } from '@/lib/prisma/json-schemas';
+import { toPrismaJsonField } from '@/lib/prisma/json-input';
+import { z } from 'zod';
+
+const createGoalRequestSchema = z.object({
+    rawQuery: z.string().trim().min(1),
+});
 
 export async function POST(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const user = await getCurrentUser();
+    if (!user) {
+        return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const rl = checkRateLimit(getIdentifier(request, user.userId, 'goal-engine'), RATE_LIMITS.AI);
+    const rlHeaders = buildRateLimitHeaders(rl);
+    if (!rl.success) {
+        return NextResponse.json(
+            { error: 'Goal generation rate limit exceeded. Please wait before trying again.' },
+            { status: 429, headers: rlHeaders }
+        );
+    }
+
     try {
         const { id: projectId } = await params;
-        const { rawQuery } = await request.json();
-
-        if (!rawQuery) {
-            return NextResponse.json({ error: 'Missing rawQuery' }, { status: 400 });
+        const body = await request.json();
+        const parsedBody = createGoalRequestSchema.safeParse(body);
+        if (!parsedBody.success) {
+            return NextResponse.json(
+                { error: 'Missing rawQuery', details: parsedBody.error.issues },
+                { status: 400, headers: rlHeaders }
+            );
         }
+        const { rawQuery } = parsedBody.data;
 
         // 1. Fetch Project for Domain Context
-        const project = await prisma.project.findUnique({
-            where: { id: projectId },
+        const project = await prisma.project.findFirst({
+            where: { id: projectId, userId: user.userId },
             include: { 
                 domainGovernance: true,
                 sources: { select: { fileName: true } } // Basic for now
@@ -39,6 +66,16 @@ export async function POST(
         // 3. Execute the 7-stage Goal Pipeline
         console.log(`[Module 7] Executing Goal Engine for Project ${projectId}: "${rawQuery}"`);
         const canvas = await executeGoalPipeline(rawQuery, domain, locations);
+        const parsedGeneratedPlan = safeParseGeneratedPlan(canvas);
+        if (!parsedGeneratedPlan.success) {
+            return NextResponse.json(
+                {
+                    error: 'Goal pipeline returned an invalid strategy payload',
+                    details: parsedGeneratedPlan.error.issues,
+                },
+                { status: 500, headers: rlHeaders }
+            );
+        }
 
         // 4. Persist the result in Database
         const goalEntry = await prisma.projectGoal.create({
@@ -48,7 +85,7 @@ export async function POST(
                 targetKpiId: canvas.goal.kpiId,
                 targetValue: canvas.goal.targetValue,
                 timeframe: canvas.goal.timeframe,
-                generatedPlan: canvas as any, // Full Strategy Canvas
+                generatedPlan: toPrismaJsonField(parsedGeneratedPlan.data),
                 status: 'ACTIVE'
             }
         });
@@ -57,13 +94,14 @@ export async function POST(
             success: true,
             goalId: goalEntry.id,
             strategyCanvas: canvas
-        });
+        }, { headers: rlHeaders });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const details = error instanceof Error ? error.message : 'Unknown error';
         console.error('[Module 7 API] Error executing goal engine:', error);
         return NextResponse.json({ 
             error: 'Internal Server Error', 
-            details: error.message 
+            details
         }, { status: 500 });
     }
 }
@@ -73,18 +111,24 @@ export async function POST(
  * Returns history of goals for the project
  */
 export async function GET(
-    request: NextRequest,
+    _request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    const user = await getCurrentUser();
+    if (!user) {
+        return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     try {
         const { id: projectId } = await params;
         const goals = await prisma.projectGoal.findMany({
-            where: { projectId },
+            where: { projectId, project: { userId: user.userId } },
             orderBy: { createdAt: 'desc' }
         });
 
         return NextResponse.json({ goals });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal server error';
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

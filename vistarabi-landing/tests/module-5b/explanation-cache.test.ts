@@ -33,6 +33,7 @@ const mockExplanation = {
     dataSourceRef: 'sales.csv',
     businessDefinition: 'Aggregate sales revenue',
     recommendation: 'Track weekly for seasonal patterns',
+    generatedAt: new Date().toISOString(),
 };
 
 const kpiContext = {
@@ -100,7 +101,7 @@ describe('Module 5B — Explanation Cache', () => {
     describe('Layer 3: Generate via AI', () => {
         it('should generate and store when not cached or stored', async () => {
             mockDb.dashboardConfig.findUnique.mockResolvedValue(null);
-            (generateKPIExplanations as any).mockResolvedValue({
+            vi.mocked(generateKPIExplanations).mockResolvedValue({
                 'kpi-rev': mockExplanation,
             });
 
@@ -112,7 +113,7 @@ describe('Module 5B — Explanation Cache', () => {
 
         it('should return null if generation fails', async () => {
             mockDb.dashboardConfig.findUnique.mockResolvedValue(null);
-            (generateKPIExplanations as any).mockRejectedValue(new Error('AI unavailable'));
+            vi.mocked(generateKPIExplanations).mockRejectedValue(new Error('AI unavailable'));
 
             const result = await getKPIExplanation('proj-1', 'kpi-rev', kpiContext);
             expect(result).toBeNull();
@@ -120,7 +121,7 @@ describe('Module 5B — Explanation Cache', () => {
 
         it('should return null if generation returns empty', async () => {
             mockDb.dashboardConfig.findUnique.mockResolvedValue(null);
-            (generateKPIExplanations as any).mockResolvedValue({});
+            vi.mocked(generateKPIExplanations).mockResolvedValue({});
 
             const result = await getKPIExplanation('proj-1', 'kpi-rev', kpiContext);
             expect(result).toBeNull();
@@ -130,7 +131,7 @@ describe('Module 5B — Explanation Cache', () => {
     describe('Batch Generation', () => {
         it('should generate explanations for multiple KPIs', async () => {
             mockDb.dashboardConfig.findUnique.mockResolvedValue(null);
-            (generateKPIExplanations as any).mockResolvedValue({
+            vi.mocked(generateKPIExplanations).mockResolvedValue({
                 'kpi-rev': { ...mockExplanation, kpiId: 'kpi-rev' },
                 'kpi-margin': { ...mockExplanation, kpiId: 'kpi-margin' },
             });
@@ -151,7 +152,7 @@ describe('Module 5B — Explanation Cache', () => {
             setCachedExplanation(cacheKey, mockExplanation);
 
             mockDb.dashboardConfig.findUnique.mockResolvedValue(null);
-            (generateKPIExplanations as any).mockResolvedValue({
+            vi.mocked(generateKPIExplanations).mockResolvedValue({
                 'kpi-margin': { ...mockExplanation, kpiId: 'kpi-margin' },
             });
 
@@ -164,7 +165,7 @@ describe('Module 5B — Explanation Cache', () => {
             expect(results['kpi-margin']).toBeDefined();
 
             // generateKPIExplanations should only be called with one KPI (margin)
-            const callArgs = (generateKPIExplanations as any).mock.calls[0]?.[0];
+            const callArgs = vi.mocked(generateKPIExplanations).mock.calls[0]?.[0];
             if (callArgs) {
                 expect(callArgs.length).toBe(1);
                 expect(callArgs[0].kpiId).toBe('kpi-margin');

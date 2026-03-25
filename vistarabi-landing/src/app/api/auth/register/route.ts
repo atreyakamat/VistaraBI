@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, signToken, setAuthCookie } from '@/lib/auth';
-import { checkRateLimit, getIdentifier, buildRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
 
 export async function POST(request: NextRequest) {
     // Rate limit: 5 registrations per minute per IP
-    const rl = checkRateLimit(getIdentifier(request, undefined, 'register'), { limit: 5, windowMs: 60_000 });
+    const rl = checkRateLimit(getIdentifier(request, undefined, 'register'), RATE_LIMITS.REGISTER);
     const rlHeaders = buildRateLimitHeaders(rl);
     if (!rl.success) {
         return NextResponse.json(

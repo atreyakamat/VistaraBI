@@ -4,9 +4,22 @@
 // and in-memory cache for fast access
 
 import db from '../prisma';
-import type { KPIExplanation, DashboardMetadata } from '../dashboard/types';
+import type { KPIExplanation } from '../dashboard/types';
+import { KPIExplanationSchema } from '../dashboard/schemas';
 import { generateKPIExplanations } from '../dashboard/kpi-explainer';
 import { getCachedExplanation, setCachedExplanation, buildCacheKey } from './cache';
+import { toPrismaJsonField } from '../prisma/json-input';
+import { z } from 'zod';
+
+const ExplanationMetadataSchema = z.object({
+    kpiExplanations: z.record(z.string(), KPIExplanationSchema).optional(),
+}).passthrough();
+
+function asRecord(value: unknown): Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : {};
+}
 
 // ─── Public API ───────────────────────────────────────────────────
 
@@ -131,15 +144,16 @@ async function getStoredExplanation(
     kpiId: string
 ): Promise<KPIExplanation | null> {
     try {
-        const config = await (db as any).dashboardConfig.findUnique({
+        const config = await db.dashboardConfig.findUnique({
             where: { projectId },
             select: { metadata: true },
         });
 
         if (!config?.metadata) return null;
 
-        const metadata = config.metadata as unknown as DashboardMetadata;
-        return metadata.kpiExplanations?.[kpiId] ?? null;
+        const parsedMetadata = ExplanationMetadataSchema.safeParse(config.metadata);
+        if (!parsedMetadata.success) return null;
+        return parsedMetadata.data.kpiExplanations?.[kpiId] ?? null;
     } catch {
         return null;
     }
@@ -151,24 +165,28 @@ async function storeExplanation(
     explanation: KPIExplanation
 ): Promise<void> {
     try {
-        const config = await (db as any).dashboardConfig.findUnique({
+        const config = await db.dashboardConfig.findUnique({
             where: { projectId },
             select: { metadata: true },
         });
 
         if (!config) return;
 
-        const metadata = (config.metadata as unknown as DashboardMetadata) || {};
-        const explanations = metadata.kpiExplanations || {};
-        explanations[kpiId] = explanation;
+        const metadata = asRecord(config.metadata);
+        const parsedMetadata = ExplanationMetadataSchema.safeParse(metadata);
+        const explanations = {
+            ...(parsedMetadata.success ? parsedMetadata.data.kpiExplanations ?? {} : {}),
+            [kpiId]: explanation,
+        };
+        const nextMetadata = {
+            ...metadata,
+            kpiExplanations: explanations,
+        };
 
-        await (db as any).dashboardConfig.update({
+        await db.dashboardConfig.update({
             where: { projectId },
             data: {
-                metadata: {
-                    ...metadata,
-                    kpiExplanations: explanations,
-                } as any,
+                metadata: toPrismaJsonField(nextMetadata),
             },
         });
     } catch (error) {

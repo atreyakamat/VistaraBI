@@ -8,6 +8,7 @@
 interface RateLimitEntry {
   count: number;
   windowStart: number;
+  windowMs: number;
 }
 
 // Global rate limit store (per-process; use Redis in multi-instance prod)
@@ -18,7 +19,7 @@ if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now();
     for (const [key, entry] of store.entries()) {
-      if (now - entry.windowStart > 60_000) {
+      if (now - entry.windowStart > entry.windowMs) {
         store.delete(key);
       }
     }
@@ -54,7 +55,7 @@ export function checkRateLimit(
 
   if (!entry || now - entry.windowStart > config.windowMs) {
     // New window
-    store.set(key, { count: 1, windowStart: now });
+    store.set(key, { count: 1, windowStart: now, windowMs: config.windowMs });
     return {
       success: true,
       limit: config.limit,
@@ -86,10 +87,18 @@ export function checkRateLimit(
 export const RATE_LIMITS = {
   /** Auth endpoints – prevent brute-force */
   AUTH: { limit: 10, windowMs: 60_000 },
+  /** User registration – tighter anti-abuse profile */
+  REGISTER: { limit: 5, windowMs: 60_000 },
   /** AI endpoints – expensive, rate-limit tightly */
   AI: { limit: 20, windowMs: 60_000 },
+  /** Forecast simulation endpoint – expensive Monte Carlo + AI */
+  FORECAST: { limit: 20, windowMs: 60_000 },
   /** File upload – moderate limit */
   UPLOAD: { limit: 10, windowMs: 60_000 },
+  /** GDPR data export endpoint */
+  PRIVACY_EXPORT: { limit: 3, windowMs: 60_000 },
+  /** GDPR data deletion endpoint */
+  PRIVACY_DELETE: { limit: 3, windowMs: 3_600_000 },
   /** General API – generous */
   API: { limit: 100, windowMs: 60_000 },
   /** Report generation – resource-intensive */

@@ -125,6 +125,15 @@ function fmtDate(iso: string) {
     catch { return iso; }
 }
 
+function parseLiftPercent(rawLift: string | undefined): number | null {
+    if (!rawLift) return null;
+    const match = rawLift.match(/-?\d+(?:\.\d+)?/);
+    if (!match) return null;
+    const parsed = Number.parseFloat(match[0]);
+    if (!Number.isFinite(parsed)) return null;
+    return parsed;
+}
+
 // ─── Scenario Tabs ────────────────────────────────────────────────────────────
 
 function ScenarioTabs({ scenarios, onSimulate }: { scenarios: BudgetScenario[], onSimulate: () => void }) {
@@ -608,11 +617,18 @@ export function GoalStrategyPanel({
         const rawTarget = parseFloat(canvas.goal.targetValue.replace(/[^0-9.]/g, ''));
         if (!isNaN(rawTarget)) parsedTargetValue = rawTarget;
 
+        const balancedScenario = simulatingAction.scenarios.find(s => s.level === 'BALANCED');
+        const fallbackScenario = simulatingAction.scenarios[0];
+        const scenarioLiftPercent = parseLiftPercent(balancedScenario?.expectedKpiLift)
+            ?? parseLiftPercent(fallbackScenario?.expectedKpiLift);
+        const actionConfidenceLift = Math.max(1, Math.round(simulatingAction.confidenceScore * 0.3));
+        const upliftPercent = scenarioLiftPercent ?? actionConfidenceLift;
+
         const initialSimulatorContext = {
             goalValue: parsedTargetValue,
             actionName: simulatingAction.actionName,
             kpiHistory: realHistory,
-            uplift: 15 // Could parse from simulatingAction.scenarios[1].expectedKpiLift
+            uplift: upliftPercent
         };
 
         return (

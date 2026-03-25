@@ -5,6 +5,29 @@ import pool from './pool';
 // Singleton promise to prevent concurrent materialization runs for the same project
 let materializationPromise: Promise<void> | null = null;
 
+interface DataRow {
+    [key: string]: unknown;
+}
+
+function isDataRow(value: unknown): value is DataRow {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function toDataRows(value: unknown): DataRow[] {
+    if (!Array.isArray(value)) return [];
+    return value.filter(isDataRow);
+}
+
+function resolveColumnValue(row: DataRow, normalizedColumn: string): unknown {
+    if (normalizedColumn in row) return row[normalizedColumn];
+    const capitalized = `${normalizedColumn.charAt(0).toUpperCase()}${normalizedColumn.slice(1)}`;
+    if (capitalized in row) return row[capitalized];
+
+    const matchedKey = Object.keys(row).find(key => key.toLowerCase() === normalizedColumn);
+    if (!matchedKey) return undefined;
+    return row[matchedKey];
+}
+
 /**
  * Ensures the physical "merged_data" table exists and contains data for the specified project.
  * If the table is missing, it will be created.
@@ -16,7 +39,7 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
     materializationPromise = (async () => {
         try {
             // 1. Check if table exists
-            const tableCheck = await pool.query(`
+            const tableCheck = await pool.query<{ exists: boolean }>(`
                 SELECT EXISTS (
                     SELECT FROM information_schema.tables 
                     WHERE table_name = 'merged_data'
@@ -27,8 +50,8 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
 
             if (tableExists) {
                 // For now, if table exists, check if it has data.
-                const countCheck = await pool.query('SELECT COUNT(*) FROM "merged_data"');
-                if (parseInt(countCheck.rows[0].count) > 0) {
+                const countCheck = await pool.query<{ count: string }>('SELECT COUNT(*) FROM "merged_data"');
+                if (parseInt(countCheck.rows[0].count, 10) > 0) {
                     return;
                 }
             }
@@ -49,23 +72,26 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
 
             // Collect all unique columns across all sources
             const allColumnsSet = new Set<string>();
-            const allRows: any[] = [];
+            const allRows: DataRow[] = [];
 
             for (const source of sources) {
-                const useCleaned = source.cleanedDataset && 
-                                Array.isArray(source.cleanedDataset.cleanedData) && 
-                                source.cleanedDataset.cleanedData.length > 0;
+                const cleanedRows = toDataRows(source.cleanedDataset?.cleanedData);
+                const useCleaned = cleanedRows.length > 0;
                 
-                const columns: string[] = useCleaned ? source.cleanedDataset!.cleanedColumns : source.columns;
-                const rows: any[] = useCleaned ? (source.cleanedDataset!.cleanedData as any[]) : (source.data as any[]);
-
-                if (!Array.isArray(rows)) continue;
+                const columns: string[] = useCleaned
+                    ? (source.cleanedDataset?.cleanedColumns ?? source.columns)
+                    : source.columns;
+                const rows = useCleaned ? cleanedRows : toDataRows(source.data);
 
                 columns.forEach(c => allColumnsSet.add(c.toLowerCase()));
                 allRows.push(...rows);
             }
 
             const allColumns = Array.from(allColumnsSet);
+            if (allColumns.length === 0) {
+                console.warn(`[Materializer] No columns detected for project: ${projectId}`);
+                return;
+            }
 
             // Drop and recreate
             await pool.query('DROP TABLE IF EXISTS "merged_data" CASCADE;');
@@ -79,10 +105,10 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
 
             for (let i = 0; i < allRows.length; i += BATCH) {
                 const chunk = allRows.slice(i, i + BATCH);
-                const valuesPart = chunk.map((r: any) => {
+                const valuesPart = chunk.map((r: DataRow) => {
                     const vals = allColumns.map(c => {
-                        const v = r[c] ?? r[c.charAt(0).toUpperCase() + c.slice(1)] ?? r[Object.keys(r).find(k => k.toLowerCase() === c) || ''];
-                        if (v === null || v === undefined || v === '') return 'NULL';
+                        const v = resolveColumnValue(r, c);
+                        if (v === null || v === undefined || String(v) === '') return 'NULL';
                         return `'${String(v).replace(/'/g, "''")}'`;
                     });
                     return `(${vals.join(',')})`;

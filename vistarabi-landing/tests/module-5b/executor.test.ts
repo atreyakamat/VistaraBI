@@ -4,7 +4,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ─── Environment Mocks ────────────────────────────────────────────
-process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+}
 
 // ─── Hoisted Mocks ────────────────────────────────────────────────
 
@@ -119,7 +121,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         mockDb.source.findMany.mockResolvedValue([]);
 
         // Mock pool queries
-        mockPool.query.mockImplementation((text: string, params?: any[]) => {
+        mockPool.query.mockImplementation((text: string, params?: unknown[]) => {
             // ensureDataMaterialized: information_schema.tables existence check → table exists with data
             if (text.includes('information_schema.tables')) {
                 return Promise.resolve({ rows: [{ exists: true }] });
@@ -133,7 +135,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
                 return Promise.resolve({ rows: [{ column_name: 'amount', data_type: 'numeric' }, { column_name: 'category', data_type: 'text' }, { column_name: 'date', data_type: 'timestamp' }] });
             }
             
-            if (params && params.includes('EMPTY')) {
+            if (params && params.some((param) => param === 'EMPTY')) {
                 return Promise.resolve({ rows: [] });
             }
             if (text.includes('IN ($1)')) { // Category filter
@@ -298,7 +300,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
         it('should handle empty source data gracefully', async () => {
             const result = await executeKPI('proj-1', 'kpi-rev', {
                 skipAIExplanation: true,
-                filters: [{ type: 'value', column: 'category', value: 'EMPTY' } as any]
+                filters: [{ type: 'category', column: 'category', values: ['EMPTY'] }]
             });
 
             expect(result.primaryValue).toBe(0);
@@ -343,7 +345,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
             mockDb.kPILineageRegistry.findUnique.mockResolvedValue({
                 entries: [buildLineage()],
             });
-            (loadProjectData as any).mockResolvedValue(buildDataMap());
+            vi.mocked(loadProjectData).mockResolvedValue(buildDataMap());
         });
 
         it('should execute all KPIs in dashboard config', async () => {
@@ -379,7 +381,7 @@ describe('Module 5B — KPI Executor Pipeline', () => {
             mockDb.kPILineageRegistry.findUnique.mockResolvedValue({
                 entries: [buildLineage()],
             });
-            (loadProjectData as any).mockResolvedValue(buildDataMap());
+            vi.mocked(loadProjectData).mockResolvedValue(buildDataMap());
         });
 
         it('should execute drill-down query for a specific KPI', async () => {

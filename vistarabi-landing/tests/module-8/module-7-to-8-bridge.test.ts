@@ -54,6 +54,23 @@ function convertM7ActionToM8Regressor(
   };
 }
 
+function parseLiftPercent(rawLift: string | undefined): number | null {
+  if (!rawLift) return null;
+  const match = rawLift.match(/-?\d+(?:\.\d+)?/);
+  if (!match) return null;
+  const parsed = Number.parseFloat(match[0]);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function deriveSimulatorUplift(
+  action: { confidenceScore: number; scenarios: Array<{ level: 'LEAN' | 'BALANCED' | 'PREMIUM'; expectedKpiLift: string }> }
+): number {
+  const balanced = action.scenarios.find((s) => s.level === 'BALANCED');
+  const fallback = action.scenarios[0];
+  const parsedLift = parseLiftPercent(balanced?.expectedKpiLift) ?? parseLiftPercent(fallback?.expectedKpiLift);
+  return parsedLift ?? Math.max(1, Math.round(action.confidenceScore * 0.3));
+}
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('Module 7 → Module 8 Bridge', () => {
@@ -117,6 +134,19 @@ describe('Module 7 → Module 8 Bridge', () => {
       const regressor = convertM7ActionToM8Regressor('Any Action', 70);
       expect(regressor.startDayOffset).toBe(14);
     });
+
+    it('derives simulator uplift from BALANCED expectedKpiLift to avoid handoff data loss', () => {
+      const mockAction = {
+        confidenceScore: 81,
+        scenarios: [
+          { level: 'LEAN' as const, expectedKpiLift: '3–7%' },
+          { level: 'BALANCED' as const, expectedKpiLift: '8-15%' },
+          { level: 'PREMIUM' as const, expectedKpiLift: '15–30%' },
+        ],
+      };
+      const uplift = deriveSimulatorUplift(mockAction);
+      expect(uplift).toBe(8);
+    });
   });
 
   describe('M7 → M8 Full Pipeline Integration', () => {
@@ -143,6 +173,39 @@ describe('Module 7 → Module 8 Bridge', () => {
       expect(result).toHaveProperty('scenarios');
       expect(result).toHaveProperty('sensitivity');
       expect(result).toHaveProperty('milestones');
+    });
+
+    it('preserves handoff payload fields from M7 action into M8 request without mutation', async () => {
+      const sourceAction = {
+        actionName: 'Email Campaign',
+        confidenceScore: 82,
+        scenarios: [
+          { level: 'LEAN' as const, expectedKpiLift: '3–7%' },
+          { level: 'BALANCED' as const, expectedKpiLift: '8-15%' },
+          { level: 'PREMIUM' as const, expectedKpiLift: '15–30%' },
+        ],
+      };
+      const uplift = deriveSimulatorUplift(sourceAction);
+      const strategicAction: StrategicAction = {
+        id: 'm8-email-campaign',
+        name: sourceAction.actionName,
+        expectedUplift: uplift / 100,
+        rampDays: 30,
+        startDayOffset: 14,
+      };
+
+      const req: ForecastRequest = {
+        kpiHistory: makeKpiHistory(120),
+        goalValue: 75000,
+        horizonDays: 60,
+        confidenceLevel: 0.95,
+        actions: [strategicAction],
+      };
+      const result = await validateStrategy(req);
+
+      expect(req.actions[0].name).toBe(sourceAction.actionName);
+      expect(req.actions[0].expectedUplift).toBeCloseTo(0.08, 5);
+      expect(result.sensitivity.primaryDriver).toBe(sourceAction.actionName);
     });
 
     it('scenarios contain baseline, optimistic, and conservative arrays', async () => {

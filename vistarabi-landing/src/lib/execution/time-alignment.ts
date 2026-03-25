@@ -150,7 +150,8 @@ export function alignRawSeries(
 function buildPeriodMap(kpi: KPIExecutionResult): Map<string, number> {
     const map = new Map<string, number>();
     for (const point of kpi.dataset) {
-        const raw = (point as any).date ?? point.label;
+        const maybeDate = (point as { date?: unknown }).date;
+        const raw = typeof maybeDate === 'string' ? maybeDate : point.label;
         if (!raw) continue;
         const normalized = normalizePeriodLabel(String(raw));
         map.set(normalized, point.value);

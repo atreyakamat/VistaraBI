@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser, clearAuthCookie } from '@/lib/auth';
 import db from '@/lib/prisma';
-import { checkRateLimit, getIdentifier, buildRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
 
 /**
  * DELETE /api/user/data/delete
@@ -21,7 +21,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   // Strict rate limit for account deletion
-  const rl = checkRateLimit(getIdentifier(request, user.userId, 'delete'), { limit: 3, windowMs: 3600_000 });
+  const rl = checkRateLimit(getIdentifier(request, user.userId, 'delete'), RATE_LIMITS.PRIVACY_DELETE);
   const headers = buildRateLimitHeaders(rl);
   if (!rl.success) {
     return NextResponse.json(
@@ -39,7 +39,16 @@ export async function DELETE(request: NextRequest) {
 
     // Soft delete: set deletedAt timestamp (GDPR Art. 17 - 30-day retention before hard delete)
     // Using $executeRaw to avoid Prisma type cache lag after schema migration
-    await db.$executeRaw`UPDATE "User" SET "deletedAt" = NOW() WHERE "id" = ${user.userId}`;
+    await db.$transaction([
+      db.$executeRaw`UPDATE "User" SET "deletedAt" = NOW() WHERE "id" = ${user.userId}`,
+      db.project.updateMany({
+        where: { userId: user.userId },
+        data: {
+          name: 'Deleted Project',
+          description: '[Deleted by GDPR request]',
+        },
+      }),
+    ]);
 
     // Clear auth cookie to immediately log out
     await clearAuthCookie();
