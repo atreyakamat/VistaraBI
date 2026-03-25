@@ -12,7 +12,9 @@ import {
     ArrowRight, 
     User,
     ChevronRight,
-    BarChart3
+    BarChart3,
+    Shield,
+    Settings
 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
@@ -81,7 +83,23 @@ export default function AppPage() {
                         <span className="text-xl font-bold tracking-tight text-[var(--foreground)]">VistaraBI</span>
                     </div>
                     
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3">
+                        <Link
+                            href="/app/status"
+                            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--border)]/50 transition-all"
+                            title="Platform Status"
+                        >
+                            <Shield className="w-4 h-4" />
+                            Status
+                        </Link>
+                        <Link
+                            href="/app/settings"
+                            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--border)]/50 transition-all"
+                            title="Account Settings"
+                        >
+                            <Settings className="w-4 h-4" />
+                            Settings
+                        </Link>
                         <div className="hidden md:flex flex-col items-end">
                             <span className="text-sm font-semibold text-[var(--foreground)]">{user?.name}</span>
                             <span className="text-xs text-[var(--muted)]">{user?.email}</span>

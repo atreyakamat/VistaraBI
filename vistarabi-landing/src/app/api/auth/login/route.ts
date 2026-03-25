@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { comparePassword, signToken, setAuthCookie } from '@/lib/auth';
+import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
 
 export async function POST(request: NextRequest) {
+    // Rate limit: 10 login attempts per minute per IP
+    const rl = checkRateLimit(getIdentifier(request, undefined, 'login'), RATE_LIMITS.AUTH);
+    const rlHeaders = buildRateLimitHeaders(rl);
+    if (!rl.success) {
+        return NextResponse.json(
+            { error: 'Too many login attempts. Please wait and try again.' },
+            { status: 429, headers: rlHeaders }
+        );
+    }
+
     try {
         const body = await request.json();
         const { email, password } = body;

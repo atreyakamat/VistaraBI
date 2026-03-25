@@ -18,6 +18,7 @@ import db from '@/lib/prisma';
 import { sanitizeUserQuery } from '@/lib/module-6/infrastructure/prompt-builder';
 import { getSessionMemory, updateSessionMemory, resolvePronouns, injectContext, getFollowUpSuggestions } from '@/lib/module-6/orchestration/orchestrator';
 import type { StrategyCanvasResult } from '@/lib/module-8/types';
+import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
 
 // ─── Utility: Levenshtein Distance & Fuzzy Match ──────────────────────────────
 
@@ -254,6 +255,16 @@ export async function POST(
         // Auth
         const user = await getCurrentUser();
         if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+
+        // Rate limit: 20 AI requests per minute per user
+        const rl = checkRateLimit(getIdentifier(request, user.userId, 'ask-ai'), RATE_LIMITS.AI);
+        const rlHeaders = buildRateLimitHeaders(rl);
+        if (!rl.success) {
+            return NextResponse.json(
+                { error: 'AI rate limit exceeded. Please wait before sending more queries.', route: 'RATE_LIMITED' },
+                { status: 429, headers: rlHeaders }
+            );
+        }
 
         const { id: projectId } = await params;
 

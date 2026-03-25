@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, signToken, setAuthCookie } from '@/lib/auth';
+import { checkRateLimit, getIdentifier, buildRateLimitHeaders } from '@/lib/security/rate-limiter';
 
 export async function POST(request: NextRequest) {
+    // Rate limit: 5 registrations per minute per IP
+    const rl = checkRateLimit(getIdentifier(request, undefined, 'register'), { limit: 5, windowMs: 60_000 });
+    const rlHeaders = buildRateLimitHeaders(rl);
+    if (!rl.success) {
+        return NextResponse.json(
+            { error: 'Too many registration attempts. Please try again later.' },
+            { status: 429, headers: rlHeaders }
+        );
+    }
+
     try {
         const body = await request.json();
         const { name, email, password } = body;
@@ -15,9 +26,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (password.length < 6) {
+        if (password.length < 8) {
             return NextResponse.json(
-                { error: 'Password must be at least 6 characters' },
+                { error: 'Password must be at least 8 characters' },
                 { status: 400 }
             );
         }
