@@ -527,16 +527,17 @@ export async function executeDrill(
 // ─── Internal Helpers ─────────────────────────────────────────────
 
 async function loadDashboardConfig(projectId: string): Promise<DashboardConfigType | null> {
-    const record = await (db as any).dashboardConfig.findUnique({ where: { projectId } });
+    const record = await db.dashboardConfig.findUnique({ where: { projectId } });
     if (!record) return null;
 
+    // Use Zod to validate the JSON columns retrieved from Prisma
     return DashboardConfigSchema.parse({
         projectId: record.projectId,
         sections: record.sections,
         sidebarConfig: record.sidebarConfig,
         metadata: record.metadata,
         version: record.version,
-    }) as DashboardConfigType;
+    }) as unknown as DashboardConfigType;
 }
 
 async function loadLineageRegistry(projectId: string): Promise<KPILineageEntry[]> {

@@ -23,7 +23,7 @@ import { routeTask, isRoutingDecision } from './model-router';
 import { buildReasoningPrompt } from './prompt-builder';
 import { callLocalModel } from './local-adapter';
 import { callCloudModel } from './cloud-adapter';
-import { validateNumericClaims } from './numeric-guard';
+import { validateNumericClaims } from '../shared/numeric-guard';
 import { writeReasoningAuditRecord } from './audit-logger';
 import type {
     EvidenceInput,

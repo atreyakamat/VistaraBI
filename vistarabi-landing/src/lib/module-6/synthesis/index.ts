@@ -15,7 +15,7 @@ import { detectConflicts } from './conflict-detector';
 import { classifySynthesisTask, getUnsupportedScopeMessage } from './synthesis-classifier';
 import { buildSynthesisPrompt } from './synthesis-prompt-builder';
 import { checkCausation } from './causation-guard';
-import { validateCrossPacketNumerics } from './cross-packet-numeric-guard';
+import { validateNumericClaims } from '../shared/numeric-guard';
 import { writeSynthesisAuditRecord } from './synthesis-audit-logger';
 import { callLocalModel } from '@/lib/module-6/infrastructure/local-adapter';
 import { callCloudModel } from '@/lib/module-6/infrastructure/cloud-adapter';
@@ -166,10 +166,10 @@ export async function handleSynthesisQuery(
     }
 
     // ── Step 9: Cross-packet numeric guard ────────────────────────────────────
-    const guardResult = validateCrossPacketNumerics(
+    const guardResult = validateNumericClaims(
         adapterResponse.text,
-        governed.events,
-        governed.correlations
+        [...governed.events, ...governed.correlations],
+        'This synthesized insight could not be validated against the available statistical evidence and was suppressed.'
     );
 
     const isSuppressed = guardResult.status === 'suppressed';

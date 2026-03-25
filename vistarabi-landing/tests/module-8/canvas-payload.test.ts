@@ -6,6 +6,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../../src/app/api/v1/forecast/validate/route';
 
+// ─── Mock Auth Layer — prevent cookies() scope errors ────────────────────────
+
+vi.mock('../../src/lib/auth', () => ({
+  getCurrentUser: vi.fn().mockResolvedValue({ userId: 'test-user', email: 'test@example.com' }),
+  getAuthCookie: vi.fn().mockResolvedValue('test-token'),
+  verifyToken: vi.fn().mockReturnValue({ userId: 'test-user', email: 'test@example.com' }),
+}));
+
+// ─── Mock Rate Limiter ────────────────────────────────────────────────────────
+
+vi.mock('../../src/lib/security/rate-limiter', () => ({
+  checkRateLimit: vi.fn().mockReturnValue({ success: true, remaining: 10, limit: 30, reset: Date.now() + 60000 }),
+  getIdentifier: vi.fn().mockReturnValue('test-user'),
+  buildRateLimitHeaders: vi.fn().mockReturnValue({}),
+  RATE_LIMITS: { FORECAST: { limit: 30, windowMs: 60000 } }
+}));
+
 // ─── Mock Prophet bridge — use linear fallback so no Python required ──────────
 
 vi.mock('../../src/lib/module-8/prophet-bridge', async (importOriginal) => {

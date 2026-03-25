@@ -4,6 +4,10 @@ import { getCurrentUser } from '@/lib/auth';
 import { parseFile, getFileType } from '@/lib/parsers';
 import { runFullAnalysis } from '@/lib/intelligence';
 import { purifyDataset } from '@/lib/purification';
+import { checkRateLimit, getIdentifier, RATE_LIMITS, buildRateLimitHeaders } from '@/lib/security/rate-limiter';
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const ALLOWED_EXTENSIONS = ['csv', 'json', 'xml', 'xlsx'];
 
 // GET /api/projects/[id]/sources - List sources for a project
 export async function GET(
@@ -74,11 +78,21 @@ export async function POST(
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 
+        // ─── Rate Limiting ───
+        const rl = checkRateLimit(getIdentifier(request, user.userId, 'upload'), RATE_LIMITS.UPLOAD);
+        const rlHeaders = buildRateLimitHeaders(rl);
+        if (!rl.success) {
+            return NextResponse.json(
+                { error: 'Upload rate limit exceeded. Please wait a minute.' },
+                { status: 429, headers: rlHeaders }
+            );
+        }
+
         const formData = await request.formData();
         const files = formData.getAll('files') as File[];
 
         if (files.length === 0) {
-            return NextResponse.json({ error: 'No files provided' }, { status: 400 });
+            return NextResponse.json({ error: 'No files provided' }, { status: 400, headers: rlHeaders });
         }
 
         const results = [];
@@ -87,12 +101,25 @@ export async function POST(
             const fileName = file.name;
             const fileType = getFileType(fileName);
 
+            // ─── Security Validations ───
+            // 1. File size check
+            if (file.size > MAX_FILE_SIZE) {
+                results.push({ fileName, status: 'FAILED', error: 'File size exceeds 50MB limit' });
+                continue;
+            }
+
+            // 2. Extension check
+            if (!fileType || !ALLOWED_EXTENSIONS.includes(fileType)) {
+                results.push({ fileName, status: 'FAILED', error: `Unsupported file type. Allowed: ${ALLOWED_EXTENSIONS.join(', ')}` });
+                continue;
+            }
+
             // Create source record with PROCESSING status
             let source = await db.source.create({
                 data: {
                     projectId: id,
                     fileName,
-                    fileType: fileType || 'unknown',
+                    fileType: fileType,
                     status: 'PROCESSING',
                     rowCount: 0,
                     colCount: 0,
@@ -103,10 +130,6 @@ export async function POST(
             });
 
             try {
-                if (!fileType) {
-                    throw new Error(`Unsupported file type: ${fileName}`);
-                }
-
                 // Read file content
                 let content: string | ArrayBuffer;
                 if (fileType === 'xlsx') {
@@ -166,7 +189,7 @@ export async function POST(
             }
         }
 
-        return NextResponse.json({ sources: results }, { status: 201 });
+        return NextResponse.json({ sources: results }, { status: 201, headers: rlHeaders });
     } catch (error) {
         console.error('Upload sources error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

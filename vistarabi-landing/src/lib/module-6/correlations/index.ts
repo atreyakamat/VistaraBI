@@ -23,7 +23,7 @@ import { computeCorrelationMetrics } from './statistics-gate';
 import { computeWithLags } from './lag-engine';
 import { buildCorrelationPacket, CorrelationPacketError } from './correlation-packet';
 import { callCorrelationLLM, LLMCorrelationCallError } from './llm-correlation-client';
-import { validateNumericClaims } from './numeric-guard';
+import { validateNumericClaims } from '../shared/numeric-guard';
 import type { CorrelationResult, CorrelationEvidencePacket } from './types';
 
 // ─── Main Entry Point ─────────────────────────────────────────────────────────

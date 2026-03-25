@@ -16,7 +16,7 @@
 import { runDashboardIntelligence } from '@/lib/dashboard-state/module-5-5';
 import { buildEvidencePacket, EvidencePacketError } from './evidence-packet';
 import { callEventLLM, LLMEventCallError } from './llm-event-client';
-import { validateNumericClaims } from './numeric-guard';
+import { validateNumericClaims } from '../shared/numeric-guard';
 import type { EnrichedKPIResult } from '@/lib/dashboard-state/types';
 import type { EventEvidencePacket, NarrationResult } from './types';
 
