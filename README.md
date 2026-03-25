@@ -14,6 +14,7 @@ VistaraBI is an AI-powered business intelligence platform. **Module 1** provides
 - ✅ Real-time status updates
 - ✅ Parallel uploads (3 files concurrently)
 - ✅ Batch processing (1000 records at a time)
+- ✅ **Rate limiting security** - Protection against API abuse and DoS attacks
 
 ## 🚀 Quick Start
 
@@ -95,9 +96,10 @@ vistarabi/
 └── docker-compose.yml    # Docker services configuration
 ```
 
-## � Documentation
+## 📚 Documentation
 
 - **[MODULE_1_README.md](MODULE_1_README.md)** - Complete module documentation with API reference
+- **[RATE_LIMITING_DOCUMENTATION.md](RATE_LIMITING_DOCUMENTATION.md)** - Security rate limiting implementation and configuration
 - **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - Detailed setup and troubleshooting guide
 - **[docs/API.md](docs/API.md)** - API endpoint documentation
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System architecture overview
@@ -117,6 +119,7 @@ vistarabi/
 - Redis & BullMQ (job queue)
 - Multer (file uploads)
 - CSV-Parse, XLSX, XML2JS (parsers)
+- express-rate-limit (API protection)
 
 ## 🧪 Testing
 cp .env.example .env
