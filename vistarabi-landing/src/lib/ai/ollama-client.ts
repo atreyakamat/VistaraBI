@@ -1,5 +1,9 @@
 // Ollama Client for AI Semantic Reasoning
-// Uses locally hosted Ollama with qwen3:0.6b model
+// LEGACY: This client is maintained for backward compatibility
+// NEW CODE SHOULD USE: src/lib/ai/unified-ai-client.ts
+// This wrapper now uses the unified client internally for automatic fallback
+
+import { generateWithFallback, type AIMessage, type AgentRole } from './unified-ai-client';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:2b';
@@ -61,7 +65,7 @@ export interface OllamaGenerateOptions {
     temperature?: number;
 }
 
-// Generate completion using Ollama - robust version with retries
+// Generate completion using unified AI client with automatic fallback
 export async function generateCompletion(options: OllamaGenerateOptions): Promise<string> {
     const {
         model = DEFAULT_MODEL,
@@ -70,170 +74,36 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
         temperature = 0.3,
     } = options;
 
-    const cloudApiKey = process.env.CLOUD_AI_API_KEY; // e.g., Groq or OpenAI key placeholder
-    const cloudApiUrl = process.env.CLOUD_AI_BASE_URL; // e.g., https://api.groq.com/openai/v1
+    try {
+        // Convert to unified client format
+        const aiMessages: AIMessage[] = prompt
+            ? [{ role: 'user', content: prompt }]
+            : messages.map(m => ({
+                role: m.role as 'system' | 'user' | 'assistant',
+                content: m.content,
+            }));
 
-    // If a cloud configuration is fully provided, bypass local Ollama and use OpenAI-compatible API
-    const useCloud = Boolean(cloudApiKey && cloudApiUrl);
-    const resolvedUrl = useCloud ? `${cloudApiUrl}/chat/completions` : `${OLLAMA_BASE_URL}/api/chat`;
-    const resolvedModel = useCloud && process.env.CLOUD_AI_MODEL ? process.env.CLOUD_AI_MODEL : model;
+        const response = await generateWithFallback({
+            messages: aiMessages,
+            temperature,
+            model,
+        });
 
-    console.log(`[AI-Client] Generating with model: ${resolvedModel} (Cloud: ${useCloud})`);
-
-    // If prompt is provided and we're local, use the simpler /api/generate endpoint
-    if (prompt && !useCloud) {
-        return generateSimple(prompt, resolvedModel, temperature);
+        return response.content;
+    } catch (error: any) {
+        console.error('[Ollama-Client] All AI providers failed:', error.message);
+        throw new Error(`AI generation failed: ${error.message}`);
     }
-
-    // Convert prompt to message array if using Cloud and prompt was provided
-    const payloadMessages = prompt ? [{ role: 'user', content: prompt }] : messages;
-
-    const modelsToTry = useCloud 
-        ? [resolvedModel] // If we're strictly using OpenAI-compatible API, don't force 'qwen3.5:397b-cloud'
-        : ['qwen3.5:397b-cloud']; // Force use of cloud fallback only
-        
-    const maxRetries = 1; // Since we fallback to the cloud model, 1 attempt each is fine
-    let lastError: Error | null = null;
-
-    for (const currentModel of modelsToTry) {
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                console.log(`[AI-Client] Generating with model: ${currentModel} (Attempt ${attempt}/${maxRetries})`);
-
-                const controller = new AbortController();
-                // 10s timeout for local model, 120s for the 397b cloud model
-                const timeoutMs = currentModel === 'qwen3.5:397b-cloud' || useCloud ? 120000 : 10000;
-                const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-                const payload = useCloud ? {
-                    model: currentModel,
-                    messages: payloadMessages,
-                    temperature,
-                    max_tokens: 8192,
-                } : {
-                    model: currentModel,
-                    messages: payloadMessages,
-                    stream: false,
-                    options: {
-                        temperature,
-                        num_predict: 8192,
-                    },
-                };
-
-                const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-                if (useCloud && cloudApiKey) headers['Authorization'] = `Bearer ${cloudApiKey}`;
-
-                const response = await fetch(resolvedUrl, {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify(payload),
-                    signal: controller.signal,
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`[AI-Client] API error (${response.status}) for ${currentModel}:`, errorText);
-                    throw new Error(`AI API error: ${response.status} - ${errorText}`);
-                }
-
-                const data = await response.json();
-
-                // Cloud API uses choices[0].message.content, Ollama uses message.content
-                let content = '';
-                if (useCloud) {
-                    content = data.choices?.[0]?.message?.content || '';
-                } else {
-                    content = data.message?.content || '';
-                }
-
-                // Strip reasoning blocks for any qwen models (local or cloud reasoning models)
-                content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-
-                console.log(`[AI-Client] Response received from ${currentModel}, length: ${content.length}`);
-                return content;
-
-            } catch (error: any) {
-                lastError = error;
-                console.error(`[AI-Client] Attempt ${attempt} with ${currentModel} failed:`, error.message);
-
-                if (error.name === 'AbortError') {
-                    console.error('[AI-Client] Request timed out');
-                }
-
-                if (attempt < maxRetries) {
-                    console.log(`[AI-Client] Retrying ${currentModel} in 2 seconds...`);
-                    await new Promise(r => setTimeout(r, 2000));
-                }
-            }
-        }
-        console.warn(`[AI-Client] Model ${currentModel} failed after ${maxRetries} attempts, trying fallback model...`);
-    }
-
-    throw lastError || new Error('AI generation failed after all fallback attempts');
 }
 
-// Simpler generate endpoint (more reliable for some prompts on local Ollama)
+// Simpler generate endpoint - now uses unified client
 async function generateSimple(prompt: string, model: string, temperature: number): Promise<string> {
-    const cloudApiKey = process.env.CLOUD_AI_API_KEY;
-    const cloudApiUrl = process.env.CLOUD_AI_BASE_URL;
-    const useCloud = Boolean(cloudApiKey && cloudApiUrl);
-
-    if (useCloud) {
-        // Reroute to the general completion function, which handles cloud chat completions natively
-        return generateCompletion({ prompt, model, temperature });
-    }
-
-    const modelsToTry = ['qwen3.5:397b-cloud']; // Force use of cloud fallback only
-    let lastError: Error | null = null;
-
-    for (const currentModel of modelsToTry) {
-        console.log(`[Ollama] Using local simple /api/generate endpoint with model: ${currentModel}`);
-
-        const controller = new AbortController();
-        const timeoutMs = currentModel === 'qwen3.5:397b-cloud' ? 120000 : 10000;
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-        try {
-            const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: currentModel,
-                    prompt,
-                    stream: false,
-                    options: {
-                        temperature,
-                        num_predict: 8192,
-                    },
-                }),
-                signal: controller.signal,
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Ollama generate failed for ${currentModel}: ${response.status} - ${errorText}`);
-            }
-
-            const data = await response.json();
-            let text: string = data.response || '';
-
-            // Strip qwen3 <think>...</think> reasoning blocks so only the JSON remains
-            text = text.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-
-            return text;
-
-        } catch (error: any) {
-            clearTimeout(timeoutId);
-            lastError = error;
-            console.error(`[Ollama] Generate error with ${currentModel} (timeout: ${timeoutMs}ms):`, error.message);
-        }
-    }
-
-    throw lastError || new Error('Ollama generation failed after all fallback attempts');
+    const response = await generateWithFallback({
+        messages: [{ role: 'user', content: prompt }],
+        temperature,
+        model,
+    });
+    return response.content;
 }
 
 // Build semantic reasoning prompt for ambiguous domain detection
@@ -255,7 +125,7 @@ export interface SemanticReasoningResult {
     keySignals: string[];
 }
 
-// Generate KPI suggestions with a simpler, more robust prompt
+// Generate KPI suggestions with agent-based reasoning
 export async function generateKPISuggestions(
     columns: string[],
     sampleRows: Record<string, unknown>[],
@@ -263,14 +133,11 @@ export async function generateKPISuggestions(
     model?: string
 ): Promise<{ name: string; formula: string; category: string; explanation: string }[]> {
 
-    // Use the provided model or fall back to DEFAULT_MODEL
-    const kpiModel = model || DEFAULT_MODEL;
-
-    // Build a simple, clear prompt that works well with small models
+    // Build a clear, structured prompt
     const columnList = columns.slice(0, 15).join(', ');
     const sampleJson = JSON.stringify(sampleRows.slice(0, 5));
 
-    const prompt = `Task: Act as a data analyst. Generate exactly 3-5 KPIs for a business in the ${domain} domain.
+    const prompt = `Task: Generate exactly 3-5 KPIs for a business in the ${domain} domain.
 
 Input Columns: ${columnList}
 Sample Data: ${sampleJson}
@@ -292,53 +159,56 @@ Output format:
 
 JSON Array:`;
 
-    console.log('[Ollama-KPI] Generating KPI suggestions with model:', kpiModel);
+    console.log('[KPI-Generator] Generating KPI suggestions with kpi-designer agent');
 
     try {
-        const response = await generateSimple(prompt, kpiModel, 0.3);
-        console.log('[Ollama-KPI] Raw response:', response.substring(0, 300));
+        const response = await generateWithFallback({
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.3,
+            model,
+            agentRole: 'kpi-designer', // Use specialized KPI designer agent
+        });
+
+        console.log('[KPI-Generator] Raw response:', response.content.substring(0, 300));
 
         // Try to extract JSON from response
-        const jsonMatch = response.match(/\[[\s\S]*?\]/);
+        const jsonMatch = response.content.match(/\[[\s\S]*?\]/);
         if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0]);
-            console.log('[Ollama-KPI] Parsed', parsed.length, 'KPIs');
+            console.log('[KPI-Generator] Parsed', parsed.length, 'KPIs');
             return parsed;
         }
 
-        console.error('[Ollama-KPI] No valid JSON found in response');
+        console.error('[KPI-Generator] No valid JSON found in response');
         return [];
 
     } catch (error) {
-        console.error('[Ollama-KPI] Error:', error);
+        console.error('[KPI-Generator] Error:', error);
         return [];
     }
 }
 
-// Perform semantic domain reasoning (for Module 3C)
+// Perform semantic domain reasoning (for Module 3C) with domain expert agent
 export async function performSemanticReasoning(
     context: SemanticReasoningContext
 ): Promise<SemanticReasoningResult> {
     const prompt = buildSemanticPrompt(context);
 
     try {
-        const response = await generateCompletion({
+        const response = await generateWithFallback({
             messages: [
-                {
-                    role: 'system',
-                    content: 'You are a business domain classification expert. Analyze data columns and determine the most likely business domain. Be concise.'
-                },
                 {
                     role: 'user',
                     content: prompt
                 }
             ],
             temperature: 0.2,
+            agentRole: 'domain-expert', // Use domain expert for classification
         });
 
-        return parseSemanticResponse(response, context);
+        return parseSemanticResponse(response.content, context);
     } catch (error) {
-        console.error('[Ollama] Semantic reasoning failed:', error);
+        console.error('[Domain-Reasoning] Semantic reasoning failed:', error);
         return {
             domain: context.topDomain || 'UNKNOWN',
             confidence: 0.3,
