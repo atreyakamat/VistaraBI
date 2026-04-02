@@ -1,0 +1,1416 @@
+{
+  "ECOMMERCE": [
+    {
+      "id": "ec-001",
+      "name": "Total Revenue",
+      "category": "revenue",
+      "requiredFields": [
+        "revenue"
+      ],
+      "formula": "SUM(revenue)",
+      "aliases": {
+        "revenue": [
+          "total_amount",
+          "order_value",
+          "sales",
+          "amount",
+          "price",
+          "order_total"
+        ]
+      }
+    },
+    {
+      "id": "ec-002",
+      "name": "Orders Count",
+      "category": "volume",
+      "requiredFields": [
+        "order_id"
+      ],
+      "formula": "COUNT(order_id)",
+      "aliases": {
+        "order_id": [
+          "order_number",
+          "transaction_id",
+          "invoice_id"
+        ]
+      }
+    },
+    {
+      "id": "ec-003",
+      "name": "Average Order Value",
+      "category": "revenue",
+      "requiredFields": [
+        "revenue",
+        "order_id"
+      ],
+      "formula": "SUM(revenue) / COUNT(order_id)",
+      "aliases": {
+        "revenue": [
+          "total_amount",
+          "order_value"
+        ],
+        "order_id": [
+          "order_number"
+        ]
+      }
+    },
+    {
+      "id": "ec-004",
+      "name": "Conversion Rate",
+      "category": "conversion",
+      "requiredFields": [
+        "order_id",
+        "visitor_id"
+      ],
+      "formula": "COUNT(order_id) / COUNT(DISTINCT visitor_id)",
+      "aliases": {
+        "visitor_id": [
+          "session_id",
+          "user_id",
+          "customer_id"
+        ],
+        "order_id": [
+          "order_number"
+        ]
+      }
+    },
+    {
+      "id": "ec-005",
+      "name": "Cart Abandonment Rate",
+      "category": "conversion",
+      "requiredFields": [
+        "cart_id",
+        "order_id"
+      ],
+      "formula": "(COUNT(cart_id) - COUNT(order_id)) / COUNT(cart_id)",
+      "aliases": {
+        "cart_id": [
+          "basket_id",
+          "order_id"
+        ],
+        "order_id": [
+          "order_number"
+        ]
+      }
+    },
+    {
+      "id": "ec-006",
+      "name": "Customer Lifetime Value",
+      "category": "customer",
+      "requiredFields": [
+        "revenue",
+        "customer_id"
+      ],
+      "formula": "SUM(revenue) / COUNT(DISTINCT customer_id)",
+      "aliases": {
+        "revenue": [
+          "total_amount",
+          "order_value",
+          "sales"
+        ],
+        "customer_id": [
+          "user_id",
+          "buyer_id"
+        ]
+      }
+    },
+    {
+      "id": "ec-007",
+      "name": "Customer Acquisition Cost",
+      "category": "marketing",
+      "requiredFields": [
+        "marketing_cost",
+        "customer_id"
+      ],
+      "formula": "SUM(marketing_cost) / COUNT(DISTINCT customer_id)",
+      "aliases": {
+        "marketing_cost": [
+          "ad_spend",
+          "acquisition_cost",
+          "marketing_spend"
+        ],
+        "customer_id": [
+          "user_id",
+          "buyer_id"
+        ]
+      }
+    },
+    {
+      "id": "ec-008",
+      "name": "Gross Margin",
+      "category": "profitability",
+      "requiredFields": [
+        "revenue",
+        "cogs"
+      ],
+      "formula": "(SUM(revenue) - SUM(cogs)) / SUM(revenue)",
+      "aliases": {
+        "revenue": [
+          "order_value"
+        ],
+        "cogs": [
+          "cost_of_goods",
+          "product_cost",
+          "cost"
+        ]
+      }
+    },
+    {
+      "id": "ec-009",
+      "name": "Net Profit",
+      "category": "profitability",
+      "requiredFields": [
+        "revenue",
+        "total_cost"
+      ],
+      "formula": "SUM(revenue) - SUM(total_cost)",
+      "aliases": {
+        "revenue": [
+          "order_value"
+        ],
+        "total_cost": [
+          "expenses",
+          "costs",
+          "cost"
+        ]
+      }
+    },
+    {
+      "id": "ec-010",
+      "name": "Product Sales Volume",
+      "category": "volume",
+      "requiredFields": [
+        "quantity"
+      ],
+      "formula": "SUM(quantity)",
+      "aliases": {
+        "quantity": [
+          "qty",
+          "units",
+          "items_sold"
+        ]
+      }
+    },
+    {
+      "id": "ec-011",
+      "name": "Return Rate",
+      "category": "operations",
+      "requiredFields": [
+        "return_id",
+        "order_id"
+      ],
+      "formula": "COUNT(return_id) / COUNT(order_id)",
+      "aliases": {
+        "return_id": [
+          "refund_id",
+          "return_status"
+        ],
+        "order_id": [
+          "order_number"
+        ]
+      }
+    },
+    {
+      "id": "ec-012",
+      "name": "Refund Amount",
+      "category": "revenue",
+      "requiredFields": [
+        "refund_amount"
+      ],
+      "formula": "SUM(refund_amount)",
+      "aliases": {
+        "refund_amount": [
+          "return_value",
+          "refund_value"
+        ]
+      }
+    },
+    {
+      "id": "ec-013",
+      "name": "Discount Impact",
+      "category": "revenue",
+      "requiredFields": [
+        "discount_amount"
+      ],
+      "formula": "SUM(discount_amount)",
+      "aliases": {
+        "discount_amount": [
+          "promo_value",
+          "coupon_value"
+        ]
+      }
+    },
+    {
+      "id": "ec-014",
+      "name": "Revenue by Category",
+      "category": "revenue",
+      "requiredFields": [
+        "revenue",
+        "category"
+      ],
+      "formula": "SUM(revenue) GROUP BY category",
+      "aliases": {
+        "revenue": [
+          "order_value"
+        ],
+        "category": [
+          "product_category",
+          "dept"
+        ]
+      }
+    },
+    {
+      "id": "ec-015",
+      "name": "Revenue by Channel",
+      "category": "revenue",
+      "requiredFields": [
+        "revenue",
+        "channel"
+      ],
+      "formula": "SUM(revenue) GROUP BY channel",
+      "aliases": {
+        "revenue": [
+          "order_value"
+        ],
+        "channel": [
+          "source",
+          "platform"
+        ]
+      }
+    },
+    {
+      "id": "ec-016",
+      "name": "New vs Returning Customers",
+      "category": "customer",
+      "requiredFields": [
+        "customer_id",
+        "is_new"
+      ],
+      "formula": "COUNT(DISTINCT customer_id) GROUP BY is_new",
+      "aliases": {
+        "is_new": [
+          "customer_type",
+          "new_customer"
+        ]
+      }
+    },
+    {
+      "id": "ec-017",
+      "name": "Revenue Growth Rate",
+      "category": "growth",
+      "requiredFields": [
+        "revenue",
+        "date"
+      ],
+      "formula": "(current_revenue - prev_revenue) / prev_revenue",
+      "aliases": {
+        "revenue": [
+          "order_value"
+        ],
+        "date": [
+          "order_date",
+          "created_at"
+        ]
+      }
+    },
+    {
+      "id": "ec-018",
+      "name": "Monthly Active Customers",
+      "category": "customer",
+      "requiredFields": [
+        "customer_id",
+        "date"
+      ],
+      "formula": "COUNT(DISTINCT customer_id) BY month",
+      "aliases": {
+        "date": [
+          "order_date"
+        ]
+      }
+    },
+    {
+      "id": "ec-019",
+      "name": "Inventory Turnover",
+      "category": "operations",
+      "requiredFields": [
+        "cogs",
+        "inventory_value"
+      ],
+      "formula": "SUM(cogs) / AVG(inventory_value)",
+      "aliases": {
+        "cogs": [
+          "cost"
+        ],
+        "inventory_value": [
+          "stock_value"
+        ]
+      }
+    },
+    {
+      "id": "ec-020",
+      "name": "Top Selling Products",
+      "category": "product",
+      "requiredFields": [
+        "revenue",
+        "product"
+      ],
+      "formula": "SUM(revenue) GROUP BY product ORDER BY DESC LIMIT 10",
+      "aliases": {
+        "revenue": [
+          "order_value"
+        ],
+        "product": [
+          "product_name",
+          "sku"
+        ]
+      }
+    }
+  ],
+  "SAAS": [
+    {
+      "id": "saas-001",
+      "name": "Monthly Recurring Revenue",
+      "category": "revenue",
+      "requiredFields": [
+        "mrr"
+      ],
+      "formula": "SUM(mrr)",
+      "aliases": {
+        "mrr": [
+          "monthly_revenue",
+          "subscription_fee",
+          "plan_price"
+        ]
+      }
+    },
+    {
+      "id": "saas-002",
+      "name": "Annual Recurring Revenue",
+      "category": "revenue",
+      "requiredFields": [
+        "mrr"
+      ],
+      "formula": "SUM(mrr) * 12",
+      "aliases": {
+        "mrr": [
+          "arr",
+          "annual_revenue"
+        ]
+      }
+    },
+    {
+      "id": "saas-003",
+      "name": "Churn Rate",
+      "category": "retention",
+      "requiredFields": [
+        "churned",
+        "customer_id"
+      ],
+      "formula": "COUNT(churned) / COUNT(customer_id)",
+      "aliases": {
+        "churned": [
+          "cancelled",
+          "lost"
+        ]
+      }
+    },
+    {
+      "id": "saas-004",
+      "name": "Net Revenue Retention",
+      "category": "retention",
+      "requiredFields": [
+        "mrr",
+        "expansion",
+        "churn"
+      ],
+      "formula": "(start_mrr + expansion - churn) / start_mrr",
+      "aliases": {}
+    },
+    {
+      "id": "saas-005",
+      "name": "Gross Revenue Retention",
+      "category": "retention",
+      "requiredFields": [
+        "mrr",
+        "churn"
+      ],
+      "formula": "(start_mrr - churn) / start_mrr",
+      "aliases": {}
+    },
+    {
+      "id": "saas-006",
+      "name": "Customer Lifetime Value",
+      "category": "customer",
+      "requiredFields": [
+        "mrr",
+        "churn_rate"
+      ],
+      "formula": "AVG(mrr) / churn_rate",
+      "aliases": {}
+    },
+    {
+      "id": "saas-007",
+      "name": "Customer Acquisition Cost",
+      "category": "marketing",
+      "requiredFields": [
+        "sales_marketing_cost",
+        "customer_id"
+      ],
+      "formula": "SUM(sales_marketing_cost) / COUNT(customer_id)",
+      "aliases": {
+        "sales_marketing_cost": [
+          "cac",
+          "acquisition_cost"
+        ],
+        "customer_id": [
+          "user_id",
+          "buyer_id"
+        ]
+      }
+    },
+    {
+      "id": "saas-008",
+      "name": "Active Users",
+      "category": "engagement",
+      "requiredFields": [
+        "user_id",
+        "last_active"
+      ],
+      "formula": "COUNT(DISTINCT user_id) WHERE last_active > threshold",
+      "aliases": {
+        "last_active": [
+          "last_login",
+          "activity_date"
+        ]
+      }
+    },
+    {
+      "id": "saas-009",
+      "name": "Trial Conversion Rate",
+      "category": "conversion",
+      "requiredFields": [
+        "converted",
+        "trials"
+      ],
+      "formula": "COUNT(converted) / COUNT(trials)",
+      "aliases": {
+        "trials": [
+          "trial_started"
+        ]
+      }
+    },
+    {
+      "id": "saas-010",
+      "name": "Feature Usage Rate",
+      "category": "engagement",
+      "requiredFields": [
+        "feature_used",
+        "users"
+      ],
+      "formula": "COUNT(feature_used) / COUNT(users)",
+      "aliases": {}
+    },
+    {
+      "id": "saas-011",
+      "name": "Expansion Revenue",
+      "category": "revenue",
+      "requiredFields": [
+        "expansion_mrr"
+      ],
+      "formula": "SUM(expansion_mrr)",
+      "aliases": {
+        "expansion_mrr": [
+          "upsell",
+          "upgrade_revenue"
+        ]
+      }
+    },
+    {
+      "id": "saas-012",
+      "name": "Contraction Revenue",
+      "category": "revenue",
+      "requiredFields": [
+        "contraction_mrr"
+      ],
+      "formula": "SUM(contraction_mrr)",
+      "aliases": {
+        "contraction_mrr": [
+          "downgrade"
+        ]
+      }
+    },
+    {
+      "id": "saas-013",
+      "name": "Average Revenue Per User",
+      "category": "revenue",
+      "requiredFields": [
+        "mrr",
+        "user_id"
+      ],
+      "formula": "SUM(mrr) / COUNT(DISTINCT user_id)",
+      "aliases": {}
+    },
+    {
+      "id": "saas-014",
+      "name": "Renewal Rate",
+      "category": "retention",
+      "requiredFields": [
+        "renewed",
+        "expiring"
+      ],
+      "formula": "COUNT(renewed) / COUNT(expiring)",
+      "aliases": {}
+    },
+    {
+      "id": "saas-015",
+      "name": "Billing Success Rate",
+      "category": "operations",
+      "requiredFields": [
+        "successful_charge",
+        "charge_attempts"
+      ],
+      "formula": "COUNT(successful_charge) / COUNT(charge_attempts)",
+      "aliases": {}
+    },
+    {
+      "id": "saas-016",
+      "name": "Failed Payments",
+      "category": "operations",
+      "requiredFields": [
+        "failed_payment"
+      ],
+      "formula": "COUNT(failed_payment)",
+      "aliases": {
+        "failed_payment": [
+          "payment_failed",
+          "billing_error"
+        ]
+      }
+    },
+    {
+      "id": "saas-017",
+      "name": "Monthly New Signups",
+      "category": "growth",
+      "requiredFields": [
+        "signup_id",
+        "signup_date"
+      ],
+      "formula": "COUNT(signup_id) BY month",
+      "aliases": {
+        "signup_id": [
+          "registration_id"
+        ]
+      }
+    },
+    {
+      "id": "saas-018",
+      "name": "Revenue Growth Rate",
+      "category": "growth",
+      "requiredFields": [
+        "mrr",
+        "date"
+      ],
+      "formula": "(current_mrr - prev_mrr) / prev_mrr",
+      "aliases": {}
+    },
+    {
+      "id": "saas-019",
+      "name": "Customer Count",
+      "category": "customer",
+      "requiredFields": [
+        "customer_id",
+        "status"
+      ],
+      "formula": "COUNT(DISTINCT customer_id) WHERE status=active",
+      "aliases": {}
+    },
+    {
+      "id": "saas-020",
+      "name": "Usage per User",
+      "category": "engagement",
+      "requiredFields": [
+        "usage_minutes",
+        "user_id"
+      ],
+      "formula": "SUM(usage_minutes) / COUNT(DISTINCT user_id)",
+      "aliases": {
+        "usage_minutes": [
+          "session_time",
+          "time_spent"
+        ]
+      }
+    }
+  ],
+  "EDTECH": [
+    {
+      "id": "ed-001",
+      "name": "Total Enrollments",
+      "category": "volume",
+      "requiredFields": [
+        "enrollment_id"
+      ],
+      "formula": "COUNT(enrollment_id)",
+      "aliases": {
+        "enrollment_id": [
+          "registration_id",
+          "signup_id"
+        ]
+      }
+    },
+    {
+      "id": "ed-002",
+      "name": "Course Completion Rate",
+      "category": "engagement",
+      "requiredFields": [
+        "completed",
+        "enrolled"
+      ],
+      "formula": "COUNT(completed) / COUNT(enrolled)",
+      "aliases": {}
+    },
+    {
+      "id": "ed-003",
+      "name": "Student Engagement Rate",
+      "category": "engagement",
+      "requiredFields": [
+        "active_students",
+        "total_students"
+      ],
+      "formula": "COUNT(active_students) / COUNT(total_students)",
+      "aliases": {}
+    },
+    {
+      "id": "ed-004",
+      "name": "Dropout Rate",
+      "category": "retention",
+      "requiredFields": [
+        "dropped",
+        "enrolled"
+      ],
+      "formula": "COUNT(dropped) / COUNT(enrolled)",
+      "aliases": {
+        "dropped": [
+          "withdrawn",
+          "cancelled"
+        ]
+      }
+    },
+    {
+      "id": "ed-005",
+      "name": "Average Grade",
+      "category": "performance",
+      "requiredFields": [
+        "grade"
+      ],
+      "formula": "AVG(grade)",
+      "aliases": {
+        "grade": [
+          "score",
+          "marks",
+          "percentage"
+        ]
+      }
+    },
+    {
+      "id": "ed-006",
+      "name": "Active Learners",
+      "category": "engagement",
+      "requiredFields": [
+        "student_id",
+        "last_active"
+      ],
+      "formula": "COUNT(DISTINCT student_id) WHERE last_active > threshold",
+      "aliases": {}
+    },
+    {
+      "id": "ed-007",
+      "name": "Revenue per Course",
+      "category": "revenue",
+      "requiredFields": [
+        "revenue",
+        "course_id"
+      ],
+      "formula": "SUM(revenue) / COUNT(DISTINCT course_id)",
+      "aliases": {}
+    },
+    {
+      "id": "ed-008",
+      "name": "Certification Rate",
+      "category": "performance",
+      "requiredFields": [
+        "certified",
+        "completed"
+      ],
+      "formula": "COUNT(certified) / COUNT(completed)",
+      "aliases": {}
+    },
+    {
+      "id": "ed-009",
+      "name": "Quiz Pass Rate",
+      "category": "performance",
+      "requiredFields": [
+        "passed",
+        "attempted"
+      ],
+      "formula": "COUNT(passed) / COUNT(attempted)",
+      "aliases": {}
+    },
+    {
+      "id": "ed-010",
+      "name": "Student Retention Rate",
+      "category": "retention",
+      "requiredFields": [
+        "returning",
+        "previous_enrolled"
+      ],
+      "formula": "COUNT(returning) / COUNT(previous_enrolled)",
+      "aliases": {}
+    }
+  ],
+  "RETAIL": [
+    {
+      "id": "rt-001",
+      "name": "Total Sales",
+      "category": "revenue",
+      "requiredFields": [
+        "sales"
+      ],
+      "formula": "SUM(sales)",
+      "aliases": {
+        "sales": [
+          "revenue",
+          "amount",
+          "total"
+        ]
+      }
+    },
+    {
+      "id": "rt-002",
+      "name": "Sales Growth",
+      "category": "growth",
+      "requiredFields": [
+        "sales",
+        "date"
+      ],
+      "formula": "(current - previous) / previous",
+      "aliases": {}
+    },
+    {
+      "id": "rt-003",
+      "name": "Inventory Turnover",
+      "category": "operations",
+      "requiredFields": [
+        "cogs",
+        "inventory"
+      ],
+      "formula": "SUM(cogs) / AVG(inventory)",
+      "aliases": {
+        "inventory": [
+          "stock",
+          "stock_value"
+        ]
+      }
+    },
+    {
+      "id": "rt-004",
+      "name": "Stock Level",
+      "category": "operations",
+      "requiredFields": [
+        "quantity_on_hand"
+      ],
+      "formula": "SUM(quantity_on_hand)",
+      "aliases": {
+        "quantity_on_hand": [
+          "stock_qty",
+          "inventory_qty"
+        ]
+      }
+    },
+    {
+      "id": "rt-005",
+      "name": "Gross Margin",
+      "category": "profitability",
+      "requiredFields": [
+        "sales",
+        "cogs"
+      ],
+      "formula": "(SUM(sales) - SUM(cogs)) / SUM(sales)",
+      "aliases": {}
+    },
+    {
+      "id": "rt-006",
+      "name": "Average Basket Size",
+      "category": "volume",
+      "requiredFields": [
+        "items",
+        "transaction_id"
+      ],
+      "formula": "SUM(items) / COUNT(transaction_id)",
+      "aliases": {
+        "items": [
+          "quantity"
+        ]
+      }
+    },
+    {
+      "id": "rt-007",
+      "name": "Sales per Store",
+      "category": "revenue",
+      "requiredFields": [
+        "sales",
+        "store_id"
+      ],
+      "formula": "SUM(sales) GROUP BY store_id",
+      "aliases": {
+        "store_id": [
+          "outlet",
+          "location"
+        ]
+      }
+    },
+    {
+      "id": "rt-008",
+      "name": "Footfall Conversion",
+      "category": "conversion",
+      "requiredFields": [
+        "transaction_id",
+        "visitors"
+      ],
+      "formula": "COUNT(transaction_id) / COUNT(visitors)",
+      "aliases": {
+        "visitors": [
+          "footfall"
+        ]
+      }
+    },
+    {
+      "id": "rt-009",
+      "name": "Shrinkage Rate",
+      "category": "operations",
+      "requiredFields": [
+        "shrinkage",
+        "inventory"
+      ],
+      "formula": "SUM(shrinkage) / SUM(inventory)",
+      "aliases": {
+        "shrinkage": [
+          "loss",
+          "theft"
+        ]
+      }
+    },
+    {
+      "id": "rt-010",
+      "name": "Sell-through Rate",
+      "category": "operations",
+      "requiredFields": [
+        "sold",
+        "received"
+      ],
+      "formula": "SUM(sold) / SUM(received)",
+      "aliases": {}
+    }
+  ],
+  "SERVICES": [
+    {
+      "id": "sv-001",
+      "name": "Total Revenue",
+      "category": "revenue",
+      "requiredFields": [
+        "revenue"
+      ],
+      "formula": "SUM(revenue)",
+      "aliases": {
+        "revenue": [
+          "billing",
+          "invoice_amount"
+        ]
+      }
+    },
+    {
+      "id": "sv-002",
+      "name": "Billable Utilization Rate",
+      "category": "efficiency",
+      "requiredFields": [
+        "billable_hours",
+        "total_hours"
+      ],
+      "formula": "SUM(billable_hours) / SUM(total_hours)",
+      "aliases": {}
+    },
+    {
+      "id": "sv-003",
+      "name": "Average Billing Rate",
+      "category": "revenue",
+      "requiredFields": [
+        "revenue",
+        "billable_hours"
+      ],
+      "formula": "SUM(revenue) / SUM(billable_hours)",
+      "aliases": {}
+    },
+    {
+      "id": "sv-004",
+      "name": "Project Profitability",
+      "category": "profitability",
+      "requiredFields": [
+        "revenue",
+        "project_cost"
+      ],
+      "formula": "SUM(revenue) - SUM(project_cost)",
+      "aliases": {}
+    },
+    {
+      "id": "sv-005",
+      "name": "Client Retention Rate",
+      "category": "retention",
+      "requiredFields": [
+        "returning_clients",
+        "total_clients"
+      ],
+      "formula": "COUNT(returning_clients) / COUNT(total_clients)",
+      "aliases": {}
+    },
+    {
+      "id": "sv-006",
+      "name": "Revenue per Client",
+      "category": "revenue",
+      "requiredFields": [
+        "revenue",
+        "client_id"
+      ],
+      "formula": "SUM(revenue) / COUNT(DISTINCT client_id)",
+      "aliases": {}
+    },
+    {
+      "id": "sv-007",
+      "name": "Active Projects",
+      "category": "volume",
+      "requiredFields": [
+        "project_id",
+        "status"
+      ],
+      "formula": "COUNT(project_id) WHERE status=active",
+      "aliases": {}
+    },
+    {
+      "id": "sv-008",
+      "name": "Overdue Invoices",
+      "category": "operations",
+      "requiredFields": [
+        "invoice_id",
+        "due_date",
+        "paid"
+      ],
+      "formula": "COUNT(invoice_id) WHERE due_date < today AND paid=false",
+      "aliases": {}
+    },
+    {
+      "id": "sv-009",
+      "name": "Employee Utilization",
+      "category": "efficiency",
+      "requiredFields": [
+        "hours_worked",
+        "available_hours"
+      ],
+      "formula": "SUM(hours_worked) / SUM(available_hours)",
+      "aliases": {}
+    },
+    {
+      "id": "sv-010",
+      "name": "Delivery Timeliness",
+      "category": "performance",
+      "requiredFields": [
+        "on_time",
+        "total_deliveries"
+      ],
+      "formula": "COUNT(on_time) / COUNT(total_deliveries)",
+      "aliases": {}
+    }
+  ],
+  "MANUFACTURING": [
+    {
+      "id": "mf-001",
+      "name": "Production Output",
+      "category": "volume",
+      "requiredFields": [
+        "units_produced"
+      ],
+      "formula": "SUM(units_produced)",
+      "aliases": {
+        "units_produced": [
+          "output",
+          "production_qty"
+        ]
+      }
+    },
+    {
+      "id": "mf-002",
+      "name": "Yield Rate",
+      "category": "quality",
+      "requiredFields": [
+        "good_units",
+        "total_units"
+      ],
+      "formula": "SUM(good_units) / SUM(total_units)",
+      "aliases": {}
+    },
+    {
+      "id": "mf-003",
+      "name": "Defect Rate",
+      "category": "quality",
+      "requiredFields": [
+        "defects",
+        "total_units"
+      ],
+      "formula": "SUM(defects) / SUM(total_units)",
+      "aliases": {
+        "defects": [
+          "rejects",
+          "failures"
+        ]
+      }
+    },
+    {
+      "id": "mf-004",
+      "name": "Overall Equipment Effectiveness",
+      "category": "efficiency",
+      "requiredFields": [
+        "availability",
+        "performance",
+        "quality"
+      ],
+      "formula": "availability * performance * quality",
+      "aliases": {}
+    },
+    {
+      "id": "mf-005",
+      "name": "Downtime",
+      "category": "operations",
+      "requiredFields": [
+        "downtime_hours"
+      ],
+      "formula": "SUM(downtime_hours)",
+      "aliases": {
+        "downtime_hours": [
+          "machine_stop",
+          "idle_time"
+        ]
+      }
+    },
+    {
+      "id": "mf-006",
+      "name": "Cost per Unit",
+      "category": "cost",
+      "requiredFields": [
+        "total_cost",
+        "units_produced"
+      ],
+      "formula": "SUM(total_cost) / SUM(units_produced)",
+      "aliases": {}
+    },
+    {
+      "id": "mf-007",
+      "name": "Machine Utilization",
+      "category": "efficiency",
+      "requiredFields": [
+        "running_time",
+        "available_time"
+      ],
+      "formula": "SUM(running_time) / SUM(available_time)",
+      "aliases": {}
+    },
+    {
+      "id": "mf-008",
+      "name": "Throughput",
+      "category": "volume",
+      "requiredFields": [
+        "units_produced",
+        "time_period"
+      ],
+      "formula": "SUM(units_produced) / time_period",
+      "aliases": {}
+    },
+    {
+      "id": "mf-009",
+      "name": "Scrap Rate",
+      "category": "quality",
+      "requiredFields": [
+        "scrap",
+        "material_used"
+      ],
+      "formula": "SUM(scrap) / SUM(material_used)",
+      "aliases": {
+        "scrap": [
+          "waste"
+        ]
+      }
+    },
+    {
+      "id": "mf-010",
+      "name": "Lead Time",
+      "category": "operations",
+      "requiredFields": [
+        "delivery_date",
+        "order_date"
+      ],
+      "formula": "AVG(delivery_date - order_date)",
+      "aliases": {}
+    }
+  ],
+  "HEALTHCARE": [
+    {
+      "id": "hc-001",
+      "name": "Patient Count",
+      "category": "volume",
+      "requiredFields": [
+        "patient_id"
+      ],
+      "formula": "COUNT(DISTINCT patient_id)",
+      "aliases": {
+        "patient_id": [
+          "member_id",
+          "beneficiary_id"
+        ]
+      }
+    },
+    {
+      "id": "hc-002",
+      "name": "Appointment No-show Rate",
+      "category": "operations",
+      "requiredFields": [
+        "no_show",
+        "appointment_id"
+      ],
+      "formula": "COUNT(no_show) / COUNT(appointment_id)",
+      "aliases": {}
+    },
+    {
+      "id": "hc-003",
+      "name": "Bed Occupancy Rate",
+      "category": "capacity",
+      "requiredFields": [
+        "occupied_beds",
+        "total_beds"
+      ],
+      "formula": "SUM(occupied_beds) / SUM(total_beds)",
+      "aliases": {}
+    },
+    {
+      "id": "hc-004",
+      "name": "Average Length of Stay",
+      "category": "operations",
+      "requiredFields": [
+        "discharge_date",
+        "admission_date"
+      ],
+      "formula": "AVG(discharge_date - admission_date)",
+      "aliases": {}
+    },
+    {
+      "id": "hc-005",
+      "name": "Readmission Rate",
+      "category": "quality",
+      "requiredFields": [
+        "readmission",
+        "discharge"
+      ],
+      "formula": "COUNT(readmission) / COUNT(discharge)",
+      "aliases": {}
+    },
+    {
+      "id": "hc-006",
+      "name": "Revenue per Patient",
+      "category": "revenue",
+      "requiredFields": [
+        "revenue",
+        "patient_id"
+      ],
+      "formula": "SUM(revenue) / COUNT(DISTINCT patient_id)",
+      "aliases": {}
+    },
+    {
+      "id": "hc-007",
+      "name": "Claim Approval Rate",
+      "category": "operations",
+      "requiredFields": [
+        "approved",
+        "submitted"
+      ],
+      "formula": "COUNT(approved) / COUNT(submitted)",
+      "aliases": {}
+    },
+    {
+      "id": "hc-008",
+      "name": "Doctor Utilization",
+      "category": "efficiency",
+      "requiredFields": [
+        "patient_hours",
+        "available_hours"
+      ],
+      "formula": "SUM(patient_hours) / SUM(available_hours)",
+      "aliases": {}
+    },
+    {
+      "id": "hc-009",
+      "name": "Treatment Success Rate",
+      "category": "quality",
+      "requiredFields": [
+        "successful",
+        "treated"
+      ],
+      "formula": "COUNT(successful) / COUNT(treated)",
+      "aliases": {}
+    },
+    {
+      "id": "hc-010",
+      "name": "Cost per Treatment",
+      "category": "cost",
+      "requiredFields": [
+        "cost",
+        "treatment_id"
+      ],
+      "formula": "SUM(cost) / COUNT(treatment_id)",
+      "aliases": {}
+    }
+  ],
+  "FINANCE": [
+    {
+      "id": "fn-001",
+      "name": "Total Transactions",
+      "category": "volume",
+      "requiredFields": [
+        "transaction_id"
+      ],
+      "formula": "COUNT(transaction_id)",
+      "aliases": {
+        "transaction_id": [
+          "txn_id",
+          "payment_id"
+        ]
+      }
+    },
+    {
+      "id": "fn-002",
+      "name": "Net Profit",
+      "category": "profitability",
+      "requiredFields": [
+        "revenue",
+        "expenses"
+      ],
+      "formula": "SUM(revenue) - SUM(expenses)",
+      "aliases": {}
+    },
+    {
+      "id": "fn-003",
+      "name": "Cash Flow",
+      "category": "liquidity",
+      "requiredFields": [
+        "inflow",
+        "outflow"
+      ],
+      "formula": "SUM(inflow) - SUM(outflow)",
+      "aliases": {
+        "inflow": [
+          "receipts"
+        ],
+        "outflow": [
+          "payments"
+        ]
+      }
+    },
+    {
+      "id": "fn-004",
+      "name": "Loan Default Rate",
+      "category": "risk",
+      "requiredFields": [
+        "defaulted",
+        "loans"
+      ],
+      "formula": "COUNT(defaulted) / COUNT(loans)",
+      "aliases": {}
+    },
+    {
+      "id": "fn-005",
+      "name": "Return on Assets",
+      "category": "performance",
+      "requiredFields": [
+        "net_income",
+        "total_assets"
+      ],
+      "formula": "SUM(net_income) / AVG(total_assets)",
+      "aliases": {}
+    },
+    {
+      "id": "fn-006",
+      "name": "Return on Equity",
+      "category": "performance",
+      "requiredFields": [
+        "net_income",
+        "equity"
+      ],
+      "formula": "SUM(net_income) / AVG(equity)",
+      "aliases": {
+        "equity": [
+          "shareholders_equity"
+        ]
+      }
+    },
+    {
+      "id": "fn-007",
+      "name": "Non-performing Assets",
+      "category": "risk",
+      "requiredFields": [
+        "npa",
+        "total_loans"
+      ],
+      "formula": "SUM(npa) / SUM(total_loans)",
+      "aliases": {
+        "npa": [
+          "bad_debt"
+        ]
+      }
+    },
+    {
+      "id": "fn-008",
+      "name": "Liquidity Ratio",
+      "category": "liquidity",
+      "requiredFields": [
+        "current_assets",
+        "current_liabilities"
+      ],
+      "formula": "SUM(current_assets) / SUM(current_liabilities)",
+      "aliases": {}
+    },
+    {
+      "id": "fn-009",
+      "name": "Interest Income",
+      "category": "revenue",
+      "requiredFields": [
+        "interest_income"
+      ],
+      "formula": "SUM(interest_income)",
+      "aliases": {
+        "interest_income": [
+          "interest_earned"
+        ]
+      }
+    },
+    {
+      "id": "fn-010",
+      "name": "Fraud Rate",
+      "category": "risk",
+      "requiredFields": [
+        "fraud",
+        "transaction_id"
+      ],
+      "formula": "COUNT(fraud) / COUNT(transaction_id)",
+      "aliases": {
+        "fraud": [
+          "suspicious",
+          "flagged"
+        ]
+      }
+    }
+  ]
+}

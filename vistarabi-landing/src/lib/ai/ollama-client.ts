@@ -1,8 +1,34 @@
 // Ollama Client for AI Semantic Reasoning
 // Uses locally hosted Ollama with qwen3:0.6b model
+// Domain-specific models are registered via scripts/register-modelfiles.ps1
+
+import type { DomainType } from '@/lib/prisma';
+import { getDomainKPINames } from '@/lib/kpi/domain-metadata';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:2b';
+
+// ─── Domain-to-Model Router ───────────────────────────────────────────────────
+
+/**
+ * Returns the registered Ollama model name for a given domain.
+ * Falls back to DEFAULT_MODEL if the domain-specific model is not available.
+ */
+export function getDomainModel(domain: DomainType | string | null | undefined): string {
+    const map: Record<string, string> = {
+        ECOMMERCE:     'vistara-analytics-ecommerce',
+        SAAS:          'vistara-analytics-saas',
+        EDTECH:        'vistara-analytics-edtech',
+        RETAIL:        'vistara-analytics-retail',
+        SERVICES:      'vistara-analytics-services',
+        MANUFACTURING: 'vistara-analytics-manufacturing',
+        HEALTHCARE:    'vistara-analytics-healthcare',
+        FINANCE:       'vistara-analytics-finance',
+    };
+    // If DISABLE_DOMAIN_MODELS env var is set, always use default (useful in CI)
+    if (process.env.DISABLE_DOMAIN_MODELS === 'true') return DEFAULT_MODEL;
+    return (domain && map[domain as string]) ? map[domain as string] : DEFAULT_MODEL;
+}
 
 export interface OllamaMessage {
     role: 'system' | 'user' | 'assistant';
@@ -255,7 +281,7 @@ export interface SemanticReasoningResult {
     keySignals: string[];
 }
 
-// Generate KPI suggestions with a simpler, more robust prompt
+// Generate KPI suggestions with a domain-aware, enriched prompt
 export async function generateKPISuggestions(
     columns: string[],
     sampleRows: Record<string, unknown>[],
@@ -263,14 +289,22 @@ export async function generateKPISuggestions(
     model?: string
 ): Promise<{ name: string; formula: string; category: string; explanation: string }[]> {
 
-    // Use the provided model or fall back to DEFAULT_MODEL
-    const kpiModel = model || DEFAULT_MODEL;
+    // Route to domain-specific model if available; caller's model overrides when explicitly provided
+    const kpiModel = model || getDomainModel(domain as DomainType);
 
-    // Build a simple, clear prompt that works well with small models
+    // Inject domain KPI vocabulary so the local model knows what to look for
+    const domainKPINames = getDomainKPINames(domain as DomainType).slice(0, 8);
+    const domainVocab = domainKPINames.length > 0
+        ? `Known ${domain} KPIs include: ${domainKPINames.join(', ')}.`
+        : '';
+
+    // Build a clear prompt that works well with small models
     const columnList = columns.slice(0, 15).join(', ');
     const sampleJson = JSON.stringify(sampleRows.slice(0, 5));
 
     const prompt = `Task: Act as a data analyst. Generate exactly 3-5 KPIs for a business in the ${domain} domain.
+
+${domainVocab}
 
 Input Columns: ${columnList}
 Sample Data: ${sampleJson}
@@ -278,7 +312,8 @@ Sample Data: ${sampleJson}
 Constraints:
 1. Use ONLY the column names provided above in the formula.
 2. Formulas must use SQL-like aggregations: SUM(col), AVG(col), COUNT(col).
-3. Response MUST be a valid JSON array of objects.
+3. Prefer KPIs that match the known ${domain} vocabulary listed above.
+4. Response MUST be a valid JSON array of objects.
 
 Output format:
 [
@@ -321,12 +356,18 @@ export async function performSemanticReasoning(
 ): Promise<SemanticReasoningResult> {
     const prompt = buildSemanticPrompt(context);
 
+    // Build a domain-aware system message when we have a strong candidate
+    const topDomainHint = context.topDomain
+        ? ` The rule-based engine's top candidate is "${context.topDomain}" — validate or override this based on the column signals.`
+        : '';
+
     try {
         const response = await generateCompletion({
+            model: getDomainModel(context.topDomain as DomainType),
             messages: [
                 {
                     role: 'system',
-                    content: 'You are a business domain classification expert. Analyze data columns and determine the most likely business domain. Be concise.'
+                    content: `You are a business domain classification expert for VistaraBI. Analyze data columns and determine the most likely business domain from: ECOMMERCE, SAAS, EDTECH, RETAIL, SERVICES, MANUFACTURING, HEALTHCARE, FINANCE.${topDomainHint} Be concise and return only valid JSON.`
                 },
                 {
                     role: 'user',
