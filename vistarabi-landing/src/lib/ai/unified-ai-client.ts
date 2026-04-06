@@ -178,6 +178,7 @@ async function callOllama(
                 options: {
                     temperature: options.temperature ?? 0.2,
                     num_predict: options.maxTokens ?? 8192,
+                    num_ctx: 4096, // Limit context to save memory
                 },
             }),
             signal: controller.signal,
