@@ -13,13 +13,12 @@ Before running the pipeline, ensure you have the following:
 3.  **Base Models Pulled**:
     ```bash
     ollama pull qwen3.5:0.8b
-    ollama pull qwen2.5-coder:3b
+    ollama pull qwen2.5-coder:1.5b
     ```
 
 **Memory / Hardware Recommendations:**
-- **Minimum RAM**: 8GB. `qwen3.5:0.8b` is extremely lightweight and requires only ~2GB of RAM/VRAM to run comfortably.
-- **Recommended RAM**: 16GB. This allows you to run both the lightweight analytics models and the `qwen2.5-coder:3b` (which needs ~4-6GB RAM) concurrently without system swap issues.
-- **VRAM (GPU)**: A dedicated GPU is *optional* but recommended for faster inference. Any GPU with 4GB+ VRAM will comfortably run the 0.8b models. For the 3b coder model, 6GB+ VRAM is recommended.
+- **Minimum RAM**: 8GB. With the `qwen3.5:0.8b` analytics models and the `qwen2.5-coder:1.5b` coder model, **8GB of RAM** is now fully sufficient to run all VistaraBI intelligence features comfortably.
+- **VRAM (GPU)**: A dedicated GPU is *optional* but recommended for faster inference. Any GPU with 2GB+ VRAM will comfortably run these lightweight models. 
 
 ---
 

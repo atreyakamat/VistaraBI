@@ -1,7 +1,7 @@
-# VistaraBI Coder — UI & Component Generator
+# VistaraBI Coder — UI & Component Generator (Lightweight)
 # Specialized for React, TailwindCSS, and Framer Motion
 
-FROM qwen2.5-coder:3b
+FROM qwen2.5-coder:1.5b
 
 PARAMETER temperature 0.1
 PARAMETER num_ctx 8192
