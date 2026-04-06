@@ -26,6 +26,9 @@ function buildScanResult(columns: string[], domain?: string): ScanResult {
     const saasKeywords = ['subscription', 'mrr', 'churn', 'trial', 'user', 'billing', 'plan'];
     const healthcareKeywords = ['patient', 'doctor', 'appointment', 'diagnosis', 'prescription'];
     const financeKeywords = ['account', 'transaction', 'debit', 'credit', 'balance', 'ledger'];
+    const retailKeywords = ['store', 'inventory', 'shrinkage', 'footfall', 'sell-through'];
+    const servicesKeywords = ['project', 'timesheet', 'billable', 'client', 'employee'];
+    const manufacturingKeywords = ['machine', 'downtime', 'scrap', 'yield', 'batch'];
 
     for (const col of columns) {
         const lower = col.toLowerCase();
@@ -50,6 +53,24 @@ function buildScanResult(columns: string[], domain?: string): ScanResult {
         for (const kw of financeKeywords) {
             if (lower.includes(kw)) {
                 matchesByDomain.FINANCE.push({ columnName: col, matchedKeyword: kw, confidence: 80 });
+                break;
+            }
+        }
+        for (const kw of retailKeywords) {
+            if (lower.includes(kw)) {
+                matchesByDomain.RETAIL.push({ columnName: col, matchedKeyword: kw, confidence: 80 });
+                break;
+            }
+        }
+        for (const kw of servicesKeywords) {
+            if (lower.includes(kw)) {
+                matchesByDomain.SERVICES.push({ columnName: col, matchedKeyword: kw, confidence: 80 });
+                break;
+            }
+        }
+        for (const kw of manufacturingKeywords) {
+            if (lower.includes(kw)) {
+                matchesByDomain.MANUFACTURING.push({ columnName: col, matchedKeyword: kw, confidence: 80 });
                 break;
             }
         }
@@ -258,6 +279,33 @@ describe('Module 3 — Full Classification Pipeline', () => {
         const classified = classifyDomain(scored);
 
         expect(classified.detectedDomain).toBe('SAAS');
+    });
+
+    it('classifies Retail dataset end-to-end', () => {
+        const retailColumns = ['store_id', 'inventory_value', 'shrinkage', 'footfall_count', 'sell-through'];
+        const scanResult = buildScanResult(retailColumns);
+        const scored = calculateDomainScores(scanResult);
+        const classified = classifyDomain(scored);
+
+        expect(classified.detectedDomain).toBe('RETAIL');
+    });
+
+    it('classifies Services dataset end-to-end', () => {
+        const servicesColumns = ['project_id', 'client_id', 'timesheet', 'billable_hours', 'employee_id'];
+        const scanResult = buildScanResult(servicesColumns);
+        const scored = calculateDomainScores(scanResult);
+        const classified = classifyDomain(scored);
+
+        expect(classified.detectedDomain).toBe('SERVICES');
+    });
+
+    it('classifies Manufacturing dataset end-to-end', () => {
+        const manufacturingColumns = ['machine_id', 'downtime_hours', 'scrap_rate', 'yield', 'batch_id'];
+        const scanResult = buildScanResult(manufacturingColumns);
+        const scored = calculateDomainScores(scanResult);
+        const classified = classifyDomain(scored);
+
+        expect(classified.detectedDomain).toBe('MANUFACTURING');
     });
 
     it('handles empty column list gracefully end-to-end', () => {
