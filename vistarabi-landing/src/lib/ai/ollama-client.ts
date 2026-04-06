@@ -1,17 +1,10 @@
 // Ollama Client for AI Semantic Reasoning
-<<<<<<< HEAD
 // Uses locally hosted Ollama with qwen3:0.6b model
 // Domain-specific models are registered via scripts/register-modelfiles.ps1
 
 import type { DomainType } from '@/lib/prisma';
 import { getDomainKPINames } from '@/lib/kpi/domain-metadata';
-=======
-// LEGACY: This client is maintained for backward compatibility
-// NEW CODE SHOULD USE: src/lib/ai/unified-ai-client.ts
-// This wrapper now uses the unified client internally for automatic fallback
-
-import { generateWithFallback, type AIMessage, type AgentRole } from './unified-ai-client';
->>>>>>> 9b3b142a2ff425891d65e622a28c9bc3a4d45a62
+import { generateWithFallback, type AIMessage } from './unified-ai-client';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:2b';
@@ -155,11 +148,7 @@ export interface SemanticReasoningResult {
     keySignals: string[];
 }
 
-<<<<<<< HEAD
 // Generate KPI suggestions with a domain-aware, enriched prompt
-=======
-// Generate KPI suggestions with agent-based reasoning
->>>>>>> 9b3b142a2ff425891d65e622a28c9bc3a4d45a62
 export async function generateKPISuggestions(
     columns: string[],
     sampleRows: Record<string, unknown>[],
@@ -167,7 +156,6 @@ export async function generateKPISuggestions(
     model?: string
 ): Promise<{ name: string; formula: string; category: string; explanation: string }[]> {
 
-<<<<<<< HEAD
     // Route to domain-specific model if available; caller's model overrides when explicitly provided
     const kpiModel = model || getDomainModel(domain as DomainType);
 
@@ -178,9 +166,6 @@ export async function generateKPISuggestions(
         : '';
 
     // Build a clear prompt that works well with small models
-=======
-    // Build a clear, structured prompt
->>>>>>> 9b3b142a2ff425891d65e622a28c9bc3a4d45a62
     const columnList = columns.slice(0, 15).join(', ');
     const sampleJson = JSON.stringify(sampleRows.slice(0, 5));
 
@@ -215,7 +200,7 @@ JSON Array:`;
         const response = await generateWithFallback({
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.3,
-            model,
+            model: kpiModel,
             agentRole: 'kpi-designer', // Use specialized KPI designer agent
         });
 
@@ -250,8 +235,7 @@ export async function performSemanticReasoning(
         : '';
 
     try {
-<<<<<<< HEAD
-        const response = await generateCompletion({
+        const response = await generateWithFallback({
             model: getDomainModel(context.topDomain as DomainType),
             messages: [
                 {
@@ -259,11 +243,6 @@ export async function performSemanticReasoning(
                     content: `You are a business domain classification expert for VistaraBI. Analyze data columns and determine the most likely business domain from: ECOMMERCE, SAAS, EDTECH, RETAIL, SERVICES, MANUFACTURING, HEALTHCARE, FINANCE.${topDomainHint} Be concise and return only valid JSON.`
                 },
                 {
-=======
-        const response = await generateWithFallback({
-            messages: [
-                {
->>>>>>> 9b3b142a2ff425891d65e622a28c9bc3a4d45a62
                     role: 'user',
                     content: prompt
                 }
