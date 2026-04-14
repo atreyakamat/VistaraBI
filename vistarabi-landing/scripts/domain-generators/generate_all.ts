@@ -15,7 +15,7 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 // ─── 1. E-COMMERCE GENERATOR (With Black Friday Spike) ──────────────────────
 function generateEcommerceData() {
   const data = [];
-  let baseSales = 5000;
+  const baseSales = 5000;
 
   for (let i = 0; i < DAYS_TO_GENERATE; i++) {
     const currentDate = new Date(START_DATE.getTime() + i * 86400000);
@@ -88,7 +88,7 @@ function generateSaaSData() {
 // ─── 3. HEALTHCARE GENERATOR (With Flu Season) ─────────────────────────────
 function generateHealthcareData() {
   const data = [];
-  let baseBedOccupancy = 300; // Hospital with ~400 beds
+  const baseBedOccupancy = 300; // Hospital with ~400 beds
 
   for (let i = 0; i < DAYS_TO_GENERATE; i++) {
     const currentDate = new Date(START_DATE.getTime() + i * 86400000);

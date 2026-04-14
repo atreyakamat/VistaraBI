@@ -1,29 +1,25 @@
 # 🚀 VistaraBI - Intelligent Business Analytics Platform
 
-A next-generation business intelligence platform that combines rule-based detection, AI semantic reasoning, and human governance to deliver domain-specific insights.
+VistaraBI is a next-generation business intelligence platform that transforms raw data into actionable executive strategy. It combines automated data engineering, AI semantic reasoning, and prescriptive intelligence to help businesses grow across 8 key domains.
 
 ---
 
 ## ✨ Key Features
 
-### 🎯 **Unified Domain Classification**
-- **Auto Detection**: Rule-based keyword matching across 8 business domains
-- **AI Suggestion**: Local LLM semantic reasoning (Ollama + qwen3:0.6b)
-- **Manual Selection**: User-driven domain assignment
-- **Governance Layer**: Full version history, audit trails, and domain locking
+### 🎯 **Unified Domain Intelligence**
+- **8-Domain Coverage**: Deep specialization in E-Commerce, SaaS, EdTech, Retail, Services, Manufacturing, Healthcare, and Finance.
+- **Auto-Detection**: Rule-based keyword matching and AI semantic reasoning for perfect data classification.
+- **Semantic Mapping**: Automatically maps raw columns (e.g., "txn_val") to semantic roles ("revenue").
 
-### 📊 **Data Intelligence**
-- Magic byte file format detection
-- Enhanced data type inference
-- Automated data cleaning & normalization
-- Quality scoring & outlier detection
-- Relationship discovery
+### 📊 **Prescriptive Analytics**
+- **KPI Engine**: Automated discovery and calculation of domain-specific metrics.
+- **Strategy Canvas (Module 8)**: Non-linear, Prophet-powered forecasting with Monte Carlo simulations to predict goal success.
+- **Goal Engine (Module 7)**: AI-driven action plans to bridge the gap between current performance and future targets.
 
-### 🧠 **AI-Powered**
-- Local Ollama integration (privacy-first)
-- Explainable AI reasoning
-- Semantic domain understanding
-- No cloud dependencies
+### 🧠 **Agentic AI Mesh**
+- **Multi-Agent Router**: Orchestrates 9 specialized personas (Business Analyst, Statistician, Data Engineer, etc.).
+- **Unified AI Client**: Robust fallback chain (Local Ollama → Cloud Ollama → OpenRouter).
+- **Local-First Privacy**: Optimized for `qwen3.5:0.8b` to ensure high performance on standard hardware.
 
 ---
 
@@ -31,15 +27,15 @@ A next-generation business intelligence platform that combines rule-based detect
 
 ```
 VistaraBI Platform
-├── Module 1: Data Ingestion & Type Inference
-├── Module 2: Data Purification & Quality Analysis
-├── Module 3: Domain Classification (Complete ✅)
-│   ├── Phase 3A: Rule-Based Detection
-│   ├── Phase 3B: Governance Layer
-│   └── Phase 3C: AI Semantic Reasoning
-├── Module 4: KPI Engine (Coming Soon)
-├── Module 5: Analytics & Forecasting (Coming Soon)
-└── Module 6-9: Advanced Features (Planned)
+├── Module 1: Data Ingestion & Type Inference ✅
+├── Module 2: Data Purification & Quality Analysis ✅
+├── Module 3: Domain Classification & Governance ✅
+├── Module 4: KPI Discovery & Lineage ✅
+├── Module 5: Glassmorphism Dashboard & Interaction ✅
+├── Module 6: AI Command Execution & Chat ✅
+├── Module 7: Goal Strategy Engine (Prescriptive) ✅
+├── Module 8: Strategy Canvas & Forecasting ✅
+└── Module 9: Executive Board Report Engine ✅
 ```
 
 ---
@@ -50,6 +46,7 @@ VistaraBI Platform
 - **Node.js** v20+
 - **npm** v10+
 - **Ollama** ([Download](https://ollama.com))
+- **Python 3.10+** (For Module 8 Forecasting)
 
 ### Installation
 
@@ -58,19 +55,21 @@ VistaraBI Platform
 git clone <repo-url>
 cd vistarabi-landing
 
-# 2. Install dependencies
+# 2. Install Dependencies
 npm install
+pip install pandas prophet
 
-# 3. Setup environment
-cp .env.example .env
+# 3. Setup Environment
+cp .env.example .env  # Update with your Cloud AI keys if needed
 
-# 4. Start Ollama
-ollama serve
+# 4. Pull AI Models
+ollama pull qwen3.5:0.8b
+ollama pull qwen2.5-coder:1.5b
 
-# 5. Pull AI model
-ollama pull qwen3:0.6b
+# 5. Fine-Tune Local Models
+npx tsx scripts/ingest-and-tune.ts
 
-# 6. Run development server
+# 6. Run Platform
 npm run dev
 ```
 
@@ -78,96 +77,50 @@ Visit [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 📖 Documentation
+## 📖 Key Documentation
 
-- [**SETUP.md**](./SETUP.md) - Complete setup guide
-- [**MODULE_3_COMPLETE.md**](./MODULE_3_COMPLETE.md) - Module 3 technical details
-- [**MODULE_3_PHASE_3C_COMPLETE.md**](./MODULE_3_PHASE_3C_COMPLETE.md) - AI reasoning layer
-- [**UNIFIED_DOMAIN_SELECTION.md**](./UNIFIED_DOMAIN_SELECTION.md) - UI/UX documentation
-- [**DOMAIN_KPI_SELECTION.md**](./DOMAIN_KPI_SELECTION.md) - KPI library
-
----
-
-## 🎯 Domain Selection
-
-VistaraBI automatically classifies your business data into one of 8 domains:
-
-| Domain | Icon | Description |
-|--------|------|-------------|
-| E-Commerce | 🛒 | Orders, products, customers, carts |
-| SaaS | 💻 | Subscriptions, users, MRR, churn |
-| EdTech | 🎓 | Students, courses, enrollments, grades |
-| Retail | 🏪 | Inventory, POS, sales, stores |
-| Services | 🧾 | Projects, clients, billing, hours  |
-| Manufacturing | 🏭 | Production, batches, quality, yield |
-| Healthcare | 🏥 | Patients, appointments, treatments |
-| Finance | 💰 | Accounts, transactions, loans |
+- [**VISTARABI_INTELLIGENCE_MANUAL.md**](./VISTARABI_INTELLIGENCE_MANUAL.md) - **Primary guide** for AI ingestion & tuning.
+- [**RETAIL_IMPLEMENTATION_COMPLETED.md**](./RETAIL_IMPLEMENTATION_COMPLETED.md) - Case study of the Retail domain completion.
+- [**SETUP.md**](./SETUP.md) - Detailed environment setup.
+- [**AI_QUICK_REFERENCE.md**](./AI_QUICK_REFERENCE.md) - Agent roles and API usage.
 
 ---
 
-## 🛠️ Tech Stack
+## 🎯 Supported Domains
 
-- **Frontend**: Next.js 16, React 19, TailwindCSS 4, Framer Motion
-- **Backend**: Next.js API Routes, TypeScript
-- **Database**: Enhanced In-Memory Store (dev), Prisma-ready
-- **AI**: Ollama (local), qwen3:0.6b model
-- **Data Processing**: PapaParse, XLSX
-
----
-
-## 📊 Modules Status
-
-| Module | Status | Description |
-|--------|--------|-------------|
-| Module 1 | ✅ Complete | Data Ingestion & Type Inference |
-| Module 2 | ✅ Complete | Purification & Quality Analysis |
-| Module 3A | ✅ Complete | Rule-Based Domain Detection |
-| Module 3B | ✅ Complete | Domain Governance Layer |
-| Module 3C | ✅ Complete | AI Semantic Reasoning |
-| Module 4 | 🚧 Planned | KPI Calculation Engine |
-| Module 5 | 🚧 Planned | Trend Analysis & Forecasting |
-| Module 6-9 | 📋 Planned | Advanced Features |
+| Domain | Icon | Key Focus |
+|--------|------|-----------|
+| E-Commerce | 🛒 | GMV, AOV, Conversion, Retention |
+| SaaS | 💻 | MRR, Churn, CAC, LTV, NRR |
+| EdTech | 🎓 | Completion, Enrollment, Engagement |
+| Retail | 🏪 | Inventory Turnover, Shrinkage, POS |
+| Services | 🧾 | Utilization, Billable Hours, Margin |
+| Manufacturing | 🏭 | OEE, Yield Rate, Downtime, Scrap |
+| Healthcare | 🏥 | Bed Occupancy, ALOS, No-Show Rate |
+| Finance | 💰 | NPA Ratio, ROA, Cash Flow, Risk |
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & Quality
 
 ```bash
-# Type check
-npx tsc --noEmit
+# Run all deterministic tests
+npm test
 
-# Run in development
-npm run dev
+# Run Module 8 Forecast tests
+npm run test:8
 
-# Build for production
-npm run build
+# Run Module 9 Report tests
+npm run test:9
 
-# Start production server
-npm start
+# Check AI Health
+curl http://localhost:3000/api/v1/ai/health
 ```
-
----
-
-## 🤝 Contributing
-
-This is a research-grade project. For questions or contributions, please refer to the documentation files.
 
 ---
 
 ## 📜 License
 
-Proprietary - All Rights Reserved
+Proprietary - All Rights Reserved © 2026 VistaraBI
 
----
-
-## 🙏 Acknowledgments
-
-Built with:
-- Next.js, React, TailwindCSS
-- Ollama (Local LLM)
-- Framer Motion (Animations)
-- TypeScript (Type Safety)
-
----
-
-**Happy Analyzing! 📊✨**
+**Empowering Data with Prescriptive Intelligence. 📊✨**
