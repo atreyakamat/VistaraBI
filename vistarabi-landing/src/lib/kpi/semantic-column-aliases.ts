@@ -118,6 +118,12 @@ export const EDTECH_ALIASES: AliasMap = {
 
 export const RETAIL_ALIASES: AliasMap = {
     ...UNIVERSAL_ALIASES,
+    order_id: [
+        'order_number', 'transaction_id', 'receipt_id', 'bill_no', 'sale_id',
+    ],
+    customer_id: [
+        'user_id', 'buyer_id', 'shopper_id', 'customer_name', 'phone',
+    ],
     store_id: [
         'outlet', 'outlet_id', 'location', 'location_id', 'branch',
         'branch_id', 'shop_id', 'pos_id', 'store_code',
@@ -132,8 +138,8 @@ export const RETAIL_ALIASES: AliasMap = {
         'till_id', 'register_id',
     ],
     sold_units: ['qty_sold', 'units_sold', 'quantity_sold', 'items_sold'],
-    received_units: ['qty_received', 'inward_qty', 'purchase_qty', 'received_qty'],
-    shrinkage: ['loss', 'theft', 'spoilage', 'wastage', 'shrinkage_qty', 'pilferage'],
+    received_units: ['qty_received', 'inward_qty', 'purchase_qty', 'received_qty', 'stock_received'],
+    shrinkage: ['loss', 'theft', 'spoilage', 'wastage', 'shrinkage_qty', 'pilferage', 'damaged_stock'],
     visitor_count: ['footfall', 'walk_ins', 'store_visitors', 'traffic', 'footfall_count'],
     cogs: [
         'cost_of_goods', 'cost_price', 'purchase_cost', 'item_cost',

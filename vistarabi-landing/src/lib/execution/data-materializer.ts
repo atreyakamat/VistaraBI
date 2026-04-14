@@ -202,7 +202,15 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
             if (dateCol) {
                 try {
                     await pool.query(`ALTER TABLE "${tableName}" ALTER COLUMN "${dateCol}" TYPE TIMESTAMP USING "${dateCol}"::TIMESTAMP;`);
-                } catch (e) { /* ignore cast errors */ }
+                } catch (e: any) {
+                    console.warn(`[Materializer] Failed to cast date column "${dateCol}" to TIMESTAMP: ${e.message}`);
+                    // Try alternative casting approaches
+                    try {
+                        await pool.query(`ALTER TABLE "${tableName}" ALTER COLUMN "${dateCol}" TYPE TIMESTAMPTZ USING "${dateCol}"::TIMESTAMPTZ;`);
+                    } catch (e2: any) {
+                        console.warn(`[Materializer] Failed to cast date column "${dateCol}" to TIMESTAMPTZ: ${e2.message}`);
+                    }
+                }
             }
 
             // Type numeric columns

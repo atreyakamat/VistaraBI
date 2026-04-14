@@ -144,45 +144,40 @@ export async function executeKPI(
 
     const resolveColumn = (col: string): string => {
         const lower = col.toLowerCase();
+        
+        // 1. If it's already a perfect match in the physical table, STOP.
         if (actualCols.includes(lower)) return lower;
 
-        // Path A: The requested column has aliases, check if any alias is in the table
+        // 2. If it's a known semantic role (like 'revenue'), try to find its mapped physical column.
+        // We look up the aliases for this semantic role.
         if (aliases[lower]) {
-            const match = aliases[lower].find(a => actualCols.includes(a.toLowerCase()));
-            if (match) return match.toLowerCase();
+            const physicalMatch = aliases[lower].find(a => actualCols.includes(a.toLowerCase()));
+            if (physicalMatch) return physicalMatch.toLowerCase();
         }
 
-        // Path B: The requested column IS an alias for something in the table.
-        // E.g. user requested 'revenue', which is an alias for 'order_value' in the library.
+        // 3. Reverse lookup: If 'col' IS a physical alias for a semantic role.
         for (const [semanticName, aliasList] of Object.entries(aliases)) {
             if (aliasList.some(a => a.toLowerCase() === lower)) {
+                // Check if the semantic name itself exists in the table
                 if (actualCols.includes(semanticName.toLowerCase())) return semanticName.toLowerCase();
-                // If the semantic name itself isn't in the table, check OTHER aliases for that same semantic name
+                // Otherwise check peer aliases
                 const peerMatch = aliasList.find(a => actualCols.includes(a.toLowerCase()));
                 if (peerMatch) return peerMatch.toLowerCase();
             }
         }
 
-        // Path C: Fuzzy match against physical columns
+        // 4. Fuzzy match against actual physical columns
+        // (e.g. if requested 'order_id' but table has 'orders_id')
         const fuzzy = actualCols.find(c => c.includes(lower) || lower.includes(c));
         if (fuzzy) return fuzzy;
 
-        // Path D: Fuzzy match against ALIASES
-        for (const [semanticName, aliasList] of Object.entries(aliases)) {
-            const fuzzyAlias = aliasList.find(a => a.toLowerCase().includes(lower) || lower.includes(a.toLowerCase()));
-            if (fuzzyAlias) {
-                const physicalMatch = [semanticName, ...aliasList].find(a => actualCols.includes(a.toLowerCase()));
-                if (physicalMatch) return physicalMatch.toLowerCase();
-            }
-        }
-
-        // Path E: Last Resort - Fallback to common ID/Date columns if the requested name implies it
-        if (lower.includes('id') || lower.includes('user') || lower.includes('visitor') || lower.includes('customer')) {
-            const commonId = actualCols.find(c => c.includes('customer_id') || c.includes('user_id') || c.includes('order_id') || c.endsWith('_id'));
+        // 5. Hardcoded fallbacks for IDs and Dates if nothing else works
+        if (lower.includes('id') || lower.includes('user') || lower.includes('customer')) {
+            const commonId = actualCols.find(c => c.includes('id'));
             if (commonId) return commonId;
         }
-        if (lower.includes('date') || lower.includes('time') || lower.includes('period')) {
-            const commonDate = actualCols.find(c => c.includes('order_date') || c.includes('date') || c.includes('time') || c.includes('timestamp') || c.includes('created'));
+        if (lower.includes('date') || lower.includes('time')) {
+            const commonDate = actualCols.find(c => c.includes('date') || c.includes('time') || c.includes('timestamp'));
             if (commonDate) return commonDate;
         }
 

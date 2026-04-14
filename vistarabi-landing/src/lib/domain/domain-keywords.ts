@@ -76,6 +76,7 @@ export const DOMAIN_LIBRARIES: Record<DomainType, DomainInfo> = {
         color: '#22c55e', // Green
         keywords: [
             'store', 'store_id', 'outlet', 'branch',
+            'order', 'order_id', 'order_total', 'customer', 'customer_id',
             'sku', 'barcode', 'item_code',
             'inventory', 'stock', 'stock_qty',
             'sales', 'bill', 'receipt', 'pos',
