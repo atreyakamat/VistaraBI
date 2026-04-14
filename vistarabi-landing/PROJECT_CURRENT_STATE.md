@@ -15,6 +15,22 @@
 
 ---
 
+## 1.1) Module 1-9 Audit (Non-UI)
+
+| Module | Status | Current Gap / Risk |
+|---|---|---|
+| Module 1 | ⚠️ Partially validated | `tests/module1.e2e.ts` fails auth step in this env (`/api/auth/login` 404 for test credentials/server context). |
+| Module 2 | ✅ Passing | Core purification/quality e2e suite passed. |
+| Module 3 | ✅ Passing | Module test suite passing. |
+| Module 4 | ✅ Passing | Module 4D tests passing. |
+| Module 5 | ✅ Passing with backend fix | Materialization freshness now keys off source upload/clean timestamps; avoids stale "looks hardcoded" dashboard data. |
+| Module 6 | ✅ Passing | Core tests pass; cloud tasks still require correct env + routing flag configuration. |
+| Module 7 | ✅ Passing | Pipeline + integration tests passing. |
+| Module 8 | ✅ Passing | Forecast/canvas tests passing. |
+| Module 9 | ✅ Passing | Report engine tests passing. |
+
+---
+
 ## 2) What Remains (Beyond Domain Fine-Tuning)
 
 ## A. Engineering Quality Gates

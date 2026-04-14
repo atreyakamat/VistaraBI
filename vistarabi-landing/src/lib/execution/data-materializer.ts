@@ -90,7 +90,7 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
             const sourceFreshness = await db.source.findMany({
                 where: { projectId },
                 select: {
-                    updatedAt: true,
+                    uploadedAt: true,
                     cleanedDataset: {
                         select: {
                             cleanedAt: true,
@@ -101,7 +101,7 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
 
             const hasSources = sourceFreshness.length > 0;
             const latestSourceUpdate = sourceFreshness.reduce((latest, source) => {
-                const sourceUpdatedAt = source.updatedAt ?? new Date(0);
+                const sourceUpdatedAt = source.uploadedAt ?? new Date(0);
                 const cleanedUpdatedAt = source.cleanedDataset?.cleanedAt ?? new Date(0);
                 const candidate = sourceUpdatedAt > cleanedUpdatedAt ? sourceUpdatedAt : cleanedUpdatedAt;
                 return candidate > latest ? candidate : latest;
