@@ -93,6 +93,11 @@ export async function executeKPI(
         throw new Error(`[Executor] KPI "${targetKpiId}" lacks aggregation rules`);
     }
 
+    // Override generic "merged_data" with project-specific physical table
+    if (kpi.sourceTable === 'merged_data') {
+        kpi.sourceTable = `merged_data_${projectId.replace(/-/g, '_')}`;
+    }
+
     // Fetch schema dynamically to bridge Semantic Library names -> physical table columns
     const colRes = await pool.query<{ column_name: string; data_type: string }>(`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`, [kpi.sourceTable]);
     const actualCols = colRes.rows.map(r => r.column_name.toLowerCase());
