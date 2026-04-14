@@ -15,6 +15,7 @@ import { FilterBar, type DashboardFilters } from './FilterBar';
 import { AIFilter } from './AIFilter';
 import { AskAIPanel } from './AskAIPanel';
 import { GoalStrategyPanel } from './GoalStrategyPanel';
+import { ForecastPanel } from './ForecastPanel';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from './types';
 import { getAvailableRanges, type DateRange, type Granularity } from './ChartContainer';
 import type { StrategyCanvasResult } from '@/lib/module-8/types';
@@ -63,6 +64,7 @@ export function DashboardShell({
     const [insightPanelOpen, setInsightPanelOpen] = useState(false);
     const [askAiOpen, setAskAiOpen] = useState(false);
     const [goalPanelOpen, setGoalPanelOpen] = useState(false);
+    const [forecastPanelOpen, setForecastPanelOpen] = useState(false);
     const [goalQuery, setGoalQuery] = useState('');
     // Active StrategyCanvasResult shared between GoalStrategyPanel and AskAIPanel
     // (implements the State Injection Pipeline from MODULE_6_7_8_INTEGRATION_PLAN.md)
@@ -81,6 +83,10 @@ export function DashboardShell({
     // UI state for bottom bar
     const [bottomDateRange, setBottomDateRange] = useState<DateRange>('90d');
     const [bottomGranularity, setBottomGranularity] = useState<Granularity>('monthly');
+
+    const handleExportPDF = () => {
+        window.print();
+    };
 
     const toggleKpiSelection = useCallback((kpiId: string) => {
         setSelectedKpis(prev => {
@@ -210,9 +216,12 @@ export function DashboardShell({
                                                 filters.dateRange === '7d' ? 'Last 7 Days' : 'All Time'}
                                     </button>
                                     <AIFilter onFilterGenerated={handleFilterChange} />
-                                    <button className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all flex items-center gap-2">
+                                    <button 
+                                        onClick={handleExportPDF}
+                                        className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all flex items-center gap-2"
+                                    >
                                         <span className="material-symbols-outlined text-lg text-slate-500">ios_share</span>
-                                        Export
+                                        Export PDF
                                     </button>
                                 </>
                             )}
@@ -508,6 +517,17 @@ export function DashboardShell({
             {/* Ask AI FAB */}
             <div className="fixed bottom-8 right-8 flex flex-col gap-3 items-end z-40">
                 <button
+                    className={`ask-ai-fab${forecastPanelOpen ? ' open' : ''}`}
+                    onClick={() => setForecastPanelOpen(true)}
+                    aria-label="Forecasting"
+                    title="Forecasting Engine"
+                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', position: 'static' }}
+                >
+                    <span className="material-symbols-outlined text-base">monitoring</span>
+                    Forecast
+                </button>
+
+                <button
                     className={`ask-ai-fab${goalPanelOpen ? ' open' : ''}`}
                     onClick={() => setGoalPanelOpen(true)}
                     aria-label="Target Goals"
@@ -529,6 +549,16 @@ export function DashboardShell({
                     Ask AI
                 </button>
             </div>
+
+            {/* Forecast Panel */}
+            <DashboardErrorBoundary label="Forecast Panel">
+                <ForecastPanel
+                    projectId={projectId}
+                    isOpen={forecastPanelOpen}
+                    onClose={() => setForecastPanelOpen(false)}
+                    activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
+                />
+            </DashboardErrorBoundary>
 
             {/* Goal Strategy Panel — single instance, wired to state injection */}
             <DashboardErrorBoundary label="Goal Strategy Engine">

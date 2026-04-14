@@ -32,23 +32,16 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
   const [rampDays, setRampDays] = useState(30);
   const [startDay, setStartDay] = useState(14);
 
-  // Generate some dummy historical data for the simulation or use initialContext
-  const [history] = useState(() => {
+  // Use initialContext for history, or empty array if missing
+  const [history] = useState<{ date: string, value: number }[]>(() => {
     if (initialContext?.kpiHistory && initialContext.kpiHistory.length > 0) {
       return initialContext.kpiHistory;
     }
-    const pts = [];
-    let val = 50000;
-    const now = new Date();
-    for (let i = 180; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 86400000);
-      val += (Math.random() - 0.4) * 500; // General upward trend
-      pts.push({ date: d.toISOString().split('T')[0], value: val });
-    }
-    return pts;
+    return [];
   });
 
   const runSimulation = useCallback(async () => {
+    if (history.length === 0) return;
     setLoading(true);
     setError(null);
     try {

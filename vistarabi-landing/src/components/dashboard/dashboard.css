@@ -2461,6 +2461,52 @@
     }
 }
 
+/* ─── Print Styles ────────────────────────────────────────────────── */
+
+@media print {
+    .dashboard-sidebar, .ask-ai-fab, .bottom-filter-bar-wrapper, header, .drilldown-bar {
+        display: none !important;
+    }
+    
+    .dashboard-root {
+        background: white !important;
+        padding: 0 !important;
+    }
+    
+    .dashboard-main {
+        margin: 0 !important;
+        padding: 20px !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 20px !important;
+    }
+    
+    .kpi-card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+    
+    .chart-container {
+        break-inside: avoid;
+        page-break-after: auto;
+        margin-bottom: 20px !important;
+    }
+    
+    .ai-insights-section {
+        break-inside: avoid;
+    }
+    
+    .streams-table {
+        display: none !important;
+    }
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    ─── Module 7 — Goal Strategy Engine Panel ────────────────────────
    ═══════════════════════════════════════════════════════════════════ */
