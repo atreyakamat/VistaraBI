@@ -1,4 +1,0 @@
-appointment_id,patient_id,doctor_id,no_show_flag,admission_date,discharge_date
-APT-2001,PAT-APOLLO-01,DOC-101,false,2026-04-01,2026-04-03
-APT-2002,PAT-APOLLO-02,DOC-102,true,2026-04-01,
-APT-2003,PAT-FORTIS-03,DOC-101,false,2026-04-02,2026-04-05

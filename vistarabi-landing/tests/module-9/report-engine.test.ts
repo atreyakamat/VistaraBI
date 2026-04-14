@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../../src/app/api/v1/report/generate/route';
 
 // vi.mock calls are hoisted — use vi.hoisted() to share the spy reference
-const mockCallLocalModel = vi.hoisted(() =>
-  vi.fn().mockResolvedValue({ text: 'Mocked executive summary text.' })
+const mockGenerateWithFallback = vi.hoisted(() =>
+  vi.fn().mockResolvedValue({ content: 'Mocked executive summary text.' })
 );
 
-vi.mock('@/lib/module-6/infrastructure/local-adapter', () => ({
-  callLocalModel: mockCallLocalModel
+vi.mock('@/lib/ai/unified-ai-client', () => ({
+  generateWithFallback: mockGenerateWithFallback
 }));
 
 vi.mock('@react-pdf/renderer', () => {
@@ -25,7 +25,7 @@ vi.mock('@react-pdf/renderer', () => {
 describe('Module 9: Executive Board Report Engine API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCallLocalModel.mockResolvedValue({ text: 'Mocked executive summary text.' });
+    mockGenerateWithFallback.mockResolvedValue({ content: 'Mocked executive summary text.' });
   });
 
   it('should return 400 if required fields are missing', async () => {
@@ -101,19 +101,19 @@ describe('Module 9: Executive Board Report Engine API', () => {
 
     await POST(req);
 
-    // Verify Ollama was called once
-    expect(mockCallLocalModel).toHaveBeenCalledTimes(1);
+    // Verify unified AI client was called once
+    expect(mockGenerateWithFallback).toHaveBeenCalledTimes(1);
 
-    // Verify the prompt contains the probability value
-    const [systemPrompt, userPrompt, temperature] = mockCallLocalModel.mock.calls[0];
-    const fullPromptText = `${systemPrompt} ${userPrompt}`;
-    expect(fullPromptText).toContain('72.0%');
+    // Verify prompt payload shape + probability value
+    const requestPayload = mockGenerateWithFallback.mock.calls[0]?.[0];
+    const userPrompt = requestPayload?.messages?.[0]?.content ?? '';
+    expect(userPrompt).toContain('72.0%');
 
-    // Verify it uses low temperature for professional consistency (per spec)
-    expect(temperature).toBeLessThanOrEqual(0.3);
+    // Verify it uses low temperature for professional consistency
+    expect(requestPayload?.temperature).toBeLessThanOrEqual(0.3);
   });
 
-  it('should call the LLM with a prompt identifying it as an Executive Assistant', async () => {
+  it('should call the LLM with board-ready narrative instructions', async () => {
     const payload = {
       domain: 'ECOMMERCE',
       chartImage: 'data:image/png;base64,abc123',
@@ -128,11 +128,10 @@ describe('Module 9: Executive Board Report Engine API', () => {
 
     await POST(req);
 
-    const [systemPrompt, userPrompt] = mockCallLocalModel.mock.calls[0];
-    // Per spec: "You are an AI Executive Assistant" appears in the user/task prompt
-    // while the system prompt instructs the writing style
-    const fullText = `${systemPrompt} ${userPrompt}`.toLowerCase();
-    expect(fullText).toContain('executive');
+    const requestPayload = mockGenerateWithFallback.mock.calls[0]?.[0];
+    const userPrompt = requestPayload?.messages?.[0]?.content?.toLowerCase() ?? '';
+    expect(userPrompt).toContain('board-ready summary');
+    expect(userPrompt).toContain('domain: ecommerce');
   });
 
   it('should include the chatSummary in the LLM prompt context', async () => {
@@ -151,7 +150,8 @@ describe('Module 9: Executive Board Report Engine API', () => {
 
     await POST(req);
 
-    const [, userPrompt] = mockCallLocalModel.mock.calls[0];
+    const requestPayload = mockGenerateWithFallback.mock.calls[0]?.[0];
+    const userPrompt = requestPayload?.messages?.[0]?.content ?? '';
     expect(userPrompt).toContain(chatSummary);
   });
 
@@ -170,9 +170,12 @@ describe('Module 9: Executive Board Report Engine API', () => {
 
     const res = await POST(req);
 
-    // Should not crash and should still return 200
     expect(res.status).toBe(200);
-    expect(mockCallLocalModel).toHaveBeenCalledTimes(1);
+    expect(mockGenerateWithFallback).toHaveBeenCalledTimes(1);
+
+    const requestPayload = mockGenerateWithFallback.mock.calls[0]?.[0];
+    const userPrompt = requestPayload?.messages?.[0]?.content ?? '';
+    expect(userPrompt).toContain('Analysis of recent data trends.');
   });
 
   it('should include the strategy gap value in the LLM prompt', async () => {
@@ -190,8 +193,9 @@ describe('Module 9: Executive Board Report Engine API', () => {
 
     await POST(req);
 
-    const [, userPrompt] = mockCallLocalModel.mock.calls[0];
-    expect(userPrompt).toContain('12500');
+    const requestPayload = mockGenerateWithFallback.mock.calls[0]?.[0];
+    const userPrompt = requestPayload?.messages?.[0]?.content ?? '';
+    expect(userPrompt).toContain('$12500');
   });
 });
 

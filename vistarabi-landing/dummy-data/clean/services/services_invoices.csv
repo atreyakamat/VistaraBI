@@ -1,4 +1,0 @@
-invoice_id,client_id,revenue,project_cost,due_date,paid_flag,paid_date
-INV-101,CLT-TATA-01,500000.00,300000.00,2026-02-10,true,2026-02-08
-INV-102,CLT-RELIANCE-02,250000.00,150000.00,2026-04-15,false,
-INV-103,CLT-INFY-03,1000000.00,600000.00,2026-05-01,false,

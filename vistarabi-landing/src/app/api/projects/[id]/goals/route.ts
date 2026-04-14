@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { executeGoalPipeline } from '@/lib/module-7/goal-engine';
+import { extractLocationsFromSourceData, fallbackLocationsForDomain } from '@/lib/module-7/location-extractor';
 import { getCurrentUser } from '@/lib/auth';
 import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
 import { safeParseGeneratedPlan } from '@/lib/prisma/json-schemas';
@@ -50,7 +51,15 @@ export async function POST(
             where: { id: projectId, userId: user.userId },
             include: { 
                 domainGovernance: true,
-                sources: { select: { fileName: true } } // Basic for now
+                sources: {
+                    take: 6,
+                    orderBy: { uploadedAt: 'desc' },
+                    select: {
+                        fileName: true,
+                        columns: true,
+                        data: true,
+                    },
+                }
             }
         });
 
@@ -59,9 +68,17 @@ export async function POST(
         }
 
         const domain = project.domainGovernance?.activeDomain || 'GENERAL';
-        
-        // 2. Mock some locations for stage 7 (if data supports it, we'd fetch actual values)
-        const locations = ['Mumbai', 'Delhi', 'Bangalore'];
+
+        // 2. Derive real location candidates from uploaded source rows for Stage 7.
+        const inferredLocations = extractLocationsFromSourceData(
+            project.sources.map((source) => ({
+                columns: source.columns,
+                data: source.data,
+            }))
+        );
+        const locations = inferredLocations.length > 0
+            ? inferredLocations
+            : fallbackLocationsForDomain(domain);
 
         // 3. Execute the 7-stage Goal Pipeline
         console.log(`[Module 7] Executing Goal Engine for Project ${projectId}: "${rawQuery}"`);

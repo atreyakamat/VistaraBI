@@ -1,4 +1,0 @@
-patient_id,treatment_id,revenue,treatment_cost,claim_submitted_flag,claim_approved_flag
-PAT-APOLLO-01,TRT-001,45000.00,30000.00,true,true
-PAT-APOLLO-02,TRT-002,1500.00,800.00,false,false
-PAT-FORTIS-03,TRT-003,125000.00,80000.00,true,false

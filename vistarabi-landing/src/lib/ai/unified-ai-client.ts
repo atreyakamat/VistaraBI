@@ -91,7 +91,7 @@ function getModelConfigs(): AIModelConfig[] {
 
     // 1. Ollama Local (highest priority)
     const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-    const ollamaModel = process.env.OLLAMA_MODEL || 'qwen3.5:2b';
+    const ollamaModel = process.env.OLLAMA_MODEL || 'qwen3.5:0.8b';
     configs.push({
         provider: 'ollama-local',
         model: ollamaModel,
@@ -100,12 +100,16 @@ function getModelConfigs(): AIModelConfig[] {
     });
 
     // 2. Ollama Cloud (middle priority)
-    if (process.env.OLLAMA_CLOUD_URL && process.env.OLLAMA_CLOUD_API_KEY) {
+    const cloudUrl = process.env.OLLAMA_CLOUD_URL || process.env.CLOUD_AI_BASE_URL;
+    const cloudKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.CLOUD_AI_API_KEY;
+    const cloudModel = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'qwen3.5:397b';
+
+    if (cloudUrl && cloudKey) {
         configs.push({
             provider: 'ollama-cloud',
-            model: process.env.OLLAMA_CLOUD_MODEL || 'qwen3.5:397b',
-            baseUrl: process.env.OLLAMA_CLOUD_URL,
-            apiKey: process.env.OLLAMA_CLOUD_API_KEY,
+            model: cloudModel,
+            baseUrl: cloudUrl,
+            apiKey: cloudKey,
             timeout: 120000, // 120s for cloud
         });
     }

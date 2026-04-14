@@ -1,4 +1,0 @@
-batch_id,machine_id,units_produced,good_units,total_units,defects,scrap,material_used,downtime,date
-B-1001,MCH-A1,500,480,500,20,5.5,1000.00,2.5,2026-04-01
-B-1002,MCH-A2,300,290,300,10,2.1,600.00,0.5,2026-04-01
-B-1003,MCH-A1,550,540,550,10,3.0,1100.00,1.0,2026-04-02

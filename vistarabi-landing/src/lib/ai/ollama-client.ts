@@ -7,7 +7,7 @@ import { getDomainKPINames } from '@/lib/kpi/domain-metadata';
 import { generateWithFallback, type AIMessage } from './unified-ai-client';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:2b';
+const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3.5:0.8b';
 
 // ─── Domain-to-Model Router ───────────────────────────────────────────────────
 

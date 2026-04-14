@@ -1,4 +1,0 @@
-machine_id,running_time,available_time,availability,performance,quality_ratio,unit_cost
-MCH-A1,20,24,0.83,0.95,0.96,15.50
-MCH-A2,22,24,0.91,0.90,0.98,12.00
-MCH-B1,18,24,0.75,0.85,0.95,18.25

@@ -35,7 +35,7 @@ export const TASK_TIER_MAP: Record<Exclude<ReasoningTaskType, 'UNSUPPORTED'>, Mo
 
 // ─── Model Configuration ──────────────────────────────────────────────────────
 
-export const LOCAL_MODEL_ID = 'qwen3.5:2b';
+export const LOCAL_MODEL_ID = 'qwen3.5:0.8b';
 export const CLOUD_MODEL_ID = 'qwen-max';
 
 export const TASK_TEMPERATURE_MAP: Record<Exclude<ReasoningTaskType, 'UNSUPPORTED'>, number> = {

@@ -17,9 +17,12 @@
     "test:module-5": "vitest run tests/module-5",
     "test:6": "vitest run tests/module6a tests/module6b tests/module6c tests/module6d tests/module6e",
     "test:7": "vitest run tests/module-7",
+    "test:8": "vitest run tests/module-8",
     "test:9": "vitest run tests/module-9",
     "test:ci": "vitest run --exclude **/ollama-integration.test.ts",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "profile:domain": "npx tsx scripts/profile-domain-datasets.ts",
+    "ingest:retail": "npx tsx scripts/ingest-and-tune.ts RETAIL"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

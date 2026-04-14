@@ -1,5 +1,0 @@
-employee_id,project_id,billable_hours,total_hours,hours_worked,available_hours,date
-EMP-101,PRJ-2026-01,35,40,40,40,2026-04-01
-EMP-102,PRJ-2026-01,40,40,45,40,2026-04-01
-EMP-103,PRJ-2026-03,20,40,40,40,2026-04-01
-EMP-101,PRJ-2026-01,38,40,40,40,2026-04-08

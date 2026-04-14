@@ -30,7 +30,7 @@ describe('local-adapter — callLocalModel()', () => {
 
         const result = await callLocalModel('You are a narrator.', 'What happened?', 0.1);
         expect(result.text).toBe('Revenue increased by 12% month-over-month.');
-        expect(result.modelId).toBe('qwen3.5:2b');
+        expect(result.modelId).toBe('qwen3.5:0.8b');
         expect(result.inputTokens).toBe(10);
         expect(result.outputTokens).toBe(20);
         expect(typeof result.latencyMs).toBe('number');

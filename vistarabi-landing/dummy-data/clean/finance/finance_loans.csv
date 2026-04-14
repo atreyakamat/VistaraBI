@@ -1,4 +1,0 @@
-loan_id,customer_id,loan_amount,total_loans,interest_income,default_flag,npa
-LN-1001,CUST-001,500000.00,1,45000.00,false,0.00
-LN-1002,CUST-002,1500000.00,1,120000.00,true,1500000.00
-LN-1003,CUST-003,800000.00,2,72000.00,false,0.00

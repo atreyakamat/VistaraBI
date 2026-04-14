@@ -2,13 +2,10 @@ import React from 'react';
 import { NextResponse } from 'next/server';
 import { renderToStream } from '@react-pdf/renderer';
 import { ExecutiveReport } from '@/lib/module-9/ReportTemplate';
-import { callLocalModel } from '@/lib/module-6/infrastructure/local-adapter';
+import { generateWithFallback } from '@/lib/ai/unified-ai-client';
 
 async function generateExecutiveSummary(metrics: any, chatSummary: string, domain: string) {
   const prompt = `
-    You are an AI Executive Assistant for a ${domain} business. 
-    Write a 2-paragraph board-ready summary analyzing the current performance.
-    
     Context:
     - Domain: ${domain}
     - Probability of Strategy Success: ${(metrics.probability * 100).toFixed(1)}%
@@ -16,16 +13,18 @@ async function generateExecutiveSummary(metrics: any, chatSummary: string, domai
     - Target Goal: $${metrics.target}
     - Recent AI Chat Context: ${chatSummary}
 
+    Write a 2-paragraph board-ready summary analyzing the current performance.
     Output strictly the professional text, no markdown code blocks.
   `;
 
   try {
-    const response = await callLocalModel(
-      "You write concise business reports for executives.",
-      prompt,
-      0.2
-    );
-    return response.text;
+    const response = await generateWithFallback({
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.2,
+      agentRole: 'narrative-writer',
+      // We rely on unified-ai-client to route to Ollama cloud or local
+    });
+    return response.content;
   } catch (error) {
     console.error("AI Summary generation failed:", error);
     return "The strategic analysis indicates a stable trajectory with identified opportunities for growth in the core KPIs. Probability of success remains aligned with industry benchmarks.";

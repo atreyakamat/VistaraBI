@@ -3,9 +3,9 @@
 This document outlines how to use the automated ingestion system to keep your VistaraBI platform up-to-date with new data and ensure the AI models maintain a professional **Business Analyst** persona.
 
 ## 📁 Step 1: Uploading Datasets
-- Place your new CSV files into the `vistarabi-landing/datasets/` directory.
-- For best results, name the files according to the domain they belong to (e.g., `ecommerce_sales.csv`, `saas_churn.csv`).
-- The system will scan this folder during ingestion.
+- Place your CSV files inside `vistarabi-landing/datasets/<domain>/`.
+- Nested folders are supported (for example `datasets/retail/archive-1/...`); ingestion now scans recursively.
+- For best results, keep filenames descriptive (e.g., `ecommerce_sales.csv`, `saas_churn.csv`).
 
 ---
 
@@ -18,10 +18,11 @@ npx tsx scripts/ingest-and-tune.ts
 ```
 
 ### What happens during this step:
-1. **Schema Extraction**: The system reads the headers of your new datasets.
-2. **Business Analyst Tuning**: The `Modelfile.analytics.[domain]` files are updated with a specialized persona prompt derived from your real data.
-3. **Model Refresh**: `ollama create` is called to register the latest intelligence for each domain.
-4. **Coder Registration**: A new model, `vistara-coder`, is registered for UI/Card generation tasks.
+1. **Recursive Schema Extraction**: The system reads all CSV headers in the domain folder tree.
+2. **Feature Catalog Generation**: It writes a machine-readable feature profile to `datasets/<domain>/<domain>-feature-catalog.json`.
+3. **Business Analyst Tuning**: The `Modelfile.analytics.[domain]` files are regenerated with the active data catalog context.
+4. **Model Refresh**: `ollama create` registers updated domain intelligence.
+5. **Coder Registration**: On full runs, `vistara-coder` is refreshed for UI/Card generation tasks.
 
 ---
 
@@ -41,6 +42,12 @@ To verify that everything is working as expected, use the Data Brain CLI:
 
 ```bash
 npx tsx scripts/data-brain.ts "List all available tables across my domains."
+```
+
+To inspect one domain deeply before tuning:
+
+```bash
+npx tsx scripts/profile-domain-datasets.ts RETAIL
 ```
 
 ---
