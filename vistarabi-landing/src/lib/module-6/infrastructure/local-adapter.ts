@@ -13,10 +13,14 @@ function getLocalOllamaBaseUrl(): string {
 }
 
 function getCloudConfig() {
+    const url = (process.env.CLOUD_AI_BASE_URL || process.env.OLLAMA_CLOUD_URL)?.replace(/\/$/, '');
+    const key = process.env.CLOUD_AI_API_KEY || process.env.OLLAMA_CLOUD_API_KEY;
+    const model = process.env.CLOUD_AI_MODEL || process.env.OLLAMA_CLOUD_MODEL || 'qwen3.5:397b';
+
     return {
-        url: process.env.CLOUD_AI_BASE_URL?.replace(/\/$/, ''),
-        key: process.env.CLOUD_AI_API_KEY,
-        model: process.env.CLOUD_AI_MODEL ?? 'qwen3.5:397b-cloud'
+        url,
+        key,
+        model,
     };
 }
 

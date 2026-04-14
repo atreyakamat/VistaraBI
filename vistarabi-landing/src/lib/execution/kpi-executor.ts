@@ -26,7 +26,7 @@ import {
 import { loadBlueprintWithKPIs, type ApprovedKPIWithRelations } from '../kpi/blueprint-loader';
 import { getAllKPIs } from '../kpi/kpi-library';
 import { DashboardConfigSchema } from '../dashboard/schemas';
-import { ensureDataMaterialized } from './data-materializer';
+import { ensureDataMaterialized, getMaterializedTableName } from './data-materializer';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -93,13 +93,41 @@ export async function executeKPI(
         throw new Error(`[Executor] KPI "${targetKpiId}" lacks aggregation rules`);
     }
 
-    // Override generic "merged_data" with project-specific physical table
+    const projectMaterializedTable = getMaterializedTableName(projectId);
+
+    // Override generic "merged_data" with project-specific physical table.
     if (kpi.sourceTable === 'merged_data') {
-        kpi.sourceTable = `merged_data_${projectId.replace(/-/g, '_')}`;
+        kpi.sourceTable = projectMaterializedTable;
     }
 
-    // Fetch schema dynamically to bridge Semantic Library names -> physical table columns
-    const colRes = await pool.query<{ column_name: string; data_type: string }>(`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`, [kpi.sourceTable]);
+    // Fetch schema dynamically to bridge Semantic Library names -> physical table columns.
+    // If the requested source table is unavailable, fall back to project materialized table.
+    let colRes = await pool.query<{ column_name: string; data_type: string }>(
+        `SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`,
+        [kpi.sourceTable]
+    );
+
+    if (colRes.rows.length === 0 && kpi.sourceTable !== projectMaterializedTable) {
+        const fallbackSchema = await pool.query<{ column_name: string; data_type: string }>(
+            `SELECT column_name, data_type FROM information_schema.columns WHERE table_name = $1`,
+            [projectMaterializedTable]
+        );
+        if (fallbackSchema.rows.length > 0) {
+            console.warn(
+                `[Executor] Source table "${kpi.sourceTable}" not found for project ${projectId}. ` +
+                `Falling back to "${projectMaterializedTable}".`
+            );
+            kpi.sourceTable = projectMaterializedTable;
+            colRes = fallbackSchema;
+        }
+    }
+
+    if (colRes.rows.length === 0) {
+        throw new Error(
+            `[Executor] Source table "${kpi.sourceTable}" has no readable schema for project ${projectId}.`
+        );
+    }
+
     const actualCols = colRes.rows.map(r => r.column_name.toLowerCase());
     const colTypes = Object.fromEntries(colRes.rows.map(r => [r.column_name.toLowerCase(), r.data_type.toLowerCase()]));
 

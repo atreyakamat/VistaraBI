@@ -46,8 +46,8 @@ export const TASK_TEMPERATURE_MAP: Record<Exclude<ReasoningTaskType, 'UNSUPPORTE
     STRATEGIC_SUMMARY: 0.1,
 };
 
-export const LOCAL_TIMEOUT_MS = 2000;
-export const CLOUD_TIMEOUT_MS = 5000;
+export const LOCAL_TIMEOUT_MS = Number(process.env.LOCAL_TIMEOUT_MS ?? 2000);
+export const CLOUD_TIMEOUT_MS = Number(process.env.CLOUD_TIMEOUT_MS ?? 120000);
 export const MAX_TOKENS = 8192;
 export const MAX_QUERY_LENGTH = 500;  // chars, after sanitization
 

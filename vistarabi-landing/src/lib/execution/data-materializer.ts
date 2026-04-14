@@ -4,6 +4,13 @@ import pool from './pool';
 
 // Singleton promise to prevent concurrent materialization runs for the same project
 let materializationPromise: Promise<void> | null = null;
+const MATERIALIZATION_META_TABLE = 'merged_data_materialization_meta';
+
+interface MaterializationMetaRow {
+    project_id: string;
+    last_source_update: Date;
+    row_count: number;
+}
 
 interface DataRow {
     [key: string]: unknown;
@@ -28,6 +35,45 @@ function resolveColumnValue(row: DataRow, normalizedColumn: string): unknown {
     return row[matchedKey];
 }
 
+export function getMaterializedTableName(projectId: string): string {
+    return `merged_data_${projectId.replace(/-/g, '_')}`;
+}
+
+async function ensureMaterializationMetaTable(): Promise<void> {
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS "${MATERIALIZATION_META_TABLE}" (
+            project_id TEXT PRIMARY KEY,
+            last_source_update TIMESTAMPTZ NOT NULL,
+            row_count INTEGER NOT NULL DEFAULT 0,
+            materialized_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+    `);
+}
+
+async function readMaterializationMeta(projectId: string): Promise<MaterializationMetaRow | null> {
+    const res = await pool.query<MaterializationMetaRow>(
+        `SELECT project_id, last_source_update, row_count
+         FROM "${MATERIALIZATION_META_TABLE}"
+         WHERE project_id = $1`,
+        [projectId]
+    );
+    return res.rows[0] ?? null;
+}
+
+async function upsertMaterializationMeta(projectId: string, lastSourceUpdate: Date, rowCount: number): Promise<void> {
+    await pool.query(
+        `
+            INSERT INTO "${MATERIALIZATION_META_TABLE}" (project_id, last_source_update, row_count, materialized_at)
+            VALUES ($1, $2, $3, NOW())
+            ON CONFLICT (project_id) DO UPDATE
+            SET last_source_update = EXCLUDED.last_source_update,
+                row_count = EXCLUDED.row_count,
+                materialized_at = NOW();
+        `,
+        [projectId, lastSourceUpdate, rowCount]
+    );
+}
+
 /**
  * Ensures the physical "merged_data" table exists and contains data for the specified project.
  * If the table is missing, it will be created.
@@ -38,7 +84,28 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
 
     materializationPromise = (async () => {
         try {
-            const tableName = `merged_data_${projectId.replace(/-/g, '_')}`;
+            const tableName = getMaterializedTableName(projectId);
+            await ensureMaterializationMetaTable();
+
+            const sourceFreshness = await db.source.findMany({
+                where: { projectId },
+                select: {
+                    updatedAt: true,
+                    cleanedDataset: {
+                        select: {
+                            cleanedAt: true,
+                        },
+                    },
+                },
+            });
+
+            const hasSources = sourceFreshness.length > 0;
+            const latestSourceUpdate = sourceFreshness.reduce((latest, source) => {
+                const sourceUpdatedAt = source.updatedAt ?? new Date(0);
+                const cleanedUpdatedAt = source.cleanedDataset?.cleanedAt ?? new Date(0);
+                const candidate = sourceUpdatedAt > cleanedUpdatedAt ? sourceUpdatedAt : cleanedUpdatedAt;
+                return candidate > latest ? candidate : latest;
+            }, new Date(0));
 
             // 1. Check if table exists
             const tableCheck = await pool.query<{ exists: boolean }>(`
@@ -51,9 +118,16 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
             const tableExists = tableCheck.rows[0].exists;
 
             if (tableExists) {
-                // For now, if table exists, check if it has data.
                 const countCheck = await pool.query<{ count: string }>(`SELECT COUNT(*) FROM "${tableName}"`);
-                if (parseInt(countCheck.rows[0].count, 10) > 0) {
+                const rowCount = parseInt(countCheck.rows[0].count, 10);
+                const meta = await readMaterializationMeta(projectId);
+                const tableIsFresh =
+                    hasSources &&
+                    rowCount > 0 &&
+                    !!meta &&
+                    meta.last_source_update.getTime() >= latestSourceUpdate.getTime();
+
+                if (tableIsFresh) {
                     return;
                 }
             }
@@ -69,6 +143,10 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
 
             if (!sources.length) {
                 console.warn(`[Materializer] No sources found for project: ${projectId}`);
+                if (tableExists) {
+                    await pool.query(`DELETE FROM "${tableName}"`);
+                }
+                await upsertMaterializationMeta(projectId, new Date(), 0);
                 return;
             }
 
@@ -134,6 +212,12 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
                     await pool.query(`ALTER TABLE "${tableName}" ALTER COLUMN "${c}" TYPE NUMERIC USING "${c}"::NUMERIC;`);
                 } catch (e) { /* not numeric, skip */ }
             }
+
+            await upsertMaterializationMeta(
+                projectId,
+                latestSourceUpdate.getTime() > 0 ? latestSourceUpdate : new Date(),
+                allRows.length
+            );
 
             console.log(`[Materializer] ✅ Data materialized for project ${projectId}`);
         } finally {
