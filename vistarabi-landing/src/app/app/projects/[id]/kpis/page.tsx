@@ -265,8 +265,8 @@ export default function KPIWorkspacePage() {
 
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-2">
                             <div className="flex flex-wrap gap-2">
-                                {kpi.matchedColumns.map((col) => (
-                                    <span key={col} className="px-2.5 py-1 bg-[var(--background)] border border-[var(--border)] text-[var(--muted)] text-[10px] font-bold rounded-lg uppercase tracking-wider">
+                                {kpi.matchedColumns.map((col, index) => (
+                                    <span key={`${col}-${index}`} className="px-2.5 py-1 bg-[var(--background)] border border-[var(--border)] text-[var(--muted)] text-[10px] font-bold rounded-lg uppercase tracking-wider">
                                         {col}
                                     </span>
                                 ))}
