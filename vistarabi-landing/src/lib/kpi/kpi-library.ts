@@ -2,6 +2,7 @@
 // Module 4 Phase 4A
 
 import type { DomainType } from '../prisma';
+import { DOMAIN_ALIASES } from './semantic-column-aliases';
 
 export interface KPIDefinition {
     id: string;
@@ -17,8 +18,26 @@ export interface KPIDefinition {
     priority: number;
 }
 
+/**
+ * Helper to enrich a list of KPIs with the latest semantic aliases for their domain.
+ */
+function enrichKPIs(kpis: KPIDefinition[], domain: DomainType): KPIDefinition[] {
+    const domainAliases = DOMAIN_ALIASES[domain] || {};
+    return kpis.map(kpi => {
+        const enhancedAliases: Record<string, string[]> = { ...kpi.columnAliases };
+        for (const field of kpi.requiredFields) {
+            // Check if field exists in domainAliases or universal aliases
+            const globalAliases = (domainAliases as any)[field] || [];
+            if (globalAliases.length > 0) {
+                enhancedAliases[field] = Array.from(new Set([...(enhancedAliases[field] || []), ...globalAliases]));
+            }
+        }
+        return { ...kpi, columnAliases: enhancedAliases };
+    });
+}
+
 // E-COMMERCE KPIs (20)
-export const ECOMMERCE_KPIS: KPIDefinition[] = [
+const RAW_ECOMMERCE_KPIS: KPIDefinition[] = [
     { id: 'ec-001', name: 'Total Revenue', domain: 'ECOMMERCE', description: 'Sum of all order values', formulaTemplate: 'SUM(revenue)', aggregationRules: [{ function: 'SUM', column: 'revenue' }], defaultVisualizationHint: 'metric_card', requiredFields: ['revenue'], columnAliases: { revenue: ['total_amount', 'order_value', 'sales', 'amount', 'price', 'order_total'] }, category: 'revenue', priority: 1 },
     { id: 'ec-002', name: 'Orders Count', domain: 'ECOMMERCE', description: 'Total number of orders', formulaTemplate: 'COUNT(order_id)', aggregationRules: [{ function: 'COUNT', column: 'order_id' }], defaultVisualizationHint: 'bar_chart', requiredFields: ['order_id'], columnAliases: { order_id: ['order_number', 'transaction_id', 'invoice_id'] }, category: 'volume', priority: 2 },
     { id: 'ec-003', name: 'Average Order Value', domain: 'ECOMMERCE', description: 'Revenue per order', formulaTemplate: 'SUM(revenue) / COUNT(order_id)', aggregationRules: [{ function: 'SUM', column: 'revenue' }, { function: 'COUNT', column: 'order_id' }], defaultVisualizationHint: 'metric_card', requiredFields: ['revenue', 'order_id'], columnAliases: { revenue: ['total_amount', 'order_value'], order_id: ['order_number'] }, category: 'revenue', priority: 3 },
@@ -41,8 +60,10 @@ export const ECOMMERCE_KPIS: KPIDefinition[] = [
     { id: 'ec-020', name: 'Top Selling Products', domain: 'ECOMMERCE', description: 'Best performers by revenue', formulaTemplate: 'SUM(revenue) GROUP BY product ORDER BY DESC LIMIT 10', aggregationRules: [{ function: 'SUM', column: 'revenue' }], defaultVisualizationHint: 'bar_chart', requiredFields: ['revenue', 'product'], columnAliases: { revenue: ['order_value'], product: ['product_name', 'sku'] }, category: 'product', priority: 20 },
 ];
 
+export const ECOMMERCE_KPIS = enrichKPIs(RAW_ECOMMERCE_KPIS, 'ECOMMERCE');
+
 // SAAS KPIs (20)
-export const SAAS_KPIS: KPIDefinition[] = [
+const RAW_SAAS_KPIS: KPIDefinition[] = [
     { id: 'saas-001', name: 'Monthly Recurring Revenue', domain: 'SAAS', description: 'Total monthly subscription revenue', formulaTemplate: 'SUM(mrr)', aggregationRules: [{ function: 'SUM', column: 'mrr' }], defaultVisualizationHint: 'metric_card', requiredFields: ['mrr'], columnAliases: { mrr: ['monthly_revenue', 'subscription_fee', 'plan_price'] }, category: 'revenue', priority: 1 },
     { id: 'saas-002', name: 'Annual Recurring Revenue', domain: 'SAAS', description: 'MRR × 12', formulaTemplate: 'SUM(mrr) * 12', aggregationRules: [{ function: 'SUM', column: 'mrr' }], defaultVisualizationHint: 'metric_card', requiredFields: ['mrr'], columnAliases: { mrr: ['arr', 'annual_revenue'] }, category: 'revenue', priority: 2 },
     { id: 'saas-003', name: 'Churn Rate', domain: 'SAAS', description: 'Lost customers / Total', formulaTemplate: 'COUNT(churned) / COUNT(customer_id)', aggregationRules: [{ function: 'COUNT', column: 'churned' }, { function: 'COUNT', column: 'customer_id' }], defaultVisualizationHint: 'metric_card', requiredFields: ['churned', 'customer_id'], columnAliases: { churned: ['cancelled', 'lost'] }, category: 'retention', priority: 3 },
@@ -65,8 +86,10 @@ export const SAAS_KPIS: KPIDefinition[] = [
     { id: 'saas-020', name: 'Usage per User', domain: 'SAAS', description: 'Average platform usage', formulaTemplate: 'SUM(usage_minutes) / COUNT(DISTINCT user_id)', aggregationRules: [{ function: 'SUM', column: 'usage_minutes' }, { function: 'COUNT_DISTINCT', column: 'user_id' }], defaultVisualizationHint: 'metric_card', requiredFields: ['usage_minutes', 'user_id'], columnAliases: { usage_minutes: ['session_time', 'time_spent'] }, category: 'engagement', priority: 20 },
 ];
 
-// Remaining domains follow same pattern - will add in next file
-export const EDTECH_KPIS: KPIDefinition[] = [
+export const SAAS_KPIS = enrichKPIs(RAW_SAAS_KPIS, 'SAAS');
+
+// Remaining domains follow same pattern
+const RAW_EDTECH_KPIS: KPIDefinition[] = [
     { id: 'ed-001', name: 'Total Enrollments', domain: 'EDTECH', description: 'Total course enrollments', formulaTemplate: 'COUNT(enrollment_id)', aggregationRules: [{ function: 'COUNT', column: 'enrollment_id' }], defaultVisualizationHint: 'bar_chart', requiredFields: ['enrollment_id'], columnAliases: { enrollment_id: ['registration_id', 'signup_id'] }, category: 'volume', priority: 1 },
     { id: 'ed-002', name: 'Course Completion Rate', domain: 'EDTECH', description: 'Completed / Enrolled', formulaTemplate: 'COUNT(completed) / COUNT(enrolled)', aggregationRules: [{ function: 'COUNT', column: 'completed' }, { function: 'COUNT', column: 'enrolled' }], defaultVisualizationHint: 'metric_card', requiredFields: ['completed', 'enrolled'], columnAliases: {}, category: 'engagement', priority: 2 },
     { id: 'ed-003', name: 'Student Engagement Rate', domain: 'EDTECH', description: 'Active learners ratio', formulaTemplate: 'COUNT(active_students) / COUNT(total_students)', aggregationRules: [{ function: 'COUNT', column: 'active_students' }, { function: 'COUNT', column: 'total_students' }], defaultVisualizationHint: 'metric_card', requiredFields: ['active_students', 'total_students'], columnAliases: {}, category: 'engagement', priority: 3 },
@@ -79,7 +102,9 @@ export const EDTECH_KPIS: KPIDefinition[] = [
     { id: 'ed-010', name: 'Student Retention Rate', domain: 'EDTECH', description: 'Returning students', formulaTemplate: 'COUNT(returning) / COUNT(previous_enrolled)', aggregationRules: [{ function: 'COUNT', column: 'returning' }, { function: 'COUNT', column: 'previous_enrolled' }], defaultVisualizationHint: 'metric_card', requiredFields: ['returning', 'previous_enrolled'], columnAliases: {}, category: 'retention', priority: 10 },
 ];
 
-export const RETAIL_KPIS: KPIDefinition[] = [
+export const EDTECH_KPIS = enrichKPIs(RAW_EDTECH_KPIS, 'EDTECH');
+
+const RAW_RETAIL_KPIS: KPIDefinition[] = [
     { id: 'rt-001', name: 'Total Sales', domain: 'RETAIL', description: 'Sum of all sales', formulaTemplate: 'SUM(sales)', aggregationRules: [{ function: 'SUM', column: 'sales' }], defaultVisualizationHint: 'metric_card', requiredFields: ['sales'], columnAliases: { sales: ['revenue', 'amount', 'total'] }, category: 'revenue', priority: 1 },
     { id: 'rt-002', name: 'Sales Growth', domain: 'RETAIL', description: 'Period over period', formulaTemplate: '(current - previous) / previous', aggregationRules: [], defaultVisualizationHint: 'line_chart', requiredFields: ['sales', 'date'], columnAliases: {}, category: 'growth', priority: 2 },
     { id: 'rt-003', name: 'Inventory Turnover', domain: 'RETAIL', description: 'Stock rotation', formulaTemplate: 'SUM(cogs) / AVG(inventory)', aggregationRules: [{ function: 'SUM', column: 'cogs' }, { function: 'AVG', column: 'inventory' }], defaultVisualizationHint: 'metric_card', requiredFields: ['cogs', 'inventory'], columnAliases: { inventory: ['stock', 'stock_value'] }, category: 'operations', priority: 3 },
@@ -92,7 +117,9 @@ export const RETAIL_KPIS: KPIDefinition[] = [
     { id: 'rt-010', name: 'Sell-through Rate', domain: 'RETAIL', description: 'Sold vs received', formulaTemplate: 'SUM(sold) / SUM(received)', aggregationRules: [{ function: 'SUM', column: 'sold' }, { function: 'SUM', column: 'received' }], defaultVisualizationHint: 'metric_card', requiredFields: ['sold', 'received'], columnAliases: {}, category: 'operations', priority: 10 },
 ];
 
-export const SERVICES_KPIS: KPIDefinition[] = [
+export const RETAIL_KPIS = enrichKPIs(RAW_RETAIL_KPIS, 'RETAIL');
+
+const RAW_SERVICES_KPIS: KPIDefinition[] = [
     { id: 'sv-001', name: 'Total Revenue', domain: 'SERVICES', description: 'Sum of billings', formulaTemplate: 'SUM(revenue)', aggregationRules: [{ function: 'SUM', column: 'revenue' }], defaultVisualizationHint: 'metric_card', requiredFields: ['revenue'], columnAliases: { revenue: ['billing', 'invoice_amount'] }, category: 'revenue', priority: 1 },
     { id: 'sv-002', name: 'Billable Utilization Rate', domain: 'SERVICES', description: 'Billable / Total hours', formulaTemplate: 'SUM(billable_hours) / SUM(total_hours)', aggregationRules: [{ function: 'SUM', column: 'billable_hours' }, { function: 'SUM', column: 'total_hours' }], defaultVisualizationHint: 'metric_card', requiredFields: ['billable_hours', 'total_hours'], columnAliases: {}, category: 'efficiency', priority: 2 },
     { id: 'sv-003', name: 'Average Billing Rate', domain: 'SERVICES', description: 'Revenue per hour', formulaTemplate: 'SUM(revenue) / SUM(billable_hours)', aggregationRules: [{ function: 'SUM', column: 'revenue' }, { function: 'SUM', column: 'billable_hours' }], defaultVisualizationHint: 'metric_card', requiredFields: ['revenue', 'billable_hours'], columnAliases: {}, category: 'revenue', priority: 3 },
@@ -105,7 +132,9 @@ export const SERVICES_KPIS: KPIDefinition[] = [
     { id: 'sv-010', name: 'Delivery Timeliness', domain: 'SERVICES', description: 'On-time deliveries', formulaTemplate: 'COUNT(on_time) / COUNT(total_deliveries)', aggregationRules: [{ function: 'COUNT', column: 'on_time' }, { function: 'COUNT', column: 'total_deliveries' }], defaultVisualizationHint: 'metric_card', requiredFields: ['on_time', 'total_deliveries'], columnAliases: {}, category: 'performance', priority: 10 },
 ];
 
-export const MANUFACTURING_KPIS: KPIDefinition[] = [
+export const SERVICES_KPIS = enrichKPIs(RAW_SERVICES_KPIS, 'SERVICES');
+
+const RAW_MANUFACTURING_KPIS: KPIDefinition[] = [
     { id: 'mf-001', name: 'Production Output', domain: 'MANUFACTURING', description: 'Units produced', formulaTemplate: 'SUM(units_produced)', aggregationRules: [{ function: 'SUM', column: 'units_produced' }], defaultVisualizationHint: 'bar_chart', requiredFields: ['units_produced'], columnAliases: { units_produced: ['output', 'production_qty'] }, category: 'volume', priority: 1 },
     { id: 'mf-002', name: 'Yield Rate', domain: 'MANUFACTURING', description: 'Good units ratio', formulaTemplate: 'SUM(good_units) / SUM(total_units)', aggregationRules: [{ function: 'SUM', column: 'good_units' }, { function: 'SUM', column: 'total_units' }], defaultVisualizationHint: 'metric_card', requiredFields: ['good_units', 'total_units'], columnAliases: {}, category: 'quality', priority: 2 },
     { id: 'mf-003', name: 'Defect Rate', domain: 'MANUFACTURING', description: 'Defective ratio', formulaTemplate: 'SUM(defects) / SUM(total_units)', aggregationRules: [{ function: 'SUM', column: 'defects' }, { function: 'SUM', column: 'total_units' }], defaultVisualizationHint: 'metric_card', requiredFields: ['defects', 'total_units'], columnAliases: { defects: ['rejects', 'failures'] }, category: 'quality', priority: 3 },
@@ -118,7 +147,9 @@ export const MANUFACTURING_KPIS: KPIDefinition[] = [
     { id: 'mf-010', name: 'Lead Time', domain: 'MANUFACTURING', description: 'Order to delivery', formulaTemplate: 'AVG(delivery_date - order_date)', aggregationRules: [], defaultVisualizationHint: 'metric_card', requiredFields: ['delivery_date', 'order_date'], columnAliases: {}, category: 'operations', priority: 10 },
 ];
 
-export const HEALTHCARE_KPIS: KPIDefinition[] = [
+export const MANUFACTURING_KPIS = enrichKPIs(RAW_MANUFACTURING_KPIS, 'MANUFACTURING');
+
+const RAW_HEALTHCARE_KPIS: KPIDefinition[] = [
     { id: 'hc-001', name: 'Patient Count', domain: 'HEALTHCARE', description: 'Total patients', formulaTemplate: 'COUNT(DISTINCT patient_id)', aggregationRules: [{ function: 'COUNT_DISTINCT', column: 'patient_id' }], defaultVisualizationHint: 'bar_chart', requiredFields: ['patient_id'], columnAliases: { patient_id: ['member_id', 'beneficiary_id'] }, category: 'volume', priority: 1 },
     { id: 'hc-002', name: 'Appointment No-show Rate', domain: 'HEALTHCARE', description: 'Missed appointments', formulaTemplate: 'COUNT(no_show) / COUNT(appointment_id)', aggregationRules: [{ function: 'COUNT', column: 'no_show' }, { function: 'COUNT', column: 'appointment_id' }], defaultVisualizationHint: 'metric_card', requiredFields: ['no_show', 'appointment_id'], columnAliases: {}, category: 'operations', priority: 2 },
     { id: 'hc-003', name: 'Bed Occupancy Rate', domain: 'HEALTHCARE', description: 'Beds in use', formulaTemplate: 'SUM(occupied_beds) / SUM(total_beds)', aggregationRules: [{ function: 'SUM', column: 'occupied_beds' }, { function: 'SUM', column: 'total_beds' }], defaultVisualizationHint: 'metric_card', requiredFields: ['occupied_beds', 'total_beds'], columnAliases: {}, category: 'capacity', priority: 3 },
@@ -131,7 +162,9 @@ export const HEALTHCARE_KPIS: KPIDefinition[] = [
     { id: 'hc-010', name: 'Cost per Treatment', domain: 'HEALTHCARE', description: 'Treatment economics', formulaTemplate: 'SUM(cost) / COUNT(treatment_id)', aggregationRules: [{ function: 'SUM', column: 'cost' }, { function: 'COUNT', column: 'treatment_id' }], defaultVisualizationHint: 'metric_card', requiredFields: ['cost', 'treatment_id'], columnAliases: {}, category: 'cost', priority: 10 },
 ];
 
-export const FINANCE_KPIS: KPIDefinition[] = [
+export const HEALTHCARE_KPIS = enrichKPIs(RAW_HEALTHCARE_KPIS, 'HEALTHCARE');
+
+const RAW_FINANCE_KPIS: KPIDefinition[] = [
     { id: 'fn-001', name: 'Total Transactions', domain: 'FINANCE', description: 'Transaction count', formulaTemplate: 'COUNT(transaction_id)', aggregationRules: [{ function: 'COUNT', column: 'transaction_id' }], defaultVisualizationHint: 'bar_chart', requiredFields: ['transaction_id'], columnAliases: { transaction_id: ['txn_id', 'payment_id'] }, category: 'volume', priority: 1 },
     { id: 'fn-002', name: 'Net Profit', domain: 'FINANCE', description: 'Revenue minus expenses', formulaTemplate: 'SUM(revenue) - SUM(expenses)', aggregationRules: [{ function: 'SUM', column: 'revenue' }, { function: 'SUM', column: 'expenses' }], defaultVisualizationHint: 'metric_card', requiredFields: ['revenue', 'expenses'], columnAliases: {}, category: 'profitability', priority: 2 },
     { id: 'fn-003', name: 'Cash Flow', domain: 'FINANCE', description: 'Net cash movement', formulaTemplate: 'SUM(inflow) - SUM(outflow)', aggregationRules: [{ function: 'SUM', column: 'inflow' }, { function: 'SUM', column: 'outflow' }], defaultVisualizationHint: 'metric_card', requiredFields: ['inflow', 'outflow'], columnAliases: { inflow: ['receipts'], outflow: ['payments'] }, category: 'liquidity', priority: 3 },
@@ -143,6 +176,8 @@ export const FINANCE_KPIS: KPIDefinition[] = [
     { id: 'fn-009', name: 'Interest Income', domain: 'FINANCE', description: 'Interest earned', formulaTemplate: 'SUM(interest_income)', aggregationRules: [{ function: 'SUM', column: 'interest_income' }], defaultVisualizationHint: 'metric_card', requiredFields: ['interest_income'], columnAliases: { interest_income: ['interest_earned'] }, category: 'revenue', priority: 9 },
     { id: 'fn-010', name: 'Fraud Rate', domain: 'FINANCE', description: 'Fraudulent transactions', formulaTemplate: 'COUNT(fraud) / COUNT(transaction_id)', aggregationRules: [{ function: 'COUNT', column: 'fraud' }, { function: 'COUNT', column: 'transaction_id' }], defaultVisualizationHint: 'metric_card', requiredFields: ['fraud', 'transaction_id'], columnAliases: { fraud: ['suspicious', 'flagged'] }, category: 'risk', priority: 10 },
 ];
+
+export const FINANCE_KPIS = enrichKPIs(RAW_FINANCE_KPIS, 'FINANCE');
 
 // Master library by domain
 export const KPI_LIBRARY: Record<DomainType, KPIDefinition[]> = {

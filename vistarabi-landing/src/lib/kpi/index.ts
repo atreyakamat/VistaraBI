@@ -91,24 +91,42 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
     // Instead of raw columns array, use the Headless Domain Matcher
     const matches = matchKPIsForDomain(domain, columns);
 
-    const computableKPIs: DiscoveredKPI[] = matches.map((match) => ({
-        id: randomUUID(),
-        projectId,
-        kpiId: match.kpi.id,
-        kpiName: match.kpi.name,
-        domain,
-        confidence: match.confidence,
-        matchType: match.matchType,
-        explanation: match.kpi.description,
-        matchedColumns: match.matchedColumns.map(c => c.columnName),
-        formulaExpression: match.kpi.formulaTemplate,
-        category: match.kpi.category,
-        priority: match.kpi.priority,
-        isComputable: match.isComputable,
-        supportStatus: match.supportStatus,
-        aggregations: match.kpi.aggregationRules,
-        discoveredAt: new Date(),
-    }));
+    const computableKPIs: DiscoveredKPI[] = matches.map((match) => {
+        // Map semantic roles in aggregations to actual physical columns found during matching
+        const resolvedAggregations = match.kpi.aggregationRules.map(agg => {
+            const columnMatch = match.matchedColumns.find(mc => mc.requiredColumn === agg.semanticRole);
+            return {
+                function: agg.function,
+                column: columnMatch ? columnMatch.columnName : agg.semanticRole
+            };
+        });
+
+        // Resolve the formula template placeholders to actual column names
+        let formulaExpression = match.kpi.formulaTemplate;
+        match.matchedColumns.forEach(mc => {
+            const placeholder = new RegExp(`\\{${mc.requiredColumn}\\}`, 'g');
+            formulaExpression = formulaExpression.replace(placeholder, mc.columnName);
+        });
+
+        return {
+            id: randomUUID(),
+            projectId,
+            kpiId: match.kpi.id,
+            kpiName: match.kpi.name,
+            domain,
+            confidence: match.confidence,
+            matchType: match.matchType,
+            explanation: match.kpi.description,
+            matchedColumns: match.matchedColumns.map(c => c.columnName),
+            formulaExpression,
+            category: match.kpi.category,
+            priority: match.kpi.priority,
+            isComputable: match.isComputable,
+            supportStatus: match.supportStatus,
+            aggregations: resolvedAggregations,
+            discoveredAt: new Date(),
+        };
+    });
 
     const result: KPIDiscoveryResult = {
         projectId,

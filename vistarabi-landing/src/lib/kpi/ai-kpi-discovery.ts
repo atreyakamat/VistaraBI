@@ -107,33 +107,41 @@ async function gatherDiscoveryContext(projectId: string): Promise<DiscoveryConte
     };
 }
 
-// ─── Formula → Aggregation Parser ────────────────────────────────────────────
-
 /**
- * Extract a structured aggregation rule from a formula string like
- * "SUM(order_value)", "COUNT(order_id)", "AVG(unit_price) / COUNT(order_id)"
- * Falls back to SUM on the first column mentioned if no function found.
+ * Extract multiple structured aggregation rules from a formula string like
+ * "SUM(order_total) / COUNT(order_id)"
  */
-function formulaToAggregation(
+function formulaToAggregations(
     formula: string,
     availableColumns: string[]
-): { function: string; column: string } | null {
-    // Try to match AGG_FUNC(column_name)
-    const fnMatch = formula.match(/\b(SUM|COUNT|AVG|MIN|MAX|COUNT_DISTINCT|DISTINCT_COUNT)\s*\(\s*([\w_]+)\s*\)/i);
-    if (fnMatch) {
-        const fn = fnMatch[1].toUpperCase();
-        const col = fnMatch[2];
-        // Verify col is a real column
+): { function: string; column: string }[] {
+    const aggregations: { function: string; column: string }[] = [];
+    
+    // Try to match all occurrences of AGG_FUNC(column_name)
+    const matches = formula.matchAll(/\b(SUM|COUNT|AVG|MIN|MAX|COUNT_DISTINCT|DISTINCT_COUNT)\s*\(\s*([\w_]+)\s*\)/gi);
+    
+    for (const match of matches) {
+        const fn = match[1].toUpperCase();
+        const col = match[2];
         const matched = availableColumns.find(c => c.toLowerCase() === col.toLowerCase());
-        if (matched) return { function: fn, column: matched };
-    }
-    // Fallback: find any known column mentioned in the formula
-    for (const col of availableColumns) {
-        if (formula.toLowerCase().includes(col.toLowerCase())) {
-            return { function: 'SUM', column: col };
+        if (matched) {
+            // Prevent duplicate aggregations for the same column and function
+            if (!aggregations.some(a => a.function === fn && a.column === matched)) {
+                aggregations.push({ function: fn, column: matched });
+            }
         }
     }
-    return null;
+
+    // Fallback: If no AGG_FUNC found, but columns are mentioned, assume SUM
+    if (aggregations.length === 0) {
+        for (const col of availableColumns) {
+            if (new RegExp(`\\b${col}\\b`, 'i').test(formula)) {
+                aggregations.push({ function: 'SUM', column: col });
+            }
+        }
+    }
+
+    return aggregations;
 }
 
 // Invent KPIs from columns using Ollama
@@ -160,9 +168,6 @@ async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIPr
     console.log('[AI-Discovery] 📤 Calling Ollama KPI suggestions (model: ' + KPI_DISCOVERY_MODEL + ')...');
 
     try {
-        // generateKPISuggestions uses generateSimple internally.
-        // Override to a more capable model by temporarily setting env.
-        // We call it with the columns and ask for ecommerce-specific KPIs.
         const suggestions = await generateKPISuggestions(
             sampleCols,
             sampleRows,
@@ -176,7 +181,7 @@ async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIPr
             return [];
         }
 
-        // Convert to AIKPIProposal format, parsing formula → aggregation
+        // Convert to AIKPIProposal format, parsing formula → aggregations
         const proposals: AIKPIProposal[] = [];
 
         for (let idx = 0; idx < suggestions.length; idx++) {
@@ -184,17 +189,15 @@ async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIPr
             if (!kpi.name || !kpi.formula) continue;
 
             // Validate formula references real columns (hallucination guard)
-            const agg = formulaToAggregation(kpi.formula, context.allColumns);
-            if (!agg) {
+            const aggs = formulaToAggregations(kpi.formula, context.allColumns);
+            if (aggs.length === 0) {
                 console.log('[AI-Discovery]   ⚠️ Skipping KPI (no real column in formula):', kpi.name, '|', kpi.formula);
                 continue;
             }
 
-            const contributingColumns = context.allColumns.filter(col =>
-                kpi.formula.toLowerCase().includes(col.toLowerCase())
-            );
+            const contributingColumns = aggs.map(a => a.column);
 
-            console.log('[AI-Discovery]   ✓ KPI:', kpi.name, '| Agg:', agg.function + '(' + agg.column + ')', '| Cols:', contributingColumns.join(', '));
+            console.log('[AI-Discovery]   ✓ KPI:', kpi.name, '| Aggs:', aggs.map(a => `${a.function}(${a.column})`).join(', '));
 
             proposals.push({
                 id: `ai-inv-${Date.now()}-${idx}`,
@@ -214,10 +217,10 @@ async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIPr
                 status: 'PENDING' as const,
                 ollamaModel: KPI_DISCOVERY_MODEL,
                 createdAt: new Date(),
-                // Store aggregation so blueprint route can use it
-                _aggregation: agg,
+                // Store aggregations so blueprint route can use it
+                _aggregations: aggs,
                 _sourceTable: contributingColumns[0] ? 'merged_data' : 'unknown',
-            } as AIKPIProposal & { _aggregation: { function: string; column: string }; _sourceTable: string });
+            } as AIKPIProposal & { _aggregations: { function: string; column: string }[]; _sourceTable: string });
         }
 
         console.log('[AI-Discovery] ✓ Created', proposals.length, 'valid AI-invented proposals');

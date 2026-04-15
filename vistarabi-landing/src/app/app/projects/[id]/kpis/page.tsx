@@ -150,6 +150,7 @@ export default function KPIWorkspacePage() {
                     kpi: {
                         id: kpi.kpiId,
                         name: kpi.kpiName,
+                        description: kpi.explanation,
                         aggregations: kpi.aggregations || kpi.matchedColumns.map(c => ({ function: "SUM", column: c })),
                         sourceTable: "merged_data",
                         groupBy: null,
