@@ -94,10 +94,10 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
     const computableKPIs: DiscoveredKPI[] = matches.map((match) => {
         // Map semantic roles in aggregations to actual physical columns found during matching
         const resolvedAggregations = match.kpi.aggregationRules.map(agg => {
-            const columnMatch = match.matchedColumns.find(mc => mc.requiredColumn === agg.semanticRole);
+            const columnMatch = match.matchedColumns.find(mc => mc.requiredColumn === agg.column);
             return {
                 function: agg.function,
-                column: columnMatch ? columnMatch.columnName : agg.semanticRole
+                column: columnMatch ? columnMatch.columnName : agg.column
             };
         });
 

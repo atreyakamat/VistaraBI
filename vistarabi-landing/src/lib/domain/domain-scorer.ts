@@ -46,6 +46,28 @@ export function calculateDomainScores(scanResult: ScanResult): ScoringResult {
         });
     }
 
+    // Apply heuristic guidelines to prevent RETAIL vs ECOMMERCE confusion
+    const ecomScore = scores.find(s => s.domain === 'ECOMMERCE');
+    const retailScore = scores.find(s => s.domain === 'RETAIL');
+
+    if (ecomScore && retailScore && (ecomScore.confidence > 0 || retailScore.confidence > 0)) {
+        // Exclusive E-Commerce signals
+        const ecomExclusive = ['cart', 'checkout', 'shipping', 'delivery', 'session', 'visitor'];
+        const ecomExclusiveCount = ecomExclusive.filter(kw => scanResult.matchesByDomain['ECOMMERCE'].some(m => m.matchedKeyword.includes(kw))).length;
+
+        // Exclusive Retail signals
+        const retailExclusive = ['store', 'pos', 'inventory', 'shelf', 'aisle', 'footfall', 'barcode', 'shrinkage'];
+        const retailExclusiveCount = retailExclusive.filter(kw => scanResult.matchesByDomain['RETAIL'].some(m => m.matchedKeyword.includes(kw))).length;
+
+        if (retailExclusiveCount > ecomExclusiveCount) {
+            retailScore.confidence += 20; // Boost Retail
+            ecomScore.confidence = Math.max(0, ecomScore.confidence - 10); // Penalize Ecom
+        } else if (ecomExclusiveCount > retailExclusiveCount) {
+            ecomScore.confidence += 20; // Boost Ecom
+            retailScore.confidence = Math.max(0, retailScore.confidence - 10); // Penalize Retail
+        }
+    }
+
     // Sort by confidence descending
     scores.sort((a, b) => b.confidence - a.confidence);
 
