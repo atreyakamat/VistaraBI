@@ -104,8 +104,12 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
         // Resolve the formula template placeholders to actual column names
         let formulaExpression = match.kpi.formulaTemplate;
         match.matchedColumns.forEach(mc => {
-            const placeholder = new RegExp(`\\{${mc.requiredColumn}\\}`, 'g');
-            formulaExpression = formulaExpression.replace(placeholder, mc.columnName);
+            // First try braced format if it exists (e.g. {revenue})
+            const braced = new RegExp(`\\{${mc.requiredColumn}\\}`, 'g');
+            formulaExpression = formulaExpression.replace(braced, mc.columnName);
+            // Then try word boundary format (e.g. SUM(revenue))
+            const wordBoundary = new RegExp(`\\b${mc.requiredColumn}\\b`, 'g');
+            formulaExpression = formulaExpression.replace(wordBoundary, mc.columnName);
         });
 
         return {

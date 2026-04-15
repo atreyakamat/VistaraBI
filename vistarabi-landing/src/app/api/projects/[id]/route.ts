@@ -36,6 +36,7 @@ export async function GET(
         // Get sources for this project
         const sources = await db.source.findMany({
             where: { projectId: id },
+            include: { cleanedDataset: true }
         });
 
         return NextResponse.json({ project, sources });

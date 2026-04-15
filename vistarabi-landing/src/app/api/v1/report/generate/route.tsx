@@ -22,7 +22,6 @@ async function generateExecutiveSummary(metrics: any, chatSummary: string, domai
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.2,
       agentRole: 'narrative-writer',
-      // We rely on unified-ai-client to route to Ollama cloud or local
     });
     return response.content;
   } catch (error) {
@@ -44,7 +43,9 @@ export async function POST(request: Request) {
       forecastData,
       chatSummary,
       dashboardImage,
-      globalChatSummary
+      globalChatSummary,
+      uploadedDatasets,
+      cleaningSummary
     } = body;
 
     if (!chartImage || !metrics || !domain) {
@@ -72,6 +73,8 @@ export async function POST(request: Request) {
         chartImage={chartImage}
         dashboardImage={dashboardImage}
         globalChatSummary={globalChatSummary}
+        uploadedDatasets={uploadedDatasets}
+        cleaningSummary={cleaningSummary}
       />
     );
 

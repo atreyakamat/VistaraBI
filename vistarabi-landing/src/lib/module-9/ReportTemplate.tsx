@@ -44,6 +44,8 @@ export interface ExecutiveReportProps {
   chartImage: string;
   dashboardImage?: string | null;
   globalChatSummary?: string;
+  uploadedDatasets?: Array<{ fileName: string; status: string; columns: number }>;
+  cleaningSummary?: string;
 }
 
 export const ExecutiveReport = ({ 
@@ -57,7 +59,9 @@ export const ExecutiveReport = ({
   metrics, 
   chartImage,
   dashboardImage,
-  globalChatSummary
+  globalChatSummary,
+  uploadedDatasets,
+  cleaningSummary
 }: ExecutiveReportProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -70,7 +74,28 @@ export const ExecutiveReport = ({
         <Text style={styles.bodyText}>{summaryText}</Text>
       </View>
 
-      {/* 2. Key Metrics Summary */}
+      {/* 2. Data Ingestion & Quality Summary */}
+      {uploadedDatasets && uploadedDatasets.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Data Ingestion & Integrity</Text>
+          <View style={{ marginBottom: 8 }}>
+            <Text style={styles.subTitle}>Uploaded Datasets:</Text>
+            {uploadedDatasets.map((ds, i) => (
+              <Text key={i} style={[styles.bodyText, { fontSize: 10 }]}>
+                • {ds.fileName}: {ds.columns} columns detected. Status: {ds.status}
+              </Text>
+            ))}
+          </View>
+          {cleaningSummary && (
+            <View>
+              <Text style={styles.subTitle}>Purification & Quality Summary:</Text>
+              <Text style={[styles.bodyText, { fontSize: 10 }]}>{cleaningSummary}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* 3. Key Metrics Summary */}
       <View style={styles.metricsRow}>
         <View style={styles.metricBox}>
           <Text style={styles.metricValue}>{(metrics.probability * 100).toFixed(1)}%</Text>
@@ -88,7 +113,7 @@ export const ExecutiveReport = ({
         )}
       </View>
 
-      {/* 3. Selected KPIs */}
+      {/* 4. Selected KPIs */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Strategic Measurement Blueprint</Text>
         <View style={styles.kpiList}>
@@ -101,7 +126,7 @@ export const ExecutiveReport = ({
         </View>
       </View>
 
-      {/* 4. Dashboard Visuals */}
+      {/* 5. Dashboard Visuals */}
       {dashboardImage && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Dashboard Performance Monitors</Text>
@@ -112,10 +137,45 @@ export const ExecutiveReport = ({
         </View>
       )}
 
-      {/* 5. Business Suggestions Section */}
+      {/* 6. Strategic Planning (Module 7) */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Strategic Action Plan (Module 7)</Text>
+        <Text style={[styles.bodyText, { marginBottom: 8 }]}>
+          Based on user objectives and AI-driven growth modeling, the following strategic actions have been prioritized:
+        </Text>
+        {(actions || []).length > 0 && (
+          <View>
+            {actions.map((action, i) => (
+              <View key={i} style={[styles.kpiItem, { marginBottom: 6 }]}>
+                <View style={[styles.kpiDot, { backgroundColor: '#4f46e5' }]} />
+                <View>
+                  <Text style={styles.kpiName}>{action.title}</Text>
+                  <Text style={styles.kpiDesc}>Expected Impact: {action.impact}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* 7. AI Chat Exploration (Module 6) */}
+      {globalChatSummary && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Exploratory Analysis (Module 6 Chat)</Text>
+          <Text style={[styles.bodyText, { fontSize: 10, fontStyle: 'italic' }]}>{globalChatSummary}</Text>
+        </View>
+      )}
+
+      {/* 8. AI Strategic Insights (Contextual Reasoning) */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>AI Strategic Reasoning</Text>
+        <Text style={styles.bodyText}>{aiInsights}</Text>
+      </View>
+
+      {/* 9. Business Suggestions Section */}
       {businessSuggestions && businessSuggestions.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Board-Level Business Suggestions</Text>
+          <Text style={styles.sectionTitle}>Board-Level Recommendations</Text>
           <View style={{ marginTop: 5 }}>
             {businessSuggestions.map((suggestion, i) => (
               <View key={i} style={styles.kpiItem}>
@@ -127,45 +187,30 @@ export const ExecutiveReport = ({
         </View>
       )}
 
-      {/* 6. AI Chat Exploration (Ask AI) */}
-      {globalChatSummary && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Global Data Exploration (Module 6)</Text>
-          <Text style={styles.bodyText}>{globalChatSummary}</Text>
-        </View>
-      )}
-
-      {/* 6. AI Strategic Insights (Module 7 & 8 Actions) */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>AI Strategic Insights (Module 6 & 7)</Text>
-        <Text style={styles.bodyText}>{aiInsights}</Text>
-        {(actions || []).length > 0 && (
-          <View style={{ marginTop: 8 }}>
-            <Text style={[styles.subTitle, { color: '#1e40af' }]}>Recommended Actions:</Text>
-            {actions.map((action, i) => (
-              <Text key={i} style={[styles.bodyText, { fontSize: 10, marginLeft: 10 }]}>• {action.title}: {action.impact}</Text>
-            ))}
-          </View>
-        )}
-      </View>
-
-      {/* 5. Forecast & Visualization */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Predictive Analysis (Module 8)</Text>
+      {/* 10. Forecast & Visualization (Module 8) */}
+      <View style={styles.section} break>
+        <Text style={styles.sectionTitle}>Predictive Strategy Simulation (Module 8)</Text>
         {forecastData && (
-          <Text style={[styles.bodyText, { marginBottom: 10 }]}>
-            Forecasting <Text style={styles.highlightText}>{forecastData.kpi}</Text>: {forecastData.trend}. 
-            Confidence level is <Text style={styles.highlightText}>{forecastData.confidence}</Text>.
-          </Text>
+          <View style={{ marginBottom: 15, padding: 10, backgroundColor: '#f0fdf4', borderRadius: 6 }}>
+            <Text style={[styles.bodyText, { fontWeight: 'bold' }]}>
+              Target Metric: <Text style={styles.highlightText}>{forecastData.kpi}</Text>
+            </Text>
+            <Text style={styles.bodyText}>
+              Projected Trajectory: {forecastData.trend}
+            </Text>
+            <Text style={styles.bodyText}>
+              Statistical Confidence: <Text style={{ color: '#059669', fontWeight: 'bold' }}>{forecastData.confidence}</Text>
+            </Text>
+          </View>
         )}
         <View style={styles.chartContainer}>
           {chartImage && <Image src={chartImage} style={styles.chartImage} />}
-          <Text style={[styles.metricLabel, { marginTop: 8 }]}>Monte Carlo Simulation & Predictive Trendline</Text>
+          <Text style={[styles.metricLabel, { marginTop: 8 }]}>Monte Carlo Probability Cloud & Prophet Forecast Trendline</Text>
         </View>
       </View>
 
       <Text style={styles.footer}>
-        Generated by VistaraBI Intelligence Platform • © 2026 VistaraBI. Confidential.
+        Generated by VistaraBI Intelligence Platform • © 2026 VistaraBI. Confidential Strategic Document.
       </Text>
     </Page>
   </Document>

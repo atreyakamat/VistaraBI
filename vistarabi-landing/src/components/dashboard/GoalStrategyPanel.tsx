@@ -448,6 +448,7 @@ export function GoalStrategyPanel({
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [realHistory, setRealHistory] = useState<{ date: string, value: number }[]>([]);
     const [chatMessages, setChatMessages] = useState<{ role: string, text: string }[]>([]);
+    const [projectSources, setProjectSources] = useState<any[]>([]);
 
     // Fetch real dashboard data to pass into simulator when opened
     useEffect(() => {
@@ -464,6 +465,18 @@ export function GoalStrategyPanel({
             })
             .catch(() => {});
     }, [isOpen, projectId, canvas?.goal?.targetMetric]);
+
+    // Fetch project sources for report metadata
+    useEffect(() => {
+        if (isOpen && projectId) {
+            fetch(`/api/projects/${projectId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.sources) setProjectSources(data.sources);
+                })
+                .catch(err => console.error("Failed to fetch project sources", err));
+        }
+    }, [isOpen, projectId]);
 
     // Focus textarea on open and populate initialQuery if present
     useEffect(() => {
@@ -567,6 +580,14 @@ export function GoalStrategyPanel({
             dashboardImage: dashboardImageBase64,
             domain: domainName,
             selectedKPIs: activeKPIs,
+            uploadedDatasets: projectSources.map(s => ({
+                fileName: s.fileName || s.name,
+                status: s.status,
+                columns: s.columns?.length || 0
+            })),
+            cleaningSummary: projectSources.length > 0 
+                ? `Automatic purification completed across ${projectSources.length} datasets. Data normalized, missing values handled, and semantic roles aligned for ${domainName} domain.`
+                : "No datasets detected for summary.",
             actions: canvas?.scenarios?.map(a => ({ title: a.actionName, impact: a.tier })) || [],
             forecastData: {
                 kpi: canvas?.goal.targetMetric || 'Primary KPI',
