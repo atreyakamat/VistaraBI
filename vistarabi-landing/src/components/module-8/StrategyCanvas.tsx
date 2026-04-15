@@ -32,13 +32,16 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
   const [rampDays, setRampDays] = useState(30);
   const [startDay, setStartDay] = useState(14);
 
-  // Use initialContext for history, or empty array if missing
-  const [history] = useState<{ date: string, value: number }[]>(() => {
+  // Reactive history that updates when props change
+  const [history, setHistory] = useState<{ date: string, value: number }[]>([]);
+
+  useEffect(() => {
     if (initialContext?.kpiHistory && initialContext.kpiHistory.length > 0) {
-      return initialContext.kpiHistory;
+      // Filter out non-date entries like 'Total' or empty strings
+      const clean = initialContext.kpiHistory.filter(h => h.date && h.date.match(/^\d{4}-\d{2}-\d{2}/));
+      setHistory(clean);
     }
-    return [];
-  });
+  }, [initialContext?.kpiHistory]);
 
   const runSimulation = useCallback(async () => {
     if (history.length === 0) return;
@@ -58,7 +61,8 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
             rampDays,
             startDayOffset: startDay
           }
-        ]
+        ],
+        domain: 'RETAIL'
       };
 
       const res = await fetch('/api/v1/forecast/validate', {
@@ -68,7 +72,8 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
       });
 
       if (!res.ok) {
-        throw new Error(await res.text());
+        const errorText = await res.text();
+        throw new Error(errorText || 'Forecast API failed');
       }
 
       const result: StrategyCanvasResult = await res.json();
@@ -77,6 +82,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
         onSimulationComplete(result);
       }
     } catch (err: any) {
+      console.error("[StrategyCanvas] Simulation error:", err);
       setError(err.message || 'Failed to run simulation');
     } finally {
       setLoading(false);

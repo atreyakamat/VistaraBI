@@ -91,10 +91,13 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
     // Instead of raw columns array, use the Headless Domain Matcher
     const matches = matchKPIsForDomain(domain, columns);
 
-    const computableKPIs: DiscoveredKPI[] = matches.map((match) => {
+    const computableMatches = matches.filter(m => m.isComputable);
+    const partialMatches = matches.filter(m => !m.isComputable);
+
+    const mapToDiscovered = (match: any): DiscoveredKPI => {
         // Map semantic roles in aggregations to actual physical columns found during matching
-        const resolvedAggregations = match.kpi.aggregationRules.map(agg => {
-            const columnMatch = match.matchedColumns.find(mc => mc.requiredColumn === agg.column);
+        const resolvedAggregations = match.kpi.aggregationRules.map((agg: any) => {
+            const columnMatch = match.matchedColumns.find((mc: any) => mc.requiredColumn === agg.column);
             return {
                 function: agg.function,
                 column: columnMatch ? columnMatch.columnName : agg.column
@@ -103,7 +106,7 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
 
         // Resolve the formula template placeholders to actual column names
         let formulaExpression = match.kpi.formulaTemplate;
-        match.matchedColumns.forEach(mc => {
+        match.matchedColumns.forEach((mc: any) => {
             // First try braced format if it exists (e.g. {revenue})
             const braced = new RegExp(`\\{${mc.requiredColumn}\\}`, 'g');
             formulaExpression = formulaExpression.replace(braced, mc.columnName);
@@ -121,7 +124,7 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
             confidence: match.confidence,
             matchType: match.matchType,
             explanation: match.kpi.description,
-            matchedColumns: match.matchedColumns.map(c => c.columnName),
+            matchedColumns: match.matchedColumns.map((c: any) => c.columnName),
             formulaExpression,
             category: match.kpi.category,
             priority: match.kpi.priority,
@@ -130,14 +133,17 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
             aggregations: resolvedAggregations,
             discoveredAt: new Date(),
         };
-    });
+    };
+
+    const computableKPIs: DiscoveredKPI[] = computableMatches.map(mapToDiscovered);
+    const partialKPIs: DiscoveredKPI[] = partialMatches.map(mapToDiscovered);
 
     const result: KPIDiscoveryResult = {
         projectId,
         domain,
         totalKPIsAnalyzed: columns.length,
         computableKPIs,
-        partialKPIs: [],
+        partialKPIs,
         availableColumns: columns,
         sampleData,
         discoveredAt: new Date(),

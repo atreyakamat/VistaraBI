@@ -278,13 +278,14 @@ async function runBlinkitE2E() {
         const summaryRes = await generateWithFallback({
             messages: [{ role: 'user', content: summaryPrompt }],
             temperature: 0.2,
-            agentRole: 'narrative-writer'
+            agentRole: 'narrative-writer',
+            model: 'qwen3.5:0.8b' // Force fast local model to prevent 120s cloud timeouts during automated testing
         });
 
         const outputPath = path.join(process.cwd(), 'Blinkit_Retail_Report.pdf');
         
-        // Use a 1x1 transparent pixel as placeholder for chart images in Node test
-        const mockImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+        // Use a 10x10 gray box base64 as placeholder for chart images in Node test so they are actually visible
+        const mockImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3/n0SMRmEAwzAMw4gKA2I1AA1mEAw20F8rAAAAAElFTkSuQmCC";
 
         await renderToFile(
             <ExecutiveReport
