@@ -50,22 +50,36 @@ function normalizeColumnName(column: string): string {
         .replace(/^_+|_+$/g, '');
 }
 
-function readTextFile(filePath: string): string {
-    const utf8 = fs.readFileSync(filePath, 'utf8');
+const MAX_READ_SIZE = 1024 * 1024; // 1MB is enough for headers and samples
+
+function readPreviewContent(filePath: string): string {
+    const stats = fs.statSync(filePath);
+    const readSize = Math.min(stats.size, MAX_READ_SIZE);
+    const buffer = Buffer.alloc(readSize);
+    const fd = fs.openSync(filePath, 'r');
+    fs.readSync(fd, buffer, 0, readSize, 0);
+    fs.closeSync(fd);
+
+    const utf8 = buffer.toString('utf8');
     const content = utf8.startsWith('\uFEFF') ? utf8.slice(1) : utf8;
-
-    // Fallback to latin1 only when utf8 clearly failed.
-    if (content.includes('\uFFFD')) {
-        const latin = fs.readFileSync(filePath, 'latin1');
-        return latin.startsWith('\uFEFF') ? latin.slice(1) : latin;
-    }
-
     return content;
 }
 
-function countDataRows(content: string): number {
-    const nonEmptyLines = content.split(/\r?\n/).filter((line) => line.trim().length > 0);
-    return Math.max(0, nonEmptyLines.length - 1);
+function countDataRows(filePath: string): number {
+    const stats = fs.statSync(filePath);
+    if (stats.size < MAX_READ_SIZE) {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const nonEmptyLines = content.split(/\r?\n/).filter((line) => line.trim().length > 0);
+        return Math.max(0, nonEmptyLines.length - 1);
+    }
+    
+    // For large files, estimate based on a chunk
+    const chunk = readPreviewContent(filePath);
+    const lines = chunk.split(/\r?\n/);
+    if (lines.length < 5) return 0;
+    
+    const avgLineLength = chunk.length / lines.length;
+    return Math.floor(stats.size / avgLineLength);
 }
 
 function parsePreview(content: string): { columns: string[]; rows: Array<Record<string, unknown>> } {
@@ -176,9 +190,9 @@ function inferColumnBuckets(columns: string[], rows: Array<Record<string, unknow
 }
 
 function buildDatasetProfile(csvPath: string, sourceRoot: string): DatasetFeatureProfile {
-    const content = readTextFile(csvPath);
-    const rowCount = countDataRows(content);
-    const { columns, rows } = parsePreview(content);
+    const previewContent = readPreviewContent(csvPath);
+    const rowCount = countDataRows(csvPath);
+    const { columns, rows } = parsePreview(previewContent);
     const buckets = inferColumnBuckets(columns, rows);
     const relativePath = path.relative(sourceRoot, csvPath).replace(/\\/g, '/');
 

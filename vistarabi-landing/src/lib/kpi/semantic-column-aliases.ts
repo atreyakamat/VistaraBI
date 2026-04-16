@@ -120,27 +120,39 @@ export const RETAIL_ALIASES: AliasMap = {
     ...UNIVERSAL_ALIASES,
     order_id: [
         'order_number', 'transaction_id', 'receipt_id', 'bill_no', 'sale_id',
+        'invoiceno', 'invoice_id', 'venda_id',
     ],
     customer_id: [
         'user_id', 'buyer_id', 'shopper_id', 'customer_name', 'phone',
+        'customerid', 'cliente_id',
     ],
     store_id: [
         'outlet', 'outlet_id', 'location', 'location_id', 'branch',
-        'branch_id', 'shop_id', 'pos_id', 'store_code',
+        'branch_id', 'shop_id', 'pos_id', 'store_code', 'loja_id', 'store',
+    ],
+    revenue: [
+        ...UNIVERSAL_ALIASES.revenue,
+        'order_total', 'sales_amount', 'weekly_sales', 'retail_sales', 'warehouse_sales',
+    ],
+    unit_price: [
+        'price', 'rate', 'unit_cost', 'unitprice', 'preço unitário', 'valor_unitario',
     ],
     inventory: [
         'stock', 'stock_value', 'inventory_value', 'stock_amount',
-        'on_hand_value', 'warehouse_value',
+        'on_hand_value', 'warehouse_value', 'stockcode',
     ],
-    items_in_basket: ['quantity', 'basket_qty', 'items', 'basket_items', 'units_per_transaction'],
+    items_in_basket: [
+        'quantity', 'basket_qty', 'items', 'basket_items', 'units_per_transaction',
+        'quantidade',
+    ],
     transaction_id: [
         'bill_no', 'receipt_id', 'pos_txn_id', 'sale_id', 'invoice_no',
-        'till_id', 'register_id',
+        'till_id', 'register_id', 'venda_id',
     ],
-    sold_units: ['qty_sold', 'units_sold', 'quantity_sold', 'items_sold'],
+    sold_units: ['qty_sold', 'units_sold', 'quantity_sold', 'items_sold', 'quantidade'],
     received_units: ['qty_received', 'inward_qty', 'purchase_qty', 'received_qty', 'stock_received'],
     shrinkage: ['loss', 'theft', 'spoilage', 'wastage', 'shrinkage_qty', 'pilferage', 'damaged_stock'],
-    visitor_count: ['footfall', 'walk_ins', 'store_visitors', 'traffic', 'footfall_count'],
+    visitor_count: ['footfall', 'walk_ins', 'store_visitors', 'traffic', 'footfall_count', 'numwebvisitsmonth'],
     cogs: [
         'cost_of_goods', 'cost_price', 'purchase_cost', 'item_cost',
         'landed_cost', 'cost_of_sales',

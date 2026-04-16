@@ -23,7 +23,10 @@ function simpleParseCsv(content: string): Record<string, string>[] {
     const headers = lines[0].split(',').map(h => h.trim());
     const records: Record<string, string>[] = [];
     
-    for (let i = 1; i < lines.length; i++) {
+    // Limit to 1000 rows for test/preview to prevent OOM
+    const limit = Math.min(lines.length, 1001);
+    
+    for (let i = 1; i < limit; i++) {
         const line = lines[i];
         const values: string[] = [];
         let inQuote = false;
@@ -72,21 +75,46 @@ async function runBlinkitE2E() {
 
         console.log(`2️⃣ Ingesting Retail Dataset from datasets/retail...`);
         const dataDir = path.resolve(__dirname, 'datasets/retail');
-        const files = fs.readdirSync(dataDir).filter(f => f.endsWith('.csv'));
+        
+        function getFilesRecursive(dir: string): string[] {
+            const results: string[] = [];
+            const list = fs.readdirSync(dir);
+            list.forEach(file => {
+                file = path.resolve(dir, file);
+                const stat = fs.statSync(file);
+                if (stat && stat.isDirectory()) {
+                    results.push(...getFilesRecursive(file));
+                } else if (file.toLowerCase().endsWith('.csv')) {
+                    results.push(file);
+                }
+            });
+            return results;
+        }
 
+        const csvFiles = getFilesRecursive(dataDir);
         const allColumns: string[] = [];
         const uploadedDatasetsMeta: any[] = [];
         
-        for (const file of files) {
-            const content = fs.readFileSync(path.join(dataDir, file), 'utf-8');
-            const records = simpleParseCsv(content);
+        for (const fullPath of csvFiles) {
+            const fileName = path.basename(fullPath);
+            
+            // Memory efficient: Read only the first 1MB for preview/metadata
+            const stats = fs.statSync(fullPath);
+            const readSize = Math.min(stats.size, 1024 * 1024);
+            const buffer = Buffer.alloc(readSize);
+            const fd = fs.openSync(fullPath, 'r');
+            fs.readSync(fd, buffer, 0, readSize, 0);
+            fs.closeSync(fd);
+            
+            const previewContent = buffer.toString('utf8');
+            const records = simpleParseCsv(previewContent);
             
             if (records.length === 0) continue;
             
             const cols = Object.keys(records[0]);
             allColumns.push(...cols);
             uploadedDatasetsMeta.push({
-                fileName: file,
+                fileName: fileName,
                 status: 'CLEANED',
                 columns: cols.length
             });
@@ -95,7 +123,7 @@ async function runBlinkitE2E() {
                 data: {
                     id: randomUUID(),
                     projectId,
-                    fileName: file,
+                    fileName: fileName,
                     fileType: 'text/csv',
                     columns: cols,
                     data: records, // Store raw
