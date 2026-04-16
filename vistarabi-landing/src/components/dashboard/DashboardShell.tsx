@@ -274,7 +274,7 @@ export function DashboardShell({
                             />
 
                             {/* ── 2×2 KPI Card Grid ──────────────────── */}
-                            <div className="dashboard-grid">
+                            <div id="dashboard-grid-container" className="dashboard-grid">
                                 {topKpis.map((kpi) => (
                                     <KPIMetricCard
                                         key={kpi.kpiId}
