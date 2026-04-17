@@ -120,37 +120,39 @@ export const RETAIL_ALIASES: AliasMap = {
     ...UNIVERSAL_ALIASES,
     order_id: [
         'order_number', 'transaction_id', 'receipt_id', 'bill_no', 'sale_id',
-        'invoiceno', 'invoice_id', 'venda_id',
+        'invoiceno', 'invoice_id', 'venda_id', 'order_id',
     ],
     customer_id: [
         'user_id', 'buyer_id', 'shopper_id', 'customer_name', 'phone',
-        'customerid', 'cliente_id',
+        'customerid', 'cliente_id', 'customer_id',
     ],
     store_id: [
         'outlet', 'outlet_id', 'location', 'location_id', 'branch',
         'branch_id', 'shop_id', 'pos_id', 'store_code', 'loja_id', 'store',
+        'outlet_identifier', 'store_identifier'
     ],
     revenue: [
         ...(UNIVERSAL_ALIASES.revenue ?? []),
         'order_total', 'sales_amount', 'weekly_sales', 'retail_sales', 'warehouse_sales',
         'total_sales', 'gross_sales', 'net_sales', 'invoice_value', 'billing_amount',
         'unit_price', 'sale_price', 'extended_price', 'total_price', 'line_total',
+        'item_outlet_sales', 'item_sales', 'sales'
     ],
-    // unit_price is not a top-level SemanticRole; merge its aliases into cost
-    // so SQL compiler can cast price columns as NUMERIC.
     cost: [
         ...(UNIVERSAL_ALIASES.cost ?? []),
         'price', 'rate', 'unit_cost', 'unitprice', 'preço unitário', 'valor_unitario',
         'purchase_price', 'buying_price', 'landed_cost', 'standard_cost',
+        'item_mrp', 'mrp'
     ],
     inventory: [
         'stock', 'stock_value', 'inventory_value', 'stock_amount',
         'on_hand_value', 'warehouse_value', 'stockcode', 'available_stock',
         'inventory_balance', 'closing_stock', 'stock_qty', 'inventory_qty',
+        'item_visibility'
     ],
     items_in_basket: [
         'quantity', 'basket_qty', 'items', 'basket_items', 'units_per_transaction',
-        'quantidade', 'qty', 'num_items', 'item_count', 'units',
+        'quantidade', 'qty', 'num_items', 'item_count', 'units', 'item_weight'
     ],
     transaction_id: [
         'bill_no', 'receipt_id', 'pos_txn_id', 'sale_id', 'invoice_no',
@@ -164,6 +166,12 @@ export const RETAIL_ALIASES: AliasMap = {
         'cost_of_goods', 'cost_price', 'purchase_cost', 'item_cost',
         'landed_cost', 'cost_of_sales', 'cogs_amount',
     ],
+    product_id: [
+        'item_identifier', 'product_identifier', 'sku', 'item_id', 'product_id'
+    ],
+    category: [
+        'item_type', 'item_fat_content', 'outlet_type', 'outlet_size', 'location_type', 'product_category', 'category'
+    ]
 };
 
 // ─── SERVICES ─────────────────────────────────────────────────────────────────
