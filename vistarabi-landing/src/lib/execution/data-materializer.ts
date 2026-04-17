@@ -198,18 +198,27 @@ export async function ensureDataMaterialized(projectId: string): Promise<void> {
             }
 
             // Type date columns
-            const dateCol = allColumns.find(c => c.includes('date'));
+            const dateCol = allColumns.find(c => c.includes('date') || c === 'period' || c === 'timestamp');
             if (dateCol) {
-                try {
-                    await pool.query(`ALTER TABLE "${tableName}" ALTER COLUMN "${dateCol}" TYPE TIMESTAMP USING "${dateCol}"::TIMESTAMP;`);
-                } catch (e: any) {
-                    console.warn(`[Materializer] Failed to cast date column "${dateCol}" to TIMESTAMP: ${e.message}`);
-                    // Try alternative casting approaches
+                const tryCasts = [
+                    `ALTER TABLE "${tableName}" ALTER COLUMN "${dateCol}" TYPE TIMESTAMP USING "${dateCol}"::TIMESTAMP`,
+                    `ALTER TABLE "${tableName}" ALTER COLUMN "${dateCol}" TYPE TIMESTAMP USING to_timestamp("${dateCol}", 'Mon-YY')`,
+                    `ALTER TABLE "${tableName}" ALTER COLUMN "${dateCol}" TYPE TIMESTAMP USING to_timestamp("${dateCol}", 'DD-MM-YYYY')`,
+                    `ALTER TABLE "${tableName}" ALTER COLUMN "${dateCol}" TYPE TIMESTAMP USING to_timestamp("${dateCol}", 'MM/DD/YYYY')`,
+                    `ALTER TABLE "${tableName}" ALTER COLUMN "${dateCol}" TYPE TIMESTAMP USING to_date("${dateCol}", 'Month YYYY')`
+                ];
+
+                let success = false;
+                for (const sql of tryCasts) {
                     try {
-                        await pool.query(`ALTER TABLE "${tableName}" ALTER COLUMN "${dateCol}" TYPE TIMESTAMPTZ USING "${dateCol}"::TIMESTAMPTZ;`);
-                    } catch (e2: any) {
-                        console.warn(`[Materializer] Failed to cast date column "${dateCol}" to TIMESTAMPTZ: ${e2.message}`);
-                    }
+                        await pool.query(sql);
+                        success = true;
+                        break;
+                    } catch (e) { /* continue */ }
+                }
+                
+                if (!success) {
+                    console.warn(`[Materializer] Could not cast date column "${dateCol}" to TIMESTAMP with common patterns. Leaving as TEXT.`);
                 }
             }
 

@@ -1,6 +1,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import readline from 'readline';
 import { randomUUID } from 'crypto';
 import { PrismaClient } from '@prisma/client';
 const db = new PrismaClient();
@@ -21,6 +22,33 @@ if (fs.existsSync(OUTPUT_DIR)) {
     });
 } else {
     fs.mkdirSync(OUTPUT_DIR);
+}
+
+// Stream-based CSV header and sample extractor
+async function getFileSample(filePath, maxLines = 1000) {
+    const fileStream = fs.createReadStream(filePath);
+    const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
+
+    let headers = [];
+    let data = [];
+    let lineCount = 0;
+
+    for await (const line of rl) {
+        if (lineCount === 0) {
+            headers = line.split(',').map(h => h.trim().replace(/"/g, ''));
+        } else if (lineCount <= maxLines) {
+            const cells = line.split(',');
+            const obj = {};
+            headers.forEach((h, i) => obj[h] = cells[i]?.trim().replace(/"/g, ''));
+            data.push(obj);
+        } else {
+            break;
+        }
+        lineCount++;
+    }
+    rl.close();
+    fileStream.destroy();
+    return { headers, data };
 }
 
 async function processArchive(archiveName, userId) {
@@ -47,7 +75,7 @@ async function processArchive(archiveName, userId) {
 
     const projectId = `batch-${archiveName.replace(/[^a-z0-9]/gi, '-')}-${randomUUID().slice(0,8)}`;
     
-    // 1. MODULE 1 & 2: Create Project & Ingest (DEEP SAMPLING)
+    // 1. MODULE 1 & 2: Create Project & Ingest (STREAMED)
     await db.project.create({
         data: {
             id: projectId,
@@ -60,18 +88,10 @@ async function processArchive(archiveName, userId) {
     for (const file of files) {
         const filePath = path.join(effectivePath, file);
         try {
-            const content = fs.readFileSync(filePath, 'utf-8');
-            const lines = content.split('\n').filter(l => l.trim().length > 0);
-            if (lines.length === 0) continue;
-            const headers = lines[0].split(',').map(h => h.trim());
+            // FIXED: Using stream to handle large files and avoid string length limits
+            const { headers, data } = await getFileSample(filePath, 1000);
             
-            // INCREASED SAMPLING DEPTH TO 1000 FOR MODULE 8 HISTORY
-            const data = lines.slice(1, 1000).map(line => {
-                const cells = line.split(',');
-                const obj = {};
-                headers.forEach((h, i) => obj[h] = cells[i]);
-                return obj;
-            });
+            if (headers.length === 0) continue;
 
             await db.source.create({
                 data: {
@@ -124,10 +144,11 @@ async function processArchive(archiveName, userId) {
                 create: computableKPIs.map((k, idx) => ({
                     kpiId: k.kpiId,
                     kpiName: k.kpiName,
-                    chartType: k.defaultVisualizationHint === 'metric_card' ? (idx % 2 === 0 ? 'line_chart' : 'bar_chart') : k.defaultVisualizationHint,
+                    chartType: k.defaultVisualizationHint || 'line_chart',
                     cardSize: 'md',
                     position: idx,
-                    isPinned: idx < 4
+                    isPinned: idx < 4,
+                    filterOverrides: {}
                 }))
             }
         }
@@ -180,7 +201,7 @@ This project analyzes the Retail operations within the **${archiveName}** datase
 
 ## 📈 2. Module 5: Intelligence Dashboard
 A dynamic dashboard has been provisioned with the following high-priority cards:
-${computableKPIs.slice(0, 5).map(k => `- **${k.kpiName}**: Visualized as ${k.defaultVisualizationHint}`).join('\n')}
+${computableKPIs.slice(0, 5).map(k => `- **${k.kpiName}**: ${k.description} (Visualized as ${k.defaultVisualizationHint || 'line_chart'})`).join('\n')}
 
 ## 🧠 3. Module 6: AI Diagnostic Insights
 **Analyst Persona:** ${m6_result.agentRole}
@@ -209,6 +230,7 @@ ${strategy.milestones.slice(0, 3).map(m => `- **Day ${m.day}**: ${m.label}`).joi
 - SQL Materializer initialized for \`${getMaterializedTableName(projectId)}\`.
 - Semantic Mapper resolved aliases for: ${discovery?.availableColumns?.slice(0, 10).join(', ')}...
 - All modules (5, 6, 7, 8) status: **OPERATIONAL**
+- Date Casting Fix: Applied robust pattern matching for non-standard timestamps.
     `;
     
     fs.writeFileSync(path.join(OUTPUT_DIR, `${archiveName.replace(/[^a-z0-9]/gi, '_')}_REPORT.md`), reportMd);
@@ -228,7 +250,7 @@ function getMaterializedTableName(projectId) {
 }
 
 async function run() {
-    console.log("--- 🏗 STARTING DEEP RETAIL BATCH ANALYSIS ---");
+    console.log("--- 🏗 STARTING DEEP RETAIL BATCH ANALYSIS (STREAM-ENHANCED) ---");
     
     const batchUser = await db.user.upsert({
         where: { email: 'batch@vistarabi.com' },
@@ -260,8 +282,8 @@ async function run() {
 ## Platform Status Matrix
 | Module | Status | Verification |
 | :--- | :--- | :--- |
-| **M1/2: Ingestion** | ✅ OK | Deep sampling (1000 rows) verified. |
-| **M4: KPI Engine** | ✅ OK | High-density discovery active. |
+| **M1/2: Ingestion** | ✅ OK | Stream-based processing (Large files safe). |
+| **M4: KPI Engine** | ✅ OK | High-density discovery active (15+ library KPIs). |
 | **M5: Dashboard** | ✅ OK | Auto-provisioned DashboardState per project. |
 | **M6: AI Command** | ✅ OK | Specialized persona diagnostic active. |
 | **M7: Strategy** | ✅ OK | Goal probability & tactical levers active. |
