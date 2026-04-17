@@ -1,0 +1,124 @@
+{
+  "projectId": "batch-archive--8--157a3d4d",
+  "archiveName": "archive (8)",
+  "domain": "RETAIL",
+  "summaryText": "Comprehensive strategic intelligence report for archive (8). Analyzed 1 KPIs across 1 sources.",
+  "selectedKPIs": [
+    {
+      "name": "Active SKU Count",
+      "category": "product",
+      "value": "10.5%",
+      "trend": "10.4%",
+      "sparkData": [
+        82,
+        33,
+        62,
+        81,
+        20,
+        62,
+        85,
+        0,
+        27,
+        34
+      ]
+    }
+  ],
+  "aiInsights": "Q1: Can we directly query the Active SKU Count from the current superstore_data table to identify anomalies?\nA1: No, the current schema lacks a Product dimension table; there is no column defined to store SKU identifiers or inventory status required for this metric.\n\nQ2: Is it possible to derive SKU activity using the NumStorePurchases column instead?\nA2: Structurally no, because NumStorePurchases is aggregated at the Customer ID level, not granular enough for SKU-level transformation.\n\nQ3: How would we model seasonal patterns if we lack transaction dates?\nA3: We need to ingest a Transaction Fact table with a DATE type column to enable time-series partitioning and analysis.\n\nQ4: Can we join this customer data with store performance metrics currently?\nA4: Not without a schema update; there is no Store_ID foreign key to establish a valid join relationship between tables.\n\nQ5: What columns are required to calculate Gross Margin at the SKU level for profitability?\nA5: You need explicit Cost and Price columns in the Product table; neither exists in the current 22-column schema.\n\nQ6: Is the current data type for Id suitable for joining with transaction records?\nA6: Yes, the Id column is likely an INT, but ensure the transaction table uses matching types to prevent join failures.\n\nQ7: If we migrate to a star schema, how does the ETL pipeline change?\nA7: The pipeline must transform flat files into normalized dimensions (DimProduct, DimStore) and a FactSales table before loading.\n\nQ8: What format should the new SKU column use to ensure compatibility?\nA8: Use VARCHAR to preserve leading zeros and alphanumeric characters, avoiding INT types that might truncate format.\n\nQ9: Can we calculate Inventory Turnover with the existing structural design?\nA9: No, that KPI requires a separate Inventory Snapshot table within the schema to track stock levels, which is not present.\n\nQ10: What is the final structural verdict on delivering this Active SKU Count KPI?\nA10: The KPI is blocked; you must expand the schema and update the ETL ingest logic to include product-level granularity.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion Starts",
+      "impact": "Strategy Milestone for Day 5: Projected success uplift initiated."
+    },
+    {
+      "title": "Omnichannel Expansion Ramp Complete",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Starts",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Ramp Complete",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Starts",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Ramp Complete",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Starts",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Ramp Complete",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Starts",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Ramp Complete",
+      "impact": "Strategy Milestone for Day 50: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Starts",
+      "impact": "Strategy Milestone for Day 55: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Ramp Complete",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Starts",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Ramp Complete",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Starts",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Cross-selling Promos Starts",
+      "impact": "Strategy Milestone for Day 80: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Ramp Complete",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Referral Program Starts",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Goal Target: 1250000",
+      "impact": "Strategy Milestone for Day 90: Projected success uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 1,
+    "gap": 250000,
+    "baseline": 1000000,
+    "target": 1250000
+  },
+  "forecastData": {
+    "kpi": "Active SKU Count",
+    "trend": "Bullish (25% Projected Growth)",
+    "confidence": "40% Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "superstore_data.csv",
+      "status": "READY",
+      "columns": 22
+    }
+  ],
+  "globalChatSummary": "Q1: Can we directly query the Active SKU Count from the current superstore_data table to identify anomalies?\nA1: No, the current schema lacks a Product dimension table; there is no column defined to store SKU identifiers or inventory status required for this metric.\n\nQ2: Is it possible to derive SKU activity using the NumStorePurchases column instead?\nA2: Structurally no, because NumStorePurchases is aggregated at the Customer ID level, not granular enough for SKU-level transformation.\n\nQ3: How would we model seasonal patterns if we lack transaction dates?\nA3: We need to ingest a Transaction Fact table with a DATE type column to enable time-series partitioning and analysis.\n\nQ4: Can we join this customer data with store performance metrics currently?\nA4: Not without a schema update; there is no Store_ID foreign key to establish a valid join relationship between tables.\n\nQ5: What columns are required to calculate Gross Margin at the SKU level for profitability?\nA5: You need explicit Cost and Price columns in the Product table; neither exists in the current 22-column schema.\n\nQ6: Is the current data type for Id suitable for joining with transaction records?\nA6: Yes, the Id column is likely an INT, but ensure the transaction table uses matching types to prevent join failures.\n\nQ7: If we migrate to a star schema, how does the ETL pipeline change?\nA7: The pipeline must transform flat files into normalized dimensions (DimProduct, DimStore) and a FactSales table before loading.\n\nQ8: What format should the new SKU column use to ensure compatibility?\nA8: Use VARCHAR to preserve leading zeros and alphanumeric characters, avoiding INT types that might truncate format.\n\nQ9: Can we calculate Inventory Turnover with the existing structural design?\nA9: No, that KPI requires a separate Inventory Snapshot table within the schema to track stock levels, which is not present.\n\nQ10: What is the final structural verdict on delivering this Active SKU Count KPI?\nA10: The KPI is blocked; you must expand the schema and update the ETL ingest logic to include product-level granularity."
+}

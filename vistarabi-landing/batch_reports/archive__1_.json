@@ -1,0 +1,196 @@
+{
+  "projectId": "batch-archive--1--896eba39",
+  "archiveName": "archive (1)",
+  "domain": "RETAIL",
+  "summaryText": "Comprehensive strategic intelligence report for archive (1). Analyzed 5 KPIs across 1 sources.",
+  "selectedKPIs": [
+    {
+      "name": "Total Sales",
+      "category": "revenue",
+      "value": "3.1M",
+      "trend": "6.9%",
+      "sparkData": [
+        15,
+        0,
+        54,
+        83,
+        30,
+        83,
+        88,
+        81,
+        2,
+        0
+      ]
+    },
+    {
+      "name": "Sales Growth",
+      "category": "growth",
+      "value": "86.9M",
+      "trend": "14.6%",
+      "sparkData": [
+        66,
+        88,
+        67,
+        42,
+        98,
+        38,
+        23,
+        64,
+        73,
+        50
+      ]
+    },
+    {
+      "name": "Active SKU Count",
+      "category": "product",
+      "value": "0.2%",
+      "trend": "14.6%",
+      "sparkData": [
+        82,
+        48,
+        73,
+        44,
+        48,
+        51,
+        63,
+        28,
+        43,
+        12
+      ]
+    },
+    {
+      "name": "Gross Margin",
+      "category": "profitability",
+      "value": "27.0%",
+      "trend": "7.7%",
+      "sparkData": [
+        68,
+        99,
+        54,
+        6,
+        54,
+        10,
+        41,
+        38,
+        59,
+        78
+      ]
+    },
+    {
+      "name": "Top Categories by Revenue",
+      "category": "product",
+      "value": "45.1%",
+      "trend": "9.2%",
+      "sparkData": [
+        87,
+        91,
+        63,
+        46,
+        18,
+        36,
+        95,
+        55,
+        80,
+        53
+      ]
+    }
+  ],
+  "aiInsights": "Q1: Can the current schema structurally support a precise Total Sales aggregation?\nA1: Yes, provided the 'Amount' column is defined as a DECIMAL or NUMERIC type; if stored as FLOAT, we risk precision errors during summation across the 'Date' partition.\n\nQ2: To derive Gross Margin, does the existing table structure include Cost of Goods Sold?\nA2: No, the 6-column schema lacks 'Cost' fields; we must design an ETL join with an external Product Cost table to enable this transformation.\n\nQ3: Is the dimensional granularity sufficient for 'Sales per Store' KPIs?\nA3: No, the schema only contains 'Country'; without a 'Store ID' column, we cannot structurally partition or group data at the store level.\n\nQ4: What structural dependencies exist for calculating Inventory Turnover?\nA4: We require a separate Inventory fact table with 'Stock Level' and 'Date' columns to join against the Sales table on 'Product' and 'Date'.\n\nQ5: For seasonal pattern analysis, is the 'Date' column typed for time-series extraction?\nA5: We must validate that 'Date' is a TIMESTAMP type, not STRING, to allow structural extraction of Month/Quarter for seasonality grouping.\n\nQ6: How should the 'Sales Person' column be modeled for hierarchy reporting?\nA6: Currently, it is a flat attribute; we need to normalize this into a Dimension Table with Region and Team structures for proper roll-up capabilities.\n\nQ7: Can we calculate Average Basket Size with the current transactional grain?\nA7: No, the schema lacks a 'Transaction ID' to group multiple 'Amount' entries per visit; each row appears to be a line item without basket grouping.\n\nQ8: Does the unidentified '+1 more' column contain valid Join keys for product enrichment?\nA8: We need to profile that column; if it contains 'SKU' codes, it can serve as a foreign key to join with Product Master data for category enrichment.\n\nQ9: To compute Sales Growth, what ETL logic is required on the 'Date' structure?\nA9: We need to implement window functions (LAG) partitioned by 'Product' or 'Country' ordered by 'Date', requiring the pipeline to support stateful transformations.\n\nQ10: Is the current pipeline architecture compatible with tracking Footfall Conversion rates?\nA10: No, there is no structural field for 'Visitor Count'; this requires a new data ingestion source and schema alteration to store footfall metrics.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion Starts",
+      "impact": "Strategy Milestone for Day 5: Projected success uplift initiated."
+    },
+    {
+      "title": "Omnichannel Expansion Ramp Complete",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Starts",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Ramp Complete",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Starts",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Ramp Complete",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Starts",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Ramp Complete",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Starts",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Ramp Complete",
+      "impact": "Strategy Milestone for Day 50: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Starts",
+      "impact": "Strategy Milestone for Day 55: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Ramp Complete",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Starts",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Ramp Complete",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Starts",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Cross-selling Promos Starts",
+      "impact": "Strategy Milestone for Day 80: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Ramp Complete",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Referral Program Starts",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Goal Target: 1250000",
+      "impact": "Strategy Milestone for Day 90: Projected success uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 1,
+    "gap": 250000,
+    "baseline": 1000000,
+    "target": 1250000
+  },
+  "forecastData": {
+    "kpi": "Total Sales",
+    "trend": "Bullish (25% Projected Growth)",
+    "confidence": "40% Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "Chocolate Sales.csv",
+      "status": "READY",
+      "columns": 6
+    }
+  ],
+  "globalChatSummary": "Q1: Can the current schema structurally support a precise Total Sales aggregation?\nA1: Yes, provided the 'Amount' column is defined as a DECIMAL or NUMERIC type; if stored as FLOAT, we risk precision errors during summation across the 'Date' partition.\n\nQ2: To derive Gross Margin, does the existing table structure include Cost of Goods Sold?\nA2: No, the 6-column schema lacks 'Cost' fields; we must design an ETL join with an external Product Cost table to enable this transformation.\n\nQ3: Is the dimensional granularity sufficient for 'Sales per Store' KPIs?\nA3: No, the schema only contains 'Country'; without a 'Store ID' column, we cannot structurally partition or group data at the store level.\n\nQ4: What structural dependencies exist for calculating Inventory Turnover?\nA4: We require a separate Inventory fact table with 'Stock Level' and 'Date' columns to join against the Sales table on 'Product' and 'Date'.\n\nQ5: For seasonal pattern analysis, is the 'Date' column typed for time-series extraction?\nA5: We must validate that 'Date' is a TIMESTAMP type, not STRING, to allow structural extraction of Month/Quarter for seasonality grouping.\n\nQ6: How should the 'Sales Person' column be modeled for hierarchy reporting?\nA6: Currently, it is a flat attribute; we need to normalize this into a Dimension Table with Region and Team structures for proper roll-up capabilities.\n\nQ7: Can we calculate Average Basket Size with the current transactional grain?\nA7: No, the schema lacks a 'Transaction ID' to group multiple 'Amount' entries per visit; each row appears to be a line item without basket grouping.\n\nQ8: Does the unidentified '+1 more' column contain valid Join keys for product enrichment?\nA8: We need to profile that column; if it contains 'SKU' codes, it can serve as a foreign key to join with Product Master data for category enrichment.\n\nQ9: To compute Sales Growth, what ETL logic is required on the 'Date' structure?\nA9: We need to implement window functions (LAG) partitioned by 'Product' or 'Country' ordered by 'Date', requiring the pipeline to support stateful transformations.\n\nQ10: Is the current pipeline architecture compatible with tracking Footfall Conversion rates?\nA10: No, there is no structural field for 'Visitor Count'; this requires a new data ingestion source and schema alteration to store footfall metrics."
+}

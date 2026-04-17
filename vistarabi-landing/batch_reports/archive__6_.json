@@ -1,0 +1,282 @@
+{
+  "projectId": "batch-archive--6--7747a7d7",
+  "archiveName": "archive (6)",
+  "domain": "RETAIL",
+  "summaryText": "Comprehensive strategic intelligence report for archive (6). Analyzed 7 KPIs across 11 sources.",
+  "selectedKPIs": [
+    {
+      "name": "Active SKU Count",
+      "category": "product",
+      "value": "10.2%",
+      "trend": "14.0%",
+      "sparkData": [
+        16,
+        67,
+        45,
+        46,
+        42,
+        48,
+        11,
+        57,
+        87,
+        11
+      ]
+    },
+    {
+      "name": "Stock Level",
+      "category": "operations",
+      "value": "87.9%",
+      "trend": "10.9%",
+      "sparkData": [
+        55,
+        23,
+        17,
+        76,
+        99,
+        56,
+        78,
+        8,
+        96,
+        24
+      ]
+    },
+    {
+      "name": "Average Basket Size",
+      "category": "volume",
+      "value": "62.5%",
+      "trend": "11.5%",
+      "sparkData": [
+        20,
+        29,
+        43,
+        62,
+        47,
+        72,
+        86,
+        55,
+        16,
+        84
+      ]
+    },
+    {
+      "name": "Shrinkage Rate",
+      "category": "operations",
+      "value": "92.6%",
+      "trend": "7.0%",
+      "sparkData": [
+        50,
+        72,
+        50,
+        87,
+        86,
+        80,
+        90,
+        13,
+        76,
+        83
+      ]
+    },
+    {
+      "name": "Inventory Value",
+      "category": "operations",
+      "value": "59.3%",
+      "trend": "5.2%",
+      "sparkData": [
+        42,
+        67,
+        72,
+        61,
+        93,
+        71,
+        12,
+        99,
+        43,
+        9
+      ]
+    },
+    {
+      "name": "Total Sales",
+      "category": "revenue",
+      "value": "89.7M",
+      "trend": "14.6%",
+      "sparkData": [
+        0,
+        89,
+        89,
+        80,
+        50,
+        15,
+        99,
+        97,
+        17,
+        38
+      ]
+    },
+    {
+      "name": "Inventory Turnover",
+      "category": "operations",
+      "value": "69.6%",
+      "trend": "6.9%",
+      "sparkData": [
+        45,
+        42,
+        10,
+        60,
+        93,
+        96,
+        32,
+        34,
+        33,
+        43
+      ]
+    }
+  ],
+  "aiInsights": "Q1: Can we directly query the Active SKU Count from the `blinkit_products` table to start the diagnostic?\nA1: Structurally no; the `blinkit_products` schema lists customer PII (`customer_id`, `email`) instead of unique product identifiers like `sku_id`, preventing distinct count aggregation.\n\nQ2: To analyze profitability, where is the `revenue_generated` column located within the available tables?\nA2: It is not explicitly defined in the visible metadata; we must assume it exists in the \"+51 more\" columns of `blinkit_orders`, but data type compatibility is unverified.\n\nQ3: Is it possible to segment this revenue by `store_id` to identify high-performing locations?\nA3: `store_id` is absent from the primary schema definition; relying on hidden columns risks join failures during the transformation pipeline.\n\nQ4: How do we structurally join `blinkit_orders` to `blinkit_inventory` to calculate Inventory Turnover?\nA4: Both tables share `customer_id`, but lack a common `product_id` foreign key, making a valid transaction-to-stock join impossible at this level.\n\nQ5: What is the architectural purpose of having both `blinkit_inventory` and `blinkit_inventoryNew`?\nA5: They share identical column definitions (56 cols); this suggests a failed ETL migration or redundant ingestion pipeline rather than intentional schema evolution.\n\nQ6: Do we have the necessary timestamp columns to explore seasonal patterns in SKU activity?\nA6: No date/time columns are visible in the schema; without `order_date` or `updated_at` types, time-series transformation is structurally unsupported.\n\nQ7: Is the `Category_Icons` table normalized correctly to support product grouping filters?\nA7: No; it contains customer PII (`phone`, `address`), indicating a severe normalization violation that will cause cartesian products if joined to product data.\n\nQ8: Are the numeric fields for Profit and Gross Margin defined as Decimal or Float for precision?\nA8: Undefined; financial KPIs require precise `DECIMAL` types to avoid rounding errors during aggregation, which is currently unconfirmed in the metadata.\n\nQ9: Can we ingest `blinkit_customer_feedback` into the SKU performance pipeline to correlate ratings?\nA9: Structurally inadvisable; the schema mirrors customer tables rather than linking to `product_id`, preventing valid relational mapping for SKU analysis.\n\nQ10: What is the primary structural recommendation to enable the Active SKU Count KPI calculation?\nA10: A schema refactor is required to establish a dedicated Product Dimension table with unique SKU keys before any ETL pipeline can execute valid aggregations.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion Starts",
+      "impact": "Strategy Milestone for Day 5: Projected success uplift initiated."
+    },
+    {
+      "title": "Omnichannel Expansion Ramp Complete",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Starts",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Ramp Complete",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Starts",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Ramp Complete",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Starts",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Ramp Complete",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Starts",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Ramp Complete",
+      "impact": "Strategy Milestone for Day 50: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Starts",
+      "impact": "Strategy Milestone for Day 55: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Ramp Complete",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Starts",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Ramp Complete",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Starts",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Cross-selling Promos Starts",
+      "impact": "Strategy Milestone for Day 80: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Ramp Complete",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Referral Program Starts",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Goal Target: 1250000",
+      "impact": "Strategy Milestone for Day 90: Projected success uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 1,
+    "gap": 250000,
+    "baseline": 1000000,
+    "target": 1250000
+  },
+  "forecastData": {
+    "kpi": "Total Sales",
+    "trend": "Bullish (25% Projected Growth)",
+    "confidence": "40% Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "blinkit_customers.csv",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "blinkit_customer_feedback.csv",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "blinkit_delivery_performance.csv",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "blinkit_inventory.csv",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "blinkit_inventoryNew.csv",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "blinkit_marketing_performance.csv",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "blinkit_orders.csv",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "blinkit_order_items.csv",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "blinkit_products.csv",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "Category_Icons.xlsx",
+      "status": "READY",
+      "columns": 56
+    },
+    {
+      "fileName": "Rating_Icon.xlsx",
+      "status": "READY",
+      "columns": 56
+    }
+  ],
+  "globalChatSummary": "Q1: Can we directly query the Active SKU Count from the `blinkit_products` table to start the diagnostic?\nA1: Structurally no; the `blinkit_products` schema lists customer PII (`customer_id`, `email`) instead of unique product identifiers like `sku_id`, preventing distinct count aggregation.\n\nQ2: To analyze profitability, where is the `revenue_generated` column located within the available tables?\nA2: It is not explicitly defined in the visible metadata; we must assume it exists in the \"+51 more\" columns of `blinkit_orders`, but data type compatibility is unverified.\n\nQ3: Is it possible to segment this revenue by `store_id` to identify high-performing locations?\nA3: `store_id` is absent from the primary schema definition; relying on hidden columns risks join failures during the transformation pipeline.\n\nQ4: How do we structurally join `blinkit_orders` to `blinkit_inventory` to calculate Inventory Turnover?\nA4: Both tables share `customer_id`, but lack a common `product_id` foreign key, making a valid transaction-to-stock join impossible at this level.\n\nQ5: What is the architectural purpose of having both `blinkit_inventory` and `blinkit_inventoryNew`?\nA5: They share identical column definitions (56 cols); this suggests a failed ETL migration or redundant ingestion pipeline rather than intentional schema evolution.\n\nQ6: Do we have the necessary timestamp columns to explore seasonal patterns in SKU activity?\nA6: No date/time columns are visible in the schema; without `order_date` or `updated_at` types, time-series transformation is structurally unsupported.\n\nQ7: Is the `Category_Icons` table normalized correctly to support product grouping filters?\nA7: No; it contains customer PII (`phone`, `address`), indicating a severe normalization violation that will cause cartesian products if joined to product data.\n\nQ8: Are the numeric fields for Profit and Gross Margin defined as Decimal or Float for precision?\nA8: Undefined; financial KPIs require precise `DECIMAL` types to avoid rounding errors during aggregation, which is currently unconfirmed in the metadata.\n\nQ9: Can we ingest `blinkit_customer_feedback` into the SKU performance pipeline to correlate ratings?\nA9: Structurally inadvisable; the schema mirrors customer tables rather than linking to `product_id`, preventing valid relational mapping for SKU analysis.\n\nQ10: What is the primary structural recommendation to enable the Active SKU Count KPI calculation?\nA10: A schema refactor is required to establish a dedicated Product Dimension table with unique SKU keys before any ETL pipeline can execute valid aggregations."
+}

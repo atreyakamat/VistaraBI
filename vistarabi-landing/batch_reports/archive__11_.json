@@ -1,0 +1,124 @@
+{
+  "projectId": "batch-archive--11--07666541",
+  "archiveName": "archive (11)",
+  "domain": "RETAIL",
+  "summaryText": "Comprehensive strategic intelligence report for archive (11). Analyzed 1 KPIs across 1 sources.",
+  "selectedKPIs": [
+    {
+      "name": "Total Sales",
+      "category": "revenue",
+      "value": "66.5M",
+      "trend": "0.3%",
+      "sparkData": [
+        22,
+        13,
+        81,
+        79,
+        22,
+        83,
+        4,
+        5,
+        76,
+        17
+      ]
+    }
+  ],
+  "aiInsights": "Q1: Can we structurally derive Total Sales from the available columns? A1: Yes, the schema provides `Global_Sales` which acts as the aggregate, or you can ETL sum `NA_Sales`, `EU_Sales`, `JP_Sales`, and `Other_Sales`.\nQ2: Are the sales columns defined with appropriate numeric data types for calculation? A2: Structural validation is required to ensure `NA_Sales` through `Global_Sales` are stored as FLOAT or DECIMAL, not VARCHAR, to prevent aggregation errors.\nQ3: Does the schema support seasonal pattern analysis within a given year? A3: No, the `Year` column is granular only to the integer year level, lacking Month or Day columns required for intra-year seasonal transforms.\nQ4: Can we join this data to a Store Dimension table to analyze sales per store? A4: No, there is no `Store_ID` foreign key in the `vgsales` schema, preventing relational joins to any retail location dimension tables.\nQ5: Is the schema structured to calculate Profit or Gross Margin KPIs? A5: No, there are no `Cost` or `Price` columns available, so Profit and Margin cannot be derived structurally without ingesting additional financial tables.\nQ6: Does the data model include Inventory Turnover or Stock Level fields? A6: No, the schema is transactional sales data only; inventory tables would need to be ingested and linked via a `Product_ID` which is currently absent.\nQ7: Can we structurally support Footfall Conversion analysis with this dataset? A7: No, `Footfall` implies customer traffic data which is not represented in any column, making this KPI impossible to compute from this structure.\nQ8: How should we handle potential discrepancies between `Global_Sales` and the sum of regional columns during ETL? A8: The pipeline should include a validation step to check if `Global_Sales` equals the sum of regions, flagging structural inconsistencies for engineering review.\nQ9: Are `Platform` and `Genre` suitable for categorical grouping in a data warehouse dimension table? A9: Yes, these columns contain discrete string values suitable for normalization into Dimension Tables for slicing and dicing in the BI layer.\nQ10: What ETL logic is required to materialize the Total Sales KPI given the current N/A status? A10: The pipeline must explicitly select `Global_Sales` or compute the regional sum, cast to numeric, handle NULLs as zero, and aggregate to update the KPI summary table.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion Starts",
+      "impact": "Strategy Milestone for Day 5: Projected success uplift initiated."
+    },
+    {
+      "title": "Omnichannel Expansion Ramp Complete",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Starts",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Ramp Complete",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Starts",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Ramp Complete",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Starts",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Ramp Complete",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Starts",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Ramp Complete",
+      "impact": "Strategy Milestone for Day 50: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Starts",
+      "impact": "Strategy Milestone for Day 55: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Ramp Complete",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Starts",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Ramp Complete",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Starts",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Cross-selling Promos Starts",
+      "impact": "Strategy Milestone for Day 80: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Ramp Complete",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Referral Program Starts",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Goal Target: 1250000",
+      "impact": "Strategy Milestone for Day 90: Projected success uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 1,
+    "gap": 250000,
+    "baseline": 1000000,
+    "target": 1250000
+  },
+  "forecastData": {
+    "kpi": "Total Sales",
+    "trend": "Bullish (25% Projected Growth)",
+    "confidence": "40% Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "vgsales.csv",
+      "status": "READY",
+      "columns": 11
+    }
+  ],
+  "globalChatSummary": "Q1: Can we structurally derive Total Sales from the available columns? A1: Yes, the schema provides `Global_Sales` which acts as the aggregate, or you can ETL sum `NA_Sales`, `EU_Sales`, `JP_Sales`, and `Other_Sales`.\nQ2: Are the sales columns defined with appropriate numeric data types for calculation? A2: Structural validation is required to ensure `NA_Sales` through `Global_Sales` are stored as FLOAT or DECIMAL, not VARCHAR, to prevent aggregation errors.\nQ3: Does the schema support seasonal pattern analysis within a given year? A3: No, the `Year` column is granular only to the integer year level, lacking Month or Day columns required for intra-year seasonal transforms.\nQ4: Can we join this data to a Store Dimension table to analyze sales per store? A4: No, there is no `Store_ID` foreign key in the `vgsales` schema, preventing relational joins to any retail location dimension tables.\nQ5: Is the schema structured to calculate Profit or Gross Margin KPIs? A5: No, there are no `Cost` or `Price` columns available, so Profit and Margin cannot be derived structurally without ingesting additional financial tables.\nQ6: Does the data model include Inventory Turnover or Stock Level fields? A6: No, the schema is transactional sales data only; inventory tables would need to be ingested and linked via a `Product_ID` which is currently absent.\nQ7: Can we structurally support Footfall Conversion analysis with this dataset? A7: No, `Footfall` implies customer traffic data which is not represented in any column, making this KPI impossible to compute from this structure.\nQ8: How should we handle potential discrepancies between `Global_Sales` and the sum of regional columns during ETL? A8: The pipeline should include a validation step to check if `Global_Sales` equals the sum of regions, flagging structural inconsistencies for engineering review.\nQ9: Are `Platform` and `Genre` suitable for categorical grouping in a data warehouse dimension table? A9: Yes, these columns contain discrete string values suitable for normalization into Dimension Tables for slicing and dicing in the BI layer.\nQ10: What ETL logic is required to materialize the Total Sales KPI given the current N/A status? A10: The pipeline must explicitly select `Global_Sales` or compute the regional sum, cast to numeric, handle NULLs as zero, and aggregate to update the KPI summary table."
+}

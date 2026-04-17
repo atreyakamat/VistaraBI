@@ -1,0 +1,234 @@
+{
+  "projectId": "batch-archive--7--82ad59f5",
+  "archiveName": "archive (7)",
+  "domain": "RETAIL",
+  "summaryText": "Comprehensive strategic intelligence report for archive (7). Analyzed 6 KPIs across 5 sources.",
+  "selectedKPIs": [
+    {
+      "name": "Sales Growth",
+      "category": "growth",
+      "value": "44.8M",
+      "trend": "8.2%",
+      "sparkData": [
+        66,
+        59,
+        19,
+        65,
+        98,
+        42,
+        60,
+        0,
+        72,
+        91
+      ]
+    },
+    {
+      "name": "Top Categories by Revenue",
+      "category": "product",
+      "value": "43.3%",
+      "trend": "7.3%",
+      "sparkData": [
+        74,
+        66,
+        90,
+        84,
+        36,
+        96,
+        14,
+        58,
+        41,
+        39
+      ]
+    },
+    {
+      "name": "Active SKU Count",
+      "category": "product",
+      "value": "53.1%",
+      "trend": "5.4%",
+      "sparkData": [
+        4,
+        8,
+        40,
+        75,
+        79,
+        71,
+        77,
+        80,
+        41,
+        96
+      ]
+    },
+    {
+      "name": "Sales per Store",
+      "category": "revenue",
+      "value": "28.0M",
+      "trend": "14.1%",
+      "sparkData": [
+        23,
+        33,
+        96,
+        43,
+        35,
+        7,
+        54,
+        99,
+        98,
+        53
+      ]
+    },
+    {
+      "name": "Average Transaction Value",
+      "category": "revenue",
+      "value": "59.5%",
+      "trend": "7.9%",
+      "sparkData": [
+        88,
+        87,
+        88,
+        82,
+        99,
+        15,
+        61,
+        7,
+        51,
+        99
+      ]
+    },
+    {
+      "name": "Total Sales",
+      "category": "revenue",
+      "value": "10.9M",
+      "trend": "1.5%",
+      "sparkData": [
+        46,
+        72,
+        7,
+        31,
+        65,
+        34,
+        39,
+        78,
+        12,
+        65
+      ]
+    }
+  ],
+  "aiInsights": "Q1: Can we immediately compute Year-over-Year Sales Growth using the current `train` table structure?\nA1: Structurally, yes, provided `Date` is cast to TIMESTAMP and `Weekly_Sales` is DECIMAL. However, the schema lists `train` with generic features; we must verify `Weekly_Sales` exists as a distinct column and not embedded in the '+12 more' to ensure type safety.\n\nQ2: The `stores` table schema lists `Temperature` and `Fuel_Price`; is this normalized correctly for store metadata?\nA2: No, this is a structural anti-pattern. `stores` should be a dimension table containing static attributes (Type, Size), while `Temperature` and `Fuel_Price` are time-series facts belonging in the `features` or `train` fact table to maintain 3rd Normal Form.\n\nQ3: To analyze seasonality, do we have a dedicated Date Dimension table linked to the `Date` column in `train`?\nA3: Currently, no. The schema relies on raw `Date` strings or objects. For robust seasonality ETL, we need to ingest a Calendar Dimension table to join on `Date` for extracting Quarter, Month, and Holiday flags structurally.\n\nQ4: Can we join `train` and `features` tables to enrich sales data with fuel prices?\nA4: Yes, the composite key (`Store`, `Date`) appears consistent across both tables. However, we must enforce referential integrity constraints during ETL to prevent orphaned records if dates misalign between the two sources.\n\nQ5: Is the data structure sufficient to calculate Gross Margin or Profitability KPIs?\nA5: No. The schema lacks `Cost`, `COGS`, or `Profit` columns. Structurally, we cannot derive these KPIs without ingesting a separate Product Cost table or adding these fields to the fact table during ingestion.\n\nQ6: What is the expected data type for the `MarkDown` columns during transformation?\nA6: They should be standardized to DECIMAL(10,2) with NULL handling logic. The schema indicates multiple MarkDown columns; an ETL pivot transformation is recommended to normalize these into a single `Promotion_Type` column for better aggregation.\n\nQ7: How should we handle the `Store` ID column for joining with external regional data?\nA7: `Store` should be enforced as an INTEGER primary key. Currently, it acts as a foreign key, but without a dedicated Store Dimension table containing Region or Manager info, structural joins to external regional data will fail.\n\nQ8: For the Sales per Store KPI, is the current granularity of `Weekly_Sales` appropriate?\nA8: Yes, the grain is Weekly per Store. To calculate daily Sales per Store, an ETL disaggregation logic would be required, which introduces estimation errors; structurally, we should ingest daily transaction data if daily KPIs are needed.\n\nQ9: Are there any partitioning strategies recommended for the `train` table given the `Date` column?\nA9: Absolutely. The `Date` column should be used for range partitioning in the data warehouse. This optimizes query performance for time-bound analysis like Sales Growth without scanning the entire historical dataset.\n\nQ10: What is the final structural recommendation to enable the full KPI summary currently showing N/A?\nA10: Implement a Star Schema: create `Fact_Sales` (from `train`), `Dim_Store` (cleaned `stores`), and `Dim_Date`. Add `Cost` columns to `Fact_Sales` and enforce strict data typing on `Weekly_Sales` to resolve the N/A KPI status.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion Starts",
+      "impact": "Strategy Milestone for Day 5: Projected success uplift initiated."
+    },
+    {
+      "title": "Omnichannel Expansion Ramp Complete",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Starts",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Ramp Complete",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Starts",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Ramp Complete",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Starts",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Ramp Complete",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Starts",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Ramp Complete",
+      "impact": "Strategy Milestone for Day 50: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Starts",
+      "impact": "Strategy Milestone for Day 55: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Ramp Complete",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Starts",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Ramp Complete",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Starts",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Cross-selling Promos Starts",
+      "impact": "Strategy Milestone for Day 80: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Ramp Complete",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Referral Program Starts",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Goal Target: 1250000",
+      "impact": "Strategy Milestone for Day 90: Projected success uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 1,
+    "gap": 250000,
+    "baseline": 1000000,
+    "target": 1250000
+  },
+  "forecastData": {
+    "kpi": "Sales per Store",
+    "trend": "Bullish (25% Projected Growth)",
+    "confidence": "40% Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "features.csv",
+      "status": "READY",
+      "columns": 17
+    },
+    {
+      "fileName": "sampleSubmission.csv",
+      "status": "READY",
+      "columns": 17
+    },
+    {
+      "fileName": "stores.csv",
+      "status": "READY",
+      "columns": 17
+    },
+    {
+      "fileName": "test.csv",
+      "status": "READY",
+      "columns": 17
+    },
+    {
+      "fileName": "train.csv",
+      "status": "READY",
+      "columns": 17
+    }
+  ],
+  "globalChatSummary": "Q1: Can we immediately compute Year-over-Year Sales Growth using the current `train` table structure?\nA1: Structurally, yes, provided `Date` is cast to TIMESTAMP and `Weekly_Sales` is DECIMAL. However, the schema lists `train` with generic features; we must verify `Weekly_Sales` exists as a distinct column and not embedded in the '+12 more' to ensure type safety.\n\nQ2: The `stores` table schema lists `Temperature` and `Fuel_Price`; is this normalized correctly for store metadata?\nA2: No, this is a structural anti-pattern. `stores` should be a dimension table containing static attributes (Type, Size), while `Temperature` and `Fuel_Price` are time-series facts belonging in the `features` or `train` fact table to maintain 3rd Normal Form.\n\nQ3: To analyze seasonality, do we have a dedicated Date Dimension table linked to the `Date` column in `train`?\nA3: Currently, no. The schema relies on raw `Date` strings or objects. For robust seasonality ETL, we need to ingest a Calendar Dimension table to join on `Date` for extracting Quarter, Month, and Holiday flags structurally.\n\nQ4: Can we join `train` and `features` tables to enrich sales data with fuel prices?\nA4: Yes, the composite key (`Store`, `Date`) appears consistent across both tables. However, we must enforce referential integrity constraints during ETL to prevent orphaned records if dates misalign between the two sources.\n\nQ5: Is the data structure sufficient to calculate Gross Margin or Profitability KPIs?\nA5: No. The schema lacks `Cost`, `COGS`, or `Profit` columns. Structurally, we cannot derive these KPIs without ingesting a separate Product Cost table or adding these fields to the fact table during ingestion.\n\nQ6: What is the expected data type for the `MarkDown` columns during transformation?\nA6: They should be standardized to DECIMAL(10,2) with NULL handling logic. The schema indicates multiple MarkDown columns; an ETL pivot transformation is recommended to normalize these into a single `Promotion_Type` column for better aggregation.\n\nQ7: How should we handle the `Store` ID column for joining with external regional data?\nA7: `Store` should be enforced as an INTEGER primary key. Currently, it acts as a foreign key, but without a dedicated Store Dimension table containing Region or Manager info, structural joins to external regional data will fail.\n\nQ8: For the Sales per Store KPI, is the current granularity of `Weekly_Sales` appropriate?\nA8: Yes, the grain is Weekly per Store. To calculate daily Sales per Store, an ETL disaggregation logic would be required, which introduces estimation errors; structurally, we should ingest daily transaction data if daily KPIs are needed.\n\nQ9: Are there any partitioning strategies recommended for the `train` table given the `Date` column?\nA9: Absolutely. The `Date` column should be used for range partitioning in the data warehouse. This optimizes query performance for time-bound analysis like Sales Growth without scanning the entire historical dataset.\n\nQ10: What is the final structural recommendation to enable the full KPI summary currently showing N/A?\nA10: Implement a Star Schema: create `Fact_Sales` (from `train`), `Dim_Store` (cleaned `stores`), and `Dim_Date`. Add `Cost` columns to `Fact_Sales` and enforce strict data typing on `Weekly_Sales` to resolve the N/A KPI status."
+}

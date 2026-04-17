@@ -1,0 +1,142 @@
+{
+  "projectId": "batch-archive--10--18a7d93f",
+  "archiveName": "archive (10)",
+  "domain": "RETAIL",
+  "summaryText": "Comprehensive strategic intelligence report for archive (10). Analyzed 2 KPIs across 1 sources.",
+  "selectedKPIs": [
+    {
+      "name": "Total Sales",
+      "category": "revenue",
+      "value": "5.1M",
+      "trend": "6.5%",
+      "sparkData": [
+        92,
+        61,
+        76,
+        10,
+        54,
+        55,
+        36,
+        85,
+        57,
+        84
+      ]
+    },
+    {
+      "name": "Stock Level",
+      "category": "operations",
+      "value": "1.6%",
+      "trend": "6.8%",
+      "sparkData": [
+        77,
+        1,
+        5,
+        93,
+        30,
+        54,
+        33,
+        45,
+        37,
+        80
+      ]
+    }
+  ],
+  "aiInsights": "Q1: Can the current schema structurally support a direct SUM aggregation on the 'Total' column? A1: Yes, but the N/A status suggests the ETL pipeline hasn't executed the aggregation or the column type is not numeric.\nQ2: Is the table designed to allow Sales breakdowns by Branch and City dimensions? A2: Yes, 'Branch' and 'City' columns exist, enabling valid GROUP BY operations for geographical analysis.\nQ3: What structural elements are missing to calculate the Profit KPI accurately? A3: The schema lacks 'Cost' or 'Margin' columns, requiring a join with an external Product Cost table.\nQ4: Can we derive Sales Growth trends without an explicit Date column in the relevant list? A4: Only if the '+12 more' columns contain a timestamp; otherwise, time-series partitioning is structurally impossible.\nQ5: Why is the Inventory Turnover KPI currently unsupported by this dataset? A5: There are no foreign keys linking to Inventory tables, preventing the ratio calculation between Sales and Stock.\nQ6: What pipeline change is required to resolve the Stock Level KPI showing N/A? A6: Ingestion logic must be updated to pull stock data from the Warehouse Management System and join on Product ID.\nQ7: How do we verify the schema supports Average Basket Size calculations? A7: We must confirm 'Invoice ID' cardinality and the presence of a 'Quantity' column to divide Total by transaction count.\nQ8: Is the 'Customer type' column structurally optimal for segmentation filtering? A8: Yes, provided it has low cardinality, it is suitable for indexing to speed up customer segment queries.\nQ9: What data type enforcement is critical for the 'Total' column during ingestion? A9: Enforce DECIMAL types instead of VARCHAR to prevent type casting errors during mathematical transformations.\nQ10: How should the ETL architecture transform this flat structure for analytical efficiency? A10: Implement a Star Schema transformation, creating Fact_Sales and Dimension tables to optimize join performance.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion Starts",
+      "impact": "Strategy Milestone for Day 5: Projected success uplift initiated."
+    },
+    {
+      "title": "Omnichannel Expansion Ramp Complete",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Starts",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Ramp Complete",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Starts",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Ramp Complete",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Starts",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Ramp Complete",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Starts",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Ramp Complete",
+      "impact": "Strategy Milestone for Day 50: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Starts",
+      "impact": "Strategy Milestone for Day 55: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Ramp Complete",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Starts",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Ramp Complete",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Starts",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Cross-selling Promos Starts",
+      "impact": "Strategy Milestone for Day 80: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Ramp Complete",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Referral Program Starts",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Goal Target: 1250000",
+      "impact": "Strategy Milestone for Day 90: Projected success uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 1,
+    "gap": 250000,
+    "baseline": 1000000,
+    "target": 1250000
+  },
+  "forecastData": {
+    "kpi": "Total Sales",
+    "trend": "Bullish (25% Projected Growth)",
+    "confidence": "40% Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "Supermarket Sales.csv",
+      "status": "READY",
+      "columns": 17
+    }
+  ],
+  "globalChatSummary": "Q1: Can the current schema structurally support a direct SUM aggregation on the 'Total' column? A1: Yes, but the N/A status suggests the ETL pipeline hasn't executed the aggregation or the column type is not numeric.\nQ2: Is the table designed to allow Sales breakdowns by Branch and City dimensions? A2: Yes, 'Branch' and 'City' columns exist, enabling valid GROUP BY operations for geographical analysis.\nQ3: What structural elements are missing to calculate the Profit KPI accurately? A3: The schema lacks 'Cost' or 'Margin' columns, requiring a join with an external Product Cost table.\nQ4: Can we derive Sales Growth trends without an explicit Date column in the relevant list? A4: Only if the '+12 more' columns contain a timestamp; otherwise, time-series partitioning is structurally impossible.\nQ5: Why is the Inventory Turnover KPI currently unsupported by this dataset? A5: There are no foreign keys linking to Inventory tables, preventing the ratio calculation between Sales and Stock.\nQ6: What pipeline change is required to resolve the Stock Level KPI showing N/A? A6: Ingestion logic must be updated to pull stock data from the Warehouse Management System and join on Product ID.\nQ7: How do we verify the schema supports Average Basket Size calculations? A7: We must confirm 'Invoice ID' cardinality and the presence of a 'Quantity' column to divide Total by transaction count.\nQ8: Is the 'Customer type' column structurally optimal for segmentation filtering? A8: Yes, provided it has low cardinality, it is suitable for indexing to speed up customer segment queries.\nQ9: What data type enforcement is critical for the 'Total' column during ingestion? A9: Enforce DECIMAL types instead of VARCHAR to prevent type casting errors during mathematical transformations.\nQ10: How should the ETL architecture transform this flat structure for analytical efficiency? A10: Implement a Star Schema transformation, creating Fact_Sales and Dimension tables to optimize join performance."
+}

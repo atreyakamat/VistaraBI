@@ -1,0 +1,142 @@
+{
+  "projectId": "batch-archive--12--fc055f91",
+  "archiveName": "archive (12)",
+  "domain": "RETAIL",
+  "summaryText": "Comprehensive strategic intelligence report for archive (12). Analyzed 2 KPIs across 1 sources.",
+  "selectedKPIs": [
+    {
+      "name": "Total Sales",
+      "category": "revenue",
+      "value": "18.4M",
+      "trend": "12.5%",
+      "sparkData": [
+        52,
+        87,
+        45,
+        52,
+        63,
+        95,
+        48,
+        46,
+        35,
+        35
+      ]
+    },
+    {
+      "name": "Stock Level",
+      "category": "operations",
+      "value": "14.2%",
+      "trend": "2.3%",
+      "sparkData": [
+        44,
+        87,
+        62,
+        80,
+        95,
+        84,
+        12,
+        92,
+        0,
+        77
+      ]
+    }
+  ],
+  "aiInsights": "Q1: Can we directly aggregate the `Total` column for national sales figures?\nA1: Yes, structurally, provided the `Total` column is defined as a numeric type (DECIMAL/FLOAT) in the `supermarket_sales` schema rather than VARCHAR, ensuring summation operations are valid.\n\nQ2: Do we have the necessary dimension keys to break down sales by Branch and City?\nA2: The schema explicitly lists `Branch` and `City` columns, allowing for GROUP BY operations without requiring an external dimension table join at this stage.\n\nQ3: Is there a temporal column available to analyze seasonal patterns in the `Total` sales data?\nA3: The visible schema lists `Invoice ID`; we need to verify if one of the \"+12 more\" columns contains a DATE or TIMESTAMP type to enable time-series partitioning and window functions.\n\nQ4: To calculate Profit, do we have a Cost column in the current `supermarket_sales` table?\nA4: No, the current schema only exposes `Total`; an ETL transformation would be required to join a product cost table or ingest a margin percentage column to derive Profit structurally.\n\nQ5: Can we join this sales data with Inventory levels to compute Turnover?\nA5: Not directly; there is no `Stock Level` table or foreign key relationship defined in the current `supermarket_sales` schema structure to support this join operation.\n\nQ6: What is the expected data type for `Invoice ID` to ensure unique row identification?\nA6: It should be structured as a STRING or UUID primary key to prevent integer overflow and ensure uniqueness across high-volume ingestion pipelines.\n\nQ7: How should we handle structural mismatches if `Total` comes in as a string with currency symbols?\nA7: The ETL pipeline must include a transformation step to strip non-numeric characters and cast the column to a standardized NUMERIC type before loading into the warehouse.\n\nQ8: Are `Customer type` and `Gender` structured correctly for segmentation analysis?\nA8: Yes, these appear as categorical columns; structurally they support indexing for faster filtering during segmentation queries without requiring complex type conversions.\n\nQ9: Do we need to normalize the `Branch` and `City` data into separate lookup tables?\nA9: Structurally, denormalization is acceptable here for read performance, but a dimension table could enforce referential integrity if data quality governance requires strict type validation.\n\nQ10: If we need to add `Gross Margin` as a persisted column, what schema change is required?\nA10: This requires an ALTER TABLE operation to add the column, followed by a backfill ETL job to compute values based on existing `Total` and cost logic to maintain schema compatibility.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion Starts",
+      "impact": "Strategy Milestone for Day 5: Projected success uplift initiated."
+    },
+    {
+      "title": "Omnichannel Expansion Ramp Complete",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Starts",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Ramp Complete",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Starts",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Ramp Complete",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Starts",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Ramp Complete",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Starts",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Ramp Complete",
+      "impact": "Strategy Milestone for Day 50: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Starts",
+      "impact": "Strategy Milestone for Day 55: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Ramp Complete",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Starts",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Ramp Complete",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Starts",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Cross-selling Promos Starts",
+      "impact": "Strategy Milestone for Day 80: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Ramp Complete",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Referral Program Starts",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Goal Target: 1250000",
+      "impact": "Strategy Milestone for Day 90: Projected success uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 1,
+    "gap": 250000,
+    "baseline": 1000000,
+    "target": 1250000
+  },
+  "forecastData": {
+    "kpi": "Total Sales",
+    "trend": "Bullish (25% Projected Growth)",
+    "confidence": "40% Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "supermarket_sales.csv",
+      "status": "READY",
+      "columns": 17
+    }
+  ],
+  "globalChatSummary": "Q1: Can we directly aggregate the `Total` column for national sales figures?\nA1: Yes, structurally, provided the `Total` column is defined as a numeric type (DECIMAL/FLOAT) in the `supermarket_sales` schema rather than VARCHAR, ensuring summation operations are valid.\n\nQ2: Do we have the necessary dimension keys to break down sales by Branch and City?\nA2: The schema explicitly lists `Branch` and `City` columns, allowing for GROUP BY operations without requiring an external dimension table join at this stage.\n\nQ3: Is there a temporal column available to analyze seasonal patterns in the `Total` sales data?\nA3: The visible schema lists `Invoice ID`; we need to verify if one of the \"+12 more\" columns contains a DATE or TIMESTAMP type to enable time-series partitioning and window functions.\n\nQ4: To calculate Profit, do we have a Cost column in the current `supermarket_sales` table?\nA4: No, the current schema only exposes `Total`; an ETL transformation would be required to join a product cost table or ingest a margin percentage column to derive Profit structurally.\n\nQ5: Can we join this sales data with Inventory levels to compute Turnover?\nA5: Not directly; there is no `Stock Level` table or foreign key relationship defined in the current `supermarket_sales` schema structure to support this join operation.\n\nQ6: What is the expected data type for `Invoice ID` to ensure unique row identification?\nA6: It should be structured as a STRING or UUID primary key to prevent integer overflow and ensure uniqueness across high-volume ingestion pipelines.\n\nQ7: How should we handle structural mismatches if `Total` comes in as a string with currency symbols?\nA7: The ETL pipeline must include a transformation step to strip non-numeric characters and cast the column to a standardized NUMERIC type before loading into the warehouse.\n\nQ8: Are `Customer type` and `Gender` structured correctly for segmentation analysis?\nA8: Yes, these appear as categorical columns; structurally they support indexing for faster filtering during segmentation queries without requiring complex type conversions.\n\nQ9: Do we need to normalize the `Branch` and `City` data into separate lookup tables?\nA9: Structurally, denormalization is acceptable here for read performance, but a dimension table could enforce referential integrity if data quality governance requires strict type validation.\n\nQ10: If we need to add `Gross Margin` as a persisted column, what schema change is required?\nA10: This requires an ALTER TABLE operation to add the column, followed by a backfill ETL job to compute values based on existing `Total` and cost logic to maintain schema compatibility."
+}

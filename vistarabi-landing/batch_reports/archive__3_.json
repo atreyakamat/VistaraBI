@@ -1,0 +1,207 @@
+{
+  "projectId": "batch-archive--3--72c1c8a8",
+  "archiveName": "archive (3)",
+  "domain": "RETAIL",
+  "summaryText": "Comprehensive strategic intelligence report for archive (3). Analyzed 2 KPIs across 14 sources.",
+  "selectedKPIs": [
+    {
+      "name": "Inventory Value",
+      "category": "operations",
+      "value": "32.7%",
+      "trend": "1.7%",
+      "sparkData": [
+        42,
+        75,
+        84,
+        63,
+        21,
+        96,
+        82,
+        18,
+        19,
+        45
+      ]
+    },
+    {
+      "name": "Total Sales",
+      "category": "revenue",
+      "value": "82.9M",
+      "trend": "5.6%",
+      "sparkData": [
+        8,
+        3,
+        13,
+        80,
+        7,
+        35,
+        83,
+        2,
+        51,
+        68
+      ]
+    }
+  ],
+  "aiInsights": "Q1: Can the current Stock table schema support Inventory Value calculations?\nA1: The schema lacks explicit numeric columns for Quantity and Cost, blocking valuation logic at the structural level.\n\nQ2: Is the Data column type consistent across tables for trend analysis?\nA2: We must verify the format; inconsistent date types between Stock and Vendas will fail ETL join conditions.\n\nQ3: How do we handle the join between Stock and Produtos?\nA3: Produto_ID exists in both, but the identical 58-column structure suggests a denormalization risk affecting performance.\n\nQ4: Can we segment by Loja_ID without schema changes?\nA4: Structurally feasible, but referential integrity constraints on Loja_ID must be enforced during ingestion.\n\nQ5: Where is the Cost data located within Custos_Operacionais?\nA5: The column mask \"+53 more\" obscures the schema; we need to ingest the metadata to map cost fields correctly.\n\nQ6: What transform logic is needed for Data column aggregation?\nA6: A pipeline transform must cast Data to timestamp and validate numeric precision for stock levels.\n\nQ7: Are there primary keys to prevent duplicate inventory records?\nA7: The schema definition omits PKs; without unique constraints on Produto_ID and Loja_ID, data duplication is likely.\n\nQ8: How does Historico_Vendas link structurally for turnover analysis?\nA8: Join compatibility depends on column types; mismatched types between tables will cause pipeline errors.\n\nQ9: Should we migrate to a star schema for this analysis?\nA9: Yes, migrating to a dimensional model would resolve the current flat structure and improve query efficiency.\n\nQ10: Is the pipeline ready to output the Inventory Value KPI?\nA10: No, structural gaps in column definitions and relationships must be fixed before the pipeline can run.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion Starts",
+      "impact": "Strategy Milestone for Day 5: Projected success uplift initiated."
+    },
+    {
+      "title": "Omnichannel Expansion Ramp Complete",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Starts",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Ramp Complete",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Starts",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Ramp Complete",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Starts",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Ramp Complete",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Starts",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Ramp Complete",
+      "impact": "Strategy Milestone for Day 50: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Starts",
+      "impact": "Strategy Milestone for Day 55: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Ramp Complete",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Starts",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Ramp Complete",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Starts",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Cross-selling Promos Starts",
+      "impact": "Strategy Milestone for Day 80: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Ramp Complete",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Referral Program Starts",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Goal Target: 1250000",
+      "impact": "Strategy Milestone for Day 90: Projected success uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 1,
+    "gap": 250000,
+    "baseline": 1000000,
+    "target": 1250000
+  },
+  "forecastData": {
+    "kpi": "Total Sales",
+    "trend": "Bullish (25% Projected Growth)",
+    "confidence": "40% Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "Avaliacoes.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Campanhas.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Clientes.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Colaboradores.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Custos_Operacionais.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Devolucoes.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Fornecedores.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Historico_Vendas.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Lojas.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Pedidos_Compra.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Produtos.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Satisfacao.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Stock.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Vendas.csv",
+      "status": "READY",
+      "columns": 58
+    }
+  ],
+  "globalChatSummary": "Q1: Can the current Stock table schema support Inventory Value calculations?\nA1: The schema lacks explicit numeric columns for Quantity and Cost, blocking valuation logic at the structural level.\n\nQ2: Is the Data column type consistent across tables for trend analysis?\nA2: We must verify the format; inconsistent date types between Stock and Vendas will fail ETL join conditions.\n\nQ3: How do we handle the join between Stock and Produtos?\nA3: Produto_ID exists in both, but the identical 58-column structure suggests a denormalization risk affecting performance.\n\nQ4: Can we segment by Loja_ID without schema changes?\nA4: Structurally feasible, but referential integrity constraints on Loja_ID must be enforced during ingestion.\n\nQ5: Where is the Cost data located within Custos_Operacionais?\nA5: The column mask \"+53 more\" obscures the schema; we need to ingest the metadata to map cost fields correctly.\n\nQ6: What transform logic is needed for Data column aggregation?\nA6: A pipeline transform must cast Data to timestamp and validate numeric precision for stock levels.\n\nQ7: Are there primary keys to prevent duplicate inventory records?\nA7: The schema definition omits PKs; without unique constraints on Produto_ID and Loja_ID, data duplication is likely.\n\nQ8: How does Historico_Vendas link structurally for turnover analysis?\nA8: Join compatibility depends on column types; mismatched types between tables will cause pipeline errors.\n\nQ9: Should we migrate to a star schema for this analysis?\nA9: Yes, migrating to a dimensional model would resolve the current flat structure and improve query efficiency.\n\nQ10: Is the pipeline ready to output the Inventory Value KPI?\nA10: No, structural gaps in column definitions and relationships must be fixed before the pipeline can run."
+}

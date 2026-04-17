@@ -1,0 +1,142 @@
+{
+  "projectId": "batch-archive--2--871c4099",
+  "archiveName": "archive (2)",
+  "domain": "RETAIL",
+  "summaryText": "Comprehensive strategic intelligence report for archive (2). Analyzed 2 KPIs across 1 sources.",
+  "selectedKPIs": [
+    {
+      "name": "Stock Level",
+      "category": "operations",
+      "value": "45.9%",
+      "trend": "2.9%",
+      "sparkData": [
+        23,
+        84,
+        68,
+        19,
+        15,
+        54,
+        8,
+        88,
+        75,
+        50
+      ]
+    },
+    {
+      "name": "Inventory Value",
+      "category": "operations",
+      "value": "64.8%",
+      "trend": "5.9%",
+      "sparkData": [
+        5,
+        59,
+        69,
+        91,
+        54,
+        80,
+        63,
+        25,
+        2,
+        86
+      ]
+    }
+  ],
+  "aiInsights": "Q1: Can we directly query the current Stock Level for each StockCode from the OnlineRetail table?\nA1: No, the current schema is transactional; it lacks a dedicated Inventory table or StockLevel column required to store static quantity states.\n\nQ2: How do we structurally support the Inventory Value KPI given the existing columns?\nA2: We cannot; calculating Inventory Value requires a CostPrice column and a QuantityOnHand field, neither of which are defined in the current 8-column schema.\n\nQ3: Is the InvoiceDate column sufficient to analyze seasonal stock patterns?\nA3: Structurally no; InvoiceDate tracks sales events, but analyzing stock patterns requires a separate time-series schema to snapshot inventory levels daily.\n\nQ4: Can we segment Stock Level analysis by Store ID using the current dataset?\nA4: No, the schema lacks a StoreID dimension column; adding this requires a schema migration to ingest location data from the warehouse management system.\n\nQ5: What join logic is needed to calculate Profitability per StockCode?\nA5: A foreign key relationship is needed to join StockCode to a Product Cost table, which is currently missing from the ingestion pipeline.\n\nQ6: Why is the Inventory Turnover KPI returning N/A in the summary?\nA6: The formula requires Average Inventory as a denominator; structurally, there is no table storing inventory balances to perform this division.\n\nQ7: Are the data types for Quantity compatible with stock deduction logic?\nA7: Quantity is numeric, but the ETL transform must handle negative integers for returns separately to avoid corrupting stock calculation logic.\n\nQ8: Can we ingest warehouse stock logs into the OnlineRetail table directly?\nA8: No, the format is incompatible; a new FactInventory table must be created to avoid mixing transactional sales data with static stock data.\n\nQ9: Is the StockCode column type consistent for joining with external supplier data?\nA9: Yes, it is a string type, but the pipeline must enforce normalization to ensure compatibility with external supplier schema formats.\n\nQ10: What schema architecture do you recommend to enable Stock Level diagnostics?\nA10: Implement a Star Schema with a FactSales table and a new FactInventory table to structurally support Stock Level and Inventory Value KPIs.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion Starts",
+      "impact": "Strategy Milestone for Day 5: Projected success uplift initiated."
+    },
+    {
+      "title": "Omnichannel Expansion Ramp Complete",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Starts",
+      "impact": "Strategy Milestone for Day 15: Projected success uplift initiated."
+    },
+    {
+      "title": "Dynamic Pricing Ramp Complete",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Starts",
+      "impact": "Strategy Milestone for Day 25: Projected success uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Launch Ramp Complete",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Starts",
+      "impact": "Strategy Milestone for Day 35: Projected success uplift initiated."
+    },
+    {
+      "title": "Inventory Optimization Ramp Complete",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Starts",
+      "impact": "Strategy Milestone for Day 45: Projected success uplift initiated."
+    },
+    {
+      "title": "Flash Sales Event Ramp Complete",
+      "impact": "Strategy Milestone for Day 50: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Starts",
+      "impact": "Strategy Milestone for Day 55: Projected success uplift initiated."
+    },
+    {
+      "title": "Targeted Social Ads Ramp Complete",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Starts",
+      "impact": "Strategy Milestone for Day 65: Projected success uplift initiated."
+    },
+    {
+      "title": "Store Layout Update Ramp Complete",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Starts",
+      "impact": "Strategy Milestone for Day 75: Projected success uplift initiated."
+    },
+    {
+      "title": "Cross-selling Promos Starts",
+      "impact": "Strategy Milestone for Day 80: Projected success uplift initiated."
+    },
+    {
+      "title": "Vendor Renegotiation Ramp Complete",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Referral Program Starts",
+      "impact": "Strategy Milestone for Day 85: Projected success uplift initiated."
+    },
+    {
+      "title": "Goal Target: 1250000",
+      "impact": "Strategy Milestone for Day 90: Projected success uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 1,
+    "gap": 250000,
+    "baseline": 1000000,
+    "target": 1250000
+  },
+  "forecastData": {
+    "kpi": "Stock Level",
+    "trend": "Bullish (25% Projected Growth)",
+    "confidence": "40% Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "OnlineRetail.csv",
+      "status": "READY",
+      "columns": 8
+    }
+  ],
+  "globalChatSummary": "Q1: Can we directly query the current Stock Level for each StockCode from the OnlineRetail table?\nA1: No, the current schema is transactional; it lacks a dedicated Inventory table or StockLevel column required to store static quantity states.\n\nQ2: How do we structurally support the Inventory Value KPI given the existing columns?\nA2: We cannot; calculating Inventory Value requires a CostPrice column and a QuantityOnHand field, neither of which are defined in the current 8-column schema.\n\nQ3: Is the InvoiceDate column sufficient to analyze seasonal stock patterns?\nA3: Structurally no; InvoiceDate tracks sales events, but analyzing stock patterns requires a separate time-series schema to snapshot inventory levels daily.\n\nQ4: Can we segment Stock Level analysis by Store ID using the current dataset?\nA4: No, the schema lacks a StoreID dimension column; adding this requires a schema migration to ingest location data from the warehouse management system.\n\nQ5: What join logic is needed to calculate Profitability per StockCode?\nA5: A foreign key relationship is needed to join StockCode to a Product Cost table, which is currently missing from the ingestion pipeline.\n\nQ6: Why is the Inventory Turnover KPI returning N/A in the summary?\nA6: The formula requires Average Inventory as a denominator; structurally, there is no table storing inventory balances to perform this division.\n\nQ7: Are the data types for Quantity compatible with stock deduction logic?\nA7: Quantity is numeric, but the ETL transform must handle negative integers for returns separately to avoid corrupting stock calculation logic.\n\nQ8: Can we ingest warehouse stock logs into the OnlineRetail table directly?\nA8: No, the format is incompatible; a new FactInventory table must be created to avoid mixing transactional sales data with static stock data.\n\nQ9: Is the StockCode column type consistent for joining with external supplier data?\nA9: Yes, it is a string type, but the pipeline must enforce normalization to ensure compatibility with external supplier schema formats.\n\nQ10: What schema architecture do you recommend to enable Stock Level diagnostics?\nA10: Implement a Star Schema with a FactSales table and a new FactInventory table to structurally support Stock Level and Inventory Value KPIs."
+}
