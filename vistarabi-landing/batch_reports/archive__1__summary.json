@@ -1,0 +1,18 @@
+{
+  "archiveName": "archive (1)",
+  "projectId": "batch-archive--1--ec7e54d4",
+  "topKpis": [
+    "Total Sales",
+    "Sales Growth"
+  ],
+  "module6": {
+    "query": "Analyze the Total Sales trend and identify any seasonal patterns.",
+    "agent": "business-analyst",
+    "response": "# Diagnostic Analysis: Total Sales Trend & Seasonality\n\n### Executive Summary\n**Diagnostic Status:** **Incomplete**  \n**Primary Finding:** Unable to determine Total Sales trends or seasonal patterns. ..."
+  },
+  "module7": {
+    "query": "How can we increase Total Sales by 15% in the next 90 days?",
+    "probability": 0,
+    "primaryDriver": "Marketing Campaign"
+  }
+}

@@ -17,18 +17,16 @@ if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR);
 }
 
-async function processArchive(archiveName) {
+async function processArchive(archiveName, userId) {
     console.log(`\n--- Processing ${archiveName} ---`);
     const archivePath = path.join(RETAIL_BASE_DIR, archiveName);
     
-    // Check if it's a directory
-    if (!fs.statSync(archivePath).isDirectory()) return null;
+    if (!fs.existsSync(archivePath) || !fs.statSync(archivePath).isDirectory()) return null;
 
     let files = fs.readdirSync(archivePath).filter(f => f.endsWith('.csv') || f.endsWith('.xlsx'));
     let effectivePath = archivePath;
 
     if (files.length === 0) {
-        // Handle nested Master Data in archive (7)
         const nestedPath = path.join(archivePath, 'Master Data');
         if (fs.existsSync(nestedPath) && fs.statSync(nestedPath).isDirectory()) {
             effectivePath = nestedPath;
@@ -48,7 +46,7 @@ async function processArchive(archiveName) {
         data: {
             id: projectId,
             name: `Retail Report: ${archiveName}`,
-            domain: 'RETAIL',
+            userId: userId
         }
     });
 
@@ -57,7 +55,8 @@ async function processArchive(archiveName) {
         const filePath = path.join(effectivePath, file);
         try {
             const content = fs.readFileSync(filePath, 'utf-8');
-            const lines = content.split('\n');
+            const lines = content.split('\n').filter(l => l.trim().length > 0);
+            if (lines.length === 0) continue;
             const headers = lines[0].split(',').map(h => h.trim());
             const data = lines.slice(1, 50).map(line => {
                 const cells = line.split(',');
@@ -70,6 +69,8 @@ async function processArchive(archiveName) {
                 data: {
                     projectId,
                     fileName: file,
+                    fileType: file.endsWith('.csv') ? 'CSV' : 'XLSX',
+                    status: 'READY',
                     columns: headers,
                     data: data,
                     uploadedAt: new Date(),
@@ -85,7 +86,11 @@ async function processArchive(archiveName) {
         data: {
             projectId,
             activeDomain: 'RETAIL',
-            confidence: 1.0,
+            governanceStatus: 'MANUAL',
+            isLocked: true,
+            version: 1,
+            changedBy: 'BATCH_PROCESSOR',
+            changeReason: 'Automated batch reporting run'
         }
     });
 
@@ -174,12 +179,23 @@ ${discovery?.computableKPIs?.map(k => `- ${k.kpiName} (Formula: ${k.formulaExpre
 }
 
 async function run() {
+    // Ensure batch user exists
+    const batchUser = await db.user.upsert({
+        where: { email: 'batch@vistarabi.com' },
+        update: {},
+        create: {
+            email: 'batch@vistarabi.com',
+            name: 'Batch Reporter',
+            password: 'batch-password-not-used'
+        }
+    });
+
     const archives = fs.readdirSync(RETAIL_BASE_DIR).filter(d => d.startsWith('archive'));
 
     const results = [];
     for (const archive of archives) {
         try {
-            const result = await processArchive(archive);
+            const result = await processArchive(archive, batchUser.id);
             if (result) results.push(result);
         } catch (e) {
             console.error(`Failed to process ${archive}:`, e.message);
