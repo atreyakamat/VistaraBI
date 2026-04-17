@@ -64,7 +64,34 @@ async function getProjectData(projectId: string): Promise<{ columns: string[]; s
 }
 
 // Remove columnToKPI raw fallback function!
-import { matchKPIsForDomain } from './kpi-matcher';
+import { matchKPIsForDomain, type KPIMatch, type ColumnMatch } from './kpi-matcher';
+
+// ─── Utilities ───────────────────────────────────────────────────────────────
+
+/**
+ * Escape a string so it can be safely used as a literal pattern inside RegExp.
+ * Without this, column names like "user-id" or "net.revenue" would create
+ * broken regex that mismatches or throws at runtime.
+ */
+function escapeRegExp(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Custom error for formula resolution failures.
+ * Thrown when a {placeholder} remains after the full mapping loop,
+ * preventing invalid SQL from reaching the database.
+ */
+export class SemanticResolutionError extends Error {
+    constructor(public readonly unresolvedPlaceholders: string[], kpiName: string) {
+        super(
+            `[SemanticResolution] KPI "${kpiName}" has unresolved formula placeholders: ` +
+            `${unresolvedPlaceholders.map(p => `{${p}}`).join(', ')}. ` +
+            `Ensure all required columns are present in the dataset.`
+        );
+        this.name = 'SemanticResolutionError';
+    }
+}
 
 // Main discovery function - returns actual columns as KPIs
 export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResult | null> {
@@ -91,29 +118,85 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
     // Instead of raw columns array, use the Headless Domain Matcher
     const matches = matchKPIsForDomain(domain, columns);
 
-    const computableMatches = matches.filter(m => m.isComputable);
+    const rawComputableMatches = matches.filter(m => m.isComputable);
     const partialMatches = matches.filter(m => !m.isComputable);
 
-    const mapToDiscovered = (match: any): DiscoveredKPI => {
-        // Map semantic roles in aggregations to actual physical columns found during matching
-        const resolvedAggregations = match.kpi.aggregationRules.map((agg: any) => {
-            const columnMatch = match.matchedColumns.find((mc: any) => mc.requiredColumn === agg.column);
-            return {
-                function: agg.function,
-                column: columnMatch ? columnMatch.columnName : agg.column
-            };
-        });
+    // FIX C2: Skip KPIs requiring cross-source joins until the join compiler is complete.
+    // Cross-table columns use dot-notation (e.g., "orders.revenue") in aggregation rules.
+    // Without join execution these would silently return wrong single-table scalars.
+    const hasCrossSourceJoins = (match: KPIMatch) =>
+        match.kpi.aggregationRules.some((a: { function: string; column: string }) =>
+            a.column.includes('.')
+        );
 
-        // Resolve the formula template placeholders to actual column names
+    // FIX H1: Reject any KPI where the same physical column fills two different requiredField slots.
+    // Example: dataset has only "amount" which matches both "revenue" AND "cost" roles.
+    // This would produce SUM(amount)/SUM(amount) = 1.0 — a silent wrong answer.
+    const hasDoubleFilledColumn = (match: KPIMatch) => {
+        const physicalCols = match.matchedColumns.map(mc => mc.columnName);
+        return physicalCols.length !== new Set(physicalCols).size;
+    };
+
+    const computableMatches = rawComputableMatches
+        .filter(m => !hasCrossSourceJoins(m))
+        .filter(m => !hasDoubleFilledColumn(m));
+
+    if (rawComputableMatches.length !== computableMatches.length) {
+        console.log(
+            `[KPI-Discovery] Filtered ${rawComputableMatches.length - computableMatches.length} KPIs ` +
+            `(cross-join or double-fill): ${rawComputableMatches.length} → ${computableMatches.length} computable`
+        );
+    }
+
+    const mapToDiscovered = (match: KPIMatch): DiscoveredKPI => {
+        // Map semantic roles in aggregations to actual physical columns found during matching.
+        // De-duplicate by requiredColumn — prevents sending duplicate aggregation rules
+        // to the SQL compiler when multiple physical columns match the same semantic role.
+        const seenRoles = new Set<string>();
+        const resolvedAggregations = match.kpi.aggregationRules
+            .filter((agg: { function: string; column: string }) => {
+                if (seenRoles.has(agg.column)) return false;
+                seenRoles.add(agg.column);
+                return true;
+            })
+            .map((agg: { function: string; column: string }) => {
+                const columnMatch = match.matchedColumns.find(
+                    (mc: ColumnMatch) => mc.requiredColumn === agg.column
+                );
+                return {
+                    function: agg.function,
+                    column: columnMatch ? columnMatch.columnName : agg.column,
+                };
+            });
+
+        // Resolve the formula template placeholders to actual column names.
+        // Use escapeRegExp so column names with special chars (hyphens, dots) parse correctly.
         let formulaExpression = match.kpi.formulaTemplate;
-        match.matchedColumns.forEach((mc: any) => {
-            // First try braced format if it exists (e.g. {revenue})
-            const braced = new RegExp(`\\{${mc.requiredColumn}\\}`, 'g');
+        match.matchedColumns.forEach((mc: ColumnMatch) => {
+            // Braced format: {revenue} → physical_column
+            const braced = new RegExp(`\\{${escapeRegExp(mc.requiredColumn)}\\}`, 'g');
             formulaExpression = formulaExpression.replace(braced, mc.columnName);
-            // Then try word boundary format (e.g. SUM(revenue))
-            const wordBoundary = new RegExp(`\\b${mc.requiredColumn}\\b`, 'g');
+            // Word-boundary format: SUM(revenue) → SUM(physical_column)
+            const wordBoundary = new RegExp(`\\b${escapeRegExp(mc.requiredColumn)}\\b`, 'g');
             formulaExpression = formulaExpression.replace(wordBoundary, mc.columnName);
         });
+
+        // ACTION 2: Strict Resolution Check — throw SemanticResolutionError if any
+        // {placeholder} remains. This prevents broken SQL like
+        // "SUM({revenue}) / COUNT(order_id)" from reaching PostgreSQL.
+        const remainingPlaceholders = [...formulaExpression.matchAll(/\{([^}]+)\}/g)].map(m => m[1]);
+        if (remainingPlaceholders.length > 0) {
+            // For partial matches we warn instead of throw so UI can still show the KPI as PARTIAL.
+            // Only throw for COMPUTABLE KPIs where we commit to running SQL.
+            if (match.isComputable) {
+                throw new SemanticResolutionError(remainingPlaceholders, match.kpi.name);
+            } else {
+                console.warn(
+                    `[SemanticResolution] KPI "${match.kpi.name}" has unresolved placeholders ` +
+                    `(non-computable, skipping throw): ${remainingPlaceholders.join(', ')}`
+                );
+            }
+        }
 
         return {
             id: randomUUID(),
@@ -124,7 +207,7 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
             confidence: match.confidence,
             matchType: match.matchType,
             explanation: match.kpi.description,
-            matchedColumns: match.matchedColumns.map((c: any) => c.columnName),
+            matchedColumns: match.matchedColumns.map((c: ColumnMatch) => c.columnName),
             formulaExpression,
             category: match.kpi.category,
             priority: match.kpi.priority,

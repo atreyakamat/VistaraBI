@@ -94,19 +94,33 @@ function matchKPI(kpi: KPIDefinition, projectColumns: string[]): KPIMatch {
         }
     }
 
+    // H1 FIX: After building matchedColumns, remove any where the same physical column
+    // occupies two different requiredField slots. This prevents SUM(amount) / SUM(amount) = 1.0.
+    const seenPhysical = new Set<string>();
+    const finalMatchedColumns: ColumnMatch[] = [];
+    
+    for (const mc of matchedColumns) {
+        if (seenPhysical.has(mc.columnName)) {
+            missingColumns.push(mc.requiredColumn);
+        } else {
+            seenPhysical.add(mc.columnName);
+            finalMatchedColumns.push(mc);
+        }
+    }
+
     const isComputable = missingColumns.length === 0;
-    const avgConfidence = matchedColumns.length > 0
-        ? matchedColumns.reduce((sum, m) => sum + m.confidence, 0) / matchedColumns.length
+    const avgConfidence = finalMatchedColumns.length > 0
+        ? finalMatchedColumns.reduce((sum, m) => sum + m.confidence, 0) / finalMatchedColumns.length
         : 0;
 
     // Adjust confidence based on completeness
-    const completenessRatio = matchedColumns.length / kpi.requiredFields.length;
+    const completenessRatio = finalMatchedColumns.length / kpi.requiredFields.length;
     const confidence = Math.round(avgConfidence * completenessRatio);
 
     const matchType = confidence >= 95 ? 'EXACT' : confidence >= 70 ? 'ALIAS' : 'PARTIAL';
-    const supportStatus = isComputable ? 'FULLY_SUPPORTED' : matchedColumns.length > 0 ? 'PARTIALLY_SUPPORTED' : 'UNSUPPORTED';
+    const supportStatus = isComputable ? 'FULLY_SUPPORTED' : finalMatchedColumns.length > 0 ? 'PARTIALLY_SUPPORTED' : 'UNSUPPORTED';
 
-    return { kpi, matchedColumns, missingColumns, isComputable, confidence, matchType, supportStatus };
+    return { kpi, matchedColumns: finalMatchedColumns, missingColumns, isComputable, confidence, matchType, supportStatus };
 }
 
 // Match all KPIs for a domain against project columns

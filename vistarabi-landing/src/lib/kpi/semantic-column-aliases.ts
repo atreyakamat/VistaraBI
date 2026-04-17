@@ -131,10 +131,13 @@ export const RETAIL_ALIASES: AliasMap = {
         'branch_id', 'shop_id', 'pos_id', 'store_code', 'loja_id', 'store',
     ],
     revenue: [
-        ...UNIVERSAL_ALIASES.revenue,
+        ...(UNIVERSAL_ALIASES.revenue ?? []),
         'order_total', 'sales_amount', 'weekly_sales', 'retail_sales', 'warehouse_sales',
     ],
-    unit_price: [
+    // unit_price is not a top-level SemanticRole; merge its aliases into cost
+    // so SQL compiler can cast price columns as NUMERIC.
+    cost: [
+        ...(UNIVERSAL_ALIASES.cost ?? []),
         'price', 'rate', 'unit_cost', 'unitprice', 'preço unitário', 'valor_unitario',
     ],
     inventory: [

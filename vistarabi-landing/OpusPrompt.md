@@ -1,26 +1,42 @@
-# 🧠 Master Platform Audit Prompt (For Claude 3.5 Sonnet / Opus)
+# 🧠 Project Completion & Production Readiness Prompt (For Claude 3.5 Sonnet / Opus)
 
-**Task:** Perform a deep architectural audit and cross-domain scaling validation for the VistaraBI platform.
+**Task:** Execute a final, exhaustive architectural audit, verify system-wide stability, and define the definitive roadmap to 100% completion for the VistaraBI platform across all 8 domains.
 
 ---
 
 ### 📋 Copy/Paste the following prompt into Claude:
 
-"You are a Principal Software Architect and AI Engineer. I have just stabilized the **VistaraBI** platform for the Retail domain. Now, I need you to audit the entire system to ensure it is ready to scale to the remaining 7 domains (Finance, SaaS, Manufacturing, etc.).
+"You are a Principal Software Architect, Lead QA Engineer, and AI Systems Expert. We are at the final stage of the **VistaraBI** development cycle. I have 'stabilized' the platform for the Retail domain, but I need you to act as the final authority to ensure this system is truly production-ready and ready to scale across all 8 domains (Finance, SaaS, Manufacturing, etc.).
 
-**Codebase Architecture:**
-- **SQL Execution:** `src/lib/execution/` uses a materializer to create project-specific Postgres tables from raw CSVs.
-- **KPI Engine:** `src/lib/kpi/` uses a Semantic Alias library to map raw headers to business metrics.
-- **AI Routing:** `src/lib/ai/` uses a MasterAgent to route queries between local (0.8B) and cloud (397B) models based on 9 specialized personas.
-- **Reporting:** `src/lib/module-9/` generates React-PDF reports synthesizing data from all modules.
+**Codebase Architecture Overview:**
+- **SQL Execution:** `src/lib/execution/` (Materializer, SQL Compiler).
+- **KPI Engine:** `src/lib/kpi/` (Semantic Resolver, Matcher, Library).
+- **AI Routing:** `src/lib/ai/` (MasterAgent, Unified Client, Personas).
+- **Forecasting:** `src/lib/module-8/` (Prophet Bridge, Strategy Validator).
+- **Reporting:** `src/lib/module-9/` (React-PDF synthesis).
 
-**Your Critical Audit Tasks:**
+**Your Mission: The Final Completion & Validation Audit**
 
-1. **SQL Stability:** Review **`src/lib/execution/sql-compiler.ts`**. We recently fixed a `date_trunc` type mismatch using explicit casts. Analyze the code for any other potential PostgreSQL type collisions (e.g., trying to `SUM` a text column that wasn't properly cast to `NUMERIC`).
-2. **Semantic Robustness:** Audit **`src/lib/kpi/index.ts`**. We updated it to strictly filter `isComputable` KPIs. Verify the logic that replaces formula placeholders (like `{revenue}`) with physical columns. Does it handle cases where multiple columns map to the same semantic role?
-3. **Forecasting Reliability:** Review **`src/lib/module-8/prophet-bridge.ts`**. Ensure the bridge correctly handles 'sparse data' (days with missing values) before sending it to the Python Prophet engine. Propose a data-cleaning step if gaps are detected.
-4. **Agentic Conflict:** Look at the 9 agent personas in **`src/lib/ai/unified-ai-client.ts`**. Are there overlaps between `business-analyst` and `strategy-planner` that could confuse the router? Refine the system prompts to ensure clear separation of concerns.
-5. **Memory Optimization:** The 397B cloud model is powerful but slow. Propose a 'Context Compression' utility for the **MasterAgent** so we only send necessary schema metadata instead of full sample rows, reducing latency and token costs.
+### 1. 🔍 Technical Verification (Is the current state actually correct?)
+- **SQL Integrity:** Audit `src/lib/execution/sql-compiler.ts`. Verify if the recent `DATE_TRUNC` and `NUMERIC` casting fixes are architecturally sound. Check for 'silent failures' in `MIN`/`MAX` aggregations on text columns and potential division-by-zero errors in complex formulas.
+- **Semantic Mapping:** Review `src/lib/kpi/index.ts`. Does the regex-based placeholder replacement handle special characters, overlapping column names, or multi-source joins correctly? Verify if the 'bestMatch' logic in `kpi-matcher.ts` prevents collisions.
+- **AI Routing Logic:** Audit `src/lib/ai/master-agent.ts` and `unified-ai-client.ts`. Is the routing deterministic? Are the 9 personas sufficiently distinct? Verify if the context window is being managed efficiently (Context Compression) or if large schemas will crash the local 0.8B model.
 
-**Deliverable:**
-Provide a list of 5 'Immediate Action Items' to bulletproof the platform for a production launch across all 8 domains."
+### 2. 🧪 Robust Testing & Edge Case Validation
+- **Sparse Data:** How does the system behave when a CSV has 3 months of data but only 10 actual entries? Verify if `prophet-bridge.ts` handles this or if it produces skewed forecasts.
+- **Dirty Data:** Check the `data-profiler.ts` and `data-materializer.ts`. Does the system gracefully handle mixed types in the same column (e.g., '100' and 'N/A')?
+- **E2E Flow:** Verify the integration between Module 4 (KPIs) -> Module 8 (Forecasting) -> Module 9 (Reporting). Is data lineage preserved across this pipeline?
+
+### 3. 🗺️ Roadmap to 100% Completion (What is remaining?)
+- **Domain Scaling:** Identify what is missing to enable the other 7 domains. Is the metadata in `kpi-library.ts` and `semantic-column-aliases.ts` exhaustive for Finance, Manufacturing, and Healthcare?
+- **UI/UX Production Gaps:** Are there missing loading states, error boundaries, or 'AI reasoning' visualizations needed for a polished user experience?
+- **Performance:** Identify latency bottlenecks in the MasterAgent's fallback chain.
+
+### 4. 🛡️ Security & Scalability Audit
+- **SQL Injection:** Confirm that the double-quoting and parameterization in `sql-compiler.ts` is 100% bulletproof for production.
+- **Token Costs:** Propose a strategy to minimize 'Cloud Model' usage without sacrificing reasoning quality.
+
+**Final Deliverables:**
+1. **The 'Truth Report':** A brutal assessment of whether the current stabilization efforts are technically correct or just 'surface fixes'.
+2. **The 'Gap Analysis':** A complete list of every missing feature, bug, or architectural weakness preventing a 100% production launch.
+3. **The 'Definitive Action Plan':** A prioritized, step-by-step checklist to complete the project, including a **Robust Testing Protocol** to verify the platform's stability under real-world 'dirty data' conditions."

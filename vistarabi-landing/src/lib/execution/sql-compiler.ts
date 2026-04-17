@@ -120,9 +120,18 @@ function compileSelectClause(
 
     // Aggregation expressions (for chart tooltips, etc)
     for (const agg of aggregations) {
-        const alias = `${agg.function.toLowerCase()}_${agg.column.replace(/\\W/g, '_')}`;
+        // FIX: Use \W (single backslash) — the previous \\W was a double-escaped no-op.
+        const alias = `${agg.function.toLowerCase()}_${agg.column.replace(/\W/g, '_')}`;
         if (agg.function === 'COUNT_DISTINCT') {
             parts.push(`COUNT(DISTINCT ${qi(agg.column)}) AS ${qi(alias)}`);
+        } else if (agg.function === 'SUM' || agg.function === 'AVG' || agg.function === 'MIN' || agg.function === 'MAX') {
+            // Cast to NUMERIC to prevent:
+            //   - 42883 errors (SUM/AVG on TEXT)
+            //   - Incorrect string ordering (MIN/MAX: '10' < '2' in lexicographic sort)
+            // The ::NUMERIC cast returns NULL for non-numeric values (safe default).
+            const fn = AGG_SQL_MAP[agg.function];
+            if (!fn) throw new Error(`[SQL Compiler] Unknown aggregation function: ${agg.function}`);
+            parts.push(`${fn}(${qi(agg.column)}::NUMERIC) AS ${qi(alias)}`);
         } else {
             const fn = AGG_SQL_MAP[agg.function];
             if (!fn) throw new Error(`[SQL Compiler] Unknown aggregation function: ${agg.function}`);
@@ -141,12 +150,30 @@ function compileSelectClause(
             .split(/\s+LIMIT\s+/i)[0]
             .split(/\s+BY\s+/i)[0];
 
-        safeFormula = safeFormula.trim().replace(/COUNT\(([^)]+)\)/gi, 'NULLIF(COUNT($1), 0)');
-        // A minimal safe wrapper for basic division: but the simplest is just projecting the formula
+        // Wrap ALL aggregation denominators with NULLIF to prevent division-by-zero crashes.
+        // This covers every ratio KPI pattern across all 8 domains:
+        //   COUNT denominator: COUNT(order_id) / COUNT(cart_id)
+        //   SUM denominator:   SUM(revenue) / SUM(costs)     [Finance, Manufacturing]
+        //   AVG denominator:   SUM(mrr) / AVG(user_id)       [SaaS CLV]
+        //   MAX denominator:   MIN(val) / MAX(total)          [edge case]
+        safeFormula = safeFormula.trim()
+            .replace(/\bCOUNT\(([^)]+)\)/gi,  'NULLIF(COUNT($1), 0)')
+            .replace(/\/\s*SUM\(([^)]+)\)/gi,  '/ NULLIF(SUM($1::NUMERIC), 0)')
+            .replace(/\/\s*AVG\(([^)]+)\)/gi,  '/ NULLIF(AVG($1::NUMERIC), 0)')
+            .replace(/\/\s*MAX\(([^)]+)\)/gi,  '/ NULLIF(MAX($1::NUMERIC), 0)');
         parts.push(`(${safeFormula}) AS "value"`);
     } else if (aggregations.length > 0) {
         const primaryAgg = aggregations[0];
-        const fn = primaryAgg.function === 'COUNT_DISTINCT' ? `COUNT(DISTINCT ${qi(primaryAgg.column)})` : `${AGG_SQL_MAP[primaryAgg.function]}(${qi(primaryAgg.column)})`;
+        let fn: string;
+        if (primaryAgg.function === 'COUNT_DISTINCT') {
+            fn = `COUNT(DISTINCT ${qi(primaryAgg.column)})`;
+        } else if (primaryAgg.function === 'SUM' || primaryAgg.function === 'AVG' ||
+                   primaryAgg.function === 'MIN' || primaryAgg.function === 'MAX') {
+            // Cast to NUMERIC for safe aggregation/ordering of TEXT columns from CSV uploads.
+            fn = `${AGG_SQL_MAP[primaryAgg.function]}(${qi(primaryAgg.column)}::NUMERIC)`;
+        } else {
+            fn = `${AGG_SQL_MAP[primaryAgg.function]}(${qi(primaryAgg.column)})`;
+        }
         parts.push(`${fn} AS "value"`);
     }
 

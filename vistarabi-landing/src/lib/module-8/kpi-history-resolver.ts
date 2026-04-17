@@ -147,7 +147,10 @@ export function resolveForecastHistory(
     return withMetricMatch[0].history;
   }
 
-  // If metric matching fails, use the richest available KPI series
-  // so Module 8 can still produce a deterministic forecast.
-  return candidates.sort((a, b) => b.history.length - a.history.length)[0].history;
+  // FIX C3: Do NOT fall back to the longest series when metric matching fails.
+  // Using a completely unrelated KPI's time series (e.g., units_produced for quality_ratio)
+  // produces a forecast that is domain-incorrect and silently misleads the user.
+  // Return empty — the linear fallback in prophet-bridge.ts will build a goal-anchored dummy.
+  console.warn(`[HistoryResolver] No series matched "${targetMetric}" — returning empty history for safe fallback.`);
+  return [];
 }

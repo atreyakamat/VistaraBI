@@ -184,29 +184,60 @@ export async function executeKPI(
         return lower;
     };
 
+    // Shared numeric-type set used across aggregation guards and formula rewrites.
+    const NUMERIC_TYPES = ['numeric', 'integer', 'bigint', 'double precision', 'real', 'decimal', 'float', 'int2', 'int4', 'int8', 'float4', 'float8'];
+    const CATEGORICAL_TYPES = ['varchar', 'char', 'bool', 'boolean', 'uuid', 'json', 'jsonb'];
+
     // Rewrite metric and dimension columns dynamically based on physical table
     for (const agg of kpi.aggregations) {
         agg.column = resolveColumn(agg.column);
 
-        // Safety Fallback: If SUM is requested on a non-numeric column, it will fail in SQL.
-        // We fallback to COUNT which is a safer default for categorical/textual data.
+        // Safety Fallback: If SUM/AVG is requested on a clearly categorical column, fall back to COUNT.
+        // For 'text' columns that contain numbers, the ::NUMERIC cast in sql-compiler.ts handles it safely.
         const type = colTypes[agg.column];
-        if (agg.function === 'SUM' && type && !['numeric', 'integer', 'bigint', 'double precision', 'real', 'decimal'].includes(type)) {
-            console.warn(`[Executor] Safety fallback: SUM on non-numeric column "${agg.column}" (${type}) for KPI "${kpi.name}" changed to COUNT`);
-            agg.function = 'COUNT' as typeof agg.function;
+        if ((agg.function === 'SUM' || agg.function === 'AVG') && type && !NUMERIC_TYPES.includes(type)) {
+            if (CATEGORICAL_TYPES.includes(type)) {
+                console.warn(`[Executor] Safety fallback: ${agg.function} on categorical column "${agg.column}" (${type}) for KPI "${kpi.name}" changed to COUNT`);
+                agg.function = 'COUNT' as typeof agg.function;
+            }
         }
     }
+
+    // ACTION 4: De-duplicate aggregation rules by (function, column) pair.
+    // If two columns map to the same semantic role we'd get duplicate SQL expressions.
+    const seenAggKeys = new Set<string>();
+    kpi.aggregations = kpi.aggregations.filter(agg => {
+        const key = `${agg.function}:${agg.column}`;
+        if (seenAggKeys.has(key)) {
+            console.warn(`[Executor] Duplicate aggregation removed: ${key} for KPI "${kpi.name}"`);
+            return false;
+        }
+        seenAggKeys.add(key);
+        return true;
+    });
+
     for (const gb of kpi.groupBys) {
         gb.column = resolveColumn(gb.column);
     }
     if (kpi.lineage?.formula) {
         let f = kpi.lineage.formula;
-        for (const [semanticCol, _] of Object.entries(aliases)) {
+        for (const [semanticCol] of Object.entries(aliases)) {
             const actual = resolveColumn(semanticCol);
             if (actual !== semanticCol.toLowerCase()) {
                 f = f.replace(new RegExp(`\\b${semanticCol}\\b`, 'gi'), actual);
             }
         }
+        // ACTION 1: Wrap any remaining SUM/AVG calls in the formula with ::NUMERIC casts.
+        // This bulletproofs formula strings like 'SUM(revenue) / NULLIF(COUNT(order_id),0)'
+        // that may have been partially resolved to TEXT columns.
+        f = f.replace(/\b(SUM|AVG)\("?([\w]+)"?\)/gi, (_match, fn, col) => {
+            const physCol = col.toLowerCase();
+            const colType = colTypes[physCol];
+            if (colType && !NUMERIC_TYPES.includes(colType)) {
+                return `${fn}("${physCol}"::NUMERIC)`;
+            }
+            return `${fn}("${physCol}")`;
+        });
         kpi.lineage.formula = f;
     }
 
