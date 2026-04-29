@@ -1,0 +1,80 @@
+# All-modules e2e smoke
+
+command: npx vitest run tests/e2e-all-modules.test.ts
+status: timeout
+exitCode: null
+durationMs: 180007
+
+## STDOUT
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould have at least one AI provider configured
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould connect to at least one AI provider
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould connect to at least one AI provider
+[22m[39m✓ 1 AI provider(s) configured
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with business-analyst agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with data-engineer agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with domain-expert agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with statistician agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with narrative-writer agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with strategy-planner agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+
+
+## STDERR
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould connect to at least one AI provider
+[22m[39m[AI] ollama-local failed after 6871ms: Empty response from Ollama
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould connect to at least one AI provider
+[22m[39m[AI] ollama-local failed after 3323ms: Empty response from Ollama
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with business-analyst agent
+[22m[39m[AI] ollama-local failed after 30014ms: Ollama request timed out after 30000ms
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with business-analyst agent
+[22m[39m[AI] × Failed with ollama-local: Ollama request timed out after 30000ms
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with data-engineer agent
+[22m[39m[AI] ollama-local failed after 30018ms: Ollama request timed out after 30000ms
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with data-engineer agent
+[22m[39m[AI] × Failed with ollama-local: Ollama request timed out after 30000ms
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with domain-expert agent
+[22m[39m[AI] ollama-local failed after 30007ms: Ollama request timed out after 30000ms
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with domain-expert agent
+[22m[39m[AI] × Failed with ollama-local: Ollama request timed out after 30000ms
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with statistician agent
+[22m[39m[AI] ollama-local failed after 30011ms: Ollama request timed out after 30000ms
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with statistician agent
+[22m[39m[AI] × Failed with ollama-local: Ollama request timed out after 30000ms
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with narrative-writer agent
+[22m[39m[AI] ollama-local failed after 30012ms: Ollama request timed out after 30000ms
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with narrative-writer agent
+[22m[39m[AI] × Failed with ollama-local: Ollama request timed out after 30000ms
+
+

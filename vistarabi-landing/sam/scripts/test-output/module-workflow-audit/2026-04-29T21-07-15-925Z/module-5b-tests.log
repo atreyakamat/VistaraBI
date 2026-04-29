@@ -1,0 +1,231 @@
+# Module 5B tests
+
+command: npm run test:5b
+status: passed
+exitCode: 0
+durationMs: 3273
+
+## STDOUT
+
+
+> vistarabi-landing@0.1.0 test:5b
+> vitest run tests/module-5b
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+ [32m✓[39m tests/module-5b/chart-selection.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mKPI Computation[2m > [22m[2mshould compute a SUM KPI from lineage
+[22m[39m[KPIComputer] Total Revenue = 875 (0ms)
+
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mKPI Computation[2m > [22m[2mshould compute an AVG KPI
+[22m[39m[KPIComputer] Average Order Value = 145.83333333333334 (0ms)
+
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mKPI Computation[2m > [22m[2mshould handle empty data gracefully
+[22m[39m[KPIComputer] Total Revenue = 0 (0ms)
+
+[90mstdout[2m | tests/module-5b/execution.test.ts[2m > [22m[2mModule 5B — Cache Layer[2m > [22m[2mshould invalidate by project prefix
+[22m[39m[Cache] Invalidated 2 entries for project proj1
+
+[90mstdout[2m | tests/module-5b/execution.test.ts[2m > [22m[2mModule 5B — Cache Layer[2m > [22m[2mshould invalidate specific KPI
+[22m[39m[Cache] Invalidated 1 entries for KPI kpi1
+
+[90mstdout[2m | tests/module-5b/performance.test.ts[2m > [22m[2mModule 5B: Performance Tests[2m > [22m[2mshould aggregate 100,000 rows under 200ms
+[22m[39m[KPIComputer] Performance Revenue = 49859594.72202304 (31ms)
+[Perf] 100k Aggregation: 32.02ms
+
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mEdge Cases[2m > [22m[2mshould handle missing columns gracefully
+[22m[39m[KPIComputer] Total Revenue = 0 (0ms)
+
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mEdge Cases[2m > [22m[2mshould handle large dataset (1000+ rows) without crashing
+[22m[39m[KPIComputer] Total Revenue = 742671.5927756081 (1ms)
+
+ [32m✓[39m tests/module-5b/visualization.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 69[2mms[22m[39m
+ [32m✓[39m tests/module-5b/execution.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 257[2mms[22m[39m
+[90mstdout[2m | tests/module-5b/performance.test.ts[2m > [22m[2mModule 5B: Performance Tests[2m > [22m[2mshould group 100,000 rows (Drill-Down) under 500ms
+[22m[39m[Perf] 100k Grouping: 39.38ms
+
+[90mstdout[2m | tests/module-5b/performance.test.ts[2m > [22m[2mModule 5B: Performance Tests[2m > [22m[2mshould handle 100,000 rows join efficiently
+[22m[39m[KPIComputer] Performance Revenue = 25045724.102781523 (79ms)
+[Perf] 50k x 50k Join: 78.40ms
+
+ [32m✓[39m tests/module-5b/performance.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 309[2mms[22m[39m
+ [32m✓[39m tests/module-5b/explanation-cache.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould produce a valid KPIExecutionResult
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould compute correct primary value (SUM)
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould apply filters and reduce dataset
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould apply date range filter
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use groupBy for drill-down
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould return cache hit on second call
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould return cache hit on second call
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould bypass cache when skipCache is true
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould bypass cache when skipCache is true
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould populate profiling data correctly
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould recommend a chart type based on data profile
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould report animation flag based on profiler record count
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould build lineage summary correctly
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould handle empty source data gracefully
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use granularity option for time bucketing
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use granularity option for time bucketing
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Executor] Executing dashboard for: proj-1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Executor] Dashboard complete: 1 KPIs in 13ms (0 cached, 1 computed, 0 skipped)
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Executor] Executing dashboard for: proj-1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Executor] Dashboard complete: 1 KPIs in 6ms (0 cached, 1 computed, 0 skipped)
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould throw for missing dashboard config
+[22m[39m[Executor] Executing dashboard for: proj-missing
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould throw for missing dashboard config
+[22m[39m[Materializer] Materializing data for project: proj-missing into table: merged_data_proj_missing
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDrill[2m > [22m[2mshould execute drill-down query for a specific KPI
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDrill[2m > [22m[2mshould sort drill-down results by value descending
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+ [32m✓[39m tests/module-5b/executor.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 140[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m102 passed[39m[22m[90m (102)[39m
+[2m   Start at [22m 02:38:39
+[2m   Duration [22m 1.58s[2m (transform 1.54s, setup 0ms, import 3.02s, tests 822ms, environment 3ms)[22m
+
+
+
+## STDERR
+
+[90mstderr[2m | tests/module-5b/explanation-cache.test.ts[2m > [22m[2mModule 5B — Explanation Cache[2m > [22m[2mLayer 3: Generate via AI[2m > [22m[2mshould return null if generation fails
+[22m[39m[ExplanationCache] Failed to generate explanation for kpi-rev: Error: AI unavailable
+    at C:/Projects/VistaraBI/vistarabi-landing/tests/module-5b/explanation-cache.test.ts:116:66
+    at [90mfile:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:145:11
+    at [90mfile:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:915:26
+    at [90mfile:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:1209:10[90m)[39m
+    at [90mfile:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:1653:37
+    at Traces.$ [90m(file:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4mvitest[24m/dist/chunks/traces.CCmnQaNT.js:142:27[90m)[39m
+    at trace [90m(file:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js:239:21[90m)[39m
+    at runTest [90m(file:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:1653:12[90m)[39m
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould produce a valid KPIExecutionResult
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould compute correct primary value (SUM)
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould apply filters and reduce dataset
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould apply date range filter
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use groupBy for drill-down
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould return cache hit on second call
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould return cache hit on second call
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould bypass cache when skipCache is true
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould bypass cache when skipCache is true
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould populate profiling data correctly
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould recommend a chart type based on data profile
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould report animation flag based on profiler record count
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould build lineage summary correctly
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould handle empty source data gracefully
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use granularity option for time bucketing
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use granularity option for time bucketing
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould throw for missing dashboard config
+[22m[39m[Materializer] No sources found for project: proj-missing
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDrill[2m > [22m[2mshould execute drill-down query for a specific KPI
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDrill[2m > [22m[2mshould sort drill-down results by value descending
+[22m[39m[Materializer] No sources found for project: proj-1
+
+

@@ -1,0 +1,86 @@
+# Module 6 tests
+
+command: npm run test:6
+status: passed
+exitCode: 0
+durationMs: 4522
+
+## STDOUT
+
+
+> vistarabi-landing@0.1.0 test:6
+> vitest run tests/module6a tests/module6b tests/module6c tests/module6d tests/module6e
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+ [32m✓[39m tests/module6b/event-engine.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m tests/module6b/evidence-packet.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m tests/module6c/kpi-pair-validator.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/module6d/numeric-guard.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/module6b/numeric-guard.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m tests/module6c/numeric-guard.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m tests/module6c/correlation-packet.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/module6b/llm-guard.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m tests/module6d/prompt-builder.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/module6a/security.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/module6a/schema.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/module6d/pipeline.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/module6e/pipeline.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+ [32m✓[39m tests/module6a/execution-bridge.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m tests/module6d/model-router.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/module6c/statistics-gate.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m tests/module6d/audit-logger.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/module6e/conflict-detector.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/module6c/trend-confounder.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/module6c/lag-engine.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/module6a/dco-validation.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m tests/module6c/period-aligner.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/module6a/ask-ai-route.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 444[2mms[22m[39m
+ [32m✓[39m tests/module6e/synthesis-prompt-builder.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+[90mstdout[2m | tests/module6d/local-adapter.test.ts[2m > [22m[2mlocal-adapter — callLocalModel()[2m > [22m[2msuccessful call → AdapterResponse with text and tokens
+[22m[39m[AI Router] Using Local Model: qwen3.5:0.8b
+
+[90mstdout[2m | tests/module6d/local-adapter.test.ts[2m > [22m[2mlocal-adapter — callLocalModel()[2m > [22m[2muses OLLAMA_URL env var
+[22m[39m[AI Router] Using Local Model: qwen3.5:0.8b
+
+[90mstdout[2m | tests/module6d/local-adapter.test.ts[2m > [22m[2mlocal-adapter — callLocalModel()[2m > [22m[2mdefaults to localhost:11434 when env not set
+[22m[39m[AI Router] Using Local Model: qwen3.5:0.8b
+
+[90mstdout[2m | tests/module6d/local-adapter.test.ts[2m > [22m[2mlocal-adapter — callLocalModel()[2m > [22m[2mHTTP 500 → LOCAL_CALL_FAILED (not recoverable)
+[22m[39m[AI Router] Using Local Model: qwen3.5:0.8b
+
+ [32m✓[39m tests/module6a/idempotency.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+[90mstdout[2m | tests/module6d/local-adapter.test.ts[2m > [22m[2mlocal-adapter — callLocalModel()[2m > [22m[2mnetwork failure → LOCAL_CALL_FAILED
+[22m[39m[AI Router] Using Local Model: qwen3.5:0.8b
+
+[90mstdout[2m | tests/module6d/local-adapter.test.ts[2m > [22m[2mlocal-adapter — callLocalModel()[2m > [22m[2mAbortError (timeout) → LOCAL_TIMEOUT (recoverable)
+[22m[39m[AI Router] Using Local Model: qwen3.5:0.8b
+
+[90mstdout[2m | tests/module6d/local-adapter.test.ts[2m > [22m[2mlocal-adapter — callLocalModel()[2m > [22m[2mempty response string → LOCAL_CALL_FAILED
+[22m[39m[AI Router] Using Local Model: qwen3.5:0.8b
+
+[90mstdout[2m | tests/module6d/local-adapter.test.ts[2m > [22m[2mlocal-adapter — callLocalModel()[2m > [22m[2mthrows ModelCallError instances on failure
+[22m[39m[AI Router] Using Local Model: qwen3.5:0.8b
+
+ [32m✓[39m tests/module6d/local-adapter.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 97[2mms[22m[39m
+ [32m✓[39m tests/module6e/cross-packet-numeric-guard.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/module6e/packet-governance.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/module6a/parse.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/module6d/task-classifier.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/module6e/synthesis-classifier.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/module6e/causation-guard.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m32 passed[39m[22m[90m (32)[39m
+[2m      Tests [22m [1m[32m374 passed[39m[22m[90m (374)[39m
+[2m   Start at [22m 02:38:49
+[2m   Duration [22m 2.84s[2m (transform 8.76s, setup 0ms, import 15.57s, tests 1.23s, environment 15ms)[22m
+
+
+
+## STDERR
+
+[90mstderr[2m | tests/module6d/audit-logger.test.ts[2m > [22m[2maudit-logger — writeReasoningAuditRecord()[2m > [22m[2mwriteAuditRecord failure → does NOT throw (audit is non-fatal)
+[22m[39m[Module6D/audit] Failed to write reasoning audit record: DB unreachable
+
+

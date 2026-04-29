@@ -1,5 +1,7 @@
 # VistaraBI - Current Project State (2026-04-29)
 
+
+
 ## 1) Executive Snapshot
 
 | Area | Current State | Evidence |

@@ -1,0 +1,28 @@
+# Module 9 tests
+
+command: npm run test:9
+status: passed
+exitCode: 0
+durationMs: 2564
+
+## STDOUT
+
+
+> vistarabi-landing@0.1.0 test:9
+> vitest run tests/module-9
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+ [32m✓[39m tests/module-9/report-engine.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 81[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+[2m   Start at [22m 02:38:58
+[2m   Duration [22m 914ms[2m (transform 204ms, setup 0ms, import 480ms, tests 81ms, environment 0ms)[22m
+
+
+
+## STDERR
+
+(empty)
