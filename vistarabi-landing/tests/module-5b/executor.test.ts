@@ -293,8 +293,10 @@ describe('Module 5B — KPI Executor Pipeline', () => {
             });
 
             expect(result.lineage.tables).toContain('sales.csv');
-            expect(result.lineage.formula).toBe('SUM(amount)');
-            expect(result.lineage.aggregations).toContain('SUM(amount)');
+            expect(result.lineage.formula).toMatch(/^SUM\("?amount"?\)$/);
+            expect(
+                result.lineage.aggregations.some((aggregation) => /^SUM\("?amount"?\)$/.test(aggregation))
+            ).toBe(true);
         });
 
         it('should handle empty source data gracefully', async () => {

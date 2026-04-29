@@ -108,3 +108,21 @@ MIT - see [LICENSE](LICENSE) for details.
 ---
 
 Built with AI. Powered by TDD.
+
+## VistaraBI Release Audit System
+
+Use the project-level scripts to run the module workflow audit for Modules 1-9:
+
+```bash
+# Generates JSON + markdown audit artifacts and latest top-level report
+npm run sam:audit:release
+
+# Same audit, strict mode (non-zero exit on hard failures)
+npm run sam:tdd:modules
+```
+
+Artifacts are written to:
+
+- `sam/scripts/test-output/module-workflow-audit/<timestamp>/module-workflow-audit.json`
+- `sam/scripts/test-output/module-workflow-audit/<timestamp>/module-workflow-audit.md`
+- `SAM_MODULE_1_TO_9_AUDIT_REPORT.md` (latest snapshot)

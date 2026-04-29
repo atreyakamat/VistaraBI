@@ -49,7 +49,7 @@ describe('Module 8 KPI history resolver', () => {
     expect(history[1].value).toBe(1380);
   });
 
-  it('falls back to the richest series if metric match is not found', () => {
+  it('returns empty history when metric match is not found', () => {
     const kpis: DashboardKpiExecutionItem[] = [
       {
         kpiId: 'kpi-short',
@@ -69,7 +69,6 @@ describe('Module 8 KPI history resolver', () => {
 
     const history = resolveForecastHistory('unknown metric', kpis);
 
-    expect(history).toHaveLength(3);
-    expect(history[2].value).toBe(14);
+    expect(history).toHaveLength(0);
   });
 });

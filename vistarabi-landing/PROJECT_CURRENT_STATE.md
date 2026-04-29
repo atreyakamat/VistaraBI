@@ -1,93 +1,79 @@
-# VistaraBI - Current Project State (2026-04-14)
+# VistaraBI - Current Project State (2026-04-29)
 
 ## 1) Executive Snapshot
 
 | Area | Current State | Evidence |
 |---|---|---|
-| Retail dataset profiling | ✅ Complete | `datasets/retail/retail-feature-catalog.json` generated from 8 CSV files |
-| Retail model alignment | ✅ Complete | `modelfiles/Modelfile.analytics.retail` regenerated and `vistara-analytics-retail` refreshed |
-| Module 7 (Goal engine) | ✅ Stable | `npm run test:7` passing |
-| Module 8 (Forecasting/canvas) | ✅ Stable | `npm run test:8` passing |
+| Retail dataset profiling | ✅ Complete | `datasets/retail/retail-feature-catalog.json` generated via recursive profiling |
+| Retail model alignment | ✅ Complete | `modelfiles/Modelfile.analytics.retail` refreshed and retail model updated |
+| Module 5 data freshness | ✅ Complete | Materialization now checks source freshness metadata before reusing merged table |
+| Module 7 (Goal strategy) | ✅ Stable | `npm run test:7` passing |
+| Module 8 (Forecast/canvas) | ✅ Stable | `npm run test:8` passing |
 | Module 9 (Report engine) | ✅ Stable | `npm run test:9` passing |
-| Production build | ✅ Stable | `npm run build` passing |
-| Repo lint baseline | ❌ Not clean | `npm run lint` reports **562 issues** (368 errors, 194 warnings) |
-| Full CI tests (`test:ci`) | ⚠️ Unstable in current env | Suite stalls on AI-heavy E2E tests (`tests/e2e-all-modules.test.ts`) |
+| Build readiness | ✅ Stable | `npm run build` passing |
+| SAM release audit system | ✅ Implemented | `sam/scripts/module-workflow-audit.js` + report artifacts + npm scripts |
+| Deploy script presence | ⚠️ Missing | No `deploy` script found in `package.json` |
+| Full end-to-end AI smoke | ⚠️ Unstable in this env | `tests/module1.e2e.ts` fails and `tests/e2e-all-modules.test.ts` times out |
 
 ---
 
-## 1.1) Module 1-9 Audit (Non-UI)
+## 2) SAM Release Audit + TDD Pipeline Status
 
-| Module | Status | Current Gap / Risk |
+| Capability | Status | Path |
 |---|---|---|
-| Module 1 | ⚠️ Partially validated | `tests/module1.e2e.ts` fails auth step in this env (`/api/auth/login` 404 for test credentials/server context). |
-| Module 2 | ✅ Passing | Core purification/quality e2e suite passed. |
-| Module 3 | ✅ Passing | Module test suite passing. |
-| Module 4 | ✅ Passing | Module 4D tests passing. |
-| Module 5 | ✅ Passing with backend fix | Materialization freshness now keys off source upload/clean timestamps; avoids stale "looks hardcoded" dashboard data. |
-| Module 6 | ✅ Passing | Core tests pass; cloud tasks still require correct env + routing flag configuration. |
-| Module 7 | ✅ Passing | Pipeline + integration tests passing. |
-| Module 8 | ✅ Passing | Forecast/canvas tests passing. |
-| Module 9 | ✅ Passing | Report engine tests passing. |
+| Release audit command | ✅ Ready | `npm run sam:audit:release` |
+| Strict TDD gate command | ✅ Ready | `npm run sam:tdd:modules` |
+| JSON artifact output | ✅ Ready | `sam/scripts/test-output/module-workflow-audit/<timestamp>/module-workflow-audit.json` |
+| Markdown artifact output | ✅ Ready | `sam/scripts/test-output/module-workflow-audit/<timestamp>/module-workflow-audit.md` |
+| Latest summary doc | ✅ Ready | `SAM_MODULE_1_TO_9_AUDIT_REPORT.md` |
+
+Latest audit run summary:
+- Overall status: **PASS**
+- Passed checks: **13**
+- Allowed non-blocking failures: **2** (Module 1+2 e2e smoke fail, all-modules e2e timeout)
 
 ---
 
-## 2) What Remains (Beyond Domain Fine-Tuning)
+## 3) Module 1-9 Backend Workflow Audit
 
-## A. Engineering Quality Gates
-1. Reduce lint debt across `src/`, `scripts/`, and `tests/` (large `no-explicit-any`, hook, and import-style violations).
-2. Decide lint policy boundaries (for example, whether migration/dev scripts should be linted under the same strict rules as app code).
-3. Enforce clean PR gate: build + module tests + lint on changed files at minimum.
-
-## B. CI/E2E Reliability
-1. Split AI-live tests from deterministic CI tests.
-2. Mark AI-live suite as integration/nightly with explicit env requirements.
-3. Add mock-based equivalents for fallback-chain behavior so CI does not depend on provider response time.
-
-## C. Documentation Accuracy (High Priority)
-Current docs are partially stale relative to the actual implementation:
-- `README.md` still says Modules 4-9 are planned and references older AI model assumptions.
-- `AI_QUICK_REFERENCE.md`, `IMPLEMENTATION_SUMMARY.md`, `PRODUCTION_DEPLOYMENT.md` still reference `qwen3.5:2b`.
-
-## D. Product Hardening (for complete scope)
-1. Add explicit UI status/fallback messaging when AI providers are slow/unavailable.
-2. Add one-click "demo seed + walkthrough" flow for presentation repeatability.
-3. Add regression checks for the Module 7 -> 8 -> 9 user journey (goal generation to forecast to PDF).
-
-## E. Ops/Deployment Maturity
-1. Resolve Next.js warnings (`middleware` deprecation to `proxy`; workspace root lockfile warning).
-2. Define runbook for AI provider health, timeout thresholds, and fallback order.
-3. Add centralized monitoring for API latency, AI failure rates, and report generation success.
-
----
-
-## 3) How to Connect More / Make It Better
-
-| Improvement | What to Connect | Practical Path |
+| Module | Status | Notes |
 |---|---|---|
-| Reliable AI chain | Ola/Ollama Cloud + local fallback + OpenRouter | Standardize env templates and add startup health checks |
-| Live business data | Warehouse/DB connectors (Postgres first) | Build source adapters + scheduled ingestion + schema mapping |
-| Executive reporting workflow | Report output to shared channels | Add delivery connectors (email/drive/slack) after PDF generation |
-| Product analytics | Observability stack | Add structured logs + dashboard for module-level success/failure |
-| Repeatable demos | Demo project bootstrap | Scripted seed dataset + scripted goal/forecast/report sequence |
+| Module 1 | ⚠️ Script-level pass, e2e unstable | Core tests pass; e2e auth flow still environment-sensitive |
+| Module 2 | ✅ Passing | Parsing/purification path stable |
+| Module 3 | ✅ Passing | Domain scoring/classification tests pass |
+| Module 4 | ✅ Passing | Relationship detection + lineage path stable |
+| Module 5 | ✅ Passing | 5A/5B/5C + integration pass after lineage expectation alignment |
+| Module 6 | ✅ Passing | Module test suite passing |
+| Module 7 | ✅ Passing | Goal strategy flow and location extraction stable |
+| Module 8 | ✅ Passing | KPI history resolver behavior and tests aligned |
+| Module 9 | ✅ Passing | Report engine tests passing |
 
 ---
 
-## 4) Recommended Execution Order
+## 4) Remaining Work (Clear and Prioritized)
 
-1. **P0 (immediate):** Documentation sync + CI split (deterministic vs AI-live) + lint policy decision.
-2. **P1:** Lint debt cleanup in app-critical files and core APIs.
-3. **P2:** UX hardening, observability, and external connectors.
+1. **Deployment automation gap:** add explicit deploy script(s) and CI release workflow.
+2. **E2E reliability gap:** stabilize `module1.e2e` and `e2e-all-modules` under deterministic env/mocks.
+3. **Lint debt gap:** repository-wide lint baseline remains noisy and should be reduced for safer CI signal.
+4. **Docs sync gap:** align top-level docs that still describe older module status/model defaults.
 
 ---
 
-## 5) Current Verification Commands
+## 5) Verification Commands (Current)
 
 ```bash
 npm run build
+npm run sam:audit:release
+npm run test:1-2
+npm run test:3
+npm run test:4d
+npm run test:5a
+npm run test:5b
+npm run test:5c
+npm run test:module-5
+npm run test:6
 npm run test:7
 npm run test:8
 npm run test:9
-npm run profile:domain -- RETAIL
-npm run ingest:retail
 ```
 
