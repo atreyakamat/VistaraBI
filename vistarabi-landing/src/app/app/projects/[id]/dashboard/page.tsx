@@ -8,6 +8,7 @@ import { useParams } from 'next/navigation';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { SkeletonLoader } from '@/components/dashboard/SkeletonLoader';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from '@/components/dashboard/types';
+import type { DashboardExecutionResult, KPIExecutionResult } from '@/lib/execution';
 import '@/components/dashboard/dashboard.css';
 
 interface DashboardConfig {
@@ -110,22 +111,19 @@ export default function DashboardPage() {
             //   { projectId, kpis: KPIExecutionResult[], metadata, ... }
             // Each KPIExecutionResult has: primaryValue, previousValue, dataset[],
             //   deltaPercent, deltaDirection, recommendedChartType, recommendedChartLibrary
-            const dataRes = await fetch(`/api/projects/${projectId}/dashboard/data`);
-            const kpiDataMap: Record<string, any> = {};
+            const dataRes = await fetch(`/api/projects/${projectId}/dashboard/data${isRefresh ? '?skipCache=true' : ''}`);
+            const kpiDataMap: Record<string, KPIExecutionResult> = {};
 
-            if (dataRes.ok) {
-                const dashData = await dataRes.json();
+            if (!dataRes.ok) {
+                const errData = await dataRes.json().catch(() => ({ error: 'Failed to load dashboard data' }));
+                throw new Error(errData.error || `Dashboard data error: ${dataRes.status}`);
+            }
 
-                // Surface execution errors to the user instead of silently showing empty data
-                if (dashData.error) {
-                    console.error('[Dashboard] Data API returned error:', dashData.error);
-                    setDataError(dashData.error);
-                }
+            const dashData: DashboardExecutionResult = await dataRes.json();
 
-                // Map KPI execution results by kpiId for quick lookup
-                for (const kpi of (dashData.kpis || [])) {
-                    kpiDataMap[kpi.kpiId] = kpi;
-                }
+            // Map KPI execution results by kpiId for quick lookup
+            for (const kpi of (dashData.kpis || [])) {
+                kpiDataMap[kpi.kpiId] = kpi;
             }
 
             // Build KPICardData from config + computed execution results
@@ -135,9 +133,10 @@ export default function DashboardPage() {
                     const exec = kpiDataMap[card.kpiId];
 
                     // Map dataset (KPIDataPoint[]) to the chart-friendly { label, value } format
-                    const dataPoints: Array<{ label: string; value: number }> = (exec?.dataset || []).map((dp: any) => ({
-                        label: dp.label || dp.category || dp.date || String(dp.x || ''),
-                        value: typeof dp.value === 'number' ? dp.value : (dp.y ?? 0),
+                    // KPIDataPoint already has label and value, so just normalize it
+                    const dataPoints: Array<{ label: string; value: number }> = (exec?.dataset || []).map((dp) => ({
+                        label: dp.label || 'N/A',
+                        value: typeof dp.value === 'number' ? dp.value : 0,
                     }));
 
                     const kpiData: KPICardData = {
@@ -174,40 +173,54 @@ export default function DashboardPage() {
         }
     }, [projectId]);
 
-    // Module 5C — Load insights asynchronously (non-blocking)
+    // Module 5C — Load insights asynchronously (non-blocking) with timeout
     const loadInsights = useCallback(async (projId: string, currentKpis: KPICardData[]) => {
         try {
-            const insightRes = await fetch(`/api/projects/${projId}/dashboard/insights`);
-            if (!insightRes.ok) return;
+            // Add 3-second timeout to insights loading
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-            const data = await insightRes.json();
+            try {
+                const insightRes = await fetch(`/api/projects/${projId}/dashboard/insights`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if (!insightRes.ok) return;
 
-            setInsightFeed(data.feed || []);
-            setSmartAlerts(data.alerts || []);
-            setStrongestUp(data.topMovers?.strongest_up ?? null);
-            setStrongestDown(data.topMovers?.strongest_down ?? null);
-            setAnomalyCount(data.anomalyCount ?? 0);
-            setTrendingUp(data.trendingUp ?? 0);
-            setTrendingDown(data.trendingDown ?? 0);
+                const data = await insightRes.json();
 
-            // Enrich KPI cards with insight data
-            if (data.insights && Array.isArray(data.insights)) {
-                const insightMap = new Map(data.insights.map((i: any) => [i.kpiId, i]));
-                setKpis(prev => prev.map(kpi => {
-                    const insight = insightMap.get(kpi.kpiId) as any;
-                    if (!insight) return kpi;
-                    return {
-                        ...kpi,
-                        anomalySeverity: insight.anomaly?.severity || 'normal',
-                        anomalyScore: insight.anomaly?.score || 0,
-                        anomalyReason: insight.anomaly?.reason || '',
-                        insightSummary: insight.attribution?.sentence || insight.trendSummary || '',
-                        trendSummary: insight.trendSummary || '',
-                        lineageExplanation: insight.lineageExplanation || '',
-                        changeAttribution: insight.attribution?.sentence || '',
-                        lastUpdated: insight.lastUpdated || '',
-                    };
-                }));
+                setInsightFeed(data.feed || []);
+                setSmartAlerts(data.alerts || []);
+                setStrongestUp(data.topMovers?.strongest_up ?? null);
+                setStrongestDown(data.topMovers?.strongest_down ?? null);
+                setAnomalyCount(data.anomalyCount ?? 0);
+                setTrendingUp(data.trendingUp ?? 0);
+                setTrendingDown(data.trendingDown ?? 0);
+
+                // Enrich KPI cards with insight data
+                if (data.insights && Array.isArray(data.insights)) {
+                    const insightMap = new Map(data.insights.map((i: any) => [i.kpiId, i]));
+                    setKpis(prev => prev.map(kpi => {
+                        const insight = insightMap.get(kpi.kpiId) as any;
+                        if (!insight) return kpi;
+                        return {
+                            ...kpi,
+                            anomalySeverity: insight.anomaly?.severity || 'normal',
+                            anomalyScore: insight.anomaly?.score || 0,
+                            anomalyReason: insight.anomaly?.reason || '',
+                            insightSummary: insight.attribution?.sentence || insight.trendSummary || '',
+                            trendSummary: insight.trendSummary || '',
+                            lineageExplanation: insight.lineageExplanation || '',
+                            changeAttribution: insight.attribution?.sentence || '',
+                            lastUpdated: insight.lastUpdated || '',
+                        };
+                    }));
+                }
+            } catch (timeoutErr) {
+                if (timeoutErr instanceof TypeError && timeoutErr.name === 'AbortError') {
+                    console.warn('[Dashboard] Insights load timed out (>3s), continuing without insights');
+                } else {
+                    throw timeoutErr;
+                }
             }
         } catch (err) {
             console.warn('[Dashboard] Insights load failed (non-critical):', err);

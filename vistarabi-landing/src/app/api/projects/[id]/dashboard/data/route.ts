@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { executeDashboard, ensureDataMaterialized } from '@/lib/execution';
-import type { ExecutionOptions } from '@/lib/execution';
+import type { ExecutionOptions, DashboardExecutionResult, KPIExecutionResult } from '@/lib/execution';
 import type { TimeGranularity } from '@/lib/visualization/types';
 
 export async function GET(
@@ -73,22 +73,13 @@ export async function GET(
         const message = error instanceof Error ? error.message : String(error);
         console.error('[API] Dashboard data execution error:', message);
 
-        // Return 200 with empty kpis + the actual error string so the page
-        // can surface the real cause instead of silently rendering an empty dashboard.
-        return NextResponse.json({
-            kpis: [],
-            error: message || 'Data temporarily unavailable',
-            appliedFilters: [],
-            granularity: 'monthly',
-            computedAt: new Date().toISOString(),
-            metadata: {
-                totalKPIs: 0,
-                computedKPIs: 0,
-                skippedKPIs: 0,
-                totalTimeMs: 0,
-                cacheHitCount: 0,
-                cacheMissCount: 0,
+        // Return proper HTTP 500 error with structured response
+        return NextResponse.json(
+            {
+                error: message || 'Data temporarily unavailable',
+                details: 'Failed to execute dashboard KPI calculations',
             },
-        });
+            { status: 500 }
+        );
     }
 }

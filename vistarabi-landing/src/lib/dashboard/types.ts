@@ -143,3 +143,14 @@ export interface DashboardConfigSchema {
     metadata: DashboardMetadata;
     version: number;
 }
+
+// ─── KPI Data Point (Used by Execution Layer) ──────────────────────
+
+export interface KPIDataPoint {
+    label?: string;
+    category?: string;
+    date?: string;
+    x?: string | number;
+    y?: number;
+    value?: number;
+}
