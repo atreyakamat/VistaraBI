@@ -1,5 +1,5 @@
 import { generateCompletion } from './src/lib/ai/ollama-client';
-// @ts-ignore
+// @ts-expect-error dotenv import types are incorrect
 import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env' });

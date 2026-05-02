@@ -31,8 +31,22 @@ export async function GET() {
         }
 
         return NextResponse.json({ user });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Get me error:', error);
+
+        // Handle database connection errors gracefully
+        if (
+          error?.code === 'P1000' || 
+          error?.code === 'P1001' || 
+          error?.message?.toLowerCase().includes('connect') ||
+          error?.message?.toLowerCase().includes('reach database')
+        ) {
+            return NextResponse.json(
+                { error: 'Authentication service partially unavailable', detail: 'Database connection failed' },
+                { status: 503 }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

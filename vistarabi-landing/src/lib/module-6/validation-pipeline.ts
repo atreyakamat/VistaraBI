@@ -236,15 +236,13 @@ export function runValidationPipeline(
     expectedIntentId: string
 ): PipelineResult {
     let stagesPassed = 0;
-    let command: Module6Command | undefined;
-    let parsed: unknown;
 
     // Stage 1: Parse
     const s1 = stage1Parse(rawLLMOutput);
     if (!s1.ok) {
         return { success: false, stagesPassed: 0, failedAt: 'STAGE_1_PARSE', errorCode: s1.code, errorMessage: s1.message };
     }
-    parsed = s1.parsed;
+    const parsed = s1.parsed;
     stagesPassed = 1;
 
     // Stage 2: Schema
@@ -252,7 +250,7 @@ export function runValidationPipeline(
     if (!s2.ok) {
         return { success: false, stagesPassed: 1, failedAt: 'STAGE_2_SCHEMA', errorCode: s2.code, errorMessage: s2.message };
     }
-    command = s2.command;
+    const command = s2.command;
     stagesPassed = 2;
 
     // Stage 3: DCO

@@ -62,7 +62,7 @@ export function KPICardBack({
                 {/* Lineage Explanation */}
                 {lineageExplanation && (
                     <div>
-                        <div className="text-slate-400 font-medium mb-0.5">📐 How It's Calculated</div>
+                        <div className="text-slate-400 font-medium mb-0.5">📐 How It&apos;s Calculated</div>
                         <div className="text-slate-200 leading-relaxed">{lineageExplanation}</div>
                     </div>
                 )}

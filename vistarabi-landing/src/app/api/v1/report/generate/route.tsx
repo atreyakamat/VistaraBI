@@ -31,8 +31,11 @@ async function generateExecutiveSummary(metrics: any, chatSummary: string, domai
 }
 
 export async function POST(request: Request) {
+  let summaryText = "";
+  let body: any;
+
   try {
-    const body = await request.json();
+    body = await request.json();
     const { 
       chartImage, 
       metrics, 
@@ -53,32 +56,40 @@ export async function POST(request: Request) {
     }
 
     // 1. Get the LLM Narrative
-    const summaryText = await generateExecutiveSummary(
+    summaryText = await generateExecutiveSummary(
       metrics, 
       chatSummary || "Analysis of recent data trends.", 
       domain
     );
+  } catch (error: any) {
+    console.error('Report Generation Error:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
-    // 2. Render the PDF
-    const stream = await renderToStream(
-      <ExecutiveReport
-        summaryText={summaryText}
-        domain={domain}
-        selectedKPIs={selectedKPIs || []}
-        aiInsights={chatSummary || "Strategic insights derived from semantic data analysis."}
-        actions={actions || []}
-        businessSuggestions={businessSuggestions || []}
-        forecastData={forecastData}
-        metrics={metrics}
-        chartImage={chartImage}
-        dashboardImage={dashboardImage}
-        globalChatSummary={globalChatSummary}
-        uploadedDatasets={uploadedDatasets}
-        cleaningSummary={cleaningSummary}
-      />
-    );
+  // 2. Create JSX element (outside try/catch)
+  const reportElement = (
+    <ExecutiveReport
+      summaryText={summaryText}
+      domain={body.domain}
+      selectedKPIs={body.selectedKPIs || []}
+      aiInsights={body.chatSummary || "Strategic insights derived from semantic data analysis."}
+      actions={body.actions || []}
+      businessSuggestions={body.businessSuggestions || []}
+      forecastData={body.forecastData}
+      metrics={body.metrics}
+      chartImage={body.chartImage}
+      dashboardImage={body.dashboardImage}
+      globalChatSummary={body.globalChatSummary}
+      uploadedDatasets={body.uploadedDatasets}
+      cleaningSummary={body.cleaningSummary}
+    />
+  );
 
-    // 3. Return as a downloadable file
+  // 3. Render the PDF in try block
+  try {
+    const stream = await renderToStream(reportElement);
+
+    // 4. Return as a downloadable file
     return new Response(stream as any, {
       headers: {
         'Content-Type': 'application/pdf',
@@ -86,7 +97,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error: any) {
-    console.error('Report Generation Error:', error);
+    console.error('PDF Rendering Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

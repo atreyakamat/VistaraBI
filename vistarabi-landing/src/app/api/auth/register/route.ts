@@ -70,8 +70,27 @@ export async function POST(request: NextRequest) {
             },
             { status: 201 }
         );
-    } catch (error) {
+    } catch (error: any) {
         console.error('Register error:', error);
+        
+        // Handle database connection errors gracefully
+        if (
+          error?.code === 'P1000' || 
+          error?.code === 'P1001' || 
+          error?.message?.toLowerCase().includes('connect') ||
+          error?.message?.toLowerCase().includes('reach database') ||
+          error?.message?.toLowerCase().includes('econnrefused')
+        ) {
+            return NextResponse.json(
+                { 
+                  error: 'Registration service temporarily unavailable', 
+                  message: 'Database connection failed. Please ensure PostgreSQL is running.',
+                  mode: 'demo' 
+                },
+                { status: 503 }
+            );
+        }
+
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

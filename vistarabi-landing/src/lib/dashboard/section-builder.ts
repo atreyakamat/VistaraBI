@@ -62,30 +62,27 @@ export function buildSections(
 
     for (const [sectionId, { definition, kpis: sectionKpis }] of sectionMap) {
         const sortedKpis = sectionKpis.sort((a, b) => {
-            const idA = a.id || (a as any).kpiId;
-            const idB = b.id || (b as any).kpiId;
-            const prioA = priorityMap.get(idA) ?? 50;
-            const prioB = priorityMap.get(idB) ?? 50;
+            const prioA = priorityMap.get(a.id) ?? 50;
+            const prioB = priorityMap.get(b.id) ?? 50;
             if (prioA !== prioB) return prioA - prioB;
-            return ((b as any).confidence || 100) - ((a as any).confidence || 100);
+            return 100; // Default confidence
         });
 
         const cards: DashboardKPICard[] = sortedKpis.map((kpi, index) => {
             // Use lightweight chart selection based on formula analysis
-            // Full data profiling happens at render time with actual data
-            const formulaStr = kpi.lineage?.formula || (kpi as any).formula || '';
+            const formulaStr = (kpi.lineage as any)?.formula || '';
             const categoryStr = kpi.category || 'general';
             const chartSelection = inferChartFromFormula(formulaStr, categoryStr);
 
             return {
-                kpiId: kpi.id || (kpi as any).kpiId,
-                kpiName: kpi.name || (kpi as any).kpiName,
+                kpiId: kpi.id,
+                kpiName: kpi.name,
                 formula: formulaStr,
                 category: categoryStr,
                 chartSelection,
                 cardSize: 'md' as const,
                 position: index,
-                confidence: (kpi as any).confidence || 100,
+                confidence: 100, // Default confidence
                 colorAccent: domainColor,
             };
         });

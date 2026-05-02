@@ -17,22 +17,24 @@ import { Pool, PoolClient, QueryResult } from 'pg';
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
-if (!DATABASE_URL) {
-    throw new Error('[Pool] DATABASE_URL environment variable is not set');
+// Only create the pool if DATABASE_URL exists, otherwise use a placeholder/lazy initializer
+let pool: Pool;
+if (DATABASE_URL) {
+    pool = new Pool({
+        connectionString: DATABASE_URL,
+        max: 10,                          // max simultaneous connections
+        idleTimeoutMillis: 30_000,        // close idle clients after 30s
+        connectionTimeoutMillis: 5_000,   // fail fast if can't connect in 5s
+        statement_timeout: 10_000,        // kill queries running > 10s
+    });
+
+    // Log pool-level errors (don't crash the process)
+    pool.on('error', (err) => {
+        console.error('[Pool] Unexpected idle client error:', err.message);
+    });
+} else {
+    console.warn('[Pool] DATABASE_URL is missing. SQL queries will fail.');
 }
-
-const pool = new Pool({
-    connectionString: DATABASE_URL,
-    max: 10,                          // max simultaneous connections
-    idleTimeoutMillis: 30_000,        // close idle clients after 30s
-    connectionTimeoutMillis: 5_000,   // fail fast if can't connect in 5s
-    statement_timeout: 10_000,        // kill queries running > 10s
-});
-
-// Log pool-level errors (don't crash the process)
-pool.on('error', (err) => {
-    console.error('[Pool] Unexpected idle client error:', err.message);
-});
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
@@ -44,6 +46,9 @@ export async function query<T extends Record<string, unknown> = Record<string, u
     text: string,
     params: unknown[] = []
 ): Promise<QueryResult<T>> {
+    if (!DATABASE_URL || !pool) {
+        throw new Error('[Pool] DATABASE_URL environment variable is not set. Cannot execute SQL query.');
+    }
     const start = Date.now();
     try {
         const result = await pool.query<T>(text, params);
@@ -66,6 +71,9 @@ export async function query<T extends Record<string, unknown> = Record<string, u
  * Use for multi-statement transactions only.
  */
 export async function getClient(): Promise<PoolClient> {
+    if (!DATABASE_URL || !pool) {
+        throw new Error('[Pool] DATABASE_URL environment variable is not set. Cannot connect to database.');
+    }
     return pool.connect();
 }
 
@@ -74,14 +82,17 @@ export async function getClient(): Promise<PoolClient> {
  * Call this on process exit or in tests.
  */
 export async function destroyPool(): Promise<void> {
-    await pool.end();
-    console.log('[Pool] Connection pool destroyed');
+    if (pool) {
+        await pool.end();
+        console.log('[Pool] Connection pool destroyed');
+    }
 }
 
 /**
  * Get pool statistics for monitoring.
  */
 export function getPoolStats() {
+    if (!pool) return { totalCount: 0, idleCount: 0, waitingCount: 0 };
     return {
         totalCount: pool.totalCount,
         idleCount: pool.idleCount,

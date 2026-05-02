@@ -64,11 +64,11 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     // We purposefully DO NOT await this to prevent Ollama ECONNREFUSED from blocking the config flow. 
     generateKPIExplanations(
         kpis.map(kpi => ({
-            kpiId: kpi.id || (kpi as any).kpiId,
-            kpiName: kpi.name || (kpi as any).kpiName,
-            formula: kpi.lineage?.formula || (kpi as any).formula || '',
+            kpiId: kpi.id,
+            kpiName: kpi.name,
+            formula: (kpi.lineage as any)?.formula || '',
             category: kpi.category || 'general',
-            columns: kpi.aggregations?.map(a => a.column) || (kpi as any).matchedColumns || [],
+            columns: (kpi.aggregations as any)?.map((a: any) => a.column) || [],
         }))
     ).then(explanations => {
         // Asynchronously update the dashboard config when Ollama eventually responds
