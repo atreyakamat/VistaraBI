@@ -1,0 +1,31 @@
+# Module 7 tests
+
+command: npm run test:7
+status: passed
+exitCode: 0
+durationMs: 2481
+
+## STDOUT
+
+
+> vistarabi-landing@0.1.0 test:7
+> vitest run tests/module-7
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+ [32m✓[39m tests/module-7/location-extractor.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/module-7/ollama-integration.test.ts [2m([22m[2m4 tests[22m[2m | [22m[33m4 skipped[39m[2m)[22m
+ [32m✓[39m tests/module-7/pipeline.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/module-7-integration.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m3 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (4)[39m
+[2m      Tests [22m [1m[32m21 passed[39m[22m[2m | [22m[33m4 skipped[39m[90m (25)[39m
+[2m   Start at [22m 20:42:36
+[2m   Duration [22m 765ms[2m (transform 750ms, setup 0ms, import 1.22s, tests 38ms, environment 1ms)[22m
+
+
+
+## STDERR
+
+(empty)

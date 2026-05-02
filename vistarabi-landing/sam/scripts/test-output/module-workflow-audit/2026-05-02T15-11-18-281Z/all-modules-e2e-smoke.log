@@ -1,0 +1,438 @@
+# All-modules e2e smoke
+
+command: npx vitest run tests/e2e-all-modules.test.ts
+status: failed
+exitCode: 1
+durationMs: 3377
+
+## STDOUT
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould have at least one AI provider configured
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould have at least one AI provider configured
+[22m[39m✓ 1 AI provider(s) configured
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould connect to at least one AI provider
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with business-analyst agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with data-engineer agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with domain-expert agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with statistician agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with narrative-writer agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with strategy-planner agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with quality-auditor agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with kpi-designer agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with general agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 3: Domain Classification[2m > [22m[2mshould classify business domains with domain-expert agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 4: KPI Engine[2m > [22m[2mshould generate KPI suggestions with kpi-designer agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 5: Analytics & Dashboards[2m > [22m[2mshould calculate forecasts with statistician agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 6: AI Command Execution[2m > [22m[2mshould generate event narratives with narrative-writer agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 7: Goal Strategy Engine[2m > [22m[2mshould create strategic plans with strategy-planner agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 8: Forecasting[2m > [22m[2mshould perform statistical analysis with statistician agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 9: Advanced Analytics[2m > [22m[2mshould provide business insights with business-analyst agent
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mFallback Chain[2m > [22m[2mshould try multiple providers in order
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mData Quality with quality-auditor agent[2m > [22m[2mshould assess data quality
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mProduction Readiness Checks[2m > [22m[2mshould handle errors gracefully
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mProduction Readiness Checks[2m > [22m[2mshould handle errors gracefully
+[22m[39m✓ Error handling works correctly
+
+[90mstdout[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mProduction Readiness Checks[2m > [22m[2mshould respect temperature settings
+[22m[39m[AI] Attempting ollama-local with model qwen3.5:0.8b
+
+ [31m❯[39m tests/e2e-all-modules.test.ts [2m([22m[2m31 tests[22m[2m | [22m[31m21 failed[39m[2m)[22m[32m 210[2mms[22m[39m
+       [32m✓[39m should have at least one AI provider configured[32m 95[2mms[22m[39m
+[31m       [31m×[31m should connect to at least one AI provider[39m[32m 15[2mms[22m[39m
+[31m       [31m×[31m should generate response with business-analyst agent[39m[32m 8[2mms[22m[39m
+[31m       [31m×[31m should generate response with data-engineer agent[39m[32m 6[2mms[22m[39m
+[31m       [31m×[31m should generate response with domain-expert agent[39m[32m 5[2mms[22m[39m
+[31m       [31m×[31m should generate response with statistician agent[39m[32m 4[2mms[22m[39m
+[31m       [31m×[31m should generate response with narrative-writer agent[39m[32m 4[2mms[22m[39m
+[31m       [31m×[31m should generate response with strategy-planner agent[39m[32m 5[2mms[22m[39m
+[31m       [31m×[31m should generate response with quality-auditor agent[39m[32m 7[2mms[22m[39m
+[31m       [31m×[31m should generate response with kpi-designer agent[39m[32m 4[2mms[22m[39m
+[31m       [31m×[31m should generate response with general agent[39m[32m 4[2mms[22m[39m
+       [32m✓[39m should support CSV parsing[32m 1[2mms[22m[39m
+       [32m✓[39m should support JSON parsing[32m 0[2mms[22m[39m
+       [32m✓[39m should infer column types correctly[32m 0[2mms[22m[39m
+       [32m✓[39m should handle null values[32m 0[2mms[22m[39m
+       [32m✓[39m should detect outliers[32m 0[2mms[22m[39m
+       [32m✓[39m should calculate quality scores[32m 0[2mms[22m[39m
+[31m       [31m×[31m should classify business domains with domain-expert agent[39m[32m 4[2mms[22m[39m
+[31m       [31m×[31m should generate KPI suggestions with kpi-designer agent[39m[32m 3[2mms[22m[39m
+       [32m✓[39m should generate chart visualizations[32m 0[2mms[22m[39m
+[31m       [31m×[31m should calculate forecasts with statistician agent[39m[32m 3[2mms[22m[39m
+       [32m✓[39m should parse natural language commands[32m 0[2mms[22m[39m
+[31m       [31m×[31m should generate event narratives with narrative-writer agent[39m[32m 4[2mms[22m[39m
+[31m       [31m×[31m should create strategic plans with strategy-planner agent[39m[32m 3[2mms[22m[39m
+[31m       [31m×[31m should perform statistical analysis with statistician agent[39m[32m 3[2mms[22m[39m
+[31m       [31m×[31m should provide business insights with business-analyst agent[39m[32m 3[2mms[22m[39m
+[31m       [31m×[31m should try multiple providers in order[39m[32m 5[2mms[22m[39m
+[31m       [31m×[31m should assess data quality[39m[32m 4[2mms[22m[39m
+[31m     [31m×[31m should have environment variables set[39m[32m 4[2mms[22m[39m
+     [32m✓[39m should handle errors gracefully[32m 4[2mms[22m[39m
+[31m     [31m×[31m should respect temperature settings[39m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m21 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (31)[39m
+[2m   Start at [22m 20:42:52
+[2m   Duration [22m 838ms[2m (transform 168ms, setup 0ms, import 251ms, tests 210ms, environment 0ms)[22m
+
+
+
+## STDERR
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould have at least one AI provider configured
+[22m[39m[AI] ollama-local failed after 90ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAI Infrastructure[2m > [22m[2mshould connect to at least one AI provider
+[22m[39m[AI] ollama-local failed after 8ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with business-analyst agent
+[22m[39m[AI] ollama-local failed after 5ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with business-analyst agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with data-engineer agent
+[22m[39m[AI] ollama-local failed after 5ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with data-engineer agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with domain-expert agent
+[22m[39m[AI] ollama-local failed after 4ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with domain-expert agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with statistician agent
+[22m[39m[AI] ollama-local failed after 3ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with statistician agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with narrative-writer agent
+[22m[39m[AI] ollama-local failed after 4ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with narrative-writer agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with strategy-planner agent
+[22m[39m[AI] ollama-local failed after 4ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with strategy-planner agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with quality-auditor agent
+[22m[39m[AI] ollama-local failed after 6ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with quality-auditor agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with kpi-designer agent
+[22m[39m[AI] ollama-local failed after 3ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with kpi-designer agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with general agent
+[22m[39m[AI] ollama-local failed after 4ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mAgent Role System[2m > [22m[2mshould generate response with general agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 3: Domain Classification[2m > [22m[2mshould classify business domains with domain-expert agent
+[22m[39m[AI] ollama-local failed after 2ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 3: Domain Classification[2m > [22m[2mshould classify business domains with domain-expert agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 4: KPI Engine[2m > [22m[2mshould generate KPI suggestions with kpi-designer agent
+[22m[39m[AI] ollama-local failed after 3ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 4: KPI Engine[2m > [22m[2mshould generate KPI suggestions with kpi-designer agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 5: Analytics & Dashboards[2m > [22m[2mshould calculate forecasts with statistician agent
+[22m[39m[AI] ollama-local failed after 3ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 5: Analytics & Dashboards[2m > [22m[2mshould calculate forecasts with statistician agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 6: AI Command Execution[2m > [22m[2mshould generate event narratives with narrative-writer agent
+[22m[39m[AI] ollama-local failed after 3ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 6: AI Command Execution[2m > [22m[2mshould generate event narratives with narrative-writer agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 7: Goal Strategy Engine[2m > [22m[2mshould create strategic plans with strategy-planner agent
+[22m[39m[AI] ollama-local failed after 2ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 7: Goal Strategy Engine[2m > [22m[2mshould create strategic plans with strategy-planner agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 8: Forecasting[2m > [22m[2mshould perform statistical analysis with statistician agent
+[22m[39m[AI] ollama-local failed after 2ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 8: Forecasting[2m > [22m[2mshould perform statistical analysis with statistician agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 9: Advanced Analytics[2m > [22m[2mshould provide business insights with business-analyst agent
+[22m[39m[AI] ollama-local failed after 2ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mModule 9: Advanced Analytics[2m > [22m[2mshould provide business insights with business-analyst agent
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mFallback Chain[2m > [22m[2mshould try multiple providers in order
+[22m[39m[AI] ollama-local failed after 4ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mFallback Chain[2m > [22m[2mshould try multiple providers in order
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mData Quality with quality-auditor agent[2m > [22m[2mshould assess data quality
+[22m[39m[AI] ollama-local failed after 3ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mVistaraBI E2E Integration Tests[2m > [22m[2mData Quality with quality-auditor agent[2m > [22m[2mshould assess data quality
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mProduction Readiness Checks[2m > [22m[2mshould handle errors gracefully
+[22m[39m[AI] ollama-local failed after 3ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mProduction Readiness Checks[2m > [22m[2mshould handle errors gracefully
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mProduction Readiness Checks[2m > [22m[2mshould respect temperature settings
+[22m[39m[AI] ollama-local failed after 3ms: fetch failed
+
+[90mstderr[2m | tests/e2e-all-modules.test.ts[2m > [22m[2mProduction Readiness Checks[2m > [22m[2mshould respect temperature settings
+[22m[39m[AI] × Failed with ollama-local: fetch failed
+
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 21 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAI Infrastructure[2m > [22mshould connect to at least one AI provider
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m tests/e2e-all-modules.test.ts:[2m18:45[22m[39m
+    [90m 16| [39m        [34mit[39m([32m'should connect to at least one AI provider'[39m[33m,[39m [35masync[39m () [33m=>[39m {
+    [90m 17| [39m            [35mconst[39m health [33m=[39m [35mawait[39m [34mcheckAIHealth[39m()[33m;[39m
+    [90m 18| [39m            [34mexpect[39m(health[33m.[39mavailable[33m.[39mlength)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m 19| [39m            console.log(`✓ Available providers: ${health.available.joi…
+    [90m 20| [39m        }[33m,[39m [34m60000[39m)[33m;[39m [90m// 60s timeout for health check[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAgent Role System[2m > [22mshould generate response with business-analyst agent
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAgent Role System[2m > [22mshould generate response with data-engineer agent
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAgent Role System[2m > [22mshould generate response with domain-expert agent
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAgent Role System[2m > [22mshould generate response with statistician agent
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAgent Role System[2m > [22mshould generate response with narrative-writer agent
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAgent Role System[2m > [22mshould generate response with strategy-planner agent
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAgent Role System[2m > [22mshould generate response with quality-auditor agent
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAgent Role System[2m > [22mshould generate response with kpi-designer agent
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mAgent Role System[2m > [22mshould generate response with general agent
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m40:34[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mModule 3: Domain Classification[2m > [22mshould classify business domains with domain-expert agent
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m85:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mModule 4: KPI Engine[2m > [22mshould generate KPI suggestions with kpi-designer agent
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m102:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mModule 5: Analytics & Dashboards[2m > [22mshould calculate forecasts with statistician agent
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m122:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mModule 6: AI Command Execution[2m > [22mshould generate event narratives with narrative-writer agent
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m142:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mModule 7: Goal Strategy Engine[2m > [22mshould create strategic plans with strategy-planner agent
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m158:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mModule 8: Forecasting[2m > [22mshould perform statistical analysis with statistician agent
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m174:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mModule 9: Advanced Analytics[2m > [22mshould provide business insights with business-analyst agent
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m190:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mFallback Chain[2m > [22mshould try multiple providers in order
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m207:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mVistaraBI E2E Integration Tests[2m > [22mData Quality with quality-auditor agent[2m > [22mshould assess data quality
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m220:30[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mProduction Readiness Checks[2m > [22mshould have environment variables set
+[31m[1mAssertionError[22m: expected undefined to be truthy[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/e2e-all-modules.test.ts:[2m237:106[22m[39m
+    [90m235| [39m[34mdescribe[39m([32m'Production Readiness Checks'[39m[33m,[39m () [33m=>[39m {
+    [90m236| [39m    [34mit[39m([32m'should have environment variables set'[39m[33m,[39m () [33m=>[39m {
+    [90m237| [39m        expect(process.env.OLLAMA_URL || process.env.OLLAMA_CLOUD_URL …
+    [90m   | [39m                                                                                                         [31m^[39m
+    [90m238| [39m        console[33m.[39m[34mlog[39m([32m'✓ At least one AI provider is configured'[39m)[33m;[39m
+    [90m239| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/21]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/e2e-all-modules.test.ts[2m > [22mProduction Readiness Checks[2m > [22mshould respect temperature settings
+[31m[1mError[22m: All AI providers failed. Last error: fetch failed. Tried: ollama-local[39m
+[36m [2m❯[22m generateWithFallback src/lib/ai/unified-ai-client.ts:[2m364:11[22m[39m
+    [90m362| [39m
+    [90m363| [39m    [90m// All providers failed[39m
+    [90m364| [39m    [35mthrow[39m [35mnew[39m [33mError[39m(
+    [90m   | [39m          [31m^[39m
+    [90m365| [39m        `All AI providers failed. Last error: ${lastError?.message || …
+    [90m366| [39m        [32m`Tried: [39m[36m${[39mconfigs[33m.[39m[34mmap[39m(c [33m=>[39m c[33m.[39mprovider)[33m.[39m[34mjoin[39m([32m', '[39m)[36m}[39m[32m`[39m
+[90m [2m❯[22m tests/e2e-all-modules.test.ts:[2m254:27[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/21]⎯[22m[39m
+
+

@@ -18,7 +18,7 @@ import { Pool, PoolClient, QueryResult } from 'pg';
 const DATABASE_URL = process.env.DATABASE_URL;
 
 // Only create the pool if DATABASE_URL exists, otherwise use a placeholder/lazy initializer
-let pool: Pool;
+let pool: Pool | null = null;
 if (DATABASE_URL) {
     pool = new Pool({
         connectionString: DATABASE_URL,

@@ -1,0 +1,520 @@
+# Module 5 integration
+
+command: npm run test:module-5
+status: failed
+exitCode: 1
+durationMs: 3702
+
+## STDOUT
+
+
+> vistarabi-landing@0.1.0 test:module-5
+> vitest run tests/module-5
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+ [32m✓[39m tests/module-5-5/kpi-summary.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m tests/module-5b/chart-selection.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m tests/module-5-5/anomaly.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 69[2mms[22m[39m
+[90mstdout[2m | tests/module-5b/execution.test.ts[2m > [22m[2mModule 5B — Cache Layer[2m > [22m[2mshould invalidate by project prefix
+[22m[39m[Cache] Invalidated 2 entries for project proj1
+
+[90mstdout[2m | tests/module-5b/performance.test.ts[2m > [22m[2mModule 5B: Performance Tests[2m > [22m[2mshould aggregate 100,000 rows under 200ms
+[22m[39m[KPIComputer] Performance Revenue = 49802314.41036139 (32ms)
+[Perf] 100k Aggregation: 33.76ms
+
+[90mstdout[2m | tests/module-5b/execution.test.ts[2m > [22m[2mModule 5B — Cache Layer[2m > [22m[2mshould invalidate specific KPI
+[22m[39m[Cache] Invalidated 1 entries for KPI kpi1
+
+ [32m✓[39m tests/module-5-5/filter-interpreter.test.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mKPI Computation[2m > [22m[2mshould compute a SUM KPI from lineage
+[22m[39m[KPIComputer] Total Revenue = 875 (0ms)
+
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mKPI Computation[2m > [22m[2mshould compute an AVG KPI
+[22m[39m[KPIComputer] Average Order Value = 145.83333333333334 (0ms)
+
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mKPI Computation[2m > [22m[2mshould handle empty data gracefully
+[22m[39m[KPIComputer] Total Revenue = 0 (0ms)
+
+ [32m✓[39m tests/module-5-5/state-engine.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mEdge Cases[2m > [22m[2mshould handle missing columns gracefully
+[22m[39m[KPIComputer] Total Revenue = 0 (0ms)
+
+[90mstdout[2m | tests/module-5b/visualization.test.ts[2m > [22m[2mModule 5B: Visualization & Interaction Engine[2m > [22m[2mEdge Cases[2m > [22m[2mshould handle large dataset (1000+ rows) without crashing
+[22m[39m[KPIComputer] Total Revenue = 737508.9271014276 (0ms)
+
+ [32m✓[39m tests/module-5b/visualization.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 72[2mms[22m[39m
+ [32m✓[39m tests/module-5b/execution.test.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 311[2mms[22m[39m
+[90mstdout[2m | tests/module-5b/performance.test.ts[2m > [22m[2mModule 5B: Performance Tests[2m > [22m[2mshould group 100,000 rows (Drill-Down) under 500ms
+[22m[39m[Perf] 100k Grouping: 68.17ms
+
+ [32m✓[39m tests/module-5c/insights.test.ts [2m([22m[2m23 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+[90mstdout[2m | tests/module-5b/performance.test.ts[2m > [22m[2mModule 5B: Performance Tests[2m > [22m[2mshould handle 100,000 rows join efficiently
+[22m[39m[KPIComputer] Performance Revenue = 24936295.201288197 (129ms)
+[Perf] 50k x 50k Join: 129.15ms
+
+ [32m✓[39m tests/module-5b/performance.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 402[2mms[22m[39m
+ [32m✓[39m tests/module-5b/explanation-cache.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mLayout Schema Generation[2m > [22m[2mshould generate valid DashboardConfigSchema structure
+[22m[39m[Dashboard] Generating config for: p1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould produce a valid KPIExecutionResult
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mLayout Schema Generation[2m > [22m[2mshould generate valid DashboardConfigSchema structure
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+[Ollama] Checking health at: http://localhost:11434
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mLayout Schema Generation[2m > [22m[2mshould generate valid DashboardConfigSchema structure
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould compute correct primary value (SUM)
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mDeterminism[2m > [22m[2mshould produce identical output for same input
+[22m[39m[Dashboard] Generating config for: p1
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mDeterminism[2m > [22m[2mshould produce identical output for same input
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+[Ollama] Checking health at: http://localhost:11434
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mDeterminism[2m > [22m[2mshould produce identical output for same input
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v1
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mDeterminism[2m > [22m[2mshould produce identical output for same input
+[22m[39m[Dashboard] Generating config for: p1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould apply filters and reduce dataset
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mDeterminism[2m > [22m[2mshould produce identical output for same input
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+[Ollama] Checking health at: http://localhost:11434
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mDeterminism[2m > [22m[2mshould produce identical output for same input
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v1
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mDeterminism[2m > [22m[2mshould increment version on regeneration
+[22m[39m[Dashboard] Generating config for: p1
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mDeterminism[2m > [22m[2mshould increment version on regeneration
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+[Ollama] Checking health at: http://localhost:11434
+
+[90mstdout[2m | tests/module-5a/dashboard-layout.test.ts[2m > [22m[2mModule 5A: Dashboard Layout Engine[2m > [22m[2mDeterminism[2m > [22m[2mshould increment version on regeneration
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v6
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A — Structure Engine[2m > [22m[2m5A-01: Should generate valid dashboard schema from blueprint
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould apply date range filter
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A — Structure Engine[2m > [22m[2m5A-01: Should generate valid dashboard schema from blueprint
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A — Structure Engine[2m > [22m[2m5A-01: Should generate valid dashboard schema from blueprint
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v2
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A — Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A — Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A — Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v2
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A — Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A — Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 1: Module 5A — Structure Engine[2m > [22m[2m5A-02: Should be deterministic (idempotent)
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v2
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use groupBy for drill-down
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 2: Module 5B — Rendering Engine[2m > [22m[2m5B-01: Should render dashboard with correct KPI values
+[22m[39m[Visualization] Computing dashboard data for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 2: Module 5B — Rendering Engine[2m > [22m[2m5B-01: Should render dashboard with correct KPI values
+[22m[39m[KPIComputer] Revenue = 750 (0ms)
+[Visualization] Computed 1 KPIs in 2ms (0 skipped)
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 2: Module 5B — Rendering Engine[2m > [22m[2m5B-02: Should propagate filters correctly
+[22m[39m[Visualization] Computing dashboard data for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 2: Module 5B — Rendering Engine[2m > [22m[2m5B-02: Should propagate filters correctly
+[22m[39m[KPIComputer] Revenue = 250 (0ms)
+[Visualization] Computed 1 KPIs in 1ms (0 skipped)
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould return cache hit on second call
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould return cache hit on second call
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould bypass cache when skipCache is true
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould bypass cache when skipCache is true
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 4: System Contract[2m > [22m[2mShould write dashboardConfig via upsert (read inputs, write output)
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 4: System Contract[2m > [22m[2mShould write dashboardConfig via upsert (read inputs, write output)
+[22m[39m[Dashboard] Initiating asynchronous AI explanations for [33m1[39m KPIs...
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 4: System Contract[2m > [22m[2mShould write dashboardConfig via upsert (read inputs, write output)
+[22m[39m[Dashboard] Config generated: 1 sections, 1 KPIs, v2
+
+[90mstdout[2m | tests/module-5/integration.test.ts[2m > [22m[2mModule 5: Global Dashboard Intelligence Integration[2m > [22m[2mPart 4: System Contract[2m > [22m[2mShould handle missing blueprint gracefully
+[22m[39m[Dashboard] Generating config for: proj-integration
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould populate profiling data correctly
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+ [32m✓[39m tests/module-5/integration.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+ [31m❯[39m tests/module-5a/dashboard-layout.test.ts [2m([22m[2m15 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[32m 146[2mms[22m[39m
+[31m       [31m×[31m should group KPIs into correct business sections[39m[32m 27[2mms[22m[39m
+[31m       [31m×[31m should place unknown categories into "General Metrics"[39m[32m 4[2mms[22m[39m
+[31m       [31m×[31m should sort KPIs by library priority then confidence[39m[32m 2[2mms[22m[39m
+       [32m✓[39m should infer metric_card for simple SUMs[32m 1[2mms[22m[39m
+       [32m✓[39m should infer bar chart for COUNTs[32m 1[2mms[22m[39m
+       [32m✓[39m should infer line chart for time-series AVG[32m 1[2mms[22m[39m
+       [32m✓[39m should infer metric_card for Ratios[32m 0[2mms[22m[39m
+       [32m✓[39m should generate valid DashboardConfigSchema structure[32m 85[2mms[22m[39m
+       [32m✓[39m should have all 9 standard items[32m 3[2mms[22m[39m
+       [32m✓[39m should enable intelligence only if sources exist[32m 1[2mms[22m[39m
+       [32m✓[39m should produce identical output for same input[32m 10[2mms[22m[39m
+       [32m✓[39m should increment version on regeneration[32m 2[2mms[22m[39m
+[31m       [31m×[31m should integrate new KPIs into correct sections[39m[32m 2[2mms[22m[39m
+       [32m✓[39m should handle empty blueprint gracefully[32m 0[2mms[22m[39m
+       [32m✓[39m should handle large KPI sets (20+) without crashing[32m 1[2mms[22m[39m
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould recommend a chart type based on data profile
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould report animation flag based on profiler record count
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould build lineage summary correctly
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould handle empty source data gracefully
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use granularity option for time bucketing
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use granularity option for time bucketing
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Executor] Executing dashboard for: proj-1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Executor] Dashboard complete: 1 KPIs in 13ms (0 cached, 1 computed, 0 skipped)
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Executor] Executing dashboard for: proj-1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Executor] Dashboard complete: 1 KPIs in 6ms (0 cached, 1 computed, 0 skipped)
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould throw for missing dashboard config
+[22m[39m[Executor] Executing dashboard for: proj-missing
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould throw for missing dashboard config
+[22m[39m[Materializer] Materializing data for project: proj-missing into table: merged_data_proj_missing
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDrill[2m > [22m[2mshould execute drill-down query for a specific KPI
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+[90mstdout[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDrill[2m > [22m[2mshould sort drill-down results by value descending
+[22m[39m[Materializer] Materializing data for project: proj-1 into table: merged_data_proj_1
+
+ [32m✓[39m tests/module-5b/executor.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 142[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m12 passed[39m[22m[90m (13)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m207 passed[39m[22m[90m (211)[39m
+[2m   Start at [22m 20:42:28
+[2m   Duration [22m 1.96s[2m (transform 6.24s, setup 0ms, import 9.70s, tests 1.36s, environment 6ms)[22m
+
+
+
+## STDERR
+
+[90mstderr[2m | tests/module-5b/explanation-cache.test.ts[2m > [22m[2mModule 5B — Explanation Cache[2m > [22m[2mLayer 3: Generate via AI[2m > [22m[2mshould return null if generation fails
+[22m[39m[ExplanationCache] Failed to generate explanation for kpi-rev: Error: AI unavailable
+    at C:/Projects/VistaraBI/vistarabi-landing/tests/module-5b/explanation-cache.test.ts:116:66
+    at [90mfile:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:145:11
+    at [90mfile:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:915:26
+    at [90mfile:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:1209:10[90m)[39m
+    at [90mfile:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:1653:37
+    at Traces.$ [90m(file:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4mvitest[24m/dist/chunks/traces.CCmnQaNT.js:142:27[90m)[39m
+    at trace [90m(file:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js:239:21[90m)[39m
+    at runTest [90m(file:///C:/Projects/VistaraBI/vistarabi-landing/[39mnode_modules/[4m@vitest/runner[24m/dist/index.js:1653:12[90m)[39m
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould produce a valid KPIExecutionResult
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould compute correct primary value (SUM)
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould apply filters and reduce dataset
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould apply date range filter
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use groupBy for drill-down
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould return cache hit on second call
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[Ollama] Service not available: TypeError: fetch failed
+[90m    at node:internal/deps/undici/undici:14900:13[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+    at checkOllamaHealth (C:/Projects/VistaraBI/vistarabi-landing/src/lib/ai/ollama-client.ts:43:26)
+    at generateKPIExplanations (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:28:31) {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1134:18)[39m
+  [90m    at afterConnectMultiple (node:net:1715:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould return cache hit on second call
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[KPIExplainer] Failed for undefined, using fallback: TypeError: Cannot read properties of undefined (reading 'replace')
+    at generateDeterministicExplanation (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:128:76)
+    at generateKPIExplanations (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:35:43)
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[Dashboard] AI Explanations failed or unavailable: Cannot read properties of undefined (reading 'replace'). Plotting charts without them.
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould bypass cache when skipCache is true
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[Ollama] Service not available: TypeError: fetch failed
+[90m    at node:internal/deps/undici/undici:14900:13[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+    at checkOllamaHealth (C:/Projects/VistaraBI/vistarabi-landing/src/lib/ai/ollama-client.ts:43:26)
+    at generateKPIExplanations (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:28:31) {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1134:18)[39m
+  [90m    at afterConnectMultiple (node:net:1715:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[KPIExplainer] Failed for undefined, using fallback: TypeError: Cannot read properties of undefined (reading 'replace')
+    at generateDeterministicExplanation (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:128:76)
+    at generateKPIExplanations (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:35:43)
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould bypass cache when skipCache is true
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[Dashboard] AI Explanations failed or unavailable: Cannot read properties of undefined (reading 'replace'). Plotting charts without them.
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[Ollama] Service not available: TypeError: fetch failed
+[90m    at node:internal/deps/undici/undici:14900:13[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+    at checkOllamaHealth (C:/Projects/VistaraBI/vistarabi-landing/src/lib/ai/ollama-client.ts:43:26)
+    at generateKPIExplanations (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:28:31) {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1134:18)[39m
+  [90m    at afterConnectMultiple (node:net:1715:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[KPIExplainer] Failed for undefined, using fallback: TypeError: Cannot read properties of undefined (reading 'replace')
+    at generateDeterministicExplanation (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:128:76)
+    at generateKPIExplanations (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:35:43)
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[Dashboard] AI Explanations failed or unavailable: Cannot read properties of undefined (reading 'replace'). Plotting charts without them.
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[Ollama] Service not available: TypeError: fetch failed
+[90m    at node:internal/deps/undici/undici:14900:13[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+    at checkOllamaHealth (C:/Projects/VistaraBI/vistarabi-landing/src/lib/ai/ollama-client.ts:43:26)
+    at generateKPIExplanations (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:28:31) {
+  [cause]: AggregateError: 
+  [90m    at internalConnectMultiple (node:net:1134:18)[39m
+  [90m    at afterConnectMultiple (node:net:1715:7)[39m {
+    code: [32m'ECONNREFUSED'[39m,
+    [errors]: [ [36m[Error][39m, [36m[Error][39m ]
+  }
+}
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould populate profiling data correctly
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[KPIExplainer] Failed for undefined, using fallback: TypeError: Cannot read properties of undefined (reading 'replace')
+    at generateDeterministicExplanation (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:128:76)
+    at generateKPIExplanations (C:/Projects/VistaraBI/vistarabi-landing/src/lib/dashboard/kpi-explainer.ts:35:43)
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+[90mstderr[2m | tests/module-5a/dashboard-layout.test.ts
+[22m[39m[Dashboard] AI Explanations failed or unavailable: Cannot read properties of undefined (reading 'replace'). Plotting charts without them.
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould recommend a chart type based on data profile
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould report animation flag based on profiler record count
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould build lineage summary correctly
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould handle empty source data gracefully
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use granularity option for time bucketing
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteKPI[2m > [22m[2mshould use granularity option for time bucketing
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould execute all KPIs in dashboard config
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould include performance metadata
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDashboard[2m > [22m[2mshould throw for missing dashboard config
+[22m[39m[Materializer] No sources found for project: proj-missing
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDrill[2m > [22m[2mshould execute drill-down query for a specific KPI
+[22m[39m[Materializer] No sources found for project: proj-1
+
+[90mstderr[2m | tests/module-5b/executor.test.ts[2m > [22m[2mModule 5B — KPI Executor Pipeline[2m > [22m[2mexecuteDrill[2m > [22m[2mshould sort drill-down results by value descending
+[22m[39m[Materializer] No sources found for project: proj-1
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 4 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/module-5a/dashboard-layout.test.ts[2m > [22mModule 5A: Dashboard Layout Engine[2m > [22mKPI Grouping Logic[2m > [22mshould group KPIs into correct business sections
+[31m[1mAssertionError[22m: expected [ undefined ] to deeply equal ArrayContaining ["Revenue"][39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- ArrayContaining [[39m
+[32m-   "Revenue",[39m
+[31m+ [[39m
+[31m+   undefined,[39m
+[2m  ][22m
+
+[36m [2m❯[22m tests/module-5a/dashboard-layout.test.ts:[2m56:59[22m[39m
+    [90m 54| [39m            [34mexpect[39m(finSection)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m 55| [39m            [34mexpect[39m(finSection[33m?.[39mcards)[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m [90m// Revenue[39m
+    [90m 56| [39m            expect(finSection?.cards.map(c => c.kpiName)).toEqual(expe…
+    [90m   | [39m                                                          [31m^[39m
+    [90m 57| [39m
+    [90m 58| [39m            [90m// Customer Section[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/module-5a/dashboard-layout.test.ts[2m > [22mModule 5A: Dashboard Layout Engine[2m > [22mKPI Grouping Logic[2m > [22mshould place unknown categories into "General Metrics"
+[31m[1mAssertionError[22m: expected undefined to be 'Unknown Metric' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"Unknown Metric"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/module-5a/dashboard-layout.test.ts:[2m70:52[22m[39m
+    [90m 68| [39m            [34mexpect[39m(otherSection)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m 69| [39m            expect(otherSection?.cards).toHaveLength(2); // Margin, Un…
+    [90m 70| [39m            expect(otherSection?.cards[1].kpiName).toBe('Unknown Metri…
+    [90m   | [39m                                                   [31m^[39m
+    [90m 71| [39m        })[33m;[39m
+    [90m 72| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/module-5a/dashboard-layout.test.ts[2m > [22mModule 5A: Dashboard Layout Engine[2m > [22mPriority Ordering[2m > [22mshould sort KPIs by library priority then confidence
+[31m[1mAssertionError[22m: expected undefined to be 'Revenue' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"Revenue"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/module-5a/dashboard-layout.test.ts:[2m81:43[22m[39m
+    [90m 79| [39m            const finCards = sections.find(s => s.id === 'revenue')?.c…
+    [90m 80| [39m
+    [90m 81| [39m            [34mexpect[39m(finCards[33m?.[39m[[34m0[39m][33m.[39mkpiName)[33m.[39m[34mtoBe[39m([32m'Revenue'[39m)[33m;[39m [90m// Prio 1[39m
+    [90m   | [39m                                          [31m^[39m
+    [90m 82| [39m        })[33m;[39m
+    [90m 83| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/module-5a/dashboard-layout.test.ts[2m > [22mModule 5A: Dashboard Layout Engine[2m > [22mDynamic Updates[2m > [22mshould integrate new KPIs into correct sections
+[31m[1mAssertionError[22m: expected undefined to be 'New Metric' // Object.is equality[39m
+
+[32m- Expected:[39m 
+"New Metric"
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/module-5a/dashboard-layout.test.ts:[2m230:51[22m[39m
+    [90m228| [39m            [34mexpect[39m(riskSection)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m229| [39m            [34mexpect[39m(riskSection[33m?.[39mcards)[33m.[39m[34mtoHaveLength[39m([34m1[39m)[33m;[39m
+    [90m230| [39m            [34mexpect[39m(riskSection[33m?.[39mcards[[34m0[39m][33m.[39mkpiName)[33m.[39m[34mtoBe[39m([32m'New Metric'[39m)[33m;[39m
+    [90m   | [39m                                                  [31m^[39m
+    [90m231| [39m        })[33m;[39m
+    [90m232| [39m    })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯[22m[39m
+
+

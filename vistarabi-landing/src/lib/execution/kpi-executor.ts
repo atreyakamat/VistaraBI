@@ -54,6 +54,51 @@ export async function executeKPI(
 
     // ── Step 0: Ensure table exists ──
     await ensureDataMaterialized(projectId);
+    
+    if (!pool) {
+        return {
+            kpiId,
+            kpiName: '',
+            category: '',
+            primaryValue: 0,
+            previousValue: null,
+            delta: null,
+            deltaPercent: null,
+            deltaDirection: null,
+            dataset: [],
+            datasetSize: 0,
+            profiling: {
+                recordCount: 0,
+                uniqueCategoryCount: 0,
+                numberOfSeries: 0,
+                hasTimeDimension: false,
+                numericDimensionCount: 0,
+                hierarchicalDepth: 0,
+                volatilityIndex: 0,
+                distributionSkew: 0,
+                cardinalityLevel: 'low',
+                isSequentialChange: false,
+            },
+            recommendedChartType: 'line',
+            recommendedChartLibrary: 'chartjs',
+            disableAnimation: false,
+            aiExplanation: null,
+            lineage: {
+                tables: [],
+                joins: [],
+                formula: '',
+                aggregations: [],
+            },
+            performance: {
+                totalTimeMs: 0,
+                dataLoadTimeMs: 0,
+                computeTimeMs: 0,
+                profilingTimeMs: 0,
+                cacheHit: false,
+                cacheKey: null,
+            },
+        };
+    }
 
     const timings = { dataLoadMs: 0, computeMs: 0, profilingMs: 0, queryMs: 0 };
     let rowsReturned = 0;

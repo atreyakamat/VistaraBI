@@ -1,0 +1,140 @@
+# Module 1+2 e2e smoke
+
+command: npx vitest run tests/module1.e2e.ts tests/module2.e2e.ts
+status: failed
+exitCode: 1
+durationMs: 3381
+
+## STDOUT
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m🧪 Running Module 2 Test Suite...
+
+✅ Null Handling: Detected 6 null values, expected 6 (1ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Duplicate Removal: Found 2 duplicates out of 23 records (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Date Normalization: 4 date formats should normalize to ISO 8601 (1ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Currency Normalization: 4 currencies normalized to USD (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Text Standardization: Text trimmed, title-cased, and normalized (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Empty Column Removal: Empty columns identified and removed (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Purification Idempotency: Re-cleaning produces deterministic, stable results (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Transformation Audit: 5 transformation types logged (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Completeness Calculation: Calculated ~77.78% completeness (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Consistency Calculation: Calculated ~66.67% consistency (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Outlier Detection (IQR): Detected 1 outlier(s) using IQR method (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Quality Grading (A-F): 5 grading scenarios validated (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Column Health Grading: 3 health grading scenarios validated (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m✅ Risk Level Determination: 3 risk scenarios validated (0ms)
+
+[90mstdout[2m | tests/module2.e2e.ts[2m > [22m[2mModule 2 Test Suite
+[22m[39m
+📊 Module 2 Test Summary:
+   Passed: 14/14 (100.0%)
+   Total Duration: 2ms
+
+
+ [32m✓[39m tests/module2.e2e.ts [2m([22m[2m1 test[22m[2m)[22m[32m 13[2mms[22m[39m
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m🧪 Running Module 1 Test Suite...
+
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m❌ Authentication: Failed: Error: Authentication failed: 404 (145ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m✅ Project Creation: Warning: No auth token (Skipped) (3ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m✅ Multi-File Upload: Generated 4 test files with 6 nulls, 2 duplicates (5ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m✅ CSV Parsing: Parsed 2 rows with headers (0ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m✅ JSON Parsing: Parsed 2 JSON objects (0ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m✅ XML Parsing: XML structure validated (0ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m✅ Column Intelligence: Column type inference and statistics calculation verified (0ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m✅ Relationship Detection: Cross-dataset relationships detected correctly (0ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m✅ Data Preview: Preview tables display first 100 rows accurately (0ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m✅ Project Deletion: Project and all related data deleted cleanly (0ms)
+
+[90mstdout[2m | tests/module1.e2e.ts[2m > [22m[2mModule 1 Test Suite
+[22m[39m
+📊 Module 1 Test Summary:
+   Passed: 9/10 (90.0%)
+   Total Duration: 153ms
+
+
+ [31m❯[39m tests/module1.e2e.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 180[2mms[22m[39m
+[31m   [31m×[31m Module 1 Test Suite[39m[32m 178[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 20:42:49
+[2m   Duration [22m 777ms[2m (transform 268ms, setup 0ms, import 437ms, tests 193ms, environment 1ms)[22m
+
+
+
+## STDERR
+
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/module1.e2e.ts[2m > [22mModule 1 Test Suite
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m tests/module1.e2e.ts:[2m351:23[22m[39m
+    [90m349| [39m    [35mconst[39m results [33m=[39m [35mawait[39m suite[33m.[39m[34mrunAll[39m()[33m;[39m
+    [90m350| [39m    [35mconst[39m allPassed [33m=[39m results[33m.[39m[34mevery[39m(r [33m=>[39m r[33m.[39mpassed)[33m;[39m
+    [90m351| [39m    [34mexpect[39m(allPassed)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                      [31m^[39m
+    [90m352| [39m})[33m;[39m
+    [90m353| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+
+

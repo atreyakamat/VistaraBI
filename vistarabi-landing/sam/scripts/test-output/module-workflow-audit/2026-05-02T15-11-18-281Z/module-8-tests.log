@@ -1,0 +1,39 @@
+# Module 8 tests
+
+command: npm run test:8
+status: passed
+exitCode: 0
+durationMs: 2950
+
+## STDOUT
+
+
+> vistarabi-landing@0.1.0 test:8
+> vitest run tests/module-8
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Projects/VistaraBI/vistarabi-landing[39m
+
+ [32m✓[39m tests/module-8/kpi-history-resolver.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m tests/module-8/strategy-validator.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/module-8/module-7-to-8-bridge.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+ [32m✓[39m tests/module-8/hybrid-prophet-montecarlo.test.ts [2m([22m[2m42 tests[22m[2m)[22m[32m 81[2mms[22m[39m
+ [32m✓[39m tests/module-8/forecast-api.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/module-8/canvas-payload.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 105[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+[2m      Tests [22m [1m[32m95 passed[39m[22m[90m (95)[39m
+[2m   Start at [22m 20:42:39
+[2m   Duration [22m 1.23s[2m (transform 1.46s, setup 0ms, import 2.92s, tests 312ms, environment 2ms)[22m
+
+
+
+## STDERR
+
+[90mstderr[2m | tests/module-8/kpi-history-resolver.test.ts[2m > [22m[2mModule 8 KPI history resolver[2m > [22m[2mreturns empty history when metric match is not found
+[22m[39m[HistoryResolver] No series matched "unknown metric" — returning empty history for safe fallback.
+
+[90mstderr[2m | tests/module-8/canvas-payload.test.ts[2m > [22m[2mModule 8: Strategy Canvas API Payload (Spec §6 + §7)[2m > [22m[2mSpec §5 — Data Validation Guardrails[2m > [22m[2mshort history (<90 days) produces a reliability score below 70
+[22m[39mData reliability is low (50). Proceeding with caution.
+
+

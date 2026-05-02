@@ -40,6 +40,7 @@ export function getMaterializedTableName(projectId: string): string {
 }
 
 async function ensureMaterializationMetaTable(): Promise<void> {
+    if (!pool) return; // Skip if no database connection
     await pool.query(`
         CREATE TABLE IF NOT EXISTS "${MATERIALIZATION_META_TABLE}" (
             project_id TEXT PRIMARY KEY,
@@ -51,6 +52,7 @@ async function ensureMaterializationMetaTable(): Promise<void> {
 }
 
 async function readMaterializationMeta(projectId: string): Promise<MaterializationMetaRow | null> {
+    if (!pool) return null;
     const res = await pool.query<MaterializationMetaRow>(
         `SELECT project_id, last_source_update, row_count
          FROM "${MATERIALIZATION_META_TABLE}"
@@ -61,6 +63,7 @@ async function readMaterializationMeta(projectId: string): Promise<Materializati
 }
 
 async function upsertMaterializationMeta(projectId: string, lastSourceUpdate: Date, rowCount: number): Promise<void> {
+    if (!pool) return;
     await pool.query(
         `
             INSERT INTO "${MATERIALIZATION_META_TABLE}" (project_id, last_source_update, row_count, materialized_at)
@@ -80,6 +83,7 @@ async function upsertMaterializationMeta(projectId: string, lastSourceUpdate: Da
  * If the project data is missing from the table, it will be materialized.
  */
 export async function ensureDataMaterialized(projectId: string): Promise<void> {
+    if (!pool) return; // Skip if no database connection
     if (materializationPromise) return materializationPromise;
 
     materializationPromise = (async () => {
