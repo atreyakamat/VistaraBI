@@ -1,0 +1,444 @@
+{
+  "generatedAt": "2026-05-03T18:13:41.028Z",
+  "totalBatches": 60,
+  "domains": {
+    "retail": {
+      "batchCount": 15,
+      "reports": [
+        {
+          "name": "retail-batch-001",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-001-report.json",
+          "html": "retail-batch-001-report.html"
+        },
+        {
+          "name": "retail-batch-002",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-002-report.json",
+          "html": "retail-batch-002-report.html"
+        },
+        {
+          "name": "retail-batch-003",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-003-report.json",
+          "html": "retail-batch-003-report.html"
+        },
+        {
+          "name": "retail-batch-004",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-004-report.json",
+          "html": "retail-batch-004-report.html"
+        },
+        {
+          "name": "retail-batch-005",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-005-report.json",
+          "html": "retail-batch-005-report.html"
+        },
+        {
+          "name": "retail-batch-006",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-006-report.json",
+          "html": "retail-batch-006-report.html"
+        },
+        {
+          "name": "retail-batch-007",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-007-report.json",
+          "html": "retail-batch-007-report.html"
+        },
+        {
+          "name": "retail-batch-008",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-008-report.json",
+          "html": "retail-batch-008-report.html"
+        },
+        {
+          "name": "retail-batch-009",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-009-report.json",
+          "html": "retail-batch-009-report.html"
+        },
+        {
+          "name": "retail-batch-010",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-010-report.json",
+          "html": "retail-batch-010-report.html"
+        },
+        {
+          "name": "retail-batch-011",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-011-report.json",
+          "html": "retail-batch-011-report.html"
+        },
+        {
+          "name": "retail-batch-012",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-012-report.json",
+          "html": "retail-batch-012-report.html"
+        },
+        {
+          "name": "retail-batch-013",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-013-report.json",
+          "html": "retail-batch-013-report.html"
+        },
+        {
+          "name": "retail-batch-014",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-014-report.json",
+          "html": "retail-batch-014-report.html"
+        },
+        {
+          "name": "retail-batch-015",
+          "records": 0,
+          "quality": "63.7",
+          "json": "retail-batch-015-report.json",
+          "html": "retail-batch-015-report.html"
+        }
+      ],
+      "totalRecords": 0
+    },
+    "manufacturing": {
+      "batchCount": 15,
+      "reports": [
+        {
+          "name": "manufacturing-batch-001",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-001-report.json",
+          "html": "manufacturing-batch-001-report.html"
+        },
+        {
+          "name": "manufacturing-batch-002",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-002-report.json",
+          "html": "manufacturing-batch-002-report.html"
+        },
+        {
+          "name": "manufacturing-batch-003",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-003-report.json",
+          "html": "manufacturing-batch-003-report.html"
+        },
+        {
+          "name": "manufacturing-batch-004",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-004-report.json",
+          "html": "manufacturing-batch-004-report.html"
+        },
+        {
+          "name": "manufacturing-batch-005",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-005-report.json",
+          "html": "manufacturing-batch-005-report.html"
+        },
+        {
+          "name": "manufacturing-batch-006",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-006-report.json",
+          "html": "manufacturing-batch-006-report.html"
+        },
+        {
+          "name": "manufacturing-batch-007",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-007-report.json",
+          "html": "manufacturing-batch-007-report.html"
+        },
+        {
+          "name": "manufacturing-batch-008",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-008-report.json",
+          "html": "manufacturing-batch-008-report.html"
+        },
+        {
+          "name": "manufacturing-batch-009",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-009-report.json",
+          "html": "manufacturing-batch-009-report.html"
+        },
+        {
+          "name": "manufacturing-batch-010",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-010-report.json",
+          "html": "manufacturing-batch-010-report.html"
+        },
+        {
+          "name": "manufacturing-batch-011",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-011-report.json",
+          "html": "manufacturing-batch-011-report.html"
+        },
+        {
+          "name": "manufacturing-batch-012",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-012-report.json",
+          "html": "manufacturing-batch-012-report.html"
+        },
+        {
+          "name": "manufacturing-batch-013",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-013-report.json",
+          "html": "manufacturing-batch-013-report.html"
+        },
+        {
+          "name": "manufacturing-batch-014",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-014-report.json",
+          "html": "manufacturing-batch-014-report.html"
+        },
+        {
+          "name": "manufacturing-batch-015",
+          "records": 0,
+          "quality": "63.7",
+          "json": "manufacturing-batch-015-report.json",
+          "html": "manufacturing-batch-015-report.html"
+        }
+      ],
+      "totalRecords": 0
+    },
+    "ecommerce": {
+      "batchCount": 30,
+      "reports": [
+        {
+          "name": "ecommerce-batch-001",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-001-report.json",
+          "html": "ecommerce-batch-001-report.html"
+        },
+        {
+          "name": "ecommerce-batch-002",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-002-report.json",
+          "html": "ecommerce-batch-002-report.html"
+        },
+        {
+          "name": "ecommerce-batch-003",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-003-report.json",
+          "html": "ecommerce-batch-003-report.html"
+        },
+        {
+          "name": "ecommerce-batch-004",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-004-report.json",
+          "html": "ecommerce-batch-004-report.html"
+        },
+        {
+          "name": "ecommerce-batch-005",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-005-report.json",
+          "html": "ecommerce-batch-005-report.html"
+        },
+        {
+          "name": "ecommerce-batch-006",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-006-report.json",
+          "html": "ecommerce-batch-006-report.html"
+        },
+        {
+          "name": "ecommerce-batch-007",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-007-report.json",
+          "html": "ecommerce-batch-007-report.html"
+        },
+        {
+          "name": "ecommerce-batch-008",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-008-report.json",
+          "html": "ecommerce-batch-008-report.html"
+        },
+        {
+          "name": "ecommerce-batch-009",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-009-report.json",
+          "html": "ecommerce-batch-009-report.html"
+        },
+        {
+          "name": "ecommerce-batch-010",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-010-report.json",
+          "html": "ecommerce-batch-010-report.html"
+        },
+        {
+          "name": "ecommerce-batch-011",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-011-report.json",
+          "html": "ecommerce-batch-011-report.html"
+        },
+        {
+          "name": "ecommerce-batch-012",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-012-report.json",
+          "html": "ecommerce-batch-012-report.html"
+        },
+        {
+          "name": "ecommerce-batch-013",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-013-report.json",
+          "html": "ecommerce-batch-013-report.html"
+        },
+        {
+          "name": "ecommerce-batch-014",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-014-report.json",
+          "html": "ecommerce-batch-014-report.html"
+        },
+        {
+          "name": "ecommerce-batch-015",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-015-report.json",
+          "html": "ecommerce-batch-015-report.html"
+        },
+        {
+          "name": "ecommerce-batch-016",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-016-report.json",
+          "html": "ecommerce-batch-016-report.html"
+        },
+        {
+          "name": "ecommerce-batch-017",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-017-report.json",
+          "html": "ecommerce-batch-017-report.html"
+        },
+        {
+          "name": "ecommerce-batch-018",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-018-report.json",
+          "html": "ecommerce-batch-018-report.html"
+        },
+        {
+          "name": "ecommerce-batch-019",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-019-report.json",
+          "html": "ecommerce-batch-019-report.html"
+        },
+        {
+          "name": "ecommerce-batch-020",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-020-report.json",
+          "html": "ecommerce-batch-020-report.html"
+        },
+        {
+          "name": "ecommerce-batch-021",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-021-report.json",
+          "html": "ecommerce-batch-021-report.html"
+        },
+        {
+          "name": "ecommerce-batch-022",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-022-report.json",
+          "html": "ecommerce-batch-022-report.html"
+        },
+        {
+          "name": "ecommerce-batch-023",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-023-report.json",
+          "html": "ecommerce-batch-023-report.html"
+        },
+        {
+          "name": "ecommerce-batch-024",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-024-report.json",
+          "html": "ecommerce-batch-024-report.html"
+        },
+        {
+          "name": "ecommerce-batch-025",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-025-report.json",
+          "html": "ecommerce-batch-025-report.html"
+        },
+        {
+          "name": "ecommerce-batch-026",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-026-report.json",
+          "html": "ecommerce-batch-026-report.html"
+        },
+        {
+          "name": "ecommerce-batch-027",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-027-report.json",
+          "html": "ecommerce-batch-027-report.html"
+        },
+        {
+          "name": "ecommerce-batch-028",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-028-report.json",
+          "html": "ecommerce-batch-028-report.html"
+        },
+        {
+          "name": "ecommerce-batch-029",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-029-report.json",
+          "html": "ecommerce-batch-029-report.html"
+        },
+        {
+          "name": "ecommerce-batch-030",
+          "records": 0,
+          "quality": "63.7",
+          "json": "ecommerce-batch-030-report.json",
+          "html": "ecommerce-batch-030-report.html"
+        }
+      ],
+      "totalRecords": 0
+    }
+  }
+}

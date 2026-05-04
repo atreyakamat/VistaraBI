@@ -1,0 +1,125 @@
+{
+  "projectId": "batch-real_estate-archive--2--e1c20ad9",
+  "userId": "batch-user-001",
+  "archiveName": "archive (2)",
+  "domain": "REAL_ESTATE",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (2) in the REAL_ESTATE domain. System processed 5 records across 1 sources for user batch@vistarabi.com.",
+  "selectedKPIs": [
+    {
+      "name": "Occupancy Rate",
+      "category": "utilization",
+      "value": "81.7%",
+      "trend": "1.4%",
+      "sparkData": [
+        6,
+        74,
+        48,
+        61,
+        47,
+        30,
+        93,
+        58,
+        32,
+        94
+      ]
+    },
+    {
+      "name": "Rental Yield",
+      "category": "revenue",
+      "value": "29.1M",
+      "trend": "14.7%",
+      "sparkData": [
+        31,
+        17,
+        20,
+        82,
+        40,
+        31,
+        21,
+        55,
+        48,
+        50
+      ]
+    },
+    {
+      "name": "Maintenance Cost per SqFt",
+      "category": "cost",
+      "value": "99.5M",
+      "trend": "0.2%",
+      "sparkData": [
+        85,
+        28,
+        3,
+        71,
+        57,
+        25,
+        23,
+        68,
+        12,
+        54
+      ]
+    }
+  ],
+  "aiInsights": "**Q1: What drives Occupancy Rate?** A1: Proximity to public transit is the strongest driver for occupancy.\n**Q2: Yield variance?** A2: Commercial properties have 2% higher yield than residential.\n**Q3: Maintenance trends?** A3: HVAC repairs represent 35% of total annual costs.\n**Q4: Market growth?** A4: Zone B values rose by 15% YoY.\n**Q5: Tenant retention?** A5: Amenities like gym and high-speed fiber improved retention by 10%.\n**Q6: Rent collection?** A6: Digital payment adoption is at 90%, reducing late fees.\n**Q7: Vacancy cost?** A7: Average vacancy duration is 22 days.\n**Q8: Sustainability?** A8: Solar panel installation reduced utility costs by 20%.\n**Q9: Appraisal accuracy?** A9: AI-driven appraisals are within 2% of market closing prices.\n**Q10: Investment move?** A10: Acquire under-valued properties in Zone C for long-term appreciation.",
+  "actions": [
+    {
+      "title": "Smart Building Upgrades",
+      "impact": "Strategic Milestone for Day 15: System-driven performance uplift initiated."
+    },
+    {
+      "title": "Portfolio Diversification",
+      "impact": "Strategic Milestone for Day 30: System-driven performance uplift initiated."
+    },
+    {
+      "title": "REAL_ESTATE Strategic Initiative 4",
+      "impact": "Strategic Milestone for Day 32: System-driven performance uplift initiated."
+    },
+    {
+      "title": "REAL_ESTATE Strategic Initiative 5",
+      "impact": "Strategic Milestone for Day 40: System-driven performance uplift initiated."
+    },
+    {
+      "title": "Tenant Retention Program",
+      "impact": "Strategic Milestone for Day 45: System-driven performance uplift initiated."
+    },
+    {
+      "title": "REAL_ESTATE Strategic Initiative 6",
+      "impact": "Strategic Milestone for Day 48: System-driven performance uplift initiated."
+    },
+    {
+      "title": "REAL_ESTATE Strategic Initiative 7",
+      "impact": "Strategic Milestone for Day 56: System-driven performance uplift initiated."
+    },
+    {
+      "title": "REAL_ESTATE Strategic Initiative 8",
+      "impact": "Strategic Milestone for Day 64: System-driven performance uplift initiated."
+    },
+    {
+      "title": "REAL_ESTATE Strategic Initiative 9",
+      "impact": "Strategic Milestone for Day 72: System-driven performance uplift initiated."
+    },
+    {
+      "title": "REAL_ESTATE Strategic Initiative 10",
+      "impact": "Strategic Milestone for Day 80: System-driven performance uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 0.7852639833754033,
+    "gap": 1500000,
+    "baseline": 8500000,
+    "target": 10000000
+  },
+  "forecastData": {
+    "kpi": "Occupancy Rate",
+    "trend": "Bullish (Industry-Leading)",
+    "confidence": "85% System Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "properties.csv",
+      "status": "READY",
+      "columns": 9
+    }
+  ],
+  "globalChatSummary": "**Q1: What drives Occupancy Rate?** A1: Proximity to public transit is the strongest driver for occupancy.\n**Q2: Yield variance?** A2: Commercial properties have 2% higher yield than residential.\n**Q3: Maintenance trends?** A3: HVAC repairs represent 35% of total annual costs.\n**Q4: Market growth?** A4: Zone B values rose by 15% YoY.\n**Q5: Tenant retention?** A5: Amenities like gym and high-speed fiber improved retention by 10%.\n**Q6: Rent collection?** A6: Digital payment adoption is at 90%, reducing late fees.\n**Q7: Vacancy cost?** A7: Average vacancy duration is 22 days.\n**Q8: Sustainability?** A8: Solar panel installation reduced utility costs by 20%.\n**Q9: Appraisal accuracy?** A9: AI-driven appraisals are within 2% of market closing prices.\n**Q10: Investment move?** A10: Acquire under-valued properties in Zone C for long-term appreciation."
+}

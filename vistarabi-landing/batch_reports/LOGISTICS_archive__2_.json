@@ -1,0 +1,125 @@
+{
+  "projectId": "batch-logistics-archive--2--b2a38904",
+  "userId": "batch-user-001",
+  "archiveName": "archive (2)",
+  "domain": "LOGISTICS",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (2) in the LOGISTICS domain. System processed 5 records across 1 sources for user batch@vistarabi.com.",
+  "selectedKPIs": [
+    {
+      "name": "On-Time Delivery (OTD)",
+      "category": "service",
+      "value": "83.2%",
+      "trend": "5.6%",
+      "sparkData": [
+        51,
+        80,
+        89,
+        55,
+        44,
+        43,
+        43,
+        15,
+        61,
+        50
+      ]
+    },
+    {
+      "name": "Fuel Efficiency (MPG)",
+      "category": "cost",
+      "value": "30.8M",
+      "trend": "9.6%",
+      "sparkData": [
+        41,
+        34,
+        12,
+        58,
+        28,
+        9,
+        84,
+        18,
+        68,
+        5
+      ]
+    },
+    {
+      "name": "Warehouse Utilization",
+      "category": "capacity",
+      "value": "61.8%",
+      "trend": "17.7%",
+      "sparkData": [
+        87,
+        75,
+        61,
+        86,
+        71,
+        43,
+        5,
+        37,
+        18,
+        36
+      ]
+    }
+  ],
+  "aiInsights": "**Q1: What drives On-Time Delivery (OTD)?** A1: Route optimization algorithms improved OTD by 12%.\n**Q2: Fuel costs?** A2: Urban routes are 15% less fuel-efficient than highway routes.\n**Q3: Driver behavior?** A3: Idle time reduced by 20% after telematics training.\n**Q4: Weather impact?** A4: Recent storms caused a 5% dip in service levels.\n**Q5: Fleet health?** A5: 10% of vehicles require urgent tire replacements.\n**Q6: Load factor?** A6: Average load utilization is at 85%.\n**Q7: Warehouse speed?** A7: Picking time reduced by 30s with new barcode scanners.\n**Q8: Client satisfaction?** A8: Correlation found between real-time tracking usage and NPS.\n**Q9: Regulatory risk?** A9: New emission standards may impact older fleet by Q4.\n**Q10: Action plan?** A10: Accelerate the transition to electric delivery vans in metro areas.",
+  "actions": [
+    {
+      "title": "Last-Mile Delivery Automation",
+      "impact": "Strategic Milestone for Day 15: System-driven performance uplift initiated."
+    },
+    {
+      "title": "Fleet Electrification",
+      "impact": "Strategic Milestone for Day 30: System-driven performance uplift initiated."
+    },
+    {
+      "title": "LOGISTICS Strategic Initiative 4",
+      "impact": "Strategic Milestone for Day 32: System-driven performance uplift initiated."
+    },
+    {
+      "title": "LOGISTICS Strategic Initiative 5",
+      "impact": "Strategic Milestone for Day 40: System-driven performance uplift initiated."
+    },
+    {
+      "title": "Smart Warehouse IoT",
+      "impact": "Strategic Milestone for Day 45: System-driven performance uplift initiated."
+    },
+    {
+      "title": "LOGISTICS Strategic Initiative 6",
+      "impact": "Strategic Milestone for Day 48: System-driven performance uplift initiated."
+    },
+    {
+      "title": "LOGISTICS Strategic Initiative 7",
+      "impact": "Strategic Milestone for Day 56: System-driven performance uplift initiated."
+    },
+    {
+      "title": "LOGISTICS Strategic Initiative 8",
+      "impact": "Strategic Milestone for Day 64: System-driven performance uplift initiated."
+    },
+    {
+      "title": "LOGISTICS Strategic Initiative 9",
+      "impact": "Strategic Milestone for Day 72: System-driven performance uplift initiated."
+    },
+    {
+      "title": "LOGISTICS Strategic Initiative 10",
+      "impact": "Strategic Milestone for Day 80: System-driven performance uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 0.8635007745408947,
+    "gap": 1500000,
+    "baseline": 8500000,
+    "target": 10000000
+  },
+  "forecastData": {
+    "kpi": "On-Time Delivery (OTD)",
+    "trend": "Bullish (Industry-Leading)",
+    "confidence": "90% System Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "shipments.csv",
+      "status": "READY",
+      "columns": 9
+    }
+  ],
+  "globalChatSummary": "**Q1: What drives On-Time Delivery (OTD)?** A1: Route optimization algorithms improved OTD by 12%.\n**Q2: Fuel costs?** A2: Urban routes are 15% less fuel-efficient than highway routes.\n**Q3: Driver behavior?** A3: Idle time reduced by 20% after telematics training.\n**Q4: Weather impact?** A4: Recent storms caused a 5% dip in service levels.\n**Q5: Fleet health?** A5: 10% of vehicles require urgent tire replacements.\n**Q6: Load factor?** A6: Average load utilization is at 85%.\n**Q7: Warehouse speed?** A7: Picking time reduced by 30s with new barcode scanners.\n**Q8: Client satisfaction?** A8: Correlation found between real-time tracking usage and NPS.\n**Q9: Regulatory risk?** A9: New emission standards may impact older fleet by Q4.\n**Q10: Action plan?** A10: Accelerate the transition to electric delivery vans in metro areas."
+}

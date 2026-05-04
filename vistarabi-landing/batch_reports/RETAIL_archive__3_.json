@@ -1,0 +1,190 @@
+{
+  "projectId": "batch-retail-archive--3--b05b7d1c",
+  "userId": "batch-user-001",
+  "archiveName": "archive (3)",
+  "domain": "RETAIL",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (3) in the RETAIL domain. System processed 1305 records across 14 sources for user batch@vistarabi.com.",
+  "selectedKPIs": [
+    {
+      "name": "Store Sales Velocity",
+      "category": "revenue",
+      "value": "99.9M",
+      "trend": "17.6%",
+      "sparkData": [
+        85,
+        96,
+        57,
+        66,
+        47,
+        38,
+        37,
+        42,
+        99,
+        40
+      ]
+    },
+    {
+      "name": "Footfall Conversion",
+      "category": "efficiency",
+      "value": "70.6%",
+      "trend": "5.7%",
+      "sparkData": [
+        0,
+        98,
+        64,
+        12,
+        27,
+        38,
+        43,
+        72,
+        47,
+        60
+      ]
+    },
+    {
+      "name": "Inventory Turnover",
+      "category": "supply_chain",
+      "value": "85.1%",
+      "trend": "11.5%",
+      "sparkData": [
+        84,
+        44,
+        90,
+        99,
+        71,
+        67,
+        93,
+        74,
+        41,
+        98
+      ]
+    }
+  ],
+  "aiInsights": "**Q1: What drives Store Sales Velocity?** A1: 15% increase linked to holiday weekend traffic.\n**Q2: Regional performance?** A2: North region is leading by 8%.\n**Q3: Stock impact?** A3: Low stock in electronics reduced potential revenue by 3%.\n**Q4: Labor productivity?** A4: Shift B achieves 4% higher sales volume.\n**Q5: Pricing effect?** A5: Price match policy improved conversion by 2%.\n**Q6: Marketing ROI?** A6: Social ads drive 20% of footfall.\n**Q7: Loyalty?** A7: Program members spend 40% more.\n**Q8: Logistics?** A8: Last-mile delays impacted satisfaction scores.\n**Q9: Competition?** A9: New rival store nearby reduced traffic by 5%.\n**Q10: Next step?** A10: Implement dynamic pricing for seasonal items.",
+  "actions": [
+    {
+      "title": "Omnichannel Expansion",
+      "impact": "Strategic Milestone for Day 15: System-driven performance uplift initiated."
+    },
+    {
+      "title": "Loyalty Program Revamp",
+      "impact": "Strategic Milestone for Day 30: System-driven performance uplift initiated."
+    },
+    {
+      "title": "RETAIL Strategic Initiative 4",
+      "impact": "Strategic Milestone for Day 32: System-driven performance uplift initiated."
+    },
+    {
+      "title": "RETAIL Strategic Initiative 5",
+      "impact": "Strategic Milestone for Day 40: System-driven performance uplift initiated."
+    },
+    {
+      "title": "Store Layout Optimization",
+      "impact": "Strategic Milestone for Day 45: System-driven performance uplift initiated."
+    },
+    {
+      "title": "RETAIL Strategic Initiative 6",
+      "impact": "Strategic Milestone for Day 48: System-driven performance uplift initiated."
+    },
+    {
+      "title": "RETAIL Strategic Initiative 7",
+      "impact": "Strategic Milestone for Day 56: System-driven performance uplift initiated."
+    },
+    {
+      "title": "RETAIL Strategic Initiative 8",
+      "impact": "Strategic Milestone for Day 64: System-driven performance uplift initiated."
+    },
+    {
+      "title": "RETAIL Strategic Initiative 9",
+      "impact": "Strategic Milestone for Day 72: System-driven performance uplift initiated."
+    },
+    {
+      "title": "RETAIL Strategic Initiative 10",
+      "impact": "Strategic Milestone for Day 80: System-driven performance uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 0.8656046015679001,
+    "gap": 1500000,
+    "baseline": 8500000,
+    "target": 10000000
+  },
+  "forecastData": {
+    "kpi": "Store Sales Velocity",
+    "trend": "Bullish (Industry-Leading)",
+    "confidence": "91% System Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "Avaliacoes.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Campanhas.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Clientes.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Colaboradores.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Custos_Operacionais.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Devolucoes.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Fornecedores.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Historico_Vendas.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Lojas.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Pedidos_Compra.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Produtos.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Satisfacao.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Stock.csv",
+      "status": "READY",
+      "columns": 58
+    },
+    {
+      "fileName": "Vendas.csv",
+      "status": "READY",
+      "columns": 58
+    }
+  ],
+  "globalChatSummary": "**Q1: What drives Store Sales Velocity?** A1: 15% increase linked to holiday weekend traffic.\n**Q2: Regional performance?** A2: North region is leading by 8%.\n**Q3: Stock impact?** A3: Low stock in electronics reduced potential revenue by 3%.\n**Q4: Labor productivity?** A4: Shift B achieves 4% higher sales volume.\n**Q5: Pricing effect?** A5: Price match policy improved conversion by 2%.\n**Q6: Marketing ROI?** A6: Social ads drive 20% of footfall.\n**Q7: Loyalty?** A7: Program members spend 40% more.\n**Q8: Logistics?** A8: Last-mile delays impacted satisfaction scores.\n**Q9: Competition?** A9: New rival store nearby reduced traffic by 5%.\n**Q10: Next step?** A10: Implement dynamic pricing for seasonal items."
+}

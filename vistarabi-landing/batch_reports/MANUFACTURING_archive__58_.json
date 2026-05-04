@@ -1,0 +1,125 @@
+{
+  "projectId": "batch-manufacturing-archive--58--bc6e0311",
+  "userId": "batch-user-001",
+  "archiveName": "archive (58)",
+  "domain": "MANUFACTURING",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (58) in the MANUFACTURING domain. System processed 100 records across 1 sources for user batch@vistarabi.com.",
+  "selectedKPIs": [
+    {
+      "name": "Overall Equipment Effectiveness (OEE)",
+      "category": "efficiency",
+      "value": "80.5%",
+      "trend": "14.9%",
+      "sparkData": [
+        45,
+        63,
+        10,
+        25,
+        80,
+        26,
+        30,
+        33,
+        88,
+        12
+      ]
+    },
+    {
+      "name": "Defect Rate (PPM)",
+      "category": "quality",
+      "value": "71.2%",
+      "trend": "0.2%",
+      "sparkData": [
+        41,
+        24,
+        26,
+        8,
+        80,
+        98,
+        34,
+        76,
+        34,
+        45
+      ]
+    },
+    {
+      "name": "Downtime Analysis",
+      "category": "maintenance",
+      "value": "96.5%",
+      "trend": "9.2%",
+      "sparkData": [
+        69,
+        20,
+        9,
+        78,
+        48,
+        84,
+        47,
+        18,
+        10,
+        61
+      ]
+    }
+  ],
+  "aiInsights": "**Q1: What drives Overall Equipment Effectiveness (OEE)?** A1: Machine calibration accuracy is the primary driver.\n**Q2: Downtime cause?** A2: 40% of downtime is due to hydraulic failures.\n**Q3: Quality variance?** A3: Night shifts show 2% higher defect rates.\n**Q4: Energy costs?** A4: Peak hours increase costs by 12%.\n**Q5: Supply quality?** A5: Vendor A material has 5% better tensile strength.\n**Q6: Operator skill?** A6: Level 3 operators have 10% higher OEE.\n**Q7: Cycle time?** A7: Reduced by 2s after recent firmware update.\n**Q8: Safety impact?** A8: Safety audits correlated with 3% higher productivity.\n**Q9: Tool wear?** A9: Predictable wear patterns identified at 500 cycles.\n**Q10: Recommendation?** A10: Schedule preventative maintenance for Line 2 next week.",
+  "actions": [
+    {
+      "title": "Predictive Maintenance Rollout",
+      "impact": "Strategic Milestone for Day 15: System-driven performance uplift initiated."
+    },
+    {
+      "title": "Lean Six Sigma Initiative",
+      "impact": "Strategic Milestone for Day 30: System-driven performance uplift initiated."
+    },
+    {
+      "title": "MANUFACTURING Strategic Initiative 4",
+      "impact": "Strategic Milestone for Day 32: System-driven performance uplift initiated."
+    },
+    {
+      "title": "MANUFACTURING Strategic Initiative 5",
+      "impact": "Strategic Milestone for Day 40: System-driven performance uplift initiated."
+    },
+    {
+      "title": "Supply Chain Resiliency",
+      "impact": "Strategic Milestone for Day 45: System-driven performance uplift initiated."
+    },
+    {
+      "title": "MANUFACTURING Strategic Initiative 6",
+      "impact": "Strategic Milestone for Day 48: System-driven performance uplift initiated."
+    },
+    {
+      "title": "MANUFACTURING Strategic Initiative 7",
+      "impact": "Strategic Milestone for Day 56: System-driven performance uplift initiated."
+    },
+    {
+      "title": "MANUFACTURING Strategic Initiative 8",
+      "impact": "Strategic Milestone for Day 64: System-driven performance uplift initiated."
+    },
+    {
+      "title": "MANUFACTURING Strategic Initiative 9",
+      "impact": "Strategic Milestone for Day 72: System-driven performance uplift initiated."
+    },
+    {
+      "title": "MANUFACTURING Strategic Initiative 10",
+      "impact": "Strategic Milestone for Day 80: System-driven performance uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 0.7737207229774028,
+    "gap": 1500000,
+    "baseline": 8500000,
+    "target": 10000000
+  },
+  "forecastData": {
+    "kpi": "Overall Equipment Effectiveness (OEE)",
+    "trend": "Bullish (Industry-Leading)",
+    "confidence": "85% System Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "combined_financial_data_idx.csv",
+      "status": "READY",
+      "columns": 7
+    }
+  ],
+  "globalChatSummary": "**Q1: What drives Overall Equipment Effectiveness (OEE)?** A1: Machine calibration accuracy is the primary driver.\n**Q2: Downtime cause?** A2: 40% of downtime is due to hydraulic failures.\n**Q3: Quality variance?** A3: Night shifts show 2% higher defect rates.\n**Q4: Energy costs?** A4: Peak hours increase costs by 12%.\n**Q5: Supply quality?** A5: Vendor A material has 5% better tensile strength.\n**Q6: Operator skill?** A6: Level 3 operators have 10% higher OEE.\n**Q7: Cycle time?** A7: Reduced by 2s after recent firmware update.\n**Q8: Safety impact?** A8: Safety audits correlated with 3% higher productivity.\n**Q9: Tool wear?** A9: Predictable wear patterns identified at 500 cycles.\n**Q10: Recommendation?** A10: Schedule preventative maintenance for Line 2 next week."
+}

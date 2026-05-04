@@ -1,0 +1,84 @@
+{
+  "batchName": "retail-batch-008",
+  "domain": "retail",
+  "executedAt": "2026-05-03T18:13:42.613Z",
+  "modules": {
+    "module1": {
+      "status": "PASS",
+      "name": "Data Ingestion",
+      "duration": 343
+    },
+    "module2": {
+      "status": "PASS",
+      "name": "Data Cleaning",
+      "duration": 155
+    },
+    "module3": {
+      "status": "PASS",
+      "name": "Data Profiling",
+      "duration": 407
+    },
+    "module4": {
+      "status": "PASS",
+      "name": "Schema Mapping",
+      "duration": 317
+    },
+    "module5a": {
+      "status": "PASS",
+      "name": "KPI Calculation",
+      "duration": 274
+    },
+    "module5b": {
+      "status": "PASS",
+      "name": "Data Materialization",
+      "duration": 406
+    },
+    "module5c": {
+      "status": "PASS",
+      "name": "Caching",
+      "duration": 238
+    },
+    "module6": {
+      "status": "PASS",
+      "name": "Semantic Mapping",
+      "duration": 234
+    },
+    "module7": {
+      "status": "PASS",
+      "name": "Goal Strategy",
+      "duration": 275
+    },
+    "module8": {
+      "status": "PASS",
+      "name": "AI Insights",
+      "duration": 232
+    },
+    "module9": {
+      "status": "PASS",
+      "name": "Reporting",
+      "duration": 250
+    }
+  },
+  "quality": {
+    "recordCount": 0,
+    "completeness": 0,
+    "accuracy": "95.3",
+    "consistency": "98.7",
+    "qualityScore": "63.7"
+  },
+  "kpis": {
+    "totalRecords": 0,
+    "timestamp": "2026-05-03T18:13:42.613Z",
+    "totalRevenue": 0,
+    "uniqueCustomers": 0,
+    "uniqueProducts": 0,
+    "averageOrderValue": null
+  },
+  "dataProfile": {
+    "totalRecords": 0,
+    "fields": 0,
+    "uniqueRecords": 0,
+    "duplicates": 0,
+    "nullValues": 0
+  }
+}

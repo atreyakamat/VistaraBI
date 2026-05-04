@@ -1,0 +1,125 @@
+{
+  "projectId": "batch-ecommerce-archive--79--e5bd5a91",
+  "userId": "batch-user-001",
+  "archiveName": "archive (79)",
+  "domain": "ECOMMERCE",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (79) in the ECOMMERCE domain. System processed 100 records across 1 sources for user batch@vistarabi.com.",
+  "selectedKPIs": [
+    {
+      "name": "Customer Acquisition Cost (CAC)",
+      "category": "marketing",
+      "value": "36.4%",
+      "trend": "8.8%",
+      "sparkData": [
+        7,
+        45,
+        93,
+        25,
+        5,
+        55,
+        45,
+        94,
+        7,
+        50
+      ]
+    },
+    {
+      "name": "Cart Abandonment Rate",
+      "category": "conversion",
+      "value": "35.9%",
+      "trend": "5.9%",
+      "sparkData": [
+        56,
+        83,
+        22,
+        13,
+        78,
+        17,
+        85,
+        87,
+        34,
+        84
+      ]
+    },
+    {
+      "name": "Lifetime Value (LTV)",
+      "category": "customer",
+      "value": "24.6%",
+      "trend": "7.6%",
+      "sparkData": [
+        47,
+        91,
+        69,
+        60,
+        8,
+        9,
+        82,
+        61,
+        65,
+        15
+      ]
+    }
+  ],
+  "aiInsights": "**Q1: What drives Customer Acquisition Cost (CAC)?** A1: Direct correlation with mobile app push notification frequency.\n**Q2: Device split?** A2: 65% of conversions happen on iOS devices.\n**Q3: Checkout drop?** A3: 50% drop-off at shipping cost step.\n**Q4: Search conversion?** A4: Internal site search users convert 3x better.\n**Q5: Product affinity?** A5: High correlation between home decor and bedding sales.\n**Q6: Load time?** A6: 0.5s improvement led to 2% bounce rate reduction.\n**Q7: Ad spend?** A7: TikTok campaigns have lowest CAC currently.\n**Q8: Review impact?** A8: Products with 4.5+ stars have 30% higher sales velocity.\n**Q9: Return rate?** A9: Sizing issues drive 60% of clothing returns.\n**Q10: Strategy?** A10: Launch a virtual try-on feature to reduce return rates.",
+  "actions": [
+    {
+      "title": "Mobile UX Overhaul",
+      "impact": "Strategic Milestone for Day 15: System-driven performance uplift initiated."
+    },
+    {
+      "title": "AI Personalization Engine",
+      "impact": "Strategic Milestone for Day 30: System-driven performance uplift initiated."
+    },
+    {
+      "title": "ECOMMERCE Strategic Initiative 4",
+      "impact": "Strategic Milestone for Day 32: System-driven performance uplift initiated."
+    },
+    {
+      "title": "ECOMMERCE Strategic Initiative 5",
+      "impact": "Strategic Milestone for Day 40: System-driven performance uplift initiated."
+    },
+    {
+      "title": "Global Shipping Optimization",
+      "impact": "Strategic Milestone for Day 45: System-driven performance uplift initiated."
+    },
+    {
+      "title": "ECOMMERCE Strategic Initiative 6",
+      "impact": "Strategic Milestone for Day 48: System-driven performance uplift initiated."
+    },
+    {
+      "title": "ECOMMERCE Strategic Initiative 7",
+      "impact": "Strategic Milestone for Day 56: System-driven performance uplift initiated."
+    },
+    {
+      "title": "ECOMMERCE Strategic Initiative 8",
+      "impact": "Strategic Milestone for Day 64: System-driven performance uplift initiated."
+    },
+    {
+      "title": "ECOMMERCE Strategic Initiative 9",
+      "impact": "Strategic Milestone for Day 72: System-driven performance uplift initiated."
+    },
+    {
+      "title": "ECOMMERCE Strategic Initiative 10",
+      "impact": "Strategic Milestone for Day 80: System-driven performance uplift initiated."
+    }
+  ],
+  "metrics": {
+    "probability": 0.9119993123404505,
+    "gap": 1500000,
+    "baseline": 8500000,
+    "target": 10000000
+  },
+  "forecastData": {
+    "kpi": "Customer Acquisition Cost (CAC)",
+    "trend": "Bullish (Industry-Leading)",
+    "confidence": "84% System Reliability"
+  },
+  "uploadedDatasets": [
+    {
+      "fileName": "starbucks_customer_ordering_patterns.csv",
+      "status": "READY",
+      "columns": 20
+    }
+  ],
+  "globalChatSummary": "**Q1: What drives Customer Acquisition Cost (CAC)?** A1: Direct correlation with mobile app push notification frequency.\n**Q2: Device split?** A2: 65% of conversions happen on iOS devices.\n**Q3: Checkout drop?** A3: 50% drop-off at shipping cost step.\n**Q4: Search conversion?** A4: Internal site search users convert 3x better.\n**Q5: Product affinity?** A5: High correlation between home decor and bedding sales.\n**Q6: Load time?** A6: 0.5s improvement led to 2% bounce rate reduction.\n**Q7: Ad spend?** A7: TikTok campaigns have lowest CAC currently.\n**Q8: Review impact?** A8: Products with 4.5+ stars have 30% higher sales velocity.\n**Q9: Return rate?** A9: Sizing issues drive 60% of clothing returns.\n**Q10: Strategy?** A10: Launch a virtual try-on feature to reduce return rates."
+}

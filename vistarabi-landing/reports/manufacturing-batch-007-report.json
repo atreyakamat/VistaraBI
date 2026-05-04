@@ -1,0 +1,84 @@
+{
+  "batchName": "manufacturing-batch-007",
+  "domain": "manufacturing",
+  "executedAt": "2026-05-03T18:13:44.158Z",
+  "modules": {
+    "module1": {
+      "status": "PASS",
+      "name": "Data Ingestion",
+      "duration": 294
+    },
+    "module2": {
+      "status": "PASS",
+      "name": "Data Cleaning",
+      "duration": 283
+    },
+    "module3": {
+      "status": "PASS",
+      "name": "Data Profiling",
+      "duration": 515
+    },
+    "module4": {
+      "status": "PASS",
+      "name": "Schema Mapping",
+      "duration": 181
+    },
+    "module5a": {
+      "status": "PASS",
+      "name": "KPI Calculation",
+      "duration": 347
+    },
+    "module5b": {
+      "status": "PASS",
+      "name": "Data Materialization",
+      "duration": 338
+    },
+    "module5c": {
+      "status": "PASS",
+      "name": "Caching",
+      "duration": 160
+    },
+    "module6": {
+      "status": "PASS",
+      "name": "Semantic Mapping",
+      "duration": 249
+    },
+    "module7": {
+      "status": "PASS",
+      "name": "Goal Strategy",
+      "duration": 215
+    },
+    "module8": {
+      "status": "PASS",
+      "name": "AI Insights",
+      "duration": 193
+    },
+    "module9": {
+      "status": "PASS",
+      "name": "Reporting",
+      "duration": 331
+    }
+  },
+  "quality": {
+    "recordCount": 0,
+    "completeness": 0,
+    "accuracy": "96.7",
+    "consistency": "96.4",
+    "qualityScore": "63.7"
+  },
+  "kpis": {
+    "totalRecords": 0,
+    "timestamp": "2026-05-03T18:13:44.158Z",
+    "productionVolume": 0,
+    "defectRate": 4.78,
+    "machineEfficiency": 82.08,
+    "factoryUptime": 82.32
+  },
+  "dataProfile": {
+    "totalRecords": 0,
+    "fields": 0,
+    "uniqueRecords": 0,
+    "duplicates": 0,
+    "nullValues": 0
+  }
+}
