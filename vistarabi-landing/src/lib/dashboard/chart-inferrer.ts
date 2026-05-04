@@ -77,7 +77,7 @@ export function profileData(
     // Sequential change detection
     const isSequentialChange = hasTimeDimension && formula.toLowerCase().includes('count');
 
-    // Number of series (categorical columns with <10 unique values → potential series)
+    // Number of series (categorical columns with <10 unique values -> potential series)
     let numberOfSeries = 1;
     for (const col of categoryColumns) {
         const unique = new Set(rows.map(r => String(r[col] ?? '')));
@@ -183,13 +183,13 @@ function selectTimeSeriesChart(profile: DataProfile): ChartSelection {
             return makeSelection(
                 'area', 'chartjs',
                 'line', 'chartjs',
-                0.90, 'High volatility time-series → area chart for visual weight'
+                0.90, 'High volatility time-series -> area chart for visual weight'
             );
         }
         return makeSelection(
             'line', 'chartjs',
             'area', 'chartjs',
-            0.95, 'Single-series time data → clean line chart'
+            0.95, 'Single-series time data -> clean line chart'
         );
     }
 
@@ -197,7 +197,7 @@ function selectTimeSeriesChart(profile: DataProfile): ChartSelection {
         return makeSelection(
             'line', 'chartjs',
             'bar', 'chartjs',
-            0.90, 'Multi-series (2–3) time data → multi-line chart'
+            0.90, 'Multi-series (2–3) time data -> multi-line chart'
         );
     }
 
@@ -205,15 +205,15 @@ function selectTimeSeriesChart(profile: DataProfile): ChartSelection {
         return makeSelection(
             'area', 'chartjs',
             'line', 'chartjs',
-            0.85, '4–6 series → stacked area for composition'
+            0.85, '4–6 series -> stacked area for composition'
         );
     }
 
-    // >6 series → heatmap
+    // >6 series -> heatmap
     return makeSelection(
         'heatmap', 'plotly',
         'line', 'chartjs',
-        0.80, 'Many series (>6) → heatmap for density view'
+        0.80, 'Many series (>6) -> heatmap for density view'
     );
 }
 
@@ -226,7 +226,7 @@ function selectCategoricalChart(profile: DataProfile): ChartSelection {
         return makeSelection(
             'doughnut', 'chartjs',
             'pie', 'chartjs',
-            0.92, '≤5 categories → doughnut for clear proportions'
+            0.92, '≤5 categories -> doughnut for clear proportions'
         );
     }
 
@@ -234,7 +234,7 @@ function selectCategoricalChart(profile: DataProfile): ChartSelection {
         return makeSelection(
             'bar', 'chartjs',
             'horizontal_bar', 'chartjs',
-            0.90, '5–10 categories → vertical bar chart'
+            0.90, '5–10 categories -> vertical bar chart'
         );
     }
 
@@ -242,7 +242,7 @@ function selectCategoricalChart(profile: DataProfile): ChartSelection {
         return makeSelection(
             'horizontal_bar', 'chartjs',
             'bar', 'chartjs',
-            0.85, '10–20 categories → horizontal bar for label readability'
+            0.85, '10–20 categories -> horizontal bar for label readability'
         );
     }
 
@@ -250,15 +250,15 @@ function selectCategoricalChart(profile: DataProfile): ChartSelection {
         return makeSelection(
             'treemap', 'plotly',
             'horizontal_bar', 'chartjs',
-            0.80, '20–50 categories → treemap for area comparison'
+            0.80, '20–50 categories -> treemap for area comparison'
         );
     }
 
-    // >50 → table
+    // >50 -> table
     return makeSelection(
         'table', 'chartjs',
         'horizontal_bar', 'chartjs',
-        0.70, '50+ categories → table view with filtering'
+        0.70, '50+ categories -> table view with filtering'
     );
 }
 

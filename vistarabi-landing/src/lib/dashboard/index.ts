@@ -47,7 +47,7 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     const domainInfo = domain ? DOMAIN_LIBRARIES[domain] : null;
     const domainColor = domainInfo?.color || '#6366f1';
     const domainName = domainInfo?.name || 'General';
-    const domainIcon = domainInfo?.icon || '📊';
+    const domainIcon = domainInfo?.icon || 'bar-chart';
 
     // 4. Build sections (groups KPIs + infers chart types)
     const sections = buildSections(kpis, domain, domainColor);

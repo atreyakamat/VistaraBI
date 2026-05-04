@@ -6,7 +6,7 @@ import { runFullAnalysis } from '@/lib/intelligence';
 import { purifyDataset } from '@/lib/purification';
 import { checkRateLimit, getIdentifier, RATE_LIMITS, buildRateLimitHeaders } from '@/lib/security/rate-limiter';
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1GB
 const ALLOWED_EXTENSIONS = ['csv', 'json', 'xml', 'xlsx'];
 
 // GET /api/projects/[id]/sources - List sources for a project
@@ -88,8 +88,29 @@ export async function POST(
             );
         }
 
-        const formData = await request.formData();
-        const files = formData.getAll('files') as File[];
+        let formData;
+        let files: File[];
+        
+        try {
+            formData = await request.formData();
+            files = formData.getAll('files') as File[];
+        } catch (formDataError: any) {
+            console.error('FormData parsing error:', formDataError);
+            
+            // Handle body size limit errors
+            if (formDataError?.message?.includes('Request body exceeded') || 
+                formDataError?.message?.includes('Failed to parse')) {
+                return NextResponse.json(
+                    { 
+                        error: 'File upload too large. Maximum size is 100MB.',
+                        hint: 'Please reduce file size or split into smaller batches.'
+                    },
+                    { status: 413, headers: rlHeaders }
+                );
+            }
+            
+            throw formDataError;
+        }
 
         if (files.length === 0) {
             return NextResponse.json({ error: 'No files provided' }, { status: 400, headers: rlHeaders });

@@ -74,4 +74,10 @@ export function middleware(request: NextRequest) {
 
 export const config = {
     matcher: ['/app/:path*', '/api/:path*', '/login', '/register'],
+    // Allow larger body size for file uploads
+    api: {
+        bodyParser: {
+            sizeLimit: '100mb',
+        },
+    },
 };

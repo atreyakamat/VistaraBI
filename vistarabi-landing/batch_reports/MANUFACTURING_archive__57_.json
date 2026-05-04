@@ -1,62 +1,62 @@
 {
-  "projectId": "batch-manufacturing-archive--57--7943f885",
-  "userId": "batch-user-001",
+  "projectId": "938475de-4e94-4ad8-9172-d05916738922",
+  "userId": "c8728bb7-9d14-4b91-909b-ec070c442e25",
   "archiveName": "archive (57)",
   "domain": "MANUFACTURING",
-  "summaryText": "Enterprise Strategic Intelligence Report for archive (57) in the MANUFACTURING domain. System processed 200 records across 2 sources for user batch@vistarabi.com.",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (57) in the MANUFACTURING domain. Real system processed 200 records across 2 sources for user testbatch@examples.com.",
   "selectedKPIs": [
     {
       "name": "Overall Equipment Effectiveness (OEE)",
       "category": "efficiency",
-      "value": "91.2%",
-      "trend": "16.9%",
+      "value": "42.1%",
+      "trend": "14.2%",
       "sparkData": [
-        43,
-        78,
+        54,
+        56,
+        97,
+        99,
         95,
-        21,
-        10,
-        59,
-        30,
+        43,
         26,
-        87,
-        22
+        12,
+        8,
+        71
       ]
     },
     {
       "name": "Defect Rate (PPM)",
       "category": "quality",
-      "value": "76.3%",
-      "trend": "17.6%",
+      "value": "42.4%",
+      "trend": "4.1%",
       "sparkData": [
+        95,
+        60,
         82,
-        42,
-        76,
-        33,
-        38,
-        25,
-        29,
-        39,
-        68,
-        42
+        94,
+        12,
+        4,
+        28,
+        85,
+        64,
+        3
       ]
     },
     {
       "name": "Downtime Analysis",
       "category": "maintenance",
-      "value": "23.5%",
-      "trend": "13.9%",
+      "value": "24.2%",
+      "trend": "6.5%",
       "sparkData": [
-        92,
-        10,
-        4,
-        90,
         23,
-        35,
-        99,
-        86,
-        60,
-        73
+        79,
+        16,
+        55,
+        77,
+        21,
+        36,
+        21,
+        70,
+        53
       ]
     }
   ],
@@ -104,7 +104,7 @@
     }
   ],
   "metrics": {
-    "probability": 0.8449646536400963,
+    "probability": 0.792145821921556,
     "gap": 1500000,
     "baseline": 8500000,
     "target": 10000000

@@ -1,62 +1,62 @@
 {
-  "projectId": "batch-retail-archive--6--4c18917e",
-  "userId": "batch-user-001",
+  "projectId": "6b89c233-4072-4112-a846-7ad1f45feb3b",
+  "userId": "c8728bb7-9d14-4b91-909b-ec070c442e25",
   "archiveName": "archive (6)",
   "domain": "RETAIL",
-  "summaryText": "Enterprise Strategic Intelligence Report for archive (6) in the RETAIL domain. System processed 974 records across 11 sources for user batch@vistarabi.com.",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (6) in the RETAIL domain. Real system processed 974 records across 11 sources for user testbatch@examples.com.",
   "selectedKPIs": [
     {
       "name": "Store Sales Velocity",
       "category": "revenue",
-      "value": "23.5M",
-      "trend": "1.9%",
+      "value": "34.4M",
+      "trend": "11.2%",
       "sparkData": [
-        24,
-        42,
-        55,
         94,
-        45,
-        93,
-        4,
-        48,
-        68,
-        20
+        46,
+        42,
+        69,
+        90,
+        33,
+        36,
+        47,
+        42,
+        55
       ]
     },
     {
       "name": "Footfall Conversion",
       "category": "efficiency",
-      "value": "37.3%",
-      "trend": "17.2%",
+      "value": "65.3%",
+      "trend": "14.4%",
       "sparkData": [
-        56,
-        83,
-        15,
-        41,
-        25,
-        74,
-        15,
-        63,
-        18,
-        25
+        69,
+        26,
+        98,
+        42,
+        44,
+        96,
+        68,
+        9,
+        50,
+        13
       ]
     },
     {
       "name": "Inventory Turnover",
       "category": "supply_chain",
-      "value": "47.7%",
-      "trend": "1.2%",
+      "value": "31.1%",
+      "trend": "4.5%",
       "sparkData": [
-        30,
-        19,
-        93,
-        32,
-        81,
+        20,
+        21,
+        68,
         23,
-        73,
-        16,
-        70,
-        87
+        97,
+        92,
+        40,
+        75,
+        96,
+        62
       ]
     }
   ],
@@ -104,7 +104,7 @@
     }
   ],
   "metrics": {
-    "probability": 0.9255513858081243,
+    "probability": 0.7341453034675254,
     "gap": 1500000,
     "baseline": 8500000,
     "target": 10000000
@@ -112,7 +112,7 @@
   "forecastData": {
     "kpi": "Store Sales Velocity",
     "trend": "Bullish (Industry-Leading)",
-    "confidence": "93% System Reliability"
+    "confidence": "90% System Reliability"
   },
   "uploadedDatasets": [
     {

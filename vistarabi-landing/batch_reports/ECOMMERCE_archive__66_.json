@@ -1,62 +1,62 @@
 {
-  "projectId": "batch-ecommerce-archive--66--048873ff",
-  "userId": "batch-user-001",
+  "projectId": "28c4768a-70b8-4ae7-bf2a-cebd9132b0f8",
+  "userId": "c8728bb7-9d14-4b91-909b-ec070c442e25",
   "archiveName": "archive (66)",
   "domain": "ECOMMERCE",
-  "summaryText": "Enterprise Strategic Intelligence Report for archive (66) in the ECOMMERCE domain. System processed 200 records across 2 sources for user batch@vistarabi.com.",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (66) in the ECOMMERCE domain. Real system processed 200 records across 2 sources for user testbatch@examples.com.",
   "selectedKPIs": [
     {
       "name": "Customer Acquisition Cost (CAC)",
       "category": "marketing",
-      "value": "50.3%",
-      "trend": "13.6%",
+      "value": "22.1%",
+      "trend": "0.2%",
       "sparkData": [
-        50,
-        13,
-        24,
-        79,
-        0,
-        29,
-        27,
-        95,
-        94,
-        56
+        90,
+        1,
+        78,
+        18,
+        38,
+        52,
+        15,
+        37,
+        88,
+        11
       ]
     },
     {
       "name": "Cart Abandonment Rate",
       "category": "conversion",
-      "value": "34.9%",
-      "trend": "18.0%",
+      "value": "32.6%",
+      "trend": "3.0%",
       "sparkData": [
-        54,
-        54,
-        89,
-        2,
-        69,
-        84,
-        46,
-        79,
-        23,
-        82
+        94,
+        70,
+        78,
+        8,
+        5,
+        41,
+        75,
+        20,
+        10,
+        40
       ]
     },
     {
       "name": "Lifetime Value (LTV)",
       "category": "customer",
-      "value": "36.5%",
-      "trend": "5.6%",
+      "value": "37.3%",
+      "trend": "9.6%",
       "sparkData": [
-        28,
-        85,
-        76,
-        7,
-        46,
-        26,
-        98,
-        60,
+        99,
+        29,
+        53,
+        50,
+        12,
+        5,
+        92,
+        25,
         1,
-        54
+        76
       ]
     }
   ],
@@ -104,7 +104,7 @@
     }
   ],
   "metrics": {
-    "probability": 0.7647352935185402,
+    "probability": 0.9161787120260751,
     "gap": 1500000,
     "baseline": 8500000,
     "target": 10000000

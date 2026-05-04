@@ -1,3 +1,4 @@
+
 # 🚀 VistaraBI Batch Processing Guide
 
 This document provides instructions on how to use, extend, and maintain the VistaraBI Batch Processing Engine. The engine is designed to automate the ingestion of large numbers of datasets across multiple business domains and generate high-fidelity strategic reports.

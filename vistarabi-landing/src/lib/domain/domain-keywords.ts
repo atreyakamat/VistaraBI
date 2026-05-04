@@ -25,7 +25,7 @@ export const DOMAIN_LIBRARIES: Record<DomainType, DomainInfo> = {
     ECOMMERCE: {
         type: 'ECOMMERCE',
         name: 'E-Commerce',
-        icon: '🛒',
+        icon: 'shopping-cart',
         color: '#f97316', // Orange
         keywords: [
             'order', 'order_id', 'orderid', 'orderdate', 'order_date',
@@ -40,7 +40,7 @@ export const DOMAIN_LIBRARIES: Record<DomainType, DomainInfo> = {
     SAAS: {
         type: 'SAAS',
         name: 'SaaS',
-        icon: '💻',
+        icon: 'laptop',
         color: '#3b82f6', // Blue
         keywords: [
             'user', 'user_id', 'account', 'account_id',
@@ -56,7 +56,7 @@ export const DOMAIN_LIBRARIES: Record<DomainType, DomainInfo> = {
     EDTECH: {
         type: 'EDTECH',
         name: 'EdTech',
-        icon: '🎓',
+        icon: 'graduation-cap',
         color: '#8b5cf6', // Purple
         keywords: [
             'student', 'student_id', 'learner', 'learner_id',
@@ -72,7 +72,7 @@ export const DOMAIN_LIBRARIES: Record<DomainType, DomainInfo> = {
     RETAIL: {
         type: 'RETAIL',
         name: 'Retail',
-        icon: '🏪',
+        icon: 'store',
         color: '#22c55e', // Green
         keywords: [
             'store', 'store_id', 'outlet', 'branch',
@@ -89,7 +89,7 @@ export const DOMAIN_LIBRARIES: Record<DomainType, DomainInfo> = {
     SERVICES: {
         type: 'SERVICES',
         name: 'Services',
-        icon: '🧾',
+        icon: 'receipt',
         color: '#06b6d4', // Cyan
         keywords: [
             'client', 'client_id', 'customer',
@@ -107,7 +107,7 @@ export const DOMAIN_LIBRARIES: Record<DomainType, DomainInfo> = {
     MANUFACTURING: {
         type: 'MANUFACTURING',
         name: 'Manufacturing',
-        icon: '🏭',
+        icon: 'factory',
         color: '#6b7280', // Gray
         keywords: [
             'batch', 'batch_id', 'lot', 'lot_number',
@@ -125,7 +125,7 @@ export const DOMAIN_LIBRARIES: Record<DomainType, DomainInfo> = {
     HEALTHCARE: {
         type: 'HEALTHCARE',
         name: 'Healthcare',
-        icon: '🏥',
+        icon: 'hospital',
         color: '#ef4444', // Red
         keywords: [
             'patient', 'patient_id', 'case_id',
@@ -142,7 +142,7 @@ export const DOMAIN_LIBRARIES: Record<DomainType, DomainInfo> = {
     FINANCE: {
         type: 'FINANCE',
         name: 'Finance',
-        icon: '💰',
+        icon: 'dollar-sign',
         color: '#eab308', // Gold
         keywords: [
             'account', 'account_id', 'transaction',

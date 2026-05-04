@@ -1,62 +1,62 @@
 {
-  "projectId": "batch-manufacturing-archive--53--f9781bfb",
-  "userId": "batch-user-001",
+  "projectId": "d2a6f09c-e50d-4d0f-a0a3-56a568a302f8",
+  "userId": "c8728bb7-9d14-4b91-909b-ec070c442e25",
   "archiveName": "archive (53)",
   "domain": "MANUFACTURING",
-  "summaryText": "Enterprise Strategic Intelligence Report for archive (53) in the MANUFACTURING domain. System processed 100 records across 1 sources for user batch@vistarabi.com.",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (53) in the MANUFACTURING domain. Real system processed 100 records across 1 sources for user testbatch@examples.com.",
   "selectedKPIs": [
     {
       "name": "Overall Equipment Effectiveness (OEE)",
       "category": "efficiency",
-      "value": "73.5%",
-      "trend": "2.0%",
+      "value": "23.8%",
+      "trend": "1.6%",
       "sparkData": [
-        30,
-        20,
-        93,
-        14,
-        10,
-        91,
+        42,
+        65,
+        1,
+        22,
+        43,
+        68,
+        65,
+        79,
         24,
-        66,
-        40,
-        54
+        67
       ]
     },
     {
       "name": "Defect Rate (PPM)",
       "category": "quality",
-      "value": "78.8%",
-      "trend": "20.0%",
+      "value": "72.4%",
+      "trend": "17.8%",
       "sparkData": [
-        34,
-        6,
-        60,
-        33,
-        4,
-        80,
-        45,
-        92,
-        94,
-        98
+        57,
+        91,
+        31,
+        8,
+        79,
+        53,
+        85,
+        43,
+        67,
+        97
       ]
     },
     {
       "name": "Downtime Analysis",
       "category": "maintenance",
-      "value": "67.9%",
-      "trend": "2.3%",
+      "value": "94.4%",
+      "trend": "2.1%",
       "sparkData": [
-        51,
-        18,
-        67,
-        87,
-        35,
-        41,
-        71,
-        54,
-        55,
-        34
+        31,
+        78,
+        57,
+        6,
+        17,
+        20,
+        86,
+        25,
+        2,
+        14
       ]
     }
   ],
@@ -104,7 +104,7 @@
     }
   ],
   "metrics": {
-    "probability": 0.7772887038756919,
+    "probability": 0.8611518574046111,
     "gap": 1500000,
     "baseline": 8500000,
     "target": 10000000
@@ -112,7 +112,7 @@
   "forecastData": {
     "kpi": "Overall Equipment Effectiveness (OEE)",
     "trend": "Bullish (Industry-Leading)",
-    "confidence": "86% System Reliability"
+    "confidence": "83% System Reliability"
   },
   "uploadedDatasets": [
     {

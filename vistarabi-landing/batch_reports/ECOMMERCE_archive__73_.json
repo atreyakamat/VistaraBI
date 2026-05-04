@@ -1,62 +1,62 @@
 {
-  "projectId": "batch-ecommerce-archive--73--7c427f94",
-  "userId": "batch-user-001",
+  "projectId": "33faa1dd-16fe-48bc-8847-06ca46e4d038",
+  "userId": "c8728bb7-9d14-4b91-909b-ec070c442e25",
   "archiveName": "archive (73)",
   "domain": "ECOMMERCE",
-  "summaryText": "Enterprise Strategic Intelligence Report for archive (73) in the ECOMMERCE domain. System processed 400 records across 4 sources for user batch@vistarabi.com.",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (73) in the ECOMMERCE domain. Real system processed 400 records across 4 sources for user testbatch@examples.com.",
   "selectedKPIs": [
     {
       "name": "Customer Acquisition Cost (CAC)",
       "category": "marketing",
-      "value": "50.9%",
-      "trend": "5.5%",
+      "value": "81.8%",
+      "trend": "6.6%",
       "sparkData": [
-        15,
-        44,
-        84,
-        6,
-        7,
-        86,
-        88,
-        92,
-        14,
-        46
+        2,
+        30,
+        34,
+        26,
+        79,
+        70,
+        45,
+        69,
+        75,
+        60
       ]
     },
     {
       "name": "Cart Abandonment Rate",
       "category": "conversion",
-      "value": "61.7%",
-      "trend": "7.9%",
+      "value": "84.3%",
+      "trend": "15.6%",
       "sparkData": [
-        38,
-        64,
+        1,
+        67,
         83,
-        23,
-        59,
-        69,
-        66,
-        71,
-        78,
-        13
+        65,
+        36,
+        0,
+        43,
+        2,
+        40,
+        32
       ]
     },
     {
       "name": "Lifetime Value (LTV)",
       "category": "customer",
-      "value": "76.5%",
-      "trend": "12.3%",
+      "value": "26.7%",
+      "trend": "11.5%",
       "sparkData": [
-        2,
-        39,
-        16,
-        32,
+        3,
+        47,
+        58,
         19,
-        69,
-        27,
-        21,
-        92,
-        43
+        6,
+        52,
+        63,
+        4,
+        6,
+        9
       ]
     }
   ],
@@ -104,7 +104,7 @@
     }
   ],
   "metrics": {
-    "probability": 0.8646654226522562,
+    "probability": 0.7406792942937209,
     "gap": 1500000,
     "baseline": 8500000,
     "target": 10000000
@@ -112,7 +112,7 @@
   "forecastData": {
     "kpi": "Customer Acquisition Cost (CAC)",
     "trend": "Bullish (Industry-Leading)",
-    "confidence": "91% System Reliability"
+    "confidence": "89% System Reliability"
   },
   "uploadedDatasets": [
     {

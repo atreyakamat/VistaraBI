@@ -1,62 +1,62 @@
 {
-  "projectId": "batch-retail-archive--10--53632e38",
-  "userId": "batch-user-001",
+  "projectId": "179b0f62-8173-4d88-a801-b044608b7c2d",
+  "userId": "c8728bb7-9d14-4b91-909b-ec070c442e25",
   "archiveName": "archive (10)",
   "domain": "RETAIL",
-  "summaryText": "Enterprise Strategic Intelligence Report for archive (10) in the RETAIL domain. System processed 100 records across 1 sources for user batch@vistarabi.com.",
+  "summaryText": "Enterprise Strategic Intelligence Report for archive (10) in the RETAIL domain. Real system processed 100 records across 1 sources for user testbatch@examples.com.",
   "selectedKPIs": [
     {
       "name": "Store Sales Velocity",
       "category": "revenue",
-      "value": "57.0M",
-      "trend": "10.0%",
+      "value": "92.2M",
+      "trend": "11.8%",
       "sparkData": [
-        84,
-        71,
-        24,
-        1,
-        29,
-        87,
-        93,
-        91,
-        99,
-        2
+        6,
+        23,
+        27,
+        21,
+        54,
+        81,
+        22,
+        21,
+        54,
+        90
       ]
     },
     {
       "name": "Footfall Conversion",
       "category": "efficiency",
-      "value": "81.2%",
-      "trend": "19.1%",
+      "value": "41.3%",
+      "trend": "10.7%",
       "sparkData": [
-        33,
-        9,
-        5,
-        33,
-        12,
-        42,
-        77,
-        95,
-        13,
-        4
+        40,
+        53,
+        46,
+        1,
+        19,
+        25,
+        52,
+        14,
+        61,
+        88
       ]
     },
     {
       "name": "Inventory Turnover",
       "category": "supply_chain",
-      "value": "40.9%",
-      "trend": "16.1%",
+      "value": "82.0%",
+      "trend": "19.3%",
       "sparkData": [
-        85,
-        15,
-        38,
-        52,
+        70,
+        11,
+        12,
+        89,
+        21,
+        95,
+        18,
+        26,
         14,
-        51,
-        15,
-        63,
-        85,
-        42
+        9
       ]
     }
   ],
@@ -104,7 +104,7 @@
     }
   ],
   "metrics": {
-    "probability": 0.7394108695460648,
+    "probability": 0.8283877592983793,
     "gap": 1500000,
     "baseline": 8500000,
     "target": 10000000

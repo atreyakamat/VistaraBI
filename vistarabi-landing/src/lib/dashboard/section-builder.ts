@@ -11,19 +11,19 @@ import type { DomainType } from '../prisma';
 // ─── Section Definitions ──────────────────────────────────────────
 
 const SECTION_DEFINITIONS = [
-    { sectionId: 'revenue', title: 'Revenue & Sales', description: 'Financial performance metrics', icon: '💰', order: 1, categories: ['revenue', 'sales', 'financial', 'pricing'] },
-    { sectionId: 'customers', title: 'Customer Intelligence', description: 'Customer behavior and lifecycle metrics', icon: '👥', order: 2, categories: ['customer', 'user', 'retention', 'engagement', 'churn'] },
-    { sectionId: 'operations', title: 'Operational Metrics', description: 'Efficiency and process metrics', icon: '⚙️', order: 3, categories: ['operational', 'efficiency', 'logistics', 'inventory', 'process'] },
-    { sectionId: 'growth', title: 'Growth & Conversion', description: 'Growth trajectory and conversion metrics', icon: '📈', order: 4, categories: ['growth', 'conversion', 'acquisition', 'marketing'] },
-    { sectionId: 'product', title: 'Product Analytics', description: 'Product performance and usage metrics', icon: '📦', order: 5, categories: ['product', 'catalog', 'feature', 'usage'] },
-    { sectionId: 'quality', title: 'Quality & Compliance', description: 'Data quality and compliance metrics', icon: '✅', order: 6, categories: ['quality', 'compliance', 'risk', 'audit'] },
+    { sectionId: 'revenue', title: 'Revenue & Sales', description: 'Financial performance metrics', icon: 'dollar-sign', order: 1, categories: ['revenue', 'sales', 'financial', 'pricing'] },
+    { sectionId: 'customers', title: 'Customer Intelligence', description: 'Customer behavior and lifecycle metrics', icon: 'users', order: 2, categories: ['customer', 'user', 'retention', 'engagement', 'churn'] },
+    { sectionId: 'operations', title: 'Operational Metrics', description: 'Efficiency and process metrics', icon: 'settings', order: 3, categories: ['operational', 'efficiency', 'logistics', 'inventory', 'process'] },
+    { sectionId: 'growth', title: 'Growth & Conversion', description: 'Growth trajectory and conversion metrics', icon: 'trending-up', order: 4, categories: ['growth', 'conversion', 'acquisition', 'marketing'] },
+    { sectionId: 'product', title: 'Product Analytics', description: 'Product performance and usage metrics', icon: 'package', order: 5, categories: ['product', 'catalog', 'feature', 'usage'] },
+    { sectionId: 'quality', title: 'Quality & Compliance', description: 'Data quality and compliance metrics', icon: 'check-circle', order: 6, categories: ['quality', 'compliance', 'risk', 'audit'] },
 ];
 
 const FALLBACK_SECTION = {
     sectionId: 'general',
     title: 'General Metrics',
     description: 'Key business metrics',
-    icon: '📊',
+    icon: 'bar-chart',
     order: 99,
 };
 
@@ -115,7 +115,7 @@ function inferChartFromFormula(formula: string, category: string): ChartSelectio
         return {
             chartType: 'line', chartLibrary: 'chartjs',
             fallbackType: 'bar', fallbackLibrary: 'chartjs',
-            confidence: 0.75, reason: 'Time-related formula → line chart (will refine with data)',
+            confidence: 0.75, reason: 'Time-related formula -> line chart (will refine with data)',
         };
     }
 
@@ -124,7 +124,7 @@ function inferChartFromFormula(formula: string, category: string): ChartSelectio
         return {
             chartType: 'doughnut', chartLibrary: 'chartjs',
             fallbackType: 'bar', fallbackLibrary: 'chartjs',
-            confidence: 0.70, reason: 'Ratio/percentage formula → doughnut chart',
+            confidence: 0.70, reason: 'Ratio/percentage formula -> doughnut chart',
         };
     }
 
@@ -133,7 +133,7 @@ function inferChartFromFormula(formula: string, category: string): ChartSelectio
         return {
             chartType: 'bar', chartLibrary: 'chartjs',
             fallbackType: 'metric_card', fallbackLibrary: 'chartjs',
-            confidence: 0.70, reason: 'Aggregation formula → bar chart',
+            confidence: 0.70, reason: 'Aggregation formula -> bar chart',
         };
     }
 
@@ -141,7 +141,7 @@ function inferChartFromFormula(formula: string, category: string): ChartSelectio
     return {
         chartType: 'metric_card', chartLibrary: 'chartjs',
         fallbackType: 'bar', fallbackLibrary: 'chartjs',
-        confidence: 0.60, reason: 'Default selection → metric card',
+        confidence: 0.60, reason: 'Default selection -> metric card',
     };
 }
 

@@ -62,10 +62,10 @@ export async function POST(
             message: `Dashboard generated with ${config.metadata.totalSections} sections and ${config.metadata.totalKPIs} KPIs`,
             ...config,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Dashboard POST error:', error);
         return NextResponse.json(
-            { error: 'Failed to generate dashboard configuration' },
+            { error: error?.message || 'Failed to generate dashboard configuration' },
             { status: 500 }
         );
     }
