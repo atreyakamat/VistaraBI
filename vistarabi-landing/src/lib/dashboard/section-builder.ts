@@ -70,7 +70,7 @@ export function buildSections(
 
         const cards: DashboardKPICard[] = sortedKpis.map((kpi, index) => {
             // Use lightweight chart selection based on formula analysis
-            const formulaStr = (kpi.lineage as any)?.formula || '';
+            const formulaStr = kpi.lineage?.formula || '';
             const categoryStr = kpi.category || 'general';
             const chartSelection = inferChartFromFormula(formulaStr, categoryStr);
 

@@ -66,9 +66,9 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
         kpis.map(kpi => ({
             kpiId: kpi.id,
             kpiName: kpi.name,
-            formula: (kpi.lineage as any)?.formula || '',
+            formula: kpi.lineage?.formula || '',
             category: kpi.category || 'general',
-            columns: (kpi.aggregations as any)?.map((a: any) => a.column) || [],
+            columns: kpi.aggregations?.map((a: any) => a.column) || [],
         }))
     ).then(explanations => {
         // Asynchronously update the dashboard config when Ollama eventually responds

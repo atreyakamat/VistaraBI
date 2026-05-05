@@ -123,7 +123,7 @@ export async function traceKPILineage(
     relationships: RelationshipEntry[],
     useAI: boolean
 ): Promise<KPILineageEntry> {
-    console.log('[KPILineageRegistry] Tracing:', kpi.name || (kpi as any).kpiName);
+    console.log('[KPILineageRegistry] Tracing:', kpi.name);
 
     // Build column to source mapping
     const columnToSource = new Map<string, string>();
@@ -134,10 +134,10 @@ export async function traceKPILineage(
     }
 
     // Extract columns from formula
-    const formulaStr = kpi.lineage?.formula || (kpi as any).formula || '';
+    const formulaStr = kpi.lineage?.formula || '';
     const formulaColumns = extractColumnsFromFormula(formulaStr);
-    const structCols = kpi.aggregations?.map((a: any) => a.column) || [];
-    const allColumns = [...new Set([...structCols, ...(kpi as any).matchedColumns || [], ...formulaColumns])];
+    const structCols = kpi.aggregations?.map(a => a.column) || [];
+    const allColumns = [...new Set([...structCols, ...formulaColumns])];
 
     // Find sources for each column
     const sourceContributions = new Map<string, KPISourceContribution>();
@@ -182,9 +182,9 @@ export async function traceKPILineage(
 
     // Generate explanations
     const context: ExplanationContext = {
-        kpiName: kpi.name || (kpi as any).kpiName,
+        kpiName: kpi.name,
         formula: formulaStr,
-        domain: (kpi as any).domainContext?.detectedDomain || 'Unknown',
+        domain: kpi.blueprint?.domain || 'Unknown',
         category: kpi.category || 'general',
         sources: sourcesList,
         joins: joinPaths,
@@ -198,9 +198,9 @@ export async function traceKPILineage(
     return {
         id: `kpil-${randomUUID()}`,
         projectId,
-        kpiId: kpi.id || (kpi as any).kpiId,
-        kpiName: kpi.name || (kpi as any).kpiName,
-        domain: (kpi as any).domainContext?.detectedDomain || 'Unknown',
+        kpiId: kpi.id,
+        kpiName: kpi.name,
+        domain: kpi.blueprint?.domain || 'Unknown',
         formula: formulaStr,
         category: kpi.category || 'general',
         sources: sourcesList,
@@ -209,7 +209,7 @@ export async function traceKPILineage(
         technicalExplanation: explanations.technical,
         businessExplanation: explanations.business,
         aiEnhanced: explanations.aiEnhanced,
-        confidence: (kpi as any).confidence || 100,
+        confidence: 100,
         tracedAt: new Date(),
     };
 }

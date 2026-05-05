@@ -141,7 +141,7 @@ export async function traceKPILineage(
     entityGraph: EntityRelationshipGraph,
     sources: { id: string; name: string; columns: string[] }[]
 ): Promise<KPILineage> {
-    console.log('[KPILineage] Tracing:', kpi.name || (kpi as any).kpiName);
+    console.log('[KPILineage] Tracing:', kpi.name);
 
     // Build column to source mapping
     const columnToSource = new Map<string, string>();
@@ -152,10 +152,10 @@ export async function traceKPILineage(
     }
 
     // Extract columns from formula
-    const formulaStr = kpi.lineage?.formula || (kpi as any).formula || '';
+    const formulaStr = kpi.lineage?.formula || '';
     const formulaColumns = extractColumnsFromFormula(formulaStr);
-    const structCols = kpi.aggregations?.map((a: any) => a.column) || [];
-    const allColumns = [...new Set([...structCols, ...(kpi as any).matchedColumns || [], ...formulaColumns])];
+    const structCols = kpi.aggregations?.map(a => a.column) || [];
+    const allColumns = [...new Set([...structCols, ...formulaColumns])];
 
     // Find sources for each column
     const sourceContributions = new Map<string, KPISourceContribution>();
@@ -203,7 +203,7 @@ export async function traceKPILineage(
     }
 
     // Parse aggregations
-    const aggregations = parseAggregations((kpi.lineage?.formula || (kpi as any).formula || ''), columnToSource);
+    const aggregations = parseAggregations(formulaStr, columnToSource);
 
     // Mark sources with aggregations
     for (const agg of aggregations) {
@@ -215,7 +215,7 @@ export async function traceKPILineage(
 
     // Generate explanation
     const explanation = generateExplanation(
-        kpi.name || (kpi as any).kpiName,
+        kpi.name,
         formulaStr,
         sourcesList,
         joins,
@@ -223,15 +223,15 @@ export async function traceKPILineage(
     );
 
     return {
-        kpiId: kpi.id || (kpi as any).kpiId,
-        kpiName: kpi.name || (kpi as any).kpiName,
+        kpiId: kpi.id,
+        kpiName: kpi.name,
         formula: formulaStr,
         category: kpi.category || 'general',
         sources: sourcesList,
         joins,
         aggregations,
         explanation,
-        confidence: (kpi as any).confidence || 100,
+        confidence: 100,
         tracedAt: new Date(),
     };
 }
@@ -261,7 +261,7 @@ export async function traceAllKPILineages(projectId: string): Promise<KPILineage
     // Trace each KPI
     const lineages: KPILineage[] = [];
     for (const kpi of kpis) {
-        const lineage = await traceKPILineage(projectId, kpi as any, entityGraph, readySources);
+        const lineage = await traceKPILineage(projectId, kpi, entityGraph, readySources);
         lineages.push(lineage);
     }
 
