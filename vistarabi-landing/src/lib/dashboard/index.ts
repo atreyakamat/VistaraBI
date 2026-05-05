@@ -1,4 +1,4 @@
-﻿// Module 5A — Dashboard Configuration Orchestrator (Rebuilt)
+// Module 5A — Dashboard Configuration Orchestrator (Rebuilt)
 // Generates dashboard configs with chart intelligence and AI explanations
 
 import db from '../prisma';
@@ -74,10 +74,20 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
         );
 
         // Race: explanations vs timeout
-        kpiExplanations = await Promise.race([
+        const results = await Promise.race([
             generateKPIExplanations(kpiInputs, domain),
             timeoutPromise
         ]);
+        
+        // Ensure generatedAt is set
+        for (const [kpiId, exp] of Object.entries(results)) {
+            kpiExplanations[kpiId] = {
+                ...exp as any,
+                generatedAt: exp && (exp as any).generatedAt instanceof Date 
+                    ? (exp as any).generatedAt.toISOString() 
+                    : new Date().toISOString(),
+            };
+        }
 
         console.log('[Dashboard] ✅ AI explanations generated successfully');
     } catch (err: any) {
@@ -103,9 +113,19 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     });
     const version = (existing?.version || 0) + 1;
 
-    // 8. Build metadata
+    // 8. Build metadata with explicit sanitization
+    const sanitizeDate = (val: any) => (val instanceof Date ? val.toISOString() : (val || new Date().toISOString()));
+
+    const sanitizedExplanations = Object.entries(kpiExplanations).reduce((acc, [kpiId, exp]) => {
+        acc[kpiId] = {
+            ...(exp as any),
+            generatedAt: sanitizeDate((exp as any).generatedAt),
+        };
+        return acc;
+    }, {} as Record<string, any>);
+
     const metadata: DashboardMetadata = {
-        domain,
+        domain: domain || 'GENERAL',
         domainName,
         domainIcon,
         domainColor,
@@ -113,7 +133,7 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
         totalSections: sections.length,
         generatedAt: new Date().toISOString(),
         version,
-        kpiExplanations,
+        kpiExplanations: sanitizedExplanations,
     };
 
     // 9. Assemble full config
