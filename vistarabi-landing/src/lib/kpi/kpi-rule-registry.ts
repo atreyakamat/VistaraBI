@@ -174,7 +174,7 @@ const SAAS_RULES: KPIRule[] = [
     },
     {
         id: 'saas-002', name: 'Annual Recurring Revenue', category: 'revenue', priority: 2,
-        description: 'MRR × 12',
+        description: 'MRR * 12',
         requiredSemanticRoles: ['mrr'],
         requiresJoin: false,
         aggregationRules: [{ function: 'SUM', semanticRole: 'mrr' }],
@@ -686,7 +686,7 @@ const MANUFACTURING_RULES: KPIRule[] = [
     },
     {
         id: 'mf-004', name: 'Overall Equipment Effectiveness', category: 'efficiency', priority: 4,
-        description: 'OEE = Availability × Performance × Quality',
+        description: 'OEE = Availability * Performance * Quality',
         requiredSemanticRoles: ['availability', 'performance', 'quality_ratio'],
         requiresJoin: false,
         aggregationRules: [
