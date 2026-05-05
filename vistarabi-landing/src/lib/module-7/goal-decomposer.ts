@@ -30,15 +30,15 @@ export function decomposeGoal(goal: ParsedGoal, domain: string): DecomposedGoal 
     const dir = goal.changeDirection;
 
     const changeLabel = dir === 'decrease'
-        ? `↓ ${target}`
-        : `↑ ${target}`;
+        ? `Decrease ${target}`
+        : `Increase ${target}`;
 
     let formula = '';
 
     // ── E-Commerce / Retail: Revenue ───────────────────────────────────────────
     if (goal.kpiId === 'ec-001' || goal.targetMetric === 'revenue' ||
         goal.kpiId === 'rt-001' || goal.targetMetric === 'store sales') {
-        formula = 'Revenue = Orders × AOV × (1 − Discount Rate)';
+        formula = 'Revenue = Orders * AOV * (1 - Discount Rate)';
         factors.push(
             {
                 metric: 'Order Count',
@@ -56,7 +56,7 @@ export function decomposeGoal(goal: ParsedGoal, domain: string): DecomposedGoal 
             },
             {
                 metric: 'Discount Rate',
-                requiredChange: '↓ Reduce discounts',
+                requiredChange: 'Decrease Reduce discounts',
                 description: 'Reduce excessive discounting to protect margins while maintaining volume.',
                 weight: 0.2,
             }
@@ -65,7 +65,7 @@ export function decomposeGoal(goal: ParsedGoal, domain: string): DecomposedGoal 
 
     // ── E-Commerce: Conversion Rate ─────────────────────────────────────────────
     else if (goal.kpiId === 'ec-004' || goal.targetMetric === 'conversion rate') {
-        formula = 'Conversion Rate = (Orders / Sessions) × 100';
+        formula = 'Conversion Rate = (Orders / Sessions) * 100';
         factors.push(
             {
                 metric: 'Session Quality',
@@ -92,7 +92,7 @@ export function decomposeGoal(goal: ParsedGoal, domain: string): DecomposedGoal 
 
     // ── SaaS: MRR ───────────────────────────────────────────────────────────────
     else if (goal.kpiId === 'saas-001' || goal.targetMetric === 'mrr') {
-        formula = 'MRR = Seat Count × ARPU';
+        formula = 'MRR = Seat Count * ARPU';
         factors.push(
             {
                 metric: 'Seat Count / Active Subscribers',
@@ -131,7 +131,7 @@ export function decomposeGoal(goal: ParsedGoal, domain: string): DecomposedGoal 
             },
             {
                 metric: 'Product Engagement',
-                requiredChange: '↑ Increase engagement',
+                requiredChange: 'Increase Increase engagement',
                 description: 'Improve feature adoption so users experience consistent value before renewal.',
                 weight: 0.2,
             }
@@ -140,7 +140,7 @@ export function decomposeGoal(goal: ParsedGoal, domain: string): DecomposedGoal 
 
     // ── SaaS: NRR ───────────────────────────────────────────────────────────────
     else if (goal.kpiId === 'saas-005' || goal.targetMetric === 'nrr') {
-        formula = 'NRR = (Starting MRR + Expansion − Contraction − Churned) / Starting MRR';
+        formula = 'NRR = (Starting MRR + Expansion - Contraction - Churned) / Starting MRR';
         factors.push(
             {
                 metric: 'Expansion Revenue',
@@ -150,7 +150,7 @@ export function decomposeGoal(goal: ParsedGoal, domain: string): DecomposedGoal 
             },
             {
                 metric: 'Churn and Contraction',
-                requiredChange: '↓ Reduce churned MRR',
+                requiredChange: 'Decrease Reduce churned MRR',
                 description: 'Reduce revenue lost to cancellations and downgrades.',
                 weight: 0.5,
             }
@@ -159,7 +159,7 @@ export function decomposeGoal(goal: ParsedGoal, domain: string): DecomposedGoal 
 
     // ── Retail: Footfall ─────────────────────────────────────────────────────────
     else if (goal.kpiId === 'rt-002' || goal.targetMetric === 'footfall') {
-        formula = 'Revenue = Footfall × Conversion Rate × AOV';
+        formula = 'Revenue = Footfall * Conversion Rate * AOV';
         factors.push(
             {
                 metric: 'Store Visitor Count',
@@ -170,7 +170,7 @@ export function decomposeGoal(goal: ParsedGoal, domain: string): DecomposedGoal 
             },
             {
                 metric: 'In-Store Conversion Rate',
-                requiredChange: '↑ Improve',
+                requiredChange: 'Increase Improve',
                 description: 'Train staff to convert more visitors into buyers through product demos and personalised recommendations.',
                 weight: 0.4,
             }

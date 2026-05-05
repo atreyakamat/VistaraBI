@@ -12,9 +12,9 @@ export interface RankedAction extends GeneratedAction {
  * Ranks generated actions by a composite confidence score.
  *
  * Formula:
- *   rawScore = Effectiveness × DomainFit × (11 − Cost) × Speed
- *   Max possible = 10 × 10 × 10 × 10 = 10,000
- *   confidenceScore = round((rawScore / 10,000) × 100)
+ *   rawScore = Effectiveness * DomainFit * (11 - Cost) * Speed
+ *   Max possible = 10 * 10 * 10 * 10 = 10,000
+ *   confidenceScore = round((rawScore / 10,000) * 100)
  *
  * Tier bands:
  *   ≥ 70 -> high  (green)

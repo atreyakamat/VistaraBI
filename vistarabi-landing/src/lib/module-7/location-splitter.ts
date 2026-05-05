@@ -53,7 +53,7 @@ export function splitByLocation(
         },
         LOW: {
             reason: 'Below-average performance — stabilize before aggressive growth.',
-            goalAdjustment: '(−5% more conservative)',
+            goalAdjustment: '(-5% more conservative)',
         },
     };
 

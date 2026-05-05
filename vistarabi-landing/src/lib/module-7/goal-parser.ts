@@ -2,6 +2,7 @@
 // Takes raw natural language and extracts metric, target, and timeframe
 
 export interface ParsedGoal {
+    rawText: string;
     targetMetric: string;
     targetValue: string;
     timeframe: string;
@@ -100,6 +101,7 @@ export async function parseGoal(rawQuery: string): Promise<ParsedGoal> {
     }
 
     return {
+        rawText: rawQuery,
         targetMetric,
         targetValue,
         timeframe,
