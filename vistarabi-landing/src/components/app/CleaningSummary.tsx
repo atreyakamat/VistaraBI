@@ -87,25 +87,25 @@ export default function CleaningSummary({ summary, onClose, onReClean }: Cleanin
                         <h3 className="text-sm font-semibold text-[var(--foreground)] mb-3">Purification Details</h3>
                         <div className="space-y-3">
                             <PurificationStat
-                                icon="📝"
+                                icon="edit"
                                 label="Null Values Filled"
                                 value={stats.nullsFilled}
                                 description="Missing values filled using statistical strategies"
                             />
                             <PurificationStat
-                                icon="🔁"
+                                icon="rotate-cw"
                                 label="Duplicates Removed"
                                 value={stats.duplicatesRemoved}
                                 description="Exact duplicate rows detected and removed"
                             />
                             <PurificationStat
-                                icon="📅"
+                                icon="calendar"
                                 label="Dates Normalized"
                                 value={stats.datesNormalized}
                                 description="Various date formats converted to ISO (YYYY-MM-DD)"
                             />
                             <PurificationStat
-                                icon="💰"
+                                icon="dollar-sign"
                                 label="Currencies Normalized"
                                 value={stats.currenciesNormalized}
                                 description="Currency symbols removed and values normalized to USD"
@@ -117,7 +117,7 @@ export default function CleaningSummary({ summary, onClose, onReClean }: Cleanin
                                 description="Whitespace trimmed, case normalized"
                             />
                             <PurificationStat
-                                icon="🗑️"
+                                icon="trash-2"
                                 label="Empty Columns Removed"
                                 value={stats.emptyColumnsRemoved}
                                 description="Columns with no data automatically removed"

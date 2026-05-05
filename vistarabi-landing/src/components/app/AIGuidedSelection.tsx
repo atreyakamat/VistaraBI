@@ -11,14 +11,14 @@ interface DomainInfo {
 }
 
 const DOMAIN_INFO: Record<string, DomainInfo> = {
-    ECOMMERCE: { type: 'ECOMMERCE', name: 'E-Commerce', icon: '🛒', color: '#f97316' },
-    SAAS: { type: 'SAAS', name: 'SaaS', icon: '💻', color: '#3b82f6' },
-    EDTECH: { type: 'EDTECH', name: 'EdTech', icon: '🎓', color: '#8b5cf6' },
-    RETAIL: { type: 'RETAIL', name: 'Retail', icon: '🏪', color: '#22c55e' },
-    SERVICES: { type: 'SERVICES', name: 'Services', icon: '🧾', color: '#06b6d4' },
-    MANUFACTURING: { type: 'MANUFACTURING', name: 'Manufacturing', icon: '🏭', color: '#6b7280' },
-    HEALTHCARE: { type: 'HEALTHCARE', name: 'Healthcare', icon: '🏥', color: '#ef4444' },
-    FINANCE: { type: 'FINANCE', name: 'Finance', icon: '💰', color: '#eab308' },
+    ECOMMERCE: { type: 'ECOMMERCE', name: 'E-Commerce', icon: 'shopping-cart', color: '#f97316' },
+    SAAS: { type: 'SAAS', name: 'SaaS', icon: 'laptop', color: '#3b82f6' },
+    EDTECH: { type: 'EDTECH', name: 'EdTech', icon: 'graduation-cap', color: '#8b5cf6' },
+    RETAIL: { type: 'RETAIL', name: 'Retail', icon: 'store', color: '#22c55e' },
+    SERVICES: { type: 'SERVICES', name: 'Services', icon: 'receipt', color: '#06b6d4' },
+    MANUFACTURING: { type: 'MANUFACTURING', name: 'Manufacturing', icon: 'factory', color: '#6b7280' },
+    HEALTHCARE: { type: 'HEALTHCARE', name: 'Healthcare', icon: 'hospital', color: '#ef4444' },
+    FINANCE: { type: 'FINANCE', name: 'Finance', icon: 'dollar-sign', color: '#eab308' },
 };
 
 interface AIDomainReasoning {
@@ -122,7 +122,7 @@ export default function AIGuidedSelection({
                     {/* Phase 3A Detection */}
                     <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--background)]">
                         <div className="flex items-center gap-2 mb-2 text-sm font-medium text-[var(--muted)]">
-                            <span>📊</span>
+                            <span>bar-chart</span>
                             <span>Rule-Based Detection (Phase 3A)</span>
                         </div>
                         {phase3AInfo ? (

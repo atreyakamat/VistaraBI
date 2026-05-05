@@ -30,25 +30,25 @@ interface ChartOption {
 
 const CHART_OPTIONS: ChartOption[] = [
     // Trend
-    { value: 'line', label: 'Line', icon: '📈', lib: 'chartjs', group: 'trend' },
-    { value: 'area', label: 'Area', icon: '📉', lib: 'chartjs', group: 'trend' },
+    { value: 'line', label: 'Line', icon: 'trending-up', lib: 'chartjs', group: 'trend' },
+    { value: 'area', label: 'Area', icon: 'trending-down', lib: 'chartjs', group: 'trend' },
     // Compare
-    { value: 'bar', label: 'Bar', icon: '📊', lib: 'chartjs', group: 'compare' },
-    { value: 'horizontal_bar', label: 'H-Bar', icon: '🔲', lib: 'chartjs', group: 'compare' },
-    { value: 'stacked_bar', label: 'Stacked', icon: '🏗️', lib: 'chartjs', group: 'compare' },
-    { value: 'waterfall', label: 'Waterfall', icon: '🌊', lib: 'plotly', group: 'compare' },
+    { value: 'bar', label: 'Bar', icon: 'bar-chart', lib: 'chartjs', group: 'compare' },
+    { value: 'horizontal_bar', label: 'H-Bar', icon: 'align-left', lib: 'chartjs', group: 'compare' },
+    { value: 'stacked_bar', label: 'Stacked', icon: 'layers', lib: 'chartjs', group: 'compare' },
+    { value: 'waterfall', label: 'Waterfall', icon: 'waves', lib: 'plotly', group: 'compare' },
     // Composition
-    { value: 'pie', label: 'Pie', icon: '🥧', lib: 'chartjs', group: 'composition' },
-    { value: 'doughnut', label: 'Donut', icon: '🍩', lib: 'chartjs', group: 'composition' },
-    { value: 'treemap', label: 'Treemap', icon: '🗺️', lib: 'plotly', group: 'composition' },
-    { value: 'sunburst', label: 'Sunburst', icon: '☀️', lib: 'plotly', group: 'composition' },
+    { value: 'pie', label: 'Pie', icon: 'pie-chart', lib: 'chartjs', group: 'composition' },
+    { value: 'doughnut', label: 'Donut', icon: 'ring', lib: 'chartjs', group: 'composition' },
+    { value: 'treemap', label: 'Treemap', icon: 'map', lib: 'plotly', group: 'composition' },
+    { value: 'sunburst', label: 'Sunburst', icon: 'sun', lib: 'plotly', group: 'composition' },
     // Advanced
-    { value: 'scatter', label: 'Scatter', icon: '🔵', lib: 'chartjs', group: 'advanced' },
-    { value: 'bubble', label: 'Bubble', icon: '🫧', lib: 'chartjs', group: 'advanced' },
-    { value: 'radar', label: 'Radar', icon: '🕸️', lib: 'chartjs', group: 'advanced' },
-    { value: 'heatmap', label: 'Heatmap', icon: '🌡️', lib: 'plotly', group: 'advanced' },
-    { value: 'box_plot', label: 'Box', icon: '📦', lib: 'plotly', group: 'advanced' },
-    { value: 'violin', label: 'Violin', icon: '🎻', lib: 'plotly', group: 'advanced' },
+    { value: 'scatter', label: 'Scatter', icon: 'circle-dot', lib: 'chartjs', group: 'advanced' },
+    { value: 'bubble', label: 'Bubble', icon: 'circle', lib: 'chartjs', group: 'advanced' },
+    { value: 'radar', label: 'Radar', icon: 'radial', lib: 'chartjs', group: 'advanced' },
+    { value: 'heatmap', label: 'Heatmap', icon: 'thermometer', lib: 'plotly', group: 'advanced' },
+    { value: 'box_plot', label: 'Box', icon: 'box', lib: 'plotly', group: 'advanced' },
+    { value: 'violin', label: 'Violin', icon: 'music', lib: 'plotly', group: 'advanced' },
 ];
 
 const GROUP_LABELS: Record<string, string> = {

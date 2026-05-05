@@ -32,11 +32,11 @@ describe('Module 5A: Dashboard Layout Engine', () => {
 
     // Test Data
     const mockKPIs: any[] = [
-        { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev' }] },
-        { kpiId: '2', kpiName: 'Margin', formula: 'SUM(profit)/SUM(rev)', category: 'profitability', confidence: 0.8, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'profit' }] },
-        { kpiId: '3', kpiName: 'Customers', formula: 'COUNT(users)', category: 'customer', confidence: 0.95, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'COUNT', column: 'users' }] },
-        { kpiId: '4', kpiName: 'Conversion', formula: 'AVG(conv)', category: 'customer', confidence: 0.7, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'AVG', column: 'conv' }] },
-        { kpiId: '5', kpiName: 'Unknown Metric', formula: 'SUM(x)', category: 'unknown_cat', confidence: 0.5, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'x' }] },
+        { id: '1', name: 'Revenue', blueprintId: 'bp1', kpiLibraryId: 'lib1', sourceTable: 'orders', category: 'revenue', createdAt: new Date(), updatedAt: new Date(), aggregations: [{ id: 'agg1', kpiId: '1', function: 'SUM', column: 'rev' }], groupBys: [], lineage: { id: 'lin1', kpiId: '1', formula: 'SUM(rev)', tables: ['orders'], joins: [] } },
+        { id: '2', name: 'Margin', blueprintId: 'bp1', kpiLibraryId: 'lib1', sourceTable: 'orders', category: 'profitability', createdAt: new Date(), updatedAt: new Date(), aggregations: [{ id: 'agg2', kpiId: '2', function: 'SUM', column: 'profit' }], groupBys: [], lineage: { id: 'lin2', kpiId: '2', formula: 'SUM(profit)/SUM(rev)', tables: ['orders'], joins: [] } },
+        { id: '3', name: 'Customers', blueprintId: 'bp1', kpiLibraryId: 'lib1', sourceTable: 'orders', category: 'customer', createdAt: new Date(), updatedAt: new Date(), aggregations: [{ id: 'agg3', kpiId: '3', function: 'COUNT', column: 'users' }], groupBys: [], lineage: { id: 'lin3', kpiId: '3', formula: 'COUNT(users)', tables: ['orders'], joins: [] } },
+        { id: '4', name: 'Conversion', blueprintId: 'bp1', kpiLibraryId: 'lib1', sourceTable: 'orders', category: 'customer', createdAt: new Date(), updatedAt: new Date(), aggregations: [{ id: 'agg4', kpiId: '4', function: 'AVG', column: 'conv' }], groupBys: [], lineage: { id: 'lin4', kpiId: '4', formula: 'AVG(conv)', tables: ['orders'], joins: [] } },
+        { id: '5', name: 'Unknown Metric', blueprintId: 'bp1', kpiLibraryId: 'lib1', sourceTable: 'orders', category: 'unknown_cat', createdAt: new Date(), updatedAt: new Date(), aggregations: [{ id: 'agg5', kpiId: '5', function: 'SUM', column: 'x' }], groupBys: [], lineage: { id: 'lin5', kpiId: '5', formula: 'SUM(x)', tables: ['orders'], joins: [] } },
     ];
 
     beforeEach(() => {
@@ -214,11 +214,10 @@ describe('Module 5A: Dashboard Layout Engine', () => {
     describe('Dynamic Updates', () => {
         it('should integrate new KPIs into correct sections', () => {
             const mockKPIs: any[] = [
-                { kpiId: '1', kpiName: 'Revenue', formula: 'SUM(rev)', category: 'revenue', confidence: 0.9, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'rev', sourceId: 'src1' }] }
+                { id: '1', name: 'Revenue', blueprintId: 'bp1', kpiLibraryId: 'lib1', sourceTable: 'orders', category: 'revenue', createdAt: new Date(), updatedAt: new Date(), aggregations: [{ id: 'agg1', kpiId: '1', function: 'SUM', column: 'rev' }], groupBys: [], lineage: { id: 'lin1', kpiId: '1', formula: 'SUM(rev)', tables: ['orders'], joins: [] } }
             ];
             const newKPI: any = {
-                kpiId: '6', kpiName: 'New Metric', formula: 'SUM(z)',
-                category: 'risk', confidence: 1.0, matchedColumns: [], addedAt: new Date(), aggregations: [{ function: 'SUM', column: 'z' }]
+                id: '6', name: 'New Metric', blueprintId: 'bp1', kpiLibraryId: 'lib1', sourceTable: 'orders', category: 'quality', createdAt: new Date(), updatedAt: new Date(), aggregations: [{ id: 'agg6', kpiId: '6', function: 'SUM', column: 'z' }], groupBys: [], lineage: { id: 'lin6', kpiId: '6', formula: 'SUM(z)', tables: ['orders'], joins: [] }
             };
 
             const kpis = [...mockKPIs, newKPI];
