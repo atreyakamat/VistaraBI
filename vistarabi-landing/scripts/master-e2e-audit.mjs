@@ -178,15 +178,13 @@ async function main() {
     console.log("👤 Authenticated as testbatch@examples.com");
 const domains = [
     { name: 'ECOMMERCE', dir: '../datasets/ecommerce' },
-    { name: 'SAAS', file: '../dummy-data/synthetic_saas_data.csv' },
     { name: 'EDTECH', dir: '../datasets/edtech' },
     { name: 'RETAIL', dir: '../datasets/retail' },
-    { name: 'SERVICES', file: '../dummy-data/synthetic_services_data.csv' },
+    { name: 'LOGISTICS', dir: '../datasets/logistics' },
     { name: 'MANUFACTURING', dir: '../datasets/manufacturing' },
     { name: 'HEALTHCARE', dir: '../datasets/healthcare' },
     { name: 'FINANCE', dir: '../datasets/finance' }
 ];
-
     let successCount = 0;
     let totalCount = 0;
 

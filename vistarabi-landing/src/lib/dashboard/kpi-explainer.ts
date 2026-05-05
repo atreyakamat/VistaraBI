@@ -2,8 +2,9 @@
 // Batch-generates AI explanations for KPI cards using Ollama
 // Explanations are cached in DashboardConfig metadata — served instantly on card flip
 
-import { checkOllamaHealth, generateCompletion } from '../ai/ollama-client';
+import { checkOllamaHealth, generateCompletion, getDomainModel } from '../ai/ollama-client';
 import type { KPIExplanation } from './types';
+import type { DomainType } from '@/lib/prisma';
 
 interface KPIInput {
     kpiId: string;
@@ -17,37 +18,74 @@ interface KPIInput {
 }
 
 /**
- * Generate AI explanations for all KPIs in a batch.
+ * Generate AI explanations for all KPIs in a batch with retry logic.
  * Returns a map of kpiId -> KPIExplanation.
  * Falls back to deterministic explanations if Ollama is unavailable.
+ * @param kpis Array of KPI inputs
+ * @param domain Optional domain for domain-specific model selection
  */
 export async function generateKPIExplanations(
-    kpis: KPIInput[]
+    kpis: KPIInput[],
+    domain?: DomainType | null
 ): Promise<Record<string, KPIExplanation>> {
     const explanations: Record<string, KPIExplanation> = {};
     const isOllamaAvailable = await checkOllamaHealth();
 
+    console.log(`[KPIExplainer] Starting explanations for ${kpis.length} KPIs. Ollama available: ${isOllamaAvailable}. Domain: ${domain}`);
+
     for (const kpi of kpis) {
         try {
             if (isOllamaAvailable) {
-                explanations[kpi.kpiId] = await generateAIExplanation(kpi);
+                // Try AI explanation with retry
+                explanations[kpi.kpiId] = await generateAIExplanationWithRetry(kpi, domain, 2);
             } else {
                 explanations[kpi.kpiId] = generateDeterministicExplanation(kpi);
             }
         } catch (error) {
-            console.warn(`[KPIExplainer] Failed for ${kpi.kpiName}, using fallback:`, error);
+            console.warn(`[KPIExplainer] Failed for ${kpi.kpiName} (${kpi.kpiId}), using fallback:`, error);
             explanations[kpi.kpiId] = generateDeterministicExplanation(kpi);
         }
     }
 
+    console.log(`[KPIExplainer] ✅ Generated ${Object.keys(explanations).length} KPI explanations`);
     return explanations;
 }
 
 /**
- * Generate AI-powered explanation using Ollama.
+ * Generate AI explanation with retry logic (up to maxRetries attempts).
  */
-async function generateAIExplanation(kpi: KPIInput): Promise<KPIExplanation> {
+async function generateAIExplanationWithRetry(
+    kpi: KPIInput,
+    domain: DomainType | null | undefined,
+    maxRetries: number = 2
+): Promise<KPIExplanation> {
+    let lastError: any;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`[KPIExplainer] Generating AI explanation for ${kpi.kpiName} (attempt ${attempt}/${maxRetries})`);
+            return await generateAIExplanation(kpi, domain);
+        } catch (error) {
+            lastError = error;
+            console.warn(`[KPIExplainer] Attempt ${attempt} failed for ${kpi.kpiName}:`, (error as any).message);
+            
+            // Exponential backoff before retry
+            if (attempt < maxRetries) {
+                const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+
+    throw lastError || new Error('AI explanation generation failed after retries');
+}
+
+/**
+ * Generate AI-powered explanation using Ollama with domain-specific model.
+ */
+async function generateAIExplanation(kpi: KPIInput, domain?: DomainType | null): Promise<KPIExplanation> {
     const prompt = buildPrompt(kpi);
+    const model = domain ? getDomainModel(domain) : undefined;
 
     const response = await generateCompletion({
         messages: [
@@ -58,6 +96,7 @@ async function generateAIExplanation(kpi: KPIInput): Promise<KPIExplanation> {
             { role: 'user', content: prompt },
         ],
         temperature: 0.3,
+        model,
     });
 
     try {

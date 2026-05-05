@@ -55,38 +55,46 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     // 5. Build sidebar
     const sidebarConfig = await buildSidebarConfig(projectId, project.name);
 
-    // 6. Generate AI explanations (non-blocking)
-    console.log('[Dashboard] Initiating asynchronous AI explanations for', kpis.length, 'KPIs...');
+    // 6. Generate AI explanations (WAIT WITH TIMEOUT + FALLBACK)
+    console.log('[Dashboard] Generating AI explanations for', kpis.length, 'KPIs...');
 
-    // Create an empty explanations record so UI doesn't crash
-    const kpiExplanations: Record<string, any> = {};
+    let kpiExplanations: Record<string, any> = {};
+    const kpiInputs = kpis.map(kpi => ({
+        kpiId: kpi.id,
+        kpiName: kpi.name,
+        formula: kpi.lineage?.formula || '',
+        category: kpi.category || 'general',
+        columns: kpi.aggregations?.map((a: any) => a.column) || [],
+    }));
 
-    // We purposefully DO NOT await this to prevent Ollama ECONNREFUSED from blocking the config flow. 
-    generateKPIExplanations(
-        kpis.map(kpi => ({
-            kpiId: kpi.id,
-            kpiName: kpi.name,
-            formula: kpi.lineage?.formula || '',
-            category: kpi.category || 'general',
-            columns: kpi.aggregations?.map((a: any) => a.column) || [],
-        }))
-    ).then(explanations => {
-        // Asynchronously update the dashboard config when Ollama eventually responds
-        if (process.env.NODE_ENV !== 'test') {
-            db.dashboardConfig.findUnique({ where: { projectId } }).then(existingConfig => {
-                if (existingConfig && existingConfig.metadata) {
-                    const metadata = existingConfig.metadata as any;
-                    metadata.kpiExplanations = explanations;
-                    db.dashboardConfig.update({
-                        where: { projectId },
-                        data: { metadata }
-                    }).catch(err => console.error('[Dashboard] Failed to async-save AI explanations:', err));
-                }
-            });
+    try {
+        // Create timeout promise
+        const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('AI explanation generation timeout (45s)')), 45000)
+        );
+
+        // Race: explanations vs timeout
+        kpiExplanations = await Promise.race([
+            generateKPIExplanations(kpiInputs, domain),
+            timeoutPromise
+        ]);
+
+        console.log('[Dashboard] ✅ AI explanations generated successfully');
+    } catch (err: any) {
+        console.warn(`[Dashboard] ⚠️ AI explanations unavailable (${err.message}). Using deterministic explanations.`);
+        // Fall back to deterministic explanations
+        for (const kpi of kpiInputs) {
+            kpiExplanations[kpi.kpiId] = {
+                kpiId: kpi.kpiId,
+                explanation: `Tracks ${kpi.kpiName} metric over time`,
+                formulaSummary: kpi.formula || 'Calculated metric',
+                dataSourceRef: kpi.columns.join(', ') || 'Data sources',
+                businessDefinition: `Measures performance of ${kpi.kpiName}`,
+                recommendation: 'Monitor trends and compare period-over-period',
+                generatedAt: new Date().toISOString(),
+            };
         }
-    }).catch(err => {
-        console.warn(`[Dashboard] AI Explanations failed or unavailable: ${err.message}. Plotting charts without them.`);
-    });
+    }
 
     // 7. Version management
     const existing = await db.dashboardConfig.findUnique({
