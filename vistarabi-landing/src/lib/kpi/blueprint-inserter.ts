@@ -1,4 +1,4 @@
-// Module 4.5 — Blueprint Inserter
+﻿// Module 4.5 — Blueprint Inserter
 // Inserts resolved EligibleKPIs into the relational Prisma Blueprint tables.
 // Skips any KPI where resolution throws. Never inserts partially-resolved KPIs.
 
@@ -39,7 +39,7 @@ export interface BlueprintInsertionResult {
 
 /**
  * For each unlocked KPIRule:
- *   1. Resolve it via SemanticResolver (throws on failure → skipped, not inserted)
+ *   1. Resolve it via SemanticResolver (throws on failure -> skipped, not inserted)
  *   2. Upsert ApprovedKPI in Blueprint
  *   3. Create AggregationRule records
  *   4. Create LineageDefinition record
@@ -168,7 +168,7 @@ export async function insertEligibleKPIsIntoBlueprint(
             });
 
             resolvedKPIs.push(resolved);
-            console.log(`${prefix} ✅ Inserted: [${rule.id}] ${rule.name} → table: ${resolved.sourceTable}`);
+            console.log(`${prefix} ✅ Inserted: [${rule.id}] ${rule.name} -> table: ${resolved.sourceTable}`);
 
         } catch (err) {
             if (err instanceof BlueprintInsertionError) {

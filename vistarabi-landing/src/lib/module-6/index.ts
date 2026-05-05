@@ -1,5 +1,5 @@
-// Module 6A — Main Entry Point
-// handleAskAI() orchestrates the full NL → Validated JSON Command → Execution pipeline.
+﻿// Module 6A — Main Entry Point
+// handleAskAI() orchestrates the full NL -> Validated JSON Command -> Execution pipeline.
 // This is the ONLY function that should be called from the API route.
 
 import { hydrateDashboard } from '@/lib/dashboard-state/state-engine';

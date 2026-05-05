@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useMemo, useState } from 'react';
 import { useRealData } from '@/lib/hooks/use-real-data';
@@ -176,7 +176,7 @@ export function FinanceDashboardLive() {
               {kpi.value}
             </p>
             <p className="text-slate-500 text-sm mt-2">{kpi.unit}</p>
-            <p className="text-slate-600 text-xs mt-3 hover:text-slate-500">Click to inspect source data →</p>
+            <p className="text-slate-600 text-xs mt-3 hover:text-slate-500">Click to inspect source data  to </p>
           </div>
         ))}
       </div>

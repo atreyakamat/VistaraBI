@@ -1,4 +1,4 @@
-// Module 4.5 — Semantic Resolver
+﻿// Module 4.5 — Semantic Resolver
 // Converts an eligible KPIRule + SemanticColumnMap into a fully resolved EligibleKPI.
 // THROWS if any resolution step fails. No fallback. No 'unknown' source IDs.
 
@@ -182,7 +182,7 @@ export function resolveKPI(
         semanticRolesUsed: Array.from(roleToColumn.keys()),
     };
 
-    console.log(`[SemanticResolver] ✅ Resolved: ${rule.name} → formula: ${formula} | tables: [${tables.join(', ')}]`);
+    console.log(`[SemanticResolver] ✅ Resolved: ${rule.name} -> formula: ${formula} | tables: [${tables.join(', ')}]`);
     return resolved;
 }
 

@@ -1,7 +1,7 @@
-// Module 5.5 — Global Filter Interpreter
+﻿// Module 5.5 — Global Filter Interpreter
 // Converts business-oriented filter expressions into normalized, structured filters.
 // DETERMINISTIC: no AI, no fuzzy matching. Rule-based only.
-// Fiscal year convention: April→March (India standard) by default; configurable.
+// Fiscal year convention: April->March (India standard) by default; configurable.
 
 import type {
     NormalizedFilter,
@@ -142,11 +142,11 @@ function parseFiscalYear(year: number, convention: FiscalYearConvention): Normal
     let to: string;
 
     if (convention === 'april_march') {
-        // FY2025 = April 1, 2024 → March 31, 2025
+        // FY2025 = April 1, 2024 -> March 31, 2025
         from = `${year - 1}-04-01`;
         to = `${year}-03-31`;
     } else {
-        // FY2025 = January 1, 2025 → December 31, 2025
+        // FY2025 = January 1, 2025 -> December 31, 2025
         from = `${year}-01-01`;
         to = `${year}-12-31`;
     }

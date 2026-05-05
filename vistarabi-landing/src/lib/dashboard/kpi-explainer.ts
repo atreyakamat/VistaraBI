@@ -1,4 +1,4 @@
-// Module 5A — KPI Explainer
+﻿// Module 5A — KPI Explainer
 // Batch-generates AI explanations for KPI cards using Ollama
 // Explanations are cached in DashboardConfig metadata — served instantly on card flip
 
@@ -18,7 +18,7 @@ interface KPIInput {
 
 /**
  * Generate AI explanations for all KPIs in a batch.
- * Returns a map of kpiId → KPIExplanation.
+ * Returns a map of kpiId -> KPIExplanation.
  * Falls back to deterministic explanations if Ollama is unavailable.
  */
 export async function generateKPIExplanations(

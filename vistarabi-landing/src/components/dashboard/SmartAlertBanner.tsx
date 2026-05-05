@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 // Module 5C — Smart Alert Banner (Glassmorphism)
 // Alert strip with Material Symbols icons and glass styling
@@ -66,7 +66,7 @@ export function SmartAlertBanner({ alerts, onViewAll }: SmartAlertBannerProps) {
                         background: isCritical ? 'rgba(220, 38, 38, 0.08)' : 'rgba(217, 119, 6, 0.08)',
                     }}
                 >
-                    View All →
+                    View All  to 
                 </button>
             </div>
         </div>

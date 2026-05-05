@@ -1,4 +1,4 @@
-// Module 6C — Trend Confounder Detector
+﻿// Module 6C — Trend Confounder Detector
 // Detects when two series both exhibit a statistically significant trend
 // in the same direction, which would produce spurious Pearson correlation.
 // If detected, applies first-differencing to both series before correlation.
@@ -54,7 +54,7 @@ function computeOLSSlope(values: (number | null)[]): SlopeResult {
 
     const slope = ssXY / ssXX;
 
-    // Compute residuals → MSE → SE_slope
+    // Compute residuals -> MSE -> SE_slope
     let sse = 0;
     for (const { x, y } of nonNull) {
         const predicted = meanY + slope * (x - meanX);
@@ -69,7 +69,7 @@ function computeOLSSlope(values: (number | null)[]): SlopeResult {
     const mse = sse / df;
     const seSlopeSquared = mse / ssXX;
 
-    // When all residuals are zero (perfect linear trend), t → ∞ → always significant
+    // When all residuals are zero (perfect linear trend), t -> ∞ -> always significant
     if (seSlopeSquared <= 0) {
         const direction = slope > 0 ? 'up' : slope < 0 ? 'down' : 'flat';
         return { slope, tStat: Infinity, significant: slope !== 0, direction };

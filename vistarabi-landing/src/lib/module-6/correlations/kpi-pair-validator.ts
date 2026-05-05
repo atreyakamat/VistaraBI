@@ -1,4 +1,4 @@
-// Module 6C — KPI Pair Validator
+﻿// Module 6C — KPI Pair Validator
 // Enforces all preconditions before any correlation is attempted.
 // Returns a structured rejection code — never silently skips validation steps.
 // No statistical work is done here. This is a pure eligibility gate.
@@ -29,7 +29,7 @@ function reject(
  */
 function isComposable(result: EnrichedKPIResult): boolean {
     const aggs = result.lineage?.aggregations ?? [];
-    if (aggs.length === 0) return true; // No aggregation info → assume eligible
+    if (aggs.length === 0) return true; // No aggregation info -> assume eligible
     return aggs.some(a => COMPOSABLE_AGGREGATIONS.has(a.toUpperCase?.() ?? a));
 }
 

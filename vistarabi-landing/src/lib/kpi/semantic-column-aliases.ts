@@ -1,5 +1,5 @@
-// Module 4.5 — Semantic Column Aliases
-// Comprehensive role → column alias table for all 8 domains.
+﻿// Module 4.5 — Semantic Column Aliases
+// Comprehensive role -> column alias table for all 8 domains.
 // This is used by the AI KPI Discovery pipeline and semantic mapping stage
 // to expand raw column names into recognised SemanticRoles.
 //

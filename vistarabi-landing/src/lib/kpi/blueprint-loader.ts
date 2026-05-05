@@ -1,4 +1,4 @@
-/**
+﻿/**
  * blueprint-loader.ts
  * Central helper for loading the KPI Blueprint with all relational data.
  * All consumers in Module 4 and Module 5 MUST use this — never raw db.kPIBlueprint.findUnique()
@@ -98,7 +98,7 @@ export function validateKPIPayload(payload: unknown): void {
 
 /**
  * Map a string aggregation function name to the Prisma-accepted enum string.
- * Accepts common aliases like DISTINCT_COUNT → COUNT_DISTINCT.
+ * Accepts common aliases like DISTINCT_COUNT -> COUNT_DISTINCT.
  */
 export function toAggregationFunction(fn: string): string {
     const map: Record<string, string> = {

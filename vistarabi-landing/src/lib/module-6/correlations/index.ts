@@ -1,11 +1,11 @@
-// Module 6C — Entry Point
+﻿// Module 6C — Entry Point
 // handleCorrelationQuery() orchestrates the full correlation pipeline.
 //
 // Pipeline:
 //   1. Load Module 5.5 snapshot
 //   2. Validate KPI pair (eligibility gate)
 //   3. Align time periods (null ratio / effectiveN gates)
-//   4. Detect shared trend confounders → apply first-differencing if needed
+//   4. Detect shared trend confounders -> apply first-differencing if needed
 //   5. Compute correlation metrics (with optional lags + Bonferroni correction)
 //   6. Build frozen CorrelationEvidencePacket
 //   7. Short-circuit if not reportable

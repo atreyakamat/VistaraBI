@@ -1,4 +1,4 @@
-// Module 5.5 — Dashboard State Engine
+﻿// Module 5.5 — Dashboard State Engine
 // Hydrates, persists, and manages the versioned dashboard state.
 // Sits above the execution layer — no SQL, no Blueprint access.
 
@@ -231,7 +231,7 @@ async function seedStateFromConfig(projectId: string, config: any): Promise<Dash
     return mapStateToRecord(hydrated!);
 }
 
-// ─── Internal: DB → Type Mappers ──────────────────────────────────────────────
+// ─── Internal: DB -> Type Mappers ──────────────────────────────────────────────
 
 function mapStateToRecord(db: any): DashboardStateRecord {
     return {

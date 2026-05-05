@@ -1,5 +1,5 @@
-// Module 4.5 — KPI Rule & Eligibility Engine — Main Orchestrator
-// Pipeline: SemanticInput → Eligibility → Resolve → Blueprint → DomainContextObject
+﻿// Module 4.5 — KPI Rule & Eligibility Engine — Main Orchestrator
+// Pipeline: SemanticInput -> Eligibility -> Resolve -> Blueprint -> DomainContextObject
 
 import type { SemanticInput, DomainContextObject, EligibleKPI } from './semantic-types';
 import { evaluateEligibility, summarizeEligibility } from './kpi-eligibility-engine';
@@ -37,7 +37,7 @@ export async function runModule4_5(input: SemanticInput): Promise<DomainContextO
     );
     summarizeEligibility(eligibilityResult);
 
-    // ── Phase 2: Resolve unlocked KPIs (throws on failure → dropped) ────────────
+    // ── Phase 2: Resolve unlocked KPIs (throws on failure -> dropped) ────────────
     console.log(`${prefix} Phase 2: Resolving ${eligibilityResult.unlockedKPIs.length} unlocked KPIs...`);
     const resolvedKPIs: EligibleKPI[] = [];
     const resolutionFailures: string[] = [];

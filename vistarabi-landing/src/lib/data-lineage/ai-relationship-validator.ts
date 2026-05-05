@@ -1,4 +1,4 @@
-// AI Relationship Validator - Module 4D-A
+﻿// AI Relationship Validator - Module 4D-A
 // Uses Ollama to validate ambiguous relationships
 
 import { generateCompletion, checkOllamaHealth } from '@/lib/ai/ollama-client';
@@ -23,7 +23,7 @@ export async function validateRelationship(
     targetSamples: unknown[]
 ): Promise<AIValidationResult> {
     console.log('[AIValidator] Validating relationship:',
-        `${candidate.sourceTableName}.${candidate.sourceColumn} → ` +
+        `${candidate.sourceTableName}.${candidate.sourceColumn} -> ` +
         `${candidate.targetTableName}.${candidate.targetColumn}`
     );
 

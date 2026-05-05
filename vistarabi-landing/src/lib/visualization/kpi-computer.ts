@@ -1,4 +1,4 @@
-// Module 5B — KPI Computer
+﻿// Module 5B — KPI Computer
 // Core computation engine: reads lineage metadata and computes KPI values
 // from in-memory data using joins and aggregations
 
@@ -117,7 +117,7 @@ export function computeTimeSeries(
 
 /**
  * Compute KPI values grouped by a categorical column.
- * Used for drill-down: e.g., Revenue by Category → by Region.
+ * Used for drill-down: e.g., Revenue by Category -> by Region.
  */
 export function computeGroupedKPI(
     lineage: KPILineageEntry,

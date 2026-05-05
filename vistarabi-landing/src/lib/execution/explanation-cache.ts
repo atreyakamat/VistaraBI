@@ -1,5 +1,5 @@
-// Module 5B — AI Explanation Cache
-// Fetch → generate → store pipeline for KPI explanations
+﻿// Module 5B — AI Explanation Cache
+// Fetch -> generate -> store pipeline for KPI explanations
 // Uses DashboardConfig.metadata.kpiExplanations as persistent store
 // and in-memory cache for fast access
 

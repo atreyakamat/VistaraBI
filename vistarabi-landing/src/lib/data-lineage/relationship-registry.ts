@@ -1,4 +1,4 @@
-// Relationship Registry - Module 4D-A
+﻿// Relationship Registry - Module 4D-A
 // Orchestrates relationship detection, validation, and storage
 
 import { randomUUID } from 'crypto';
@@ -68,7 +68,7 @@ export async function buildRelationshipRegistry(
         // Skip low confidence relationships
         if (confidence < AMBIGUITY_THRESHOLD.min) {
             console.log('[Registry] Skipping low confidence:',
-                `${candidate.sourceColumn} → ${candidate.targetColumn}`,
+                `${candidate.sourceColumn} -> ${candidate.targetColumn}`,
                 `(${Math.round(confidence * 100)}%)`
             );
             continue;
@@ -95,7 +95,7 @@ export async function buildRelationshipRegistry(
 
         if (useAI && needsAIValidation(confidence)) {
             console.log('[Registry] AI validating:',
-                `${candidate.sourceColumn} → ${candidate.targetColumn}`
+                `${candidate.sourceColumn} -> ${candidate.targetColumn}`
             );
 
             aiValidation = await validateRelationship(candidate, sourceValues, targetValues);

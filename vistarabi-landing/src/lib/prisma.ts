@@ -1,4 +1,4 @@
-
+﻿
 import { PrismaClient } from '@prisma/client';
 
 // ----------------------------------------------------------------------
@@ -218,8 +218,8 @@ export interface LineageDefinition {
     id: string;
     kpiId: string;
     formula: string;
-    tables: string[];   // Json → string[] at runtime
-    joins: KPIJoinPath[];    // Json → JoinPath[] at runtime
+    tables: string[];   // Json -> string[] at runtime
+    joins: KPIJoinPath[];    // Json -> JoinPath[] at runtime
 }
 
 export interface ApprovedKPI {

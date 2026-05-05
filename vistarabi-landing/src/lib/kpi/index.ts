@@ -1,4 +1,4 @@
-// KPI Discovery Orchestrator
+﻿// KPI Discovery Orchestrator
 // Module 4 Phase 4A - Fixed to show actual column data
 
 import { randomUUID } from 'crypto';
@@ -144,7 +144,7 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
     if (rawComputableMatches.length !== computableMatches.length) {
         console.log(
             `[KPI-Discovery] Filtered ${rawComputableMatches.length - computableMatches.length} KPIs ` +
-            `(cross-join or double-fill): ${rawComputableMatches.length} → ${computableMatches.length} computable`
+            `(cross-join or double-fill): ${rawComputableMatches.length} -> ${computableMatches.length} computable`
         );
     }
 
@@ -173,10 +173,10 @@ export async function discoverKPIs(projectId: string): Promise<KPIDiscoveryResul
         // Use escapeRegExp so column names with special chars (hyphens, dots) parse correctly.
         let formulaExpression = match.kpi.formulaTemplate;
         match.matchedColumns.forEach((mc: ColumnMatch) => {
-            // Braced format: {revenue} → physical_column
+            // Braced format: {revenue} -> physical_column
             const braced = new RegExp(`\\{${escapeRegExp(mc.requiredColumn)}\\}`, 'g');
             formulaExpression = formulaExpression.replace(braced, mc.columnName);
-            // Word-boundary format: SUM(revenue) → SUM(physical_column)
+            // Word-boundary format: SUM(revenue) -> SUM(physical_column)
             const wordBoundary = new RegExp(`\\b${escapeRegExp(mc.requiredColumn)}\\b`, 'g');
             formulaExpression = formulaExpression.replace(wordBoundary, mc.columnName);
         });

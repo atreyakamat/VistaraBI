@@ -1,11 +1,11 @@
-// Module 4.5 — Semantic Type System
+﻿// Module 4.5 — Semantic Type System
 // KPI eligibility rules reference semantic roles, NEVER raw column names.
 // Raw columns are only resolved at the SemanticResolver stage.
 
 import type { DomainType, RelationshipEntry, AggregationFunction } from '@/lib/prisma';
 
 // ─── Semantic Roles ───────────────────────────────────────────────────────────
-// Abstract business concepts. A semantic mapper maps each role → actual column.
+// Abstract business concepts. A semantic mapper maps each role -> actual column.
 
 export type SemanticRole =
     // Financial
@@ -41,7 +41,7 @@ export type SemanticRole =
     | 'grade';
 
 // ─── Semantic Column Map ───────────────────────────────────────────────────────
-// Output of Module 2 / AI semantic mapping.  role → real column name.
+// Output of Module 2 / AI semantic mapping.  role -> real column name.
 export type SemanticColumnMap = Partial<Record<SemanticRole, string>>;
 
 // ─── Source Info ───────────────────────────────────────────────────────────────

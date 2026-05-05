@@ -1,5 +1,5 @@
-// Unified AI Client with Fallback Chain
-// Priority: Ollama (local) → Ollama (cloud) → OpenRouter (Claude)
+﻿// Unified AI Client with Fallback Chain
+// Priority: Ollama (local) -> Ollama (cloud) -> OpenRouter (Claude)
 // Supports agent-based reasoning with role specialization
 
 export interface AIMessage {

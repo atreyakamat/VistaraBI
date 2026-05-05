@@ -1,6 +1,6 @@
-// Module 5.5 — KPI Summary Engine
+﻿// Module 5.5 — KPI Summary Engine
 // Generates deterministic, AI-free trend summaries for every KPI execution result.
-// Same inputs → same output always. No language model involved.
+// Same inputs -> same output always. No language model involved.
 
 import type { KPIExecutionResult } from '@/lib/execution/types';
 import type { KPISummary, TrendLabel, ThresholdBand } from './types';

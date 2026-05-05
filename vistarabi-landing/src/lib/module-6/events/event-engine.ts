@@ -1,4 +1,4 @@
-// Module 6B — Event Engine
+﻿// Module 6B — Event Engine
 // Classifies which event type applies to an EnrichedKPIResult.
 // Pure deterministic logic. No LLM, no DB, no new statistics.
 // Input:  EnrichedKPIResult (from Module 5.5 snapshot)
@@ -10,14 +10,14 @@ import type { EventType, ConfidenceLevel } from './types';
 // ─── Thresholds ───────────────────────────────────────────────────────────────
 
 export const THRESHOLDS = {
-    SPIKE_MIN_PERCENT: 5,           // deltaPercent > 5, dir UP → SPIKE
-    DROP_MIN_PERCENT: -5,           // deltaPercent < -5, dir DOWN → DROP
-    TREND_CHANGE_PERCENT: 10,       // |deltaPercent| >= 10% → TREND_CHANGE
+    SPIKE_MIN_PERCENT: 5,           // deltaPercent > 5, dir UP -> SPIKE
+    DROP_MIN_PERCENT: -5,           // deltaPercent < -5, dir DOWN -> DROP
+    TREND_CHANGE_PERCENT: 10,       // |deltaPercent| >= 10% -> TREND_CHANGE
     NO_SIGNAL_MAX_PERCENT: 5,       // |deltaPercent| < 5 = no significant movement
-    VOLATILITY_HIGH: 0.3,           // volatilityIndex > 0.3 → VOLATILITY_SHIFT
-    MIN_DATA_POINTS: 5,             // dataset.length < 5 → INSUFFICIENT_DATA
-    CONFIDENCE_HIGH_N: 12,          // n >= 12 + anomaly → HIGH
-    CONFIDENCE_MODERATE_N: 8,       // n >= 8 + significant trend → MODERATE
+    VOLATILITY_HIGH: 0.3,           // volatilityIndex > 0.3 -> VOLATILITY_SHIFT
+    MIN_DATA_POINTS: 5,             // dataset.length < 5 -> INSUFFICIENT_DATA
+    CONFIDENCE_HIGH_N: 12,          // n >= 12 + anomaly -> HIGH
+    CONFIDENCE_MODERATE_N: 8,       // n >= 8 + significant trend -> MODERATE
 } as const;
 
 // ─── Event Classification ─────────────────────────────────────────────────────

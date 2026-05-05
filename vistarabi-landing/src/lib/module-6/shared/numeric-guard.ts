@@ -1,4 +1,4 @@
-// Module 6 Shared — Numeric Guard
+﻿// Module 6 Shared — Numeric Guard
 // Post-validates model output against evidence packet numeric values.
 // Consolidates infrastructure, events, correlations, and synthesis guards.
 
@@ -79,7 +79,7 @@ export function matchesEvidence(num: number, evidenceValues: number[]): boolean 
 
 /**
  * Validate every number in the model's output against the evidence packet(s).
- * If ANY unmatched number is found → suppress entire response.
+ * If ANY unmatched number is found -> suppress entire response.
  *
  * Policy: suppress (never redact). Message is standardized.
  */

@@ -1,4 +1,4 @@
-// R6 — Statistics Core
+﻿// R6 — Statistics Core
 // Sample-corrected statistical functions for Module 6 pre-flight readiness.
 // This module uses sample standard deviation (n-1 denominator) — correct for
 // small samples (n < 30) encountered in monthly/quarterly time-series.
@@ -111,7 +111,7 @@ export function computePearson(
 export function isSignificant(r: number | null, n: number): boolean {
     if (r === null) return false;
     if (n < MIN_OBSERVATIONS) return false;
-    if (Math.abs(r) === 1) return false; // t → ∞; technically always significant but guard against NaN
+    if (Math.abs(r) === 1) return false; // t -> ∞; technically always significant but guard against NaN
 
     const df = n - 2;
     if (df < 1) return false;
@@ -122,7 +122,7 @@ export function isSignificant(r: number | null, n: number): boolean {
     const t = r * Math.sqrt(df / denominator);
     const tAbsolute = Math.abs(t);
 
-    // Look up t-critical for df (cap at 30 for large samples → normal approx)
+    // Look up t-critical for df (cap at 30 for large samples -> normal approx)
     const lookupDf = Math.min(df, 30);
     const tCritical = T_CRITICAL_TABLE[lookupDf] ?? 1.96;
 

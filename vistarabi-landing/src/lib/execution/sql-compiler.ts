@@ -1,4 +1,4 @@
-/**
+﻿/**
  * sql-compiler.ts — Deterministic SQL Compiler for KPI Execution
  *
  * Pure-function module that transforms structured KPI definitions (from the
@@ -383,7 +383,7 @@ export function compileFullQuery(ctx: CompilationContext): CompiledQuery {
  * Computes previous period by the same duration as the primary filter.
  *
  * Example: dateFrom=2024-01-01, dateTo=2024-01-31
- *   → previous: 2023-12-01 to 2023-12-31
+ *   -> previous: 2023-12-01 to 2023-12-31
  */
 export function compileComparisonQuery(ctx: CompilationContext): CompiledQuery | null {
     const { filters } = ctx;

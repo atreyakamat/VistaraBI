@@ -1,5 +1,5 @@
-// Module 6D — Model Router
-// Maps classified ReasoningTaskType → adapter (LOCAL or CLOUD).
+﻿// Module 6D — Model Router
+// Maps classified ReasoningTaskType -> adapter (LOCAL or CLOUD).
 // Routing is static and configuration-driven — never LLM-driven.
 //
 // CLOUD routing requires ENABLE_CLOUD_ROUTING=true explicitly.

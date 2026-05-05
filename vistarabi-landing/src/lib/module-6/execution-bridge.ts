@@ -1,4 +1,4 @@
-// Module 6A — Execution Bridge
+﻿// Module 6A — Execution Bridge
 // Maps a validated Module6Command to state-engine / Module 5.5 calls.
 // NEVER mutates dashboard cards directly. NEVER imports sql-compiler or pool.
 // All errors are wrapped in { success: false, error: {...} }.
@@ -156,7 +156,7 @@ async function handleApplyFilter(
     projectId: string,
     command: Module6Command
 ): Promise<ExecutionResult> {
-    // Convert command.filters → businessFilters array strings
+    // Convert command.filters -> businessFilters array strings
     // Filters are applied to session globalFilters only — no card mutation
     const filterExpressions: string[] = [];
     if (command.filters) {

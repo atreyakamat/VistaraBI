@@ -1,4 +1,4 @@
-// Module 6E — Synthesis Task Classifier
+﻿// Module 6E — Synthesis Task Classifier
 // Deterministic classification of multi-packet reasoning tasks.
 // The model NEVER classifies its own tier — the backend does.
 
@@ -21,13 +21,13 @@ const RISK_PATTERNS = [
  * Classify a synthesis task based on packet counts and user intent.
  *
  * Rules:
- *   - Speculation → UNSUPPORTED_SCOPE (always, regardless of packets)
- *   - Risk keywords + any packets → RISK_SIGNAL_SYNTHESIS
- *   - ≥2 events + ≥1 correlation → STRATEGIC_FINANCIAL_OVERVIEW
- *   - ≥2 correlations → CORRELATION_CLUSTER_ANALYSIS
- *   - ≥2 events → MULTI_PACKET_SYNTHESIS
- *   - 1 packet → SINGLE_PACKET_SUMMARY
- *   - 0 packets → UNSUPPORTED_SCOPE
+ *   - Speculation -> UNSUPPORTED_SCOPE (always, regardless of packets)
+ *   - Risk keywords + any packets -> RISK_SIGNAL_SYNTHESIS
+ *   - ≥2 events + ≥1 correlation -> STRATEGIC_FINANCIAL_OVERVIEW
+ *   - ≥2 correlations -> CORRELATION_CLUSTER_ANALYSIS
+ *   - ≥2 events -> MULTI_PACKET_SYNTHESIS
+ *   - 1 packet -> SINGLE_PACKET_SUMMARY
+ *   - 0 packets -> UNSUPPORTED_SCOPE
  */
 export function classifySynthesisTask(
     eventCount: number,
@@ -46,7 +46,7 @@ export function classifySynthesisTask(
     const total = eventCount + correlationCount;
     if (total === 0) return 'UNSUPPORTED_SCOPE';
 
-    // Risk keywords → RISK_SIGNAL_SYNTHESIS
+    // Risk keywords -> RISK_SIGNAL_SYNTHESIS
     if (userIntent) {
         for (const pattern of RISK_PATTERNS) {
             if (pattern.test(userIntent)) {

@@ -1,4 +1,4 @@
-// Module 6D — Cloud Model Adapter
+﻿// Module 6D — Cloud Model Adapter
 // Supports:
 //   1) OpenAI-compatible Qwen endpoints (QWEN_API_KEY / QWEN_API_BASE_URL)
 //   2) Ollama-compatible cloud endpoints (CLOUD_AI_* or OLLAMA_CLOUD_* env)
@@ -96,9 +96,9 @@ interface OllamaChatResponse {
  *  - No retry — single attempt
  *
  * Throws ModelCallError on:
- *  - Missing API key → 'MISSING_API_KEY' (recoverable: false — config error)
- *  - Timeout → 'CLOUD_TIMEOUT' (recoverable: true — transient)
- *  - HTTP error or empty response → 'CLOUD_CALL_FAILED' (recoverable: false)
+ *  - Missing API key -> 'MISSING_API_KEY' (recoverable: false — config error)
+ *  - Timeout -> 'CLOUD_TIMEOUT' (recoverable: true — transient)
+ *  - HTTP error or empty response -> 'CLOUD_CALL_FAILED' (recoverable: false)
  */
 export async function callCloudModel(
     systemPrompt: string,

@@ -1,4 +1,4 @@
-// Module 6D — Reasoning Task Classifier
+﻿// Module 6D — Reasoning Task Classifier
 // Deterministic, server-side classification of reasoning requests.
 // The model NEVER classifies its own tier — this module does it based on
 // the execution path and the task type string from the calling module.
@@ -6,7 +6,7 @@
 // Rules:
 //  - Input is always a known task type string (validated at API layer)
 //  - ADVANCED_SYNTHESIS requires context.hasMultipleKPIs === true
-//  - Everything outside the known enum → UNSUPPORTED
+//  - Everything outside the known enum -> UNSUPPORTED
 //  - Classification is synchronous and infallible
 
 import type { ReasoningTaskType, ClassificationContext } from './types';

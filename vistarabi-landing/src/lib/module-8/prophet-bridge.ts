@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+﻿import { spawn } from 'child_process';
 import path from 'path';
 import { ForecastRequest, ForecastPoint, KpiDataPoint } from './types';
 
@@ -44,7 +44,7 @@ export function cleanAndFillTimeSeries(history: KpiDataPoint[]): KpiDataPoint[] 
     const start = new Date(sorted[0].date);
     const end   = new Date(sorted[sorted.length - 1].date);
 
-    // Build a lookup of all known date → index in sorted array
+    // Build a lookup of all known date -> index in sorted array
     const knownDates = new Map<string, number>(sorted.map((p, i) => [p.date, i]));
 
     const filled: KpiDataPoint[] = [];

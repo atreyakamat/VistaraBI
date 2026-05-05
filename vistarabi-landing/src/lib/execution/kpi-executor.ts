@@ -1,5 +1,5 @@
-// Module 5B — KPI Executor
-// Core orchestrator: cache → load → filter → compute → profile → explain → respond
+﻿// Module 5B — KPI Executor
+// Core orchestrator: cache -> load -> filter -> compute -> profile -> explain -> respond
 // Produces structured KPIExecutionResult payloads ready for frontend rendering
 
 import type { KPILineageEntry, KPISourceContribution, ApprovedKPI, KPIJoinPath, KPIAggregation } from '../prisma';

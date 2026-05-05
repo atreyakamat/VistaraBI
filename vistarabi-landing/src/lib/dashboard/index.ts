@@ -1,4 +1,4 @@
-// Module 5A — Dashboard Configuration Orchestrator (Rebuilt)
+﻿// Module 5A — Dashboard Configuration Orchestrator (Rebuilt)
 // Generates dashboard configs with chart intelligence and AI explanations
 
 import db from '../prisma';
@@ -12,7 +12,7 @@ import { loadBlueprintWithKPIs, flattenKPI } from '../kpi/blueprint-loader';
 
 /**
  * Generate (or regenerate) a complete dashboard configuration.
- * Orchestrates: KPI fetch → section building → AI explanations → persist
+ * Orchestrates: KPI fetch -> section building -> AI explanations -> persist
  */
 export async function generateDashboardConfig(projectId: string): Promise<DashboardConfigSchema> {
     console.log('[Dashboard] Generating config for:', projectId);

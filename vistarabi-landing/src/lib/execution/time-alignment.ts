@@ -1,4 +1,4 @@
-// R5 — Time Alignment Utility
+﻿// R5 — Time Alignment Utility
 // Aligns two KPI time-series datasets into a shared period space.
 // Nulls are inserted for missing periods — never zero-filled automatically.
 // This is a prerequisite for any cross-KPI statistical computation in Module 6.
@@ -42,7 +42,7 @@ export function alignPeriods(
     kpiA: KPIExecutionResult,
     kpiB: KPIExecutionResult
 ): AlignedPeriodResult {
-    // Build lookup maps from period label → value for each KPI
+    // Build lookup maps from period label -> value for each KPI
     const mapA = buildPeriodMap(kpiA);
     const mapB = buildPeriodMap(kpiB);
 
@@ -171,12 +171,12 @@ export function normalizePeriodLabel(raw: string): string {
     // Already YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
 
-    // ISO timestamp with T separator: "2024-01-31T00:00:00.000Z" → "2024-01-31"
+    // ISO timestamp with T separator: "2024-01-31T00:00:00.000Z" -> "2024-01-31"
     // Crucially: we take the DATE portion directly from the string without UTC conversion.
     // The SQL layer (R1) is responsible for ensuring this is already a UTC date.
     if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) return raw.substring(0, 10);
 
-    // YYYY-MM → YYYY-MM-01 (monthly granularity without day)
+    // YYYY-MM -> YYYY-MM-01 (monthly granularity without day)
     if (/^\d{4}-\d{2}$/.test(raw)) return `${raw}-01`;
 
     // Fallback: return as-is (quarterly labels like "2024-Q1" are already sortable)

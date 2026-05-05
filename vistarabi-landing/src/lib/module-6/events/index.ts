@@ -1,10 +1,10 @@
-// Module 6B — Entry Point
+﻿// Module 6B — Entry Point
 // handleEventQuery() orchestrates the full event narration pipeline.
 // Input: sessionId + userQuery (NL question about a KPI)
 // Output: NarrationResult (structured response with explanation + evidence)
 //
 // Pipeline:
-//   1. Load session → get EnrichedKPIResult[]
+//   1. Load session -> get EnrichedKPIResult[]
 //   2. Identify which KPI the user is asking about
 //   3. Build EventEvidencePacket
 //   4. Call LLM with evidence packet

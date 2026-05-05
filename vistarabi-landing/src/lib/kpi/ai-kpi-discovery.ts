@@ -1,4 +1,4 @@
-// AI KPI Discovery Engine - Module 4 Phase 4C
+﻿// AI KPI Discovery Engine - Module 4 Phase 4C
 // Invents meaningful KPIs from data columns using Ollama
 
 import db from '@/lib/prisma';
@@ -181,7 +181,7 @@ async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIPr
             return [];
         }
 
-        // Convert to AIKPIProposal format, parsing formula → aggregations
+        // Convert to AIKPIProposal format, parsing formula -> aggregations
         const proposals: AIKPIProposal[] = [];
 
         for (let idx = 0; idx < suggestions.length; idx++) {

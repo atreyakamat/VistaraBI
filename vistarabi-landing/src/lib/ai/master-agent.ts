@@ -1,4 +1,4 @@
-import { generateWithFallback, type AgentRole, type AIResponse } from './unified-ai-client';
+﻿import { generateWithFallback, type AgentRole, type AIResponse } from './unified-ai-client';
 import { DomainType } from '@/lib/prisma';
 import { getDomainModel } from './ollama-client';
 import { getDomainKPINames } from '@/lib/kpi/domain-metadata';
@@ -77,9 +77,9 @@ You are the Master Context Router for VistaraBI.
 Your task is to analyze the user query and select the most appropriate AI agent role.
 
 KEY DISAMBIGUATION RULE:
-- 'business-analyst'  → Use when the query asks about WHAT HAPPENED (diagnostic). 
+- 'business-analyst'  -> Use when the query asks about WHAT HAPPENED (diagnostic). 
   Trigger words: trend, why, declined, increased, compared, root cause, last period, YoY.
-- 'strategy-planner'  → Use when the query asks WHAT TO DO NEXT (prescriptive).
+- 'strategy-planner'  -> Use when the query asks WHAT TO DO NEXT (prescriptive).
   Trigger words: goal, target, plan, improve, action, recommend, next step, achieve, forecast.
 
 Available Roles:

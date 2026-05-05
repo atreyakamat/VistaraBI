@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useMemo } from 'react';
 
@@ -30,7 +30,7 @@ export function EcommerceDashboard() {
         {[
           { title: 'Revenue', value: `$${(metrics.revenue / 1000).toFixed(0)}K`, unit: 'last 30 days', color: 'from-green-500 to-green-600' },
           { title: 'AOV', value: `$${metrics.aov}`, unit: 'avg order', color: 'from-blue-500 to-blue-600' },
-          { title: 'Conversion', value: `${metrics.conversionRate}%`, unit: 'visitors→buyers', color: 'from-purple-500 to-purple-600' },
+          { title: 'Conversion', value: `${metrics.conversionRate}%`, unit: 'visitors to buyers', color: 'from-purple-500 to-purple-600' },
           { title: 'Cart Abandon', value: `${metrics.cartAbandonment}%`, unit: 'lost sales', color: 'from-red-500 to-red-600' },
           { title: 'Customer LTV', value: `$${metrics.ltv}`, unit: 'lifetime value', color: 'from-amber-500 to-amber-600' },
           { title: 'Transactions', value: '5,847', unit: 'orders', color: 'from-indigo-500 to-indigo-600' },

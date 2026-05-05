@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { QualityGrade, RiskLevel, HealthStatus } from "@/lib/prisma";
@@ -246,7 +246,7 @@ export default function QualityDashboard({ quality, columnHealths, outliers, aud
                                                 )}
                                                 {log.beforeValue && log.afterValue && (
                                                     <p className="text-xs text-[var(--muted)]">
-                                                        {log.beforeValue} → {log.afterValue}
+                                                        {log.beforeValue}  to  {log.afterValue}
                                                     </p>
                                                 )}
                                             </div>

@@ -1,4 +1,4 @@
-// Module 5B — Data Profiling Engine
+﻿// Module 5B — Data Profiling Engine
 // Computes 10 statistical features from query results for chart intelligence
 
 import type { DataProfilingResult } from './types';
@@ -87,11 +87,11 @@ function countNumericDimensions(dataPoints: KPIDataPoint[]): number {
 }
 
 function computeHierarchicalDepth(labels: string[]): number {
-    // Look for hierarchy separators: "/" or " > " or " → "
+    // Look for hierarchy separators: "/" or " > " or " -> "
     let maxDepth = 0;
     for (const label of labels.slice(0, 20)) {
         if (!label) continue;
-        const separators = [' > ', ' → ', ' / ', '/'];
+        const separators = [' > ', ' -> ', ' / ', '/'];
         for (const sep of separators) {
             const parts = label.split(sep);
             if (parts.length > maxDepth) maxDepth = parts.length;
@@ -102,7 +102,7 @@ function computeHierarchicalDepth(labels: string[]): number {
 
 /**
  * Volatility Index = stddev / mean (coefficient of variation).
- * Higher values indicate more volatile data → better for line/scatter.
+ * Higher values indicate more volatile data -> better for line/scatter.
  */
 function computeVolatilityIndex(values: number[]): number {
     if (values.length < 2) return 0;

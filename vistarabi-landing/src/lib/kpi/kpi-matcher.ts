@@ -1,4 +1,4 @@
-// KPI Matcher - Rule-based column→KPI matching
+﻿// KPI Matcher - Rule-based column->KPI matching
 // Module 4 Phase 4A
 
 import type { DomainType } from '@/lib/prisma';

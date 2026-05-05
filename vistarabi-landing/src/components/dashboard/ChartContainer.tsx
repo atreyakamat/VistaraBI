@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 // Module 5 — Enhanced Chart Container
 // Per-chart floating filter: each chart has its own date range & granularity
@@ -423,7 +423,7 @@ export function ChartContainer({ kpi, index, projectId, compact = false, isSelec
                     <span className="chart-compact-value">{fmt(kpi.currentValue)}</span>
                     {kpi.trend && (
                         <span className={`chart-compact-trend ${kpi.trend}`}>
-                            {kpi.trend === 'up' ? '↑' : kpi.trend === 'down' ? '↓' : '→'}
+                            {kpi.trend === 'up' ? '↑' : kpi.trend === 'down' ? '↓' : ' to '}
                             {kpi.trendPercent != null ? ` ${Math.abs(kpi.trendPercent).toFixed(1)}%` : ''}
                         </span>
                     )}

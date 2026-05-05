@@ -1,4 +1,4 @@
-// Ollama Client for AI Semantic Reasoning
+﻿// Ollama Client for AI Semantic Reasoning
 // Uses locally hosted Ollama with qwen3:0.6b model
 // Domain-specific models are registered via scripts/register-modelfiles.ps1
 
@@ -266,7 +266,7 @@ export async function performSemanticReasoning(
 function buildSemanticPrompt(context: SemanticReasoningContext): string {
     const matchedInfo = context.matchedColumns
         .slice(0, 10)
-        .map(m => `${m.column} → ${m.domain} (${m.keyword})`)
+        .map(m => `${m.column} -> ${m.domain} (${m.keyword})`)
         .join('\n');
 
     const scoresInfo = Object.entries(context.ruleBasedScores)

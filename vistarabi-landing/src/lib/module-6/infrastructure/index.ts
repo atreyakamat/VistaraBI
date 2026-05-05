@@ -1,9 +1,9 @@
-// Module 6D — Entry Point
+﻿// Module 6D — Entry Point
 // handleReasoningQuery() — 8-step tiered reasoning pipeline.
 //
 // Steps:
 //   1. Classify task type (deterministic, no LLM)
-//   2. Reject UNSUPPORTED → UNSUPPORTED_REASONING_SCOPE
+//   2. Reject UNSUPPORTED -> UNSUPPORTED_REASONING_SCOPE
 //   3. Route to adapter (LOCAL / CLOUD) via model-router
 //   4. Check feature flag (cloud tasks require ENABLE_CLOUD_ROUTING=true)
 //   5. Build evidence-only, sanitized prompt

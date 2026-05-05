@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useMemo } from 'react';
 
@@ -28,7 +28,7 @@ export function EdTechDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
-          { title: 'Enrollment Rate', value: `${metrics.enrollment}%`, unit: 'applicants→enrolled', color: 'from-blue-500 to-blue-600' },
+          { title: 'Enrollment Rate', value: `${metrics.enrollment}%`, unit: 'applicants to enrolled', color: 'from-blue-500 to-blue-600' },
           { title: 'Completion Rate', value: `${metrics.completion}%`, unit: 'finish courses', color: 'from-green-500 to-green-600' },
           { title: 'Avg Score', value: `${metrics.avgScore}/100`, unit: 'student performance', color: 'from-purple-500 to-purple-600' },
           { title: 'Retention', value: `${metrics.retention}%`, unit: 'return rate', color: 'from-amber-500 to-amber-600' },

@@ -1,4 +1,4 @@
-// Module 5.5 — Dashboard State Types
+﻿// Module 5.5 — Dashboard State Types
 // All interfaces for the stateful dashboard intelligence layer.
 // This sits ABOVE the existing execution engine — never imports from sql-compiler.
 
@@ -156,7 +156,7 @@ export interface EnrichedKPIResult extends KPIExecutionResult {
     summary: KPISummary | null;
     anomaly: AnomalyReport | null;
     guardrail: GuardrailInfo | null;
-    // R3: unit propagated from KPI definition → EnrichedKPIResult
+    // R3: unit propagated from KPI definition -> EnrichedKPIResult
     unit: string;
 }
 

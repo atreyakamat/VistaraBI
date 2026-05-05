@@ -1,4 +1,4 @@
-// Module 6A — Context Builder
+﻿// Module 6A — Context Builder
 // Builds an immutable, sanitized context snapshot from the current dashboard state.
 // This snapshot is the ONLY data the LLM receives — never raw DB rows.
 // All strings are sanitized (markdown stripped, max 500 chars) before injection.
@@ -110,7 +110,7 @@ export function buildContext(input: ContextBuilderInput): Module6Context {
     return Object.freeze(context);
 }
 
-// ─── Context → Prompt String ──────────────────────────────────────────────────
+// ─── Context -> Prompt String ──────────────────────────────────────────────────
 
 /**
  * Render the context snapshot as a compact JSON string for the LLM user message.

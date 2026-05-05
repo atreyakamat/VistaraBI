@@ -1,4 +1,4 @@
-// Main purification orchestrator - runs full cleaning pipeline
+﻿// Main purification orchestrator - runs full cleaning pipeline
 
 import db from '@/lib/prisma';
 import { handleNulls } from './null-handler';
@@ -205,7 +205,7 @@ export async function purifyDataset(sourceId: string): Promise<void> {
         }
 
         console.log('[Purification] Completed successfully for source:', sourceId);
-        console.log('[Purification] Original rows:', originalRowCount, '→ Cleaned rows:', cleanedData.length);
+        console.log('[Purification] Original rows:', originalRowCount, '-> Cleaned rows:', cleanedData.length);
 
         // 12. Auto-trigger quality analysis (Phase 2B)
         const { analyzeQuality } = await import('@/lib/quality');

@@ -1,4 +1,4 @@
-// Module 7: Location Splitter
+﻿// Module 7: Location Splitter
 // Divides the goal strategy across multiple locations with performance tiers
 
 import { ActionWithScenarios } from './scenario-builder';
@@ -20,10 +20,10 @@ export interface LocationPlan {
  * would require live dashboard data. In a future version this should query
  * KPI values per location from the materialized data tables.
  *
- * Tier → Goal Adjustment:
- *   HIGH   → +10% more aggressive target (capitalize on momentum)
- *   MEDIUM → same target as global
- *   LOW    → -5% more conservative (stabilize before growing)
+ * Tier -> Goal Adjustment:
+ *   HIGH   -> +10% more aggressive target (capitalize on momentum)
+ *   MEDIUM -> same target as global
+ *   LOW    -> -5% more conservative (stabilize before growing)
  */
 export function splitByLocation(
     globalGoal: string,

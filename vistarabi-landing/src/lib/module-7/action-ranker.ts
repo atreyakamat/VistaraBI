@@ -1,4 +1,4 @@
-// Module 7: Action Ranker
+﻿// Module 7: Action Ranker
 // Scores and selects the top N actions using a deterministic formula
 
 import { GeneratedAction } from './action-generator';
@@ -17,9 +17,9 @@ export interface RankedAction extends GeneratedAction {
  *   confidenceScore = round((rawScore / 10,000) × 100)
  *
  * Tier bands:
- *   ≥ 70 → high  (green)
- *   ≥ 40 → medium (amber)
- *   <  40 → low   (red)
+ *   ≥ 70 -> high  (green)
+ *   ≥ 40 -> medium (amber)
+ *   <  40 -> low   (red)
  */
 export function rankActions(actions: GeneratedAction[], topN: number = 3): RankedAction[] {
     const ranked = actions.map(action => {

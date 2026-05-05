@@ -1,4 +1,4 @@
-// Relationship Detector - Module 4D-A
+﻿// Relationship Detector - Module 4D-A
 // Advanced relationship detection with multi-factor confidence scoring
 
 import {
@@ -337,7 +337,7 @@ export function generateRelationshipExplanation(
         'COMPOSITE': 'multiple factors',
     }[candidate.detectionMethod];
 
-    return `${sourceTable}.${candidate.sourceColumn} → ${targetTable}.${candidate.targetColumn}: ` +
+    return `${sourceTable}.${candidate.sourceColumn} -> ${targetTable}.${candidate.targetColumn}: ` +
         `${cardinalityText} relationship detected via ${methodText} ` +
         `(${confidencePercent}% confidence)`;
 }

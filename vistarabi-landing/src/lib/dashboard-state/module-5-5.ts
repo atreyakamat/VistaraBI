@@ -1,7 +1,7 @@
-// Module 5.5 — Orchestrator (Main Entry Point)
+﻿// Module 5.5 — Orchestrator (Main Entry Point)
 // runDashboardIntelligence() is the single function Module 5.5 exposes to the API.
 // Pipeline:
-//   hydrateDashboard → normalizeFilters → execute KPIs (parallel) → attach summary → attach anomaly → return
+//   hydrateDashboard -> normalizeFilters -> execute KPIs (parallel) -> attach summary -> attach anomaly -> return
 
 // R7: Concurrency cap — at most this many KPI DB queries run simultaneously
 // Prevents connection pool exhaustion when processing large dashboards.
@@ -33,8 +33,8 @@ const MAX_GROUP_BY_ROWS = 200; // Cardinality guardrail threshold
  *
  * Steps:
  *   1. Hydrate DashboardState (from DB or seed from DashboardConfig)
- *   2. Parse raw business filter expressions → NormalizedFilter[]
- *   3. For each card: merge global+card filters → executeKPI
+ *   2. Parse raw business filter expressions -> NormalizedFilter[]
+ *   3. For each card: merge global+card filters -> executeKPI
  *   4. Attach KPISummary (deterministic)
  *   5. Attach AnomalyReport (Z-score based, optional)
  *   6. Attach GuardrailInfo (cardinality check)

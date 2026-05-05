@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 // Module 7 — Goal Strategy Panel (Full Implementation)
 // Premium intelligence panel for the Goal Strategy Engine.
@@ -108,7 +108,7 @@ const EXAMPLE_GOALS = [
 
 const TIER_BADGE: Record<string, { cls: string; label: string }> = {
     HIGH: { cls: 'goal-loc-tier--high', label: '↑ High' },
-    MEDIUM: { cls: 'goal-loc-tier--medium', label: '→ Avg' },
+    MEDIUM: { cls: 'goal-loc-tier--medium', label: ' to  Avg' },
     LOW: { cls: 'goal-loc-tier--low', label: '↓ Low' },
 };
 

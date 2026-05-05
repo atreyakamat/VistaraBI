@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 
@@ -91,7 +91,7 @@ export default function DemoHubPage() {
 
                   <div className="flex items-center text-blue-400 group-hover:text-blue-300 transition-colors">
                     <span className="text-sm font-semibold">Explore</span>
-                    <span className="ml-2">→</span>
+                    <span className="ml-2"> to </span>
                   </div>
                 </div>
               </div>

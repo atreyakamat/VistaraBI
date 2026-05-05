@@ -1,15 +1,15 @@
-'use client';
+﻿'use client';
 
 // Module 6 — Ask AI Chat Panel
 // Unified chat interface for all Module 6 intelligence interactions.
 //
 // Rendering rules:
-//   6A command → "Card created: ..." or error
-//   6B event   → Insight Card (title, narrative, confidence badge)
-//   6C corr    → Correlation block (r, confidence, lag, narrative)
-//   6E synth   → Composite insight (narrative, conflicts, supporting packets count)
-//   suppressed → Neutral message (no red, no technical details)
-//   error      → Clean error with retry
+//   6A command  to  "Card created: ..." or error
+//   6B event    to  Insight Card (title, narrative, confidence badge)
+//   6C corr     to  Correlation block (r, confidence, lag, narrative)
+//   6E synth    to  Composite insight (narrative, conflicts, supporting packets count)
+//   suppressed  to  Neutral message (no red, no technical details)
+//   error       to  Clean error with retry
 //
 // Security:
 //   - No raw JSON rendered
@@ -81,9 +81,9 @@ type ChatContent = ChatContentBase & (
 
 interface AskAIPanelProps {
     projectId: string;
-    onCommandSuccess?: () => void;  // Called when 6A creates a card → trigger dashboard refresh
+    onCommandSuccess?: () => void;  // Called when 6A creates a card  to  trigger dashboard refresh
     onOpenGoalEngine?: (query: string) => void;  // Called when 7A requires goal engine to open
-    strategyContext?: import('@/lib/module-8/types').StrategyCanvasResult; // M6→M8 State Injection
+    strategyContext?: import('@/lib/module-8/types').StrategyCanvasResult; // M6 to M8 State Injection
     onMessagesChange?: (msgs: { role: string; text: string }[]) => void; // Added for Report Generation
     isOpen: boolean;
     onClose: () => void;

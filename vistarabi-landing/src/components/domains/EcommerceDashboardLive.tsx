@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useMemo, useState } from 'react';
 import { useRealData } from '@/lib/hooks/use-real-data';
@@ -128,7 +128,7 @@ export function EcommerceDashboardLive() {
           {
             title: 'Conversion Rate',
             value: `${kpis.conversionRate.toFixed(2)}%`,
-            unit: 'sessions → orders',
+            unit: 'sessions  to  orders',
             color: 'from-purple-500 to-purple-600',
             kpiName: 'conversionRate',
           },
@@ -170,7 +170,7 @@ export function EcommerceDashboardLive() {
               {kpi.value}
             </p>
             <p className="text-slate-500 text-sm mt-2">{kpi.unit}</p>
-            <p className="text-slate-600 text-xs mt-3 hover:text-slate-500">Click to inspect source data →</p>
+            <p className="text-slate-600 text-xs mt-3 hover:text-slate-500">Click to inspect source data  to </p>
           </div>
         ))}
       </div>
