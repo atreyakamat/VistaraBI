@@ -64,6 +64,8 @@ model Source {
   qualityIntelligence  QualityIntelligence?
   project              Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
   transformationAudits TransformationAudit[]
+
+  @@index([projectId, status])
 }
 
 model ColumnMeta {

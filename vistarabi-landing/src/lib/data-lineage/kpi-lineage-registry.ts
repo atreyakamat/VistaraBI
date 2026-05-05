@@ -10,6 +10,7 @@ import db, {
     KPIJoinPath,
     RelationshipEntry,
 } from '@/lib/prisma';
+import type { ApprovedKPIWithRelations } from '@/lib/prisma';
 import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { getRelationshipRegistry } from './relationship-registry';
 import {
@@ -118,7 +119,8 @@ export function findJoinPaths(
 // Trace lineage for a single KPI
 export async function traceKPILineage(
     projectId: string,
-    kpi: any, // ApprovedKPIWithRelations — typed via loadBlueprintWithKPIs
+    kpi: ApprovedKPIWithRelations,
+    domain: string,
     sources: { id: string; name: string; columns: string[] }[],
     relationships: RelationshipEntry[],
     useAI: boolean
@@ -184,7 +186,7 @@ export async function traceKPILineage(
     const context: ExplanationContext = {
         kpiName: kpi.name,
         formula: formulaStr,
-        domain: kpi.blueprint?.domain || 'Unknown',
+        domain: domain,
         category: kpi.category || 'general',
         sources: sourcesList,
         joins: joinPaths,
@@ -200,7 +202,7 @@ export async function traceKPILineage(
         projectId,
         kpiId: kpi.id,
         kpiName: kpi.name,
-        domain: kpi.blueprint?.domain || 'Unknown',
+        domain: domain,
         formula: formulaStr,
         category: kpi.category || 'general',
         sources: sourcesList,
@@ -252,7 +254,7 @@ export async function buildKPILineageRegistry(
     let aiEnhancedCount = 0;
 
     for (const kpi of kpis) {
-        const entry = await traceKPILineage(projectId, kpi, readySources, relationships, useAI);
+        const entry = await traceKPILineage(projectId, kpi, blueprint.domain, readySources, relationships, useAI);
         entries.push(entry);
 
         if (entry.joinPaths.length === 0) {

@@ -2,9 +2,11 @@
 
 // Module 5 — Chart Renderer
 // Routes to ChartJS or Plotly based on library discriminant, forwards all props
+import React from 'react';
+import dynamic from 'next/dynamic';
 
-import { ChartJSChart } from './ChartJSChart';
-import { PlotlyChart } from './PlotlyChart';
+const ChartJSChart = dynamic(() => import('./ChartJSChart').then(mod => mod.ChartJSChart), { ssr: false });
+const PlotlyChart = dynamic(() => import('./PlotlyChart').then(mod => mod.PlotlyChart), { ssr: false });
 
 interface ChartRendererProps {
     chartType: string;
@@ -17,7 +19,7 @@ interface ChartRendererProps {
     onPointClick?: (label: string, value: number, index: number) => void;
 }
 
-export function ChartRenderer({
+export const ChartRenderer = React.memo(function ChartRenderer({
     chartType, chartLibrary, labels, dataValues, colorAccent, recordCount, kpiName, onPointClick,
 }: ChartRendererProps) {
     const disableAnimation = recordCount > 500;
@@ -46,4 +48,4 @@ export function ChartRenderer({
             onPointClick={onPointClick}
         />
     );
-}
+});

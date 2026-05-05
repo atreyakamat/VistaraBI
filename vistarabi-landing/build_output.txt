@@ -1,0 +1,121 @@
+
+> vistarabi-landing@0.1.0 build
+> next build
+
+ΓÜá `experimental.middlewareClientMaxBodySize` is deprecated. Please use `experimental.proxyClientMaxBodySize` instead in next.config.ts.
+ΓÜá Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Projects\VistaraBI\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Projects\VistaraBI\vistarabi-landing\package-lock.json
+
+Γû▓ Next.js 16.1.1 (Turbopack)
+- Environments: .env
+- Experiments (use with caution):
+  ┬╖ middlewareClientMaxBodySize: "500mb"
+
+ΓÜá The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 32.0s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/39) ...
+  Generating static pages using 15 workers (9/39) 
+  Generating static pages using 15 workers (19/39) 
+  Generating static pages using 15 workers (29/39) 
+Γ£ô Generating static pages using 15 workers (39/39) in 3.1s
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ ╞Æ /api/ai/filter
+Γö£ ╞Æ /api/auth/login
+Γö£ ╞Æ /api/auth/logout
+Γö£ ╞Æ /api/auth/me
+Γö£ ╞Æ /api/auth/register
+Γö£ ╞Æ /api/data/ecommerce
+Γö£ ╞Æ /api/data/finance
+Γö£ ╞Æ /api/data/manufacturing
+Γö£ ╞Æ /api/data/retail
+Γö£ ╞Æ /api/projects
+Γö£ ╞Æ /api/projects/[id]
+Γö£ ╞Æ /api/projects/[id]/ai-kpi-discovery
+Γö£ ╞Æ /api/projects/[id]/ai-kpis
+Γö£ ╞Æ /api/projects/[id]/ai-reasoning
+Γö£ ╞Æ /api/projects/[id]/ask-ai
+Γö£ ╞Æ /api/projects/[id]/dashboard
+Γö£ ╞Æ /api/projects/[id]/dashboard-intelligence
+Γö£ ╞Æ /api/projects/[id]/dashboard-state
+Γö£ ╞Æ /api/projects/[id]/dashboard-state/drill-down
+Γö£ ╞Æ /api/projects/[id]/dashboard/data
+Γö£ ╞Æ /api/projects/[id]/dashboard/explanations
+Γö£ ╞Æ /api/projects/[id]/dashboard/insights
+Γö£ ╞Æ /api/projects/[id]/dashboard/invalidate
+Γö£ ╞Æ /api/projects/[id]/dashboard/kpi/[kpiId]
+Γö£ ╞Æ /api/projects/[id]/data-lineage
+Γö£ ╞Æ /api/projects/[id]/detect-domain
+Γö£ ╞Æ /api/projects/[id]/domain
+Γö£ ╞Æ /api/projects/[id]/entity-graph
+Γö£ ╞Æ /api/projects/[id]/goals
+Γö£ ╞Æ /api/projects/[id]/governance
+Γö£ ╞Æ /api/projects/[id]/insights
+Γö£ ╞Æ /api/projects/[id]/insights/[kpiId]
+Γö£ ╞Æ /api/projects/[id]/kpi-blueprint
+Γö£ ╞Æ /api/projects/[id]/kpi-blueprint/finalize
+Γö£ ╞Æ /api/projects/[id]/kpi-eligibility
+Γö£ ╞Æ /api/projects/[id]/kpi-lineage
+Γö£ ╞Æ /api/projects/[id]/kpis
+Γö£ ╞Æ /api/projects/[id]/kpis/[kpiId]/explain
+Γö£ ╞Æ /api/projects/[id]/module6/ask
+Γö£ ╞Æ /api/projects/[id]/relationship-registry
+Γö£ ╞Æ /api/projects/[id]/relationships
+Γö£ ╞Æ /api/projects/[id]/sources
+Γö£ ╞Æ /api/projects/[id]/visualization
+Γö£ ╞Æ /api/projects/[id]/visualization/filter
+Γö£ ╞Æ /api/projects/[id]/visualization/kpi/[kpiId]
+Γö£ ╞Æ /api/sources/[id]
+Γö£ ╞Æ /api/sources/[id]/audit-log
+Γö£ ╞Æ /api/sources/[id]/clean
+Γö£ ╞Æ /api/sources/[id]/cleaned
+Γö£ ╞Æ /api/sources/[id]/cleaning-summary
+Γö£ ╞Æ /api/sources/[id]/column-health
+Γö£ ╞Æ /api/sources/[id]/intelligence
+Γö£ ╞Æ /api/sources/[id]/outliers
+Γö£ ╞Æ /api/sources/[id]/quality
+Γö£ ╞Æ /api/user/data/delete
+Γö£ ╞Æ /api/user/data/export
+Γö£ ╞Æ /api/v1/ai/health
+Γö£ ╞Æ /api/v1/ai/test
+Γö£ ╞Æ /api/v1/forecast/validate
+Γö£ ╞Æ /api/v1/module-8/chat
+Γö£ ╞Æ /api/v1/report/generate
+Γö£ Γùï /app
+Γö£ Γùï /app/projects
+Γö£ ╞Æ /app/projects/[id]
+Γö£ ╞Æ /app/projects/[id]/dashboard
+Γö£ ╞Æ /app/projects/[id]/kpis
+Γö£ Γùï /app/settings
+Γö£ Γùï /app/status
+Γö£ Γùï /demo
+Γö£ Γùï /demo/ecommerce
+Γö£ Γùï /demo/edtech
+Γö£ Γùï /demo/finance
+Γö£ Γùï /demo/healthcare
+Γö£ Γùï /demo/manufacturing
+Γö£ Γùï /demo/manufacturing-live
+Γö£ Γùï /demo/retail
+Γö£ Γùï /demo/retail-live
+Γö£ Γùï /demo/saas
+Γö£ Γùï /demo/services
+Γö£ Γùï /login
+Γö£ Γùï /register
+Γöö Γùï /test/module-8
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
