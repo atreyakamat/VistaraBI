@@ -164,6 +164,7 @@ Respond ONLY in JSON format (no markdown, no explanation outside JSON):
             temperature: 0.3,
             agentRole:   routing.agentRole,
             model:       targetModel,
+            domain:      context.domain, // NEW: Activate domain skill
         });
 
         return response;

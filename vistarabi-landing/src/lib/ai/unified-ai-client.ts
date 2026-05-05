@@ -2,6 +2,8 @@
 // Priority: Ollama (local) -> Ollama (cloud) -> OpenRouter (Claude)
 // Supports agent-based reasoning with role specialization
 
+import { getDomainSkill, formatSkillForSystemPrompt } from './domain-skills';
+
 export interface AIMessage {
     role: 'system' | 'user' | 'assistant';
     content: string;
@@ -21,6 +23,7 @@ export interface AIGenerateOptions {
     maxTokens?: number;
     agentRole?: AgentRole;
     model?: string;
+    domain?: string; // Added domain support
 }
 
 export interface AIResponse {
@@ -327,7 +330,15 @@ export async function generateWithFallback(
     // Add agent role to system message if specified
     const messages = [...options.messages];
     if (options.agentRole && options.agentRole !== 'general') {
-        const rolePrompt = AGENT_SYSTEM_PROMPTS[options.agentRole];
+        let rolePrompt = AGENT_SYSTEM_PROMPTS[options.agentRole];
+
+        // NEW: Inject domain skill if domain is provided and role is analytic/strategic
+        if (options.domain) {
+            const domainSkill = getDomainSkill(options.domain);
+            if (domainSkill) {
+                rolePrompt = `${rolePrompt}\n\n${formatSkillForSystemPrompt(domainSkill, options.domain)}`;
+            }
+        }
 
         // Insert or prepend system message with role
         const systemMessageIndex = messages.findIndex(m => m.role === 'system');
