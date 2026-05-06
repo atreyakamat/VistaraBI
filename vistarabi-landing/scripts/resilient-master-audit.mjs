@@ -14,11 +14,30 @@ if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR);
 async function fetchAPI(endpoint, options = {}, cookieHeader = '') {
     const headers = new Headers(options.headers || {});
     if (cookieHeader) headers.set('cookie', cookieHeader);
-    const res = await fetch(`${BASE_URL}${endpoint}`, { ...options, headers });
-    let newCookie = cookieHeader;
-    const setCookie = res.headers.get('set-cookie');
-    if (setCookie) newCookie = setCookie.split(';')[0];
-    return { res, cookie: newCookie };
+    
+    // Create an AbortController with a 15-minute timeout (900,000 ms)
+    // This prevents Node.js undici fetch from throwing 'fetch failed' on heavy AI tasks
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 900000);
+    
+    try {
+        const res = await fetch(`${BASE_URL}${endpoint}`, { 
+            ...options, 
+            headers,
+            signal: controller.signal 
+        });
+        
+        clearTimeout(timeoutId);
+        
+        let newCookie = cookieHeader;
+        const setCookie = res.headers.get('set-cookie');
+        if (setCookie) newCookie = setCookie.split(';')[0];
+        
+        return { res, cookie: newCookie };
+    } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+    }
 }
 
 function getCSVFiles(dir) {

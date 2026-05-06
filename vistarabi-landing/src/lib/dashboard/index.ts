@@ -68,9 +68,9 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     }));
 
     try {
-        // Create timeout promise
+        // Create timeout promise (600s to support heavy 120B parameter models)
         const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('AI explanation generation timeout (45s)')), 45000)
+            setTimeout(() => reject(new Error('AI explanation generation timeout (600s)')), 600000)
         );
 
         // Race: explanations vs timeout

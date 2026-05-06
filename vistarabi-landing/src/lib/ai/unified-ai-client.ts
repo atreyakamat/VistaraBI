@@ -118,28 +118,29 @@ Provide clear, accurate, and actionable responses based on the data and context 
 function getModelConfigs(): AIModelConfig[] {
     const configs: AIModelConfig[] = [];
 
-    // 1. Ollama Local (highest priority)
+    // 1. GPT-OSS Cloud (highest priority as requested)
     const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
+    const cloudModel = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'gpt-oss:120b-cloud';
+    
+    configs.push({
+        provider: 'ollama-cloud',
+        model: cloudModel,
+        baseUrl: ollamaUrl,
+        timeout: 300000, // 5 minutes for 120B models
+    });
+
+    // 2. Ollama Local (fallback)
     const ollamaModel = process.env.OLLAMA_MODEL || 'qwen3.5:0.8b';
     configs.push({
         provider: 'ollama-local',
         model: ollamaModel,
         baseUrl: ollamaUrl,
-        timeout: 90000, // 90s for local
-    });
-
-    // 2. GPT-OSS (user-specified reliable model)
-    configs.push({
-        provider: 'ollama-cloud',
-        model: 'gpt-oss:120b-cloud',
-        baseUrl: ollamaUrl,
-        timeout: 120000,
+        timeout: 120000, // 2 minutes for local fallback
     });
 
     // 3. Ollama Cloud (middle priority)
     const cloudUrl = process.env.OLLAMA_CLOUD_URL || process.env.CLOUD_AI_BASE_URL;
     const cloudKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.CLOUD_AI_API_KEY;
-    const cloudModel = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'gpt-oss:120b-cloud';
 
     if (cloudUrl && cloudKey) {
         configs.push({
@@ -365,10 +366,17 @@ export async function generateWithFallback(
 
     const optionsWithRole = { ...options, messages };
     let lastError: Error | null = null;
+    let skippedProviders = [];
 
     // Try each provider in order
     for (const config of configs) {
         try {
+            // If provider is local and it failed recently, skip immediately
+            if (config.provider === 'ollama-local' && lastError?.message.includes('timeout')) {
+                 console.warn(`[AI] Skipping ${config.provider} due to previous timeout`);
+                 skippedProviders.push(config.provider);
+                 continue;
+            }
             const response = await callProvider(config, optionsWithRole);
             console.log(`[AI] ✓ Success with ${config.provider} (${response.latencyMs}ms)`);
             return response;
@@ -382,7 +390,7 @@ export async function generateWithFallback(
     // All providers failed
     throw new Error(
         `All AI providers failed. Last error: ${lastError?.message || 'Unknown error'}. ` +
-        `Tried: ${configs.map(c => c.provider).join(', ')}`
+        `Tried (in rotation): ${configs.filter(c => !skippedProviders.includes(c.provider)).map(c => `${c.provider} (${c.model})`).join(', ')}`
     );
 }
 

@@ -23,6 +23,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<StrategyCanvasResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Form State
   const [goalValue, setGoalValue] = useState(initialContext?.goalValue ?? 75000);
@@ -43,10 +44,11 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
     }
   }, [initialContext?.kpiHistory]);
 
-  const runSimulation = useCallback(async () => {
+  const runSimulation = useCallback(async (attemptNumber = 0) => {
     if (history.length === 0) return;
     setLoading(true);
     setError(null);
+    
     try {
       const payload: ForecastRequest = {
         kpiHistory: history,
@@ -71,13 +73,31 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
         body: JSON.stringify(payload)
       });
 
+      if (res.status === 429) {
+        // Rate limit hit - extract retry-after header and wait
+        const retryAfter = res.headers.get('Retry-After');
+        const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attemptNumber) * 2000;
+        
+        if (attemptNumber < 3) {
+          setError(`Rate limited. Retrying in ${Math.ceil(waitMs / 1000)}s...`);
+          setRetryCount(attemptNumber + 1);
+          setTimeout(() => {
+            runSimulation(attemptNumber + 1);
+          }, waitMs);
+          return;
+        } else {
+          throw new Error('Rate limit exceeded. Please wait before trying again.');
+        }
+      }
+
       if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || 'Forecast API failed');
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `API error: ${res.status}`);
       }
 
       const result: StrategyCanvasResult = await res.json();
       setData(result);
+      setRetryCount(0);
       if (onSimulationComplete) {
         onSimulationComplete(result);
       }
@@ -90,13 +110,32 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
   }, [history, goalValue, horizonDays, actionName, uplift, rampDays, startDay, onSimulationComplete]);
 
   // Auto-run simulation on mount and when sliders change (debounced)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      runSimulation();
-    }, 500); // 500ms debounce
+  // Use a ref to track the timeout ID to ensure only one timer is active
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const lastRunRef = React.useRef<number>(0);
+  const MIN_REQUEST_INTERVAL = 1500; // Minimum 1.5 seconds between requests to avoid rate limit
 
-    return () => clearTimeout(timer);
-  }, [runSimulation]);
+  useEffect(() => {
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    // Check if we've run a simulation too recently
+    const timeSinceLastRun = Date.now() - lastRunRef.current;
+    const delayNeeded = Math.max(500, MIN_REQUEST_INTERVAL - timeSinceLastRun);
+
+    timerRef.current = setTimeout(() => {
+      if (history.length > 0) {
+        lastRunRef.current = Date.now();
+        runSimulation();
+      }
+    }, delayNeeded);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [history, goalValue, horizonDays, actionName, uplift, rampDays, startDay]);
 
   // Format data for Recharts
   const chartData = React.useMemo(() => {
@@ -196,14 +235,20 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
           
           {loading && (
             <div className="flex items-center justify-center gap-2 text-sm text-indigo-600 font-medium animate-pulse">
-              <Activity className="w-4 h-4" /> Recalculating Matrix...
+              <Activity className="w-4 h-4" /> 
+              {retryCount > 0 ? `Retrying (${retryCount}/3)...` : 'Recalculating Matrix...'}
             </div>
           )}
 
           {error && (
-            <div className="p-3 bg-red-50 text-red-700 rounded border border-red-200 text-sm">
-              {error}
-            </div>
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 bg-amber-50 text-amber-800 rounded border border-amber-200 text-sm flex gap-2"
+            >
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <div>{error}</div>
+            </motion.div>
           )}
         </div>
       </div>
@@ -261,7 +306,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
             </div>
           </div>
 
-          <div className="flex-1 w-full bg-slate-50/50 rounded-xl border border-slate-100 p-4">
+          <div className="flex-1 w-full bg-slate-50/50 rounded-xl border border-slate-100 p-4 min-h-[300px]">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>

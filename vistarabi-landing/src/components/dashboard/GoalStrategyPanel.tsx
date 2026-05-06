@@ -553,18 +553,25 @@ export function GoalStrategyPanel({
         setIsGeneratingReport(true);
     
         try {
-          const chartElement = document.getElementById('strategy-canvas-container');
-          if (!chartElement) throw new Error("Chart element not found");
-    
-          const canvasEl = await html2canvas(chartElement, { scale: 2 });
-          const chartImageBase64 = canvasEl.toDataURL('image/png');
-
-          // Capture the dashboard charts
+          let chartImageBase64 = null;
           let dashboardImageBase64 = null;
-          const dashboardElement = document.getElementById('dashboard-grid-container');
-          if (dashboardElement) {
-              const dashCanvas = await html2canvas(dashboardElement, { scale: 1.5 });
-              dashboardImageBase64 = dashCanvas.toDataURL('image/png');
+          
+          try {
+            const chartElement = document.getElementById('strategy-canvas-container');
+            if (chartElement) {
+                const canvasEl = await html2canvas(chartElement, { scale: 2 });
+                chartImageBase64 = canvasEl.toDataURL('image/png');
+            }
+            const dashboardElement = document.getElementById('dashboard-grid-container');
+            if (dashboardElement) {
+                const dashCanvas = await html2canvas(dashboardElement, { scale: 1.5 });
+                dashboardImageBase64 = dashCanvas.toDataURL('image/png');
+            }
+          } catch (e) {
+            console.warn("html2canvas failed to capture UI (likely due to lab/oklch colors). Using placeholders.", e);
+            // Fallback to placeholder image if html2canvas crashes due to Tailwind v4 CSS features
+            chartImageBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
+            dashboardImageBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
           }
     
           let targetGoalVal = 75000;

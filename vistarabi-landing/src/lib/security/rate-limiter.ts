@@ -92,7 +92,7 @@ export const RATE_LIMITS = {
   /** AI endpoints – expensive, rate-limit tightly */
   AI: { limit: 20, windowMs: 60_000 },
   /** Forecast simulation endpoint – expensive Monte Carlo + AI */
-  FORECAST: { limit: 20, windowMs: 60_000 },
+  FORECAST: { limit: 100, windowMs: 60_000 },
   /** File upload – moderate limit */
   UPLOAD: { limit: 10, windowMs: 60_000 },
   /** GDPR data export endpoint */

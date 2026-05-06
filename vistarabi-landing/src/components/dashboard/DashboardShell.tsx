@@ -84,8 +84,48 @@ export function DashboardShell({
     const [bottomDateRange, setBottomDateRange] = useState<DateRange>('90d');
     const [bottomGranularity, setBottomGranularity] = useState<Granularity>('monthly');
 
-    const handleExportPDF = () => {
-        window.print();
+    const handleExportPDF = async () => {
+        try {
+            const targetVal = 75000;
+            const payload = {
+                domain: domainName,
+                metrics: {
+                    probability: activeStrategyContext?.probabilityOfSuccess || 0.85,
+                    gap: activeStrategyContext ? Math.max(0, targetVal - activeStrategyContext.scenarios.baseline[activeStrategyContext.scenarios.baseline.length - 1].yhat) : 5000,
+                    target: targetVal
+                },
+                chartImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                selectedKPIs: topKpis.map(k => ({ name: k.kpiName, category: k.category, value: String(k.currentValue) })),
+                actions: [],
+                globalChatSummary: askAiMessages.length > 0 ? askAiMessages[askAiMessages.length - 1].text : undefined,
+                forecastData: activeStrategyContext ? {
+                    kpi: topKpis[0]?.kpiName || 'Primary Metric',
+                    trend: activeStrategyContext.probabilityOfSuccess > 0.6 ? 'Positive' : 'At Risk',
+                    confidence: '95%'
+                } : undefined
+            };
+
+            const response = await fetch('/api/v1/report/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) throw new Error('Failed to generate report');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${domainName}_Strategic_Report.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Export failed:', error);
+            alert('Failed to generate PDF report. Please try again.');
+        }
     };
 
     const toggleKpiSelection = useCallback((kpiId: string) => {

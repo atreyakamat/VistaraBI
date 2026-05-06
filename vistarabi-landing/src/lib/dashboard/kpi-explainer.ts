@@ -57,7 +57,7 @@ export async function generateKPIExplanations(
 async function generateAIExplanationWithRetry(
     kpi: KPIInput,
     domain: DomainType | null | undefined,
-    maxRetries: number = 2
+    maxRetries: number = 1
 ): Promise<KPIExplanation> {
     let lastError: any;
 
