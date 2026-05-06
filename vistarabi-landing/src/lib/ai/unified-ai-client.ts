@@ -118,24 +118,33 @@ Provide clear, accurate, and actionable responses based on the data and context 
 function getModelConfigs(): AIModelConfig[] {
     const configs: AIModelConfig[] = [];
 
-    // 1. GPT-OSS Cloud (highest priority as requested)
+    // 1. Nemotron Cloud (First Priority)
     const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-    const cloudModel = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'gpt-oss:120b-cloud';
+    const nemotronModel = 'nemotron-3-super:cloud';
     
     configs.push({
         provider: 'ollama-cloud',
-        model: cloudModel,
+        model: nemotronModel,
         baseUrl: ollamaUrl,
-        timeout: 300000, // 5 minutes for 120B models
+        timeout: 600000, // 10 minutes
     });
 
-    // 2. Ollama Local (fallback)
+    // 2. GPT-OSS Cloud (Second Priority)
+    const gptOssModel = 'gpt-oss:120b-cloud';
+    configs.push({
+        provider: 'ollama-cloud',
+        model: gptOssModel,
+        baseUrl: ollamaUrl,
+        timeout: 600000, // 10 minutes
+    });
+
+    // 3. Ollama Local (Fallback)
     const ollamaModel = process.env.OLLAMA_MODEL || 'qwen3.5:0.8b';
     configs.push({
         provider: 'ollama-local',
         model: ollamaModel,
         baseUrl: ollamaUrl,
-        timeout: 120000, // 2 minutes for local fallback
+        timeout: 180000, // 3 minutes
     });
 
     // 3. Ollama Cloud (middle priority)

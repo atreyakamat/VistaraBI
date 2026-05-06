@@ -7,7 +7,7 @@ import { getDomainKPINames } from '@/lib/kpi/domain-metadata';
 import { generateWithFallback, type AIMessage } from './unified-ai-client';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
-const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'gpt-oss:120b-cloud';
+const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'nemotron-3-super:cloud';
 const TIMEOUT_MS = 90000; // Increased to 90s for slower local models
 
 // ─── Domain-to-Model Router ───────────────────────────────────────────────────
