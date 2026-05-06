@@ -74,9 +74,9 @@ async function validateDataLoading() {
     { name: 'Data integration tests', path: 'tests/data-integration.test.ts' },
   ];
 
-  for (const module of modulesToCheck) {
-    const exists = fs.existsSync(path.join(cwd, module.path));
-    console.log(`${exists ? '✅' : '❌'} ${module.name}`);
+  for (const mod of modulesToCheck) {
+    const exists = fs.existsSync(path.join(cwd, mod.path));
+    console.log(`${exists ? '✅' : '❌'} ${mod.name}`);
   }
 
   console.log('\n✨ Validation complete!\n');

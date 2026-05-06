@@ -57,9 +57,9 @@ export function useApi<T>(
 
   useEffect(() => {
     if (options.immediate) {
-      execute();
+      execute(undefined, undefined);
     }
-  }, [options.immediate]);
+  }, [options.immediate, execute]);
 
   return { data, error, loading, execute };
 }

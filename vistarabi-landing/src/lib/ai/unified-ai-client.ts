@@ -125,13 +125,21 @@ function getModelConfigs(): AIModelConfig[] {
         provider: 'ollama-local',
         model: ollamaModel,
         baseUrl: ollamaUrl,
-        timeout: 30000, // 30s for local
+        timeout: 90000, // 90s for local
     });
 
-    // 2. Ollama Cloud (middle priority)
+    // 2. GPT-OSS (user-specified reliable model)
+    configs.push({
+        provider: 'ollama-cloud',
+        model: 'gpt-oss:120b-cloud',
+        baseUrl: ollamaUrl,
+        timeout: 120000,
+    });
+
+    // 3. Ollama Cloud (middle priority)
     const cloudUrl = process.env.OLLAMA_CLOUD_URL || process.env.CLOUD_AI_BASE_URL;
     const cloudKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.CLOUD_AI_API_KEY;
-    const cloudModel = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'qwen3.5:397b';
+    const cloudModel = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'gpt-oss:120b-cloud';
 
     if (cloudUrl && cloudKey) {
         configs.push({
@@ -205,12 +213,12 @@ async function callOllama(
             method: 'POST',
             headers,
             body: JSON.stringify({
-                model: config.model,
+                model: options.model || config.model,
                 messages: options.messages,
                 stream: false,
                 options: {
                     temperature: options.temperature ?? 0.2,
-                    num_predict: options.maxTokens ?? 8192,
+                    num_predict: options.maxTokens ?? 1024,
                     num_ctx: 4096, // Limit context to save memory
                 },
             }),
@@ -237,7 +245,7 @@ async function callOllama(
         return {
             content,
             provider: config.provider,
-            model: config.model,
+            model: options.model || config.model,
             tokensUsed: {
                 input: data.prompt_eval_count || 0,
                 output: data.eval_count || 0,

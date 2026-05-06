@@ -58,7 +58,7 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     // 6. Generate AI explanations (WAIT WITH TIMEOUT + FALLBACK)
     console.log('[Dashboard] Generating AI explanations for', kpis.length, 'KPIs...');
 
-    let kpiExplanations: Record<string, any> = {};
+    const kpiExplanations: Record<string, any> = {};
     const kpiInputs = kpis.map(kpi => ({
         kpiId: kpi.id,
         kpiName: kpi.name,
@@ -125,7 +125,7 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     }, {} as Record<string, any>);
 
     const metadata: DashboardMetadata = {
-        domain: domain || 'GENERAL',
+        domain: (domain || 'GENERAL') as any,
         domainName,
         domainIcon,
         domainColor,
