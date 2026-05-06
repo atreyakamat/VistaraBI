@@ -118,27 +118,50 @@ Provide clear, accurate, and actionable responses based on the data and context 
 function getModelConfigs(): AIModelConfig[] {
     const configs: AIModelConfig[] = [];
 
-    // 1. Nemotron Cloud (First Priority)
+    // 1. OpenRouter (Highest Priority - Fast & Reliable)
+    if (process.env.OPENROUTER_API_KEY) {
+        configs.push({
+            provider: 'openrouter',
+            model: process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet',
+            baseUrl: 'https://openrouter.ai/api/v1',
+            apiKey: process.env.OPENROUTER_API_KEY,
+            timeout: 120000, // 120s
+        });
+    }
+
+    // 2. External Cloud Provider (If Configured)
+    const cloudUrl = process.env.OLLAMA_CLOUD_URL || process.env.CLOUD_AI_BASE_URL;
+    const cloudKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.CLOUD_AI_API_KEY;
+    const cloudModelEnv = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'nemotron-3-super:cloud';
+
+    if (cloudUrl && cloudKey) {
+        configs.push({
+            provider: 'ollama-cloud',
+            model: cloudModelEnv,
+            baseUrl: cloudUrl,
+            apiKey: cloudKey,
+            timeout: 120000, 
+        });
+    }
+
+    // 3. Local Heavy Models (Nemotron & GPT-OSS)
     const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-    const nemotronModel = 'nemotron-3-super:cloud';
     
     configs.push({
-        provider: 'ollama-cloud',
-        model: nemotronModel,
+        provider: 'ollama-cloud', // Using cloud provider type to signify it's a heavy model
+        model: 'nemotron-3-super:cloud',
         baseUrl: ollamaUrl,
         timeout: 600000, // 10 minutes
     });
 
-    // 2. GPT-OSS Cloud (Second Priority)
-    const gptOssModel = 'gpt-oss:120b-cloud';
     configs.push({
         provider: 'ollama-cloud',
-        model: gptOssModel,
+        model: 'gpt-oss:120b-cloud',
         baseUrl: ollamaUrl,
         timeout: 600000, // 10 minutes
     });
 
-    // 3. Ollama Local (Fallback)
+    // 4. Ollama Local (Last Fallback)
     const ollamaModel = process.env.OLLAMA_MODEL || 'qwen3.5:0.8b';
     configs.push({
         provider: 'ollama-local',
@@ -146,31 +169,6 @@ function getModelConfigs(): AIModelConfig[] {
         baseUrl: ollamaUrl,
         timeout: 180000, // 3 minutes
     });
-
-    // 3. Ollama Cloud (middle priority)
-    const cloudUrl = process.env.OLLAMA_CLOUD_URL || process.env.CLOUD_AI_BASE_URL;
-    const cloudKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.CLOUD_AI_API_KEY;
-
-    if (cloudUrl && cloudKey) {
-        configs.push({
-            provider: 'ollama-cloud',
-            model: cloudModel,
-            baseUrl: cloudUrl,
-            apiKey: cloudKey,
-            timeout: 120000, // 120s for cloud
-        });
-    }
-
-    // 3. OpenRouter (fallback)
-    if (process.env.OPENROUTER_API_KEY) {
-        configs.push({
-            provider: 'openrouter',
-            model: process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet',
-            baseUrl: 'https://openrouter.ai/api/v1',
-            apiKey: process.env.OPENROUTER_API_KEY,
-            timeout: 120000, // 120s for OpenRouter
-        });
-    }
 
     return configs;
 }
