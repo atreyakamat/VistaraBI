@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { getRetailDemoSummary, type RetailKPIMetrics } from '@/lib/demo/retail-demo-data';
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 interface KPICard {
   title: string;
@@ -65,6 +66,15 @@ export function RetailDashboard() {
       trend: 0,
     },
   ], [demoData]);
+
+  const salesByDate = demoData.sales.reduce((acc, s) => {
+    acc[s.date] = (acc[s.date] || 0) + s.amount;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const salesTrend = Object.keys(salesByDate).sort().map(date => ({ date, sales: Math.round(salesByDate[date] * 100) / 100 }));
+
+  const storeTotals = demoData.storeMetrics.map(s => ({ name: s.storeName, totalSales: s.totalSales }));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
@@ -150,16 +160,31 @@ export function RetailDashboard() {
         {/* Sales Trend */}
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
           <h3 className="text-lg font-bold text-white mb-4">Sales Trend (90 days)</h3>
-          <div className="h-48 bg-slate-700/50 rounded-lg flex items-center justify-center">
-            <p className="text-slate-500">📊 Sales trend visualization</p>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={salesTrend}>
+                <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#374151', color: '#fff' }} />
+                <Line type="monotone" dataKey="sales" stroke="#ef4444" strokeWidth={2} dot={false} isAnimationActive={false} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
         {/* Store Comparison */}
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
           <h3 className="text-lg font-bold text-white mb-4">Store Comparison</h3>
-          <div className="h-48 bg-slate-700/50 rounded-lg flex items-center justify-center">
-            <p className="text-slate-500">📈 Store performance comparison</p>
+          <div className="h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={storeTotals}>
+                <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#374151', color: '#fff' }} />
+                <Bar dataKey="totalSales" fill="#6366f1" isAnimationActive={false} radius={[4,4,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
