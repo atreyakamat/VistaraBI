@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 // Module 6 — Ask AI Chat Panel
 // Unified chat interface for all Module 6 intelligence interactions.
@@ -77,6 +77,11 @@ type ChatContent = ChatContentBase & (
         directive: string;
         message: string;
     }
+    | {
+        type: 'unsupported';
+        message: string;
+        suggestions: string[];
+    }
 );
 
 interface AskAIPanelProps {
@@ -132,7 +137,6 @@ function parseResponse(data: any): ChatContent {
         const isTimeout = (data.message || '').toLowerCase().includes('timed out') ||
             (data.message || '').toLowerCase().includes('timeout');
 
-        // Natural Tone Rewrite for generic failures
         let displayMsg = data.message || 'I encountered an issue processing that query. Please try again.';
         if (status === 'rejected' && data.route === 'UNSUPPORTED_SCOPE') {
             displayMsg = "This type of query is outside my current structured reasoning capabilities. I'm focused on governed financial metrics and their relationships.";
@@ -142,6 +146,14 @@ function parseResponse(data: any): ChatContent {
             type: 'error',
             message: displayMsg,
             recoverable: isTimeout || status === 'rejected',
+        };
+    }
+
+    if (status === 'unsupported') {
+        return {
+            type: 'unsupported',
+            message: data.message || "I couldn't find a structured path for that query. Try rephrasing around a specific metric.",
+            suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
         };
     }
 
@@ -367,6 +379,36 @@ function ErrorCard({ c, onRetry }: { c: Extract<ChatContent, { type: 'error' }>;
     );
 }
 
+function UnsupportedCard({ c, onSuggest }: {
+    c: Extract<ChatContent, { type: 'unsupported' }>;
+    onSuggest?: (query: string) => void;
+}) {
+    return (
+        <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 space-y-3 max-w-lg">
+            <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-amber-500 text-base mt-0.5">help_outline</span>
+                <p className="text-sm text-amber-800 leading-relaxed">{c.message}</p>
+            </div>
+            {c.suggestions.length > 0 && (
+                <div className="space-y-1.5">
+                    <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Try asking:</p>
+                    <div className="flex flex-wrap gap-2">
+                        {c.suggestions.map((s, i) => (
+                            <button
+                                key={i}
+                                onClick={() => onSuggest?.(s)}
+                                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-amber-300 text-amber-800 hover:bg-amber-100 transition-colors text-left"
+                            >
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 function ScalarKpiCard({ c }: { c: Extract<ChatContent, { type: 'kpi_value' }> }) {
     const renderDelta = () => {
         if (!c.deltaDirection || typeof c.deltaPercent !== 'number') return null;
@@ -560,6 +602,7 @@ function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?
                     {c.type === 'command' && <CommandCard c={c} />}
                     {c.type === 'suppressed' && <SuppressedCard c={c} />}
                     {c.type === 'error' && <ErrorCard c={c} onRetry={onRetry} />}
+                    {c.type === 'unsupported' && <UnsupportedCard c={c} onSuggest={onClarify} />}
                     {c.type === 'kpi_value' && <ScalarKpiCard c={c} />}
                     {c.type === 'trend_analysis' && <TrendCard c={c} />}
                     {c.type === 'comparison' && <ComparisonCard c={c} />}

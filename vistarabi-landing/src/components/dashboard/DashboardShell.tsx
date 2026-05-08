@@ -21,6 +21,7 @@ import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem
 import { getAvailableRanges, type DateRange, type Granularity } from './ChartContainer';
 import type { StrategyCanvasResult } from '@/lib/module-8/types';
 import { DashboardErrorBoundary } from './DashboardErrorBoundary';
+import { SharePanel } from './SharePanel';
 
 interface DrillState {
     kpiId: string;
@@ -35,6 +36,7 @@ interface DashboardShellProps {
     domainIcon: string;
     domainName: string;
     domainColor: string;
+    domainModel?: string; // active Ollama model (e.g. vistara-analytics-saas)
     sections: DashboardSection[];
     kpis: KPICardData[];
     explanations: Record<string, KPIExplanationData>;
@@ -53,7 +55,7 @@ interface DashboardShellProps {
 }
 
 export function DashboardShell({
-    projectId, projectName, domainIcon, domainName, domainColor,
+    projectId, projectName, domainIcon, domainName, domainColor, domainModel,
     sections, kpis, explanations, isLoading, isRefreshing, onRefresh,
     onFilterChange,
     insightFeed = [], smartAlerts = [],
@@ -67,6 +69,8 @@ export function DashboardShell({
     const [goalPanelOpen, setGoalPanelOpen] = useState(false);
     const [forecastPanelOpen, setForecastPanelOpen] = useState(false);
     const [goalQuery, setGoalQuery] = useState('');
+    const [kpiSearchQuery, setKpiSearchQuery] = useState('');
+    const [showSharePanel, setShowSharePanel] = useState(false);
     // Active StrategyCanvasResult shared between GoalStrategyPanel and AskAIPanel
     // (implements the State Injection Pipeline from MODULE_6_7_8_INTEGRATION_PLAN.md)
     const [activeStrategyContext, setActiveStrategyContext] = useState<StrategyCanvasResult | null>(null);
@@ -155,8 +159,13 @@ export function DashboardShell({
 
     const kpiMap = new Map(kpis.map(k => [k.kpiId, k]));
 
-    // Get top 4 KPIs for the main grid
-    const topKpis = kpis.slice(0, 4);
+    // Filter KPIs by search query (client-side, instant)
+    const filteredKpis = kpiSearchQuery.trim()
+        ? kpis.filter(k => k.kpiName.toLowerCase().includes(kpiSearchQuery.toLowerCase()))
+        : kpis;
+
+    // Get top 4 KPIs for the main grid (respects search filter)
+    const topKpis = filteredKpis.slice(0, 4);
 
     // ── Filter Change ──────────────────────────────────────────────
     const handleFilterChange = useCallback((f: DashboardFilters) => {
@@ -211,7 +220,21 @@ export function DashboardShell({
                     onRefresh={onRefresh}
                     onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
                     isRefreshing={isRefreshing}
+                    onAskAI={() => setAskAiOpen(true)}
+                    onOpenNotifications={() => setInsightPanelOpen(true)}
+                    kpiSearchQuery={kpiSearchQuery}
+                    onSearchChange={setKpiSearchQuery}
                 >
+                    {/* Share Button */}
+                    <button
+                        onClick={() => setShowSharePanel(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-100 hover:bg-emerald-200 text-emerald-700 transition-colors"
+                        title="Share Dashboard"
+                    >
+                        <span className="material-symbols-outlined text-base">share</span>
+                        Share
+                    </button>
+
                     {/* Insight Panel Toggle */}
                     <button
                         onClick={() => setInsightPanelOpen(!insightPanelOpen)}
@@ -236,6 +259,14 @@ export function DashboardShell({
                         <span className="material-symbols-outlined text-base">target</span>
                         Strategy
                     </button>
+
+                    {/* Active AI Model Indicator */}
+                    {domainModel && (
+                        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-500" title={`Active AI model: ${domainModel}`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            {domainModel.replace('vistara-analytics-', '').toUpperCase()}
+                        </div>
+                    )}
                 </Header>
 
                 <div className="p-8 space-y-8">
@@ -600,6 +631,7 @@ export function DashboardShell({
                     isOpen={forecastPanelOpen}
                     onClose={() => setForecastPanelOpen(false)}
                     activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
+                    domainModel={domainModel}
                 />
             </DashboardErrorBoundary>
 
@@ -645,6 +677,13 @@ export function DashboardShell({
                 trendingDown={trendingDown}
                 isOpen={insightPanelOpen}
                 onClose={() => setInsightPanelOpen(false)}
+            />
+            {/* Share Panel */}
+            <SharePanel
+                projectId={projectId}
+                projectName={projectName}
+                isOpen={showSharePanel}
+                onClose={() => setShowSharePanel(false)}
             />
         </div>
     );

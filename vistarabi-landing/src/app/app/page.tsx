@@ -180,18 +180,20 @@ export default function AppPage() {
                                     </div>
                                 </Link>
 
-                                <div className="group relative bg-[var(--card)]/50 rounded-3xl p-8 border border-[var(--border)] border-dashed overflow-hidden flex flex-col justify-center items-center text-center">
-                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent to-[var(--border)]/5 group-hover:to-[var(--accent)]/5 transition-all" />
+                                <div className="group relative bg-gradient-to-br from-[var(--accent)]/5 to-[var(--primary)]/5 rounded-3xl p-8 border border-[var(--accent)]/20 overflow-hidden flex flex-col justify-center items-center text-center hover:border-[var(--accent)]/40 transition-all cursor-pointer"
+                                    onClick={() => window.location.href = '/app/projects'}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent to-[var(--accent)]/5 group-hover:to-[var(--accent)]/10 transition-all" />
                                     <div className="relative z-10 space-y-4">
-                                        <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--muted)]/10 flex items-center justify-center text-[var(--muted)]">
+                                        <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
                                             <BarChart3 className="w-7 h-7" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-[var(--muted)]">Unified Dashboard</h3>
-                                            <p className="text-sm text-[var(--muted)] mt-1">Advanced cross-project analytics coming soon.</p>
+                                            <h3 className="text-xl font-bold text-[var(--foreground)]">All Projects</h3>
+                                            <p className="text-sm text-[var(--muted)] mt-1">View and manage all your analytics workspaces.</p>
                                         </div>
-                                        <div className="px-4 py-1.5 rounded-full bg-[var(--border)] text-[var(--muted)] text-xs font-medium inline-block">
-                                            Q3 2026
+                                        <div className="px-4 py-1.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] text-xs font-bold inline-block border border-[var(--accent)]/20">
+                                            Open Projects →
                                         </div>
                                     </div>
                                 </div>

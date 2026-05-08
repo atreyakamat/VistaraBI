@@ -10,11 +10,16 @@ interface HeaderProps {
     onRefresh: () => void;
     onToggleSidebar: () => void;
     isRefreshing: boolean;
+    onAskAI?: () => void;          // opens the AskAI panel
+    onOpenNotifications?: () => void; // opens the Insights panel
+    kpiSearchQuery?: string;
+    onSearchChange?: (q: string) => void;
     children?: React.ReactNode;
 }
 
 export function Header({
-    title, subtitle, kpiCount, onRefresh, onToggleSidebar, isRefreshing, children,
+    title, subtitle, kpiCount, onRefresh, onToggleSidebar, isRefreshing,
+    onAskAI, onOpenNotifications, kpiSearchQuery, onSearchChange, children,
 }: HeaderProps) {
     return (
         <header className="dashboard-header">
@@ -25,7 +30,9 @@ export function Header({
                 </span>
                 <input
                     type="text"
-                    placeholder="Search metrics, datasets or ask AI anything..."
+                    value={kpiSearchQuery ?? ''}
+                    onChange={e => onSearchChange?.(e.target.value)}
+                    placeholder="Search KPIs..."
                 />
             </div>
 
@@ -40,7 +47,9 @@ export function Header({
                 </button>
 
                 {/* Gradient AI Button */}
-                <button className="gradient-btn px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg"
+                <button
+                    onClick={onAskAI}
+                    className="gradient-btn px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg"
                     style={{ boxShadow: '0 8px 24px rgba(19, 91, 236, 0.25)' }}
                 >
                     <span className="material-symbols-outlined text-lg">magic_button</span>
@@ -64,8 +73,12 @@ export function Header({
                 {/* Module 5C: Additional header actions */}
                 {children}
 
-                {/* Notifications */}
-                <button className="header-notification-btn">
+                {/* Notifications — opens Insights panel */}
+                <button
+                    className="header-notification-btn"
+                    onClick={onOpenNotifications}
+                    title="Open Insights & Alerts"
+                >
                     <span className="material-symbols-outlined">notifications</span>
                     <span className="notification-dot" />
                 </button>

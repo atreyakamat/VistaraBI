@@ -1,12 +1,24 @@
 // DEBUG ENDPOINT: Pipeline Verification & Module Health Check
 // GET /api/v1/debug/pipeline?projectId=abc123
-// Returns complete module-by-module status of the pipeline
+// DEVELOPMENT ONLY — blocked in production
 
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/prisma';
 import { checkOllamaHealth, listModels, getDomainModel } from '@/lib/ai/ollama-client';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
+    // Block in production
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
+    }
+
+    // Require authentication even in dev
+    const user = await getCurrentUser();
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const projectId = request.nextUrl.searchParams.get('projectId');
         

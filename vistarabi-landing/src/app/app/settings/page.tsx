@@ -9,6 +9,7 @@ import {
   AlertTriangle, CheckCircle2, Lock, Key, LogOut, ChevronRight
 } from "lucide-react";
 import { api } from "@/lib/api/client";
+import { toast } from "sonner";
 
 interface UserData {
   id: string;
@@ -203,28 +204,29 @@ export default function AccountSettingsPage() {
                   const confirm = (form.elements.namedItem('confirmPassword') as HTMLInputElement).value;
                   
                   if (newPw.length < 8) {
-                    alert('New password must be at least 8 characters.');
+                    toast.error('New password must be at least 8 characters.');
                     return;
                   }
                   if (newPw !== confirm) {
-                    alert('Passwords do not match.');
+                    toast.error('Passwords do not match.');
                     return;
                   }
                   
                   try {
-                    const res = await fetch('/api/auth/login', {
+                    const res = await fetch('/api/auth/change-password', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ email: user?.email, password: current }),
+                      body: JSON.stringify({ currentPassword: current, newPassword: newPw }),
                     });
                     if (!res.ok) {
-                      alert('Current password is incorrect.');
+                      const d = await res.json().catch(() => ({}));
+                      toast.error(d.error || 'Current password is incorrect.');
                       return;
                     }
-                    alert('Password updated successfully!');
+                    toast.success('Password updated successfully!');
                     form.reset();
                   } catch {
-                    alert('Failed to update password. Please try again.');
+                    toast.error('Failed to update password. Please try again.');
                   }
                 }}
                 className="space-y-3"

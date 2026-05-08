@@ -307,6 +307,7 @@ export default function DashboardPage() {
                 domainIcon={config.metadata.domainIcon || '📊'}
                 domainName={config.metadata.domainName || 'General'}
                 domainColor={config.metadata.domainColor || '#6366f1'}
+                domainModel={config.metadata.domain ? `vistara-analytics-${config.metadata.domain.toLowerCase()}` : undefined}
                 sections={sections}
                 kpis={kpis}
                 explanations={explanations}

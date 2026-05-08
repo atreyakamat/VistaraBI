@@ -18,13 +18,25 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "VistaraBI | Turn Business Data Into Decisions — Automatically",
   description: "AI-powered dashboards, KPIs, forecasting & business strategy — generated from your raw files. Transform messy spreadsheets into intelligent insights.",
-  keywords: ["business intelligence", "AI analytics", "dashboard", "KPI", "forecasting", "data analytics"],
+  keywords: ["business intelligence", "AI analytics", "dashboard", "KPI", "forecasting", "data analytics", "CSV to dashboard", "AI BI tool"],
   authors: [{ name: "VistaraBI" }],
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://vistarabi.com'),
   openGraph: {
     title: "VistaraBI | AI-Powered Business Intelligence",
     description: "Transform your raw business files into clean dashboards, KPIs, forecasts and AI-powered strategy.",
     type: "website",
+    url: "/",
+    siteName: "VistaraBI",
+    images: [{ url: "/opengraph-image.png", width: 1200, height: 630, alt: "VistaraBI — AI Business Intelligence" }],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "VistaraBI | AI-Powered Business Intelligence",
+    description: "Upload a CSV, get a full AI dashboard in minutes.",
+    images: ["/opengraph-image.png"],
+  },
+  manifest: "/manifest.json",
+  icons: { icon: "/favicon.ico", apple: "/icon-192.png" },
 };
 
 export default function RootLayout({

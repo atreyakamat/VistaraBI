@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { KPISkeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface DiscoveredKPI {
     kpiId: string;
@@ -68,6 +69,7 @@ export default function KPIWorkspacePage() {
     const [adding, setAdding] = useState<string | null>(null);
     const [finalizing, setFinalizing] = useState(false);
     const [activeTab, setActiveTab] = useState<"domain" | "ai" | "blueprint">("domain");
+    const [showFinalizeModal, setShowFinalizeModal] = useState(false);
 
     useEffect(() => {
         fetchData();
@@ -96,6 +98,7 @@ export default function KPIWorkspacePage() {
             }
         } catch (err) {
             console.error("Fetch error:", err);
+            toast.error('Failed to load project data. Please refresh.');
         } finally {
             setLoading(false);
         }
@@ -130,6 +133,7 @@ export default function KPIWorkspacePage() {
             }
         } catch (err) {
             console.error("AI KPI error:", err);
+            toast.error('AI synthesis failed. Please try again.');
         } finally {
             setAiLoading(false);
         }
@@ -166,21 +170,24 @@ export default function KPIWorkspacePage() {
             }
         } catch (err) {
             console.error("Toggle error:", err);
+            toast.error('Failed to update blueprint. Please try again.');
         } finally {
             setAdding(null);
         }
     };
 
     const finalize = async () => {
-        if (!confirm("Finalize and lock this KPI Blueprint? This cannot be undone.")) return;
+        setShowFinalizeModal(false);
         setFinalizing(true);
         try {
             const res = await api.post<{ blueprint: any }>(`/api/projects/${projectId}/kpi-blueprint/finalize`);
             if (res.data) {
                 setBlueprint(res.data.blueprint);
+                toast.success('Blueprint locked! Your KPI measurement schema is now active.');
             }
         } catch (err) {
             console.error("Finalize error:", err);
+            toast.error('Finalization failed. Please try again.');
         } finally {
             setFinalizing(false);
         }
@@ -331,7 +338,7 @@ export default function KPIWorkspacePage() {
                             </Link>
                         ) : (
                             <button
-                                onClick={finalize}
+                                onClick={() => setShowFinalizeModal(true)}
                                 disabled={finalizing || !blueprint?.kpis?.length}
                                 className="px-4 py-2 bg-[var(--foreground)] text-white text-xs font-bold rounded-xl disabled:opacity-50 flex items-center gap-2 hover:bg-[var(--foreground)]/90 transition-all active:scale-95"
                             >
@@ -542,7 +549,7 @@ export default function KPIWorkspacePage() {
                             </div>
                         </div>
                         <button 
-                            onClick={finalize}
+                            onClick={() => setShowFinalizeModal(true)}
                             disabled={finalizing}
                             className="bg-white text-[var(--foreground)] px-6 py-3 rounded-2xl font-bold hover:bg-white/90 transition-all active:scale-95 flex items-center gap-2"
                         >
@@ -550,6 +557,41 @@ export default function KPIWorkspacePage() {
                             Lock Blueprint
                         </button>
                     </motion.div>
+                </div>
+            )}
+
+            {/* ── Finalize Confirmation Modal ── */}
+            {showFinalizeModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 space-y-6">
+                        <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0">
+                                <Lock className="w-6 h-6 text-amber-600" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">Lock Blueprint?</h3>
+                                <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+                                    Finalizing will lock your KPI selection and activate the measurement schema. You won't be able to add or remove KPIs after this step.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 pt-2">
+                            <button
+                                onClick={() => setShowFinalizeModal(false)}
+                                className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={finalize}
+                                disabled={finalizing}
+                                className="flex-1 py-3 rounded-2xl bg-slate-900 text-white font-bold text-sm hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                            >
+                                {finalizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                                Yes, Lock Blueprint
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

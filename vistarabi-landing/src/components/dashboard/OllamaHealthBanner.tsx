@@ -22,11 +22,12 @@ export function OllamaHealthBanner() {
         try {
             const res = await fetch('/api/v1/ai/health', { cache: 'no-store' });
             const data = await res.json();
+            // Response shape: { status: 'healthy'|'unhealthy', providers: { available: string[] } }
+            const isHealthy = data.status === 'healthy' || (data.providers?.available?.length ?? 0) > 0;
             setStatus({
-                available: data.status === 'ok' || data.ollama?.available === true,
-                model: data.ollama?.model || data.model,
-                responseTimeMs: data.ollama?.responseTimeMs,
-                error: data.ollama?.error || data.error,
+                available: isHealthy,
+                model: data.providers?.available?.[0],
+                error: isHealthy ? undefined : 'No AI providers available',
             });
         } catch {
             setStatus({ available: false, error: 'Cannot reach AI health endpoint' });

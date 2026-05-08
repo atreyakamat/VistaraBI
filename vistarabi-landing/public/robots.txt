@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /demo/
+Disallow: /app/
+Disallow: /api/
+Disallow: /share/
+
+Sitemap: https://vistarabi.com/sitemap.xml

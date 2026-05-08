@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { hashPassword, signToken, setAuthCookie } from '@/lib/auth';
 import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
+import { sendEmail, welcomeEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
     // Rate limit: 5 registrations per minute per IP
@@ -58,6 +59,13 @@ export async function POST(request: NextRequest) {
         // Create JWT and set cookie
         const token = signToken({ userId: user.id, email: user.email });
         await setAuthCookie(token);
+
+        // Send welcome email (non-blocking — don't await in the response path)
+        sendEmail({
+            to: user.email,
+            subject: 'Welcome to VistaraBI 🎉',
+            html: welcomeEmail(user.name),
+        }).catch(err => console.error('[register] welcome email failed:', err));
 
         return NextResponse.json(
             {
