@@ -4,7 +4,7 @@
 // Main dashboard page with 4-stage progressive rendering + cognitive insight layer
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { DashboardShell } from '@/components/dashboard/DashboardShell';
 import { SkeletonLoader } from '@/components/dashboard/SkeletonLoader';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from '@/components/dashboard/types';
@@ -43,7 +43,9 @@ interface DashboardConfig {
 
 export default function DashboardPage() {
     const params = useParams();
+    const searchParams = useSearchParams();
     const projectId = params.id as string;
+    const isSharedView = searchParams?.get('share') === '1';
 
     // Stage states
     const [stage, setStage] = useState<1 | 2 | 3 | 4>(1);
@@ -303,6 +305,7 @@ export default function DashboardPage() {
             )}
             <DashboardShell
                 projectId={projectId}
+                isReadOnly={isSharedView}
                 projectName={config.sidebarConfig?.projectName || 'Project'}
                 domainIcon={config.metadata.domainIcon || '📊'}
                 domainName={config.metadata.domainName || 'General'}

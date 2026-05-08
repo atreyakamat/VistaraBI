@@ -54,10 +54,11 @@ interface DashboardShellProps {
     anomalyCount?: number;
     trendingUp?: number;
     trendingDown?: number;
+    isReadOnly?: boolean;
 }
 
 export function DashboardShell({
-    projectId, projectName, domainIcon, domainName, domainColor, domainModel,
+    projectId, projectName, domainIcon, domainName, domainColor, domainModel, isReadOnly,
     sections, kpis, explanations, isLoading, isRefreshing, onRefresh,
     onFilterChange,
     insightFeed = [], smartAlerts = [],
@@ -212,6 +213,12 @@ export function DashboardShell({
 
             {/* Main Content */}
             <main className="dashboard-main">
+                {isReadOnly && (
+                    <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 flex items-center justify-center gap-2 text-amber-800 text-sm font-medium z-50">
+                        <span className="material-symbols-outlined text-base">visibility</span>
+                        Read-only view — shared by project owner
+                    </div>
+                )}
                 {/* Ollama Health Banner — shows only when AI is offline */}
                 <OllamaHealthBanner />
                 {/* Frosted Glass Header */}
@@ -228,21 +235,25 @@ export function DashboardShell({
                     onSearchChange={setKpiSearchQuery}
                 >
                     {/* Share Button */}
-                    <button
-                        onClick={() => setShowSharePanel(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-100 hover:bg-emerald-200 text-emerald-700 transition-colors"
-                        title="Share Dashboard"
-                    >
-                        <span className="material-symbols-outlined text-base">share</span>
-                        Share
-                    </button>
+                    {!isReadOnly && (
+                        <button
+                            onClick={() => setShowSharePanel(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-100 hover:bg-emerald-200 text-emerald-700 transition-colors"
+                            title="Share Dashboard"
+                        >
+                            <span className="material-symbols-outlined text-base">share</span>
+                            Share
+                        </button>
+                    )}
 
                     {/* Export CSV */}
-                    <ExportButton
-                        projectId={projectId}
-                        label="Export CSV"
-                        className="bg-sky-100 hover:bg-sky-200 text-sky-700"
-                    />
+                    {!isReadOnly && (
+                        <ExportButton
+                            projectId={projectId}
+                            label="Export CSV"
+                            className="bg-sky-100 hover:bg-sky-200 text-sky-700"
+                        />
+                    )}
 
                     {/* Insight Panel Toggle */}
                     <button
@@ -260,14 +271,16 @@ export function DashboardShell({
                     </button>
 
                     {/* Goal Strategy Engine Toggle */}
-                    <button
-                        onClick={() => setGoalPanelOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-100 hover:bg-violet-200 text-violet-700 transition-colors"
-                        title="Goal Strategy Engine"
-                    >
-                        <span className="material-symbols-outlined text-base">target</span>
-                        Strategy
-                    </button>
+                    {!isReadOnly && (
+                        <button
+                            onClick={() => setGoalPanelOpen(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-100 hover:bg-violet-200 text-violet-700 transition-colors"
+                            title="Goal Strategy Engine"
+                        >
+                            <span className="material-symbols-outlined text-base">target</span>
+                            Strategy
+                        </button>
+                    )}
 
                     {/* Active AI Model Indicator */}
                     {domainModel && (
