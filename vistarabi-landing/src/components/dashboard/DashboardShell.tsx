@@ -209,6 +209,9 @@ export function DashboardShell({
                 activeSection={activeSection}
                 isOpen={sidebarOpen}
                 onToggle={() => setSidebarOpen(!sidebarOpen)}
+                onOpenForecast={() => setForecastPanelOpen(true)}
+                onOpenStrategy={() => setGoalPanelOpen(true)}
+                onOpenAskAI={() => setAskAiOpen(true)}
             />
 
             {/* Main Content */}
@@ -612,27 +615,31 @@ export function DashboardShell({
 
             {/* Ask AI FAB */}
             <div className="fixed bottom-8 right-8 flex flex-col gap-3 items-end z-40">
-                <button
-                    className={`ask-ai-fab${forecastPanelOpen ? ' open' : ''}`}
-                    onClick={() => setForecastPanelOpen(true)}
-                    aria-label="Forecasting"
-                    title="Forecasting Engine"
-                    style={{ background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', position: 'static' }}
-                >
-                    <span className="material-symbols-outlined text-base">monitoring</span>
-                    Forecast
-                </button>
+                {!isReadOnly && (
+                    <>
+                        <button
+                            className={`ask-ai-fab${forecastPanelOpen ? ' open' : ''}`}
+                            onClick={() => setForecastPanelOpen(true)}
+                            aria-label="Forecasting"
+                            title="Forecasting Engine"
+                            style={{ background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)', position: 'static' }}
+                        >
+                            <span className="material-symbols-outlined text-base">monitoring</span>
+                            Forecast
+                        </button>
 
-                <button
-                    className={`ask-ai-fab${goalPanelOpen ? ' open' : ''}`}
-                    onClick={() => setGoalPanelOpen(true)}
-                    aria-label="Target Goals"
-                    title="Goal Strategy Engine"
-                    style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', position: 'static' }}
-                >
-                    <span className="material-symbols-outlined text-base">target</span>
-                    Strategy
-                </button>
+                        <button
+                            className={`ask-ai-fab${goalPanelOpen ? ' open' : ''}`}
+                            onClick={() => setGoalPanelOpen(true)}
+                            aria-label="Target Goals"
+                            title="Goal Strategy Engine"
+                            style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', position: 'static' }}
+                        >
+                            <span className="material-symbols-outlined text-base">target</span>
+                            Strategy
+                        </button>
+                    </>
+                )}
 
                 <button
                     className={`ask-ai-fab${askAiOpen ? ' open' : ''}`}
@@ -647,29 +654,33 @@ export function DashboardShell({
             </div>
 
             {/* Forecast Panel */}
-            <DashboardErrorBoundary label="Forecast Panel">
-                <ForecastPanel
-                    projectId={projectId}
-                    isOpen={forecastPanelOpen}
-                    onClose={() => setForecastPanelOpen(false)}
-                    activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
-                    domainModel={domainModel}
-                />
-            </DashboardErrorBoundary>
+            {!isReadOnly && (
+                <DashboardErrorBoundary label="Forecast Panel">
+                    <ForecastPanel
+                        projectId={projectId}
+                        isOpen={forecastPanelOpen}
+                        onClose={() => setForecastPanelOpen(false)}
+                        activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
+                        domainModel={domainModel}
+                    />
+                </DashboardErrorBoundary>
+            )}
 
             {/* Goal Strategy Panel — single instance, wired to state injection */}
-            <DashboardErrorBoundary label="Goal Strategy Engine">
-                <GoalStrategyPanel
-                    projectId={projectId}
-                    isOpen={goalPanelOpen}
-                    onClose={() => setGoalPanelOpen(false)}
-                    initialQuery={goalQuery}
-                    onSimulationComplete={(ctx) => setActiveStrategyContext(ctx)}
-                    domainName={domainName}
-                    activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
-                    askAiMessages={askAiMessages}
-                />
-            </DashboardErrorBoundary>
+            {!isReadOnly && (
+                <DashboardErrorBoundary label="Goal Strategy Engine">
+                    <GoalStrategyPanel
+                        projectId={projectId}
+                        isOpen={goalPanelOpen}
+                        onClose={() => setGoalPanelOpen(false)}
+                        initialQuery={goalQuery}
+                        onSimulationComplete={(ctx) => setActiveStrategyContext(ctx)}
+                        domainName={domainName}
+                        activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
+                        askAiMessages={askAiMessages}
+                    />
+                </DashboardErrorBoundary>
+            )}
 
             {/* Ask AI Panel — receives live strategy context for state injection */}
             <DashboardErrorBoundary label="Ask AI Panel">
