@@ -50,7 +50,9 @@ export function validateEnv(): void {
         missing.forEach(m => console.error(m));
         console.error('\nCreate a .env.local file with these values. See .env for a template.\n');
 
-        if (isProduction) {
+        // Don't throw during next build static generation — only at real server startup
+        const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+        if (isProduction && !isBuildPhase) {
             throw new Error('Missing or insecure environment variables. See server logs for details.');
         }
     }

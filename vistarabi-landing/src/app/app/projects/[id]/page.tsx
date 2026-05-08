@@ -511,8 +511,26 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                                     </div>
 
                                     {activeTab === "sources" && (
-                                        <div className="pb-3">
+                                        <div className="pb-3 space-y-3">
                                             <UploadZone onFilesSelected={handleFilesSelected} uploading={uploading} />
+                                            {/* Domain CSV Templates */}
+                                            <div className="border border-[var(--border)] rounded-xl p-3 bg-[var(--background)]">
+                                                <p className="text-xs font-bold text-[var(--muted)] uppercase tracking-widest mb-2">
+                                                    📥 Download a template to get started
+                                                </p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {['retail','saas','healthcare','finance','manufacturing','ecommerce','edtech','services'].map(d => (
+                                                        <a
+                                                            key={d}
+                                                            href={`/api/templates/${d}`}
+                                                            download
+                                                            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-[var(--accent)]/8 hover:bg-[var(--accent)]/15 text-[var(--accent)] transition-colors border border-[var(--accent)]/20 capitalize"
+                                                        >
+                                                            {d}
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { validateEnv } from "@/lib/env";
 import "./globals.css";
+
+// Validate required environment variables at startup
+// This will throw with a clear message if DATABASE_URL or JWT_SECRET are missing
+validateEnv();
+
 
 const inter = Inter({
   variable: "--font-inter",
