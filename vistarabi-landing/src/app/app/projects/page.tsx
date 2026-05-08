@@ -14,10 +14,15 @@ import {
     LayoutGrid,
     LayoutList,
     Clock,
-    MoreVertical
+    MoreVertical,
+    Upload,
+    BarChart3,
+    Sparkles,
+    CheckCircle2
 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface Project {
     id: string;
@@ -35,6 +40,8 @@ export default function ProjectsPage() {
     const [newDesc, setNewDesc] = useState("");
     const [creating, setCreating] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         fetchProjects();
@@ -82,16 +89,25 @@ export default function ProjectsPage() {
     const handleDelete = async (id: string, e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
-        if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) return;
+        setDeleteTarget(id);
+    };
 
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
         try {
-            const res = await api.delete(`/api/projects/${id}`);
+            const res = await api.delete(`/api/projects/${deleteTarget}`);
             if (res.status === 200 || res.status === 204) {
-                setProjects(projects.filter(p => p.id !== id));
+                setProjects(projects.filter(p => p.id !== deleteTarget));
+                toast.success('Project deleted successfully.');
+            } else {
+                toast.error('Failed to delete project.');
             }
-        } catch (error) {
-            console.error("Error deleting project:", error);
+        } catch {
+            toast.error('An error occurred. Please try again.');
+        } finally {
+            setDeleting(false);
+            setDeleteTarget(null);
         }
     };
 
@@ -177,22 +193,46 @@ export default function ProjectsPage() {
                                 animate={{ opacity: 1 }}
                                 className="col-span-full py-20 text-center space-y-6"
                             >
-                                <div className="w-20 h-20 mx-auto rounded-3xl bg-[var(--accent)]/5 flex items-center justify-center">
-                                    <FolderKanban className="w-10 h-10 text-[var(--muted)] opacity-20" />
+                                <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-[var(--accent)]/10 to-[var(--primary)]/10 flex items-center justify-center">
+                                    <FolderKanban className="w-10 h-10 text-[var(--accent)] opacity-60" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h3 className="text-2xl font-bold text-[var(--foreground)]">No projects found</h3>
-                                    <p className="text-[var(--muted)]">
-                                        {searchQuery ? `No results for "${searchQuery}"` : "Create your first project to get started"}
+                                    <h3 className="text-2xl font-bold text-[var(--foreground)]">
+                                        {searchQuery ? `No results for "${searchQuery}"` : "Welcome to VistaraBI"}
+                                    </h3>
+                                    <p className="text-[var(--muted)] max-w-sm mx-auto">
+                                        {searchQuery ? "Try a different search term" : "Create your first project and let AI turn your data into insights in minutes."}
                                     </p>
                                 </div>
                                 {!searchQuery && (
-                                    <button
-                                        onClick={() => setShowCreate(true)}
-                                        className="px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-2xl hover:bg-[var(--accent)] transition-all"
-                                    >
-                                        Create First Project
-                                    </button>
+                                    <div className="max-w-md mx-auto space-y-4">
+                                        {/* Onboarding checklist */}
+                                        <div className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 text-left space-y-4">
+                                            <p className="text-xs font-bold text-[var(--muted)] uppercase tracking-widest">Your first 3 steps</p>
+                                            {[
+                                                { icon: Plus, label: 'Create a Project', desc: 'Name your analytics workspace', done: false },
+                                                { icon: Upload, label: 'Upload Your Data', desc: 'Drop in a CSV, Excel, or JSON file', done: false },
+                                                { icon: BarChart3, label: 'Explore AI Dashboard', desc: 'KPIs & insights generate automatically', done: false },
+                                            ].map(({ icon: Icon, label, desc }) => (
+                                                <div key={label} className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center shrink-0">
+                                                        <Icon className="w-4 h-4 text-[var(--accent)]" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-[var(--foreground)]">{label}</p>
+                                                        <p className="text-xs text-[var(--muted)]">{desc}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button
+                                            onClick={() => setShowCreate(true)}
+                                            className="w-full px-8 py-4 bg-[var(--primary)] text-white font-bold rounded-2xl hover:bg-[var(--accent)] transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <Sparkles className="w-4 h-4" />
+                                            Get Started — Create Project
+                                        </button>
+                                    </div>
                                 )}
                             </motion.div>
                         ) : (
@@ -215,7 +255,15 @@ export default function ProjectsPage() {
                                             <div className="w-14 h-14 rounded-2xl bg-[var(--accent)]/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-[var(--accent)] transition-all duration-300">
                                                 <FolderKanban className="w-7 h-7 text-[var(--accent)] group-hover:text-white" />
                                             </div>
-                                            <div className="flex gap-2">
+                                            <div className="flex items-center gap-2">
+                                                {/* Health pill */}
+                                                {(() => {
+                                                    const age = Date.now() - new Date(project.createdAt).getTime();
+                                                    const days = age / (1000 * 60 * 60 * 24);
+                                                    if (days < 7) return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">🟢 Active</span>;
+                                                    if (days < 30) return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">🟡 Stale</span>;
+                                                    return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">🔴 Needs Attention</span>;
+                                                })()}
                                                 <button
                                                     onClick={(e) => handleDelete(project.id, e)}
                                                     className="p-2 rounded-lg text-[var(--muted)] hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
@@ -321,6 +369,55 @@ export default function ProjectsPage() {
                                     </button>
                                 </div>
                             </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {deleteTarget && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !deleting && setDeleteTarget(null)}
+                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="relative w-full max-w-md bg-[var(--card)] rounded-3xl shadow-2xl p-8 border border-[var(--border)]"
+                        >
+                            <div className="flex items-start gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center shrink-0">
+                                    <Trash2 className="w-6 h-6 text-red-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-[var(--foreground)]">Delete Project?</h3>
+                                    <p className="text-sm text-[var(--muted)] mt-1 leading-relaxed">
+                                        This will permanently delete the project and all associated data, KPIs, and dashboards. This cannot be undone.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteTarget(null)}
+                                    disabled={deleting}
+                                    className="flex-1 py-3 border border-[var(--border)] rounded-2xl font-bold text-sm text-[var(--foreground)] hover:bg-[var(--background)] transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    disabled={deleting}
+                                    className="flex-1 py-3 bg-red-600 text-white rounded-2xl font-bold text-sm hover:bg-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {deleting ? 'Deleting…' : 'Yes, Delete'}
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
                 )}
