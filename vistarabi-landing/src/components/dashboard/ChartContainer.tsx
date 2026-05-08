@@ -571,7 +571,7 @@ export function ChartContainer({ kpi, index, projectId, compact = false, isSelec
                                 onClick={() => setPickerOpen(p => !p)}
                                 title="Change chart type"
                             >
-                                <span>{currentOpt.icon}</span>
+                                <span className="material-symbols-outlined text-[14px]">{currentOpt.icon.replace(/-/g, '_')}</span>
                                 <span className="chart-type-label">{currentOpt.label}</span>
                                 <ChevronDown size={12} />
                             </button>
@@ -591,7 +591,7 @@ export function ChartContainer({ kpi, index, projectId, compact = false, isSelec
                                                             onClick={() => selectType(opt)}
                                                             title={opt.label}
                                                         >
-                                                            <span className="text-base">{opt.icon}</span>
+                                                            <span className="material-symbols-outlined text-base">{opt.icon.replace(/-/g, '_')}</span>
                                                             <span className="chart-picker-item-label">{opt.label}</span>
                                                         </button>
                                                     ))}

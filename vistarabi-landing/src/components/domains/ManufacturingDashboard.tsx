@@ -3,8 +3,33 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Factory, Gauge, TrendingUp, AlertTriangle, Wrench, BarChart3 } from 'lucide-react';
 
-function Chart({data,color,h=48}:{data:number[];color:string;h?:number}){const mx=Math.max(...data),mn=Math.min(...data),r=mx-mn||1,w=200;const p=data.map((v,i)=>`${(i/(data.length-1))*w},${h-((v-mn)/r)*(h-8)-4}`).join(' ');return<svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{height:h}}><polyline points={p} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;}
-function Bars({data,color}:{data:number[];color:string}){const mx=Math.max(...data);return<div className="flex items-end gap-1 h-12">{data.map((v,i)=><div key={i} className="flex-1 rounded-sm" style={{height:`${(v/mx)*100}%`,background:color}}/>)}</div>;}
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, Tooltip } from 'recharts';
+function Chart({ data, color, h = 48 }: { data: number[]; color: string; h?: number }) {
+  const chartData = data.map((val, i) => ({ index: i, value: val }));
+  return (
+    <div style={{ width: '100%', height: h }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={chartData}>
+          <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={false} isAnimationActive={false} />
+          <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff', fontSize: '12px', padding: '4px 8px' }} itemStyle={{ color: '#fff', padding: 0 }} labelStyle={{ display: 'none' }} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+function Bars({ data, color }: { data: number[]; color: string }) {
+  const chartData = data.map((val, i) => ({ index: i, value: val }));
+  return (
+    <div style={{ width: '100%', height: '100%', minHeight: 48 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData}>
+          <Bar dataKey="value" fill={color} isAnimationActive={false} radius={[2, 2, 0, 0]} />
+          <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff', fontSize: '12px', padding: '4px 8px' }} itemStyle={{ color: '#fff', padding: 0 }} cursor={{ fill: 'rgba(255,255,255,0.1)' }} labelStyle={{ display: 'none' }} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 export function ManufacturingDashboard(){
   const mo=['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun'];

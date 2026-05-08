@@ -16,6 +16,9 @@ interface SidebarProps {
     activeSection?: string;
     isOpen: boolean;
     onToggle: () => void;
+    onOpenForecast?: () => void;
+    onOpenStrategy?: () => void;
+    onOpenAskAI?: () => void;
 }
 
 // Map section icons to Material Symbols (fallback to emoji)
@@ -41,6 +44,7 @@ function getMaterialIcon(emoji: string): string {
 export function Sidebar({
     projectId, projectName, domainIcon, domainName, domainColor,
     sections, activeSection, isOpen, onToggle,
+    onOpenForecast, onOpenStrategy, onOpenAskAI
 }: SidebarProps) {
     const router = useRouter();
 
@@ -91,6 +95,30 @@ export function Sidebar({
                             </div>
                         </button>
                     ))}
+                    
+                    <div className="my-2 border-t border-slate-700/50 mx-4"></div>
+
+                    {onOpenForecast && (
+                        <button className="sidebar-nav-item" onClick={onOpenForecast} title="Forecast">
+                            <div className="nav-icon-wrapper text-emerald-400">
+                                <span className="material-symbols-outlined">monitoring</span>
+                            </div>
+                        </button>
+                    )}
+                    {onOpenStrategy && (
+                        <button className="sidebar-nav-item" onClick={onOpenStrategy} title="Strategy">
+                            <div className="nav-icon-wrapper text-blue-400">
+                                <span className="material-symbols-outlined">target</span>
+                            </div>
+                        </button>
+                    )}
+                    {onOpenAskAI && (
+                        <button className="sidebar-nav-item" onClick={onOpenAskAI} title="Ask AI">
+                            <div className="nav-icon-wrapper text-purple-400">
+                                <span className="material-symbols-outlined">auto_awesome</span>
+                            </div>
+                        </button>
+                    )}
                 </nav>
 
                 {/* Footer Actions */}

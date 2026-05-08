@@ -3,27 +3,41 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, TrendingUp, TrendingDown, Users, DollarSign, BarChart3, RefreshCw } from 'lucide-react';
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, Tooltip } from 'recharts';
 
 function MiniLineChart({ data, color, height = 48 }: { data: number[]; color: string; height?: number }) {
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-  const w = 200;
-  const points = data.map((v, i) => `${(i / (data.length - 1)) * w},${height - ((v - min) / range) * (height - 8) - 4}`).join(' ');
+  const chartData = data.map((val, i) => ({ index: i, value: val }));
   return (
-    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" style={{ height }}>
-      <polyline points={points} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <div style={{ width: '100%', height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={chartData}>
+          <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={false} isAnimationActive={false} />
+          <Tooltip 
+            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff', fontSize: '12px', padding: '4px 8px' }} 
+            itemStyle={{ color: '#fff', padding: 0 }} 
+            labelStyle={{ display: 'none' }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
 function MiniBarChart({ data, color }: { data: number[]; color: string }) {
-  const max = Math.max(...data);
+  const chartData = data.map((val, i) => ({ index: i, value: val }));
   return (
-    <div className="flex items-end gap-1 h-12">
-      {data.map((v, i) => (
-        <div key={i} className="flex-1 rounded-sm transition-all hover:opacity-80" style={{ height: `${(v / max) * 100}%`, background: color }} />
-      ))}
+    <div style={{ width: '100%', height: '100%', minHeight: 48 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData}>
+          <Bar dataKey="value" fill={color} isAnimationActive={false} radius={[2, 2, 0, 0]} />
+          <Tooltip 
+            contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff', fontSize: '12px', padding: '4px 8px' }} 
+            itemStyle={{ color: '#fff', padding: 0 }} 
+            cursor={{ fill: 'rgba(255,255,255,0.1)' }}
+            labelStyle={{ display: 'none' }}
+          />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 import { DemoCTABanner } from '@/components/demo/DemoCTABanner';
-
+import { Store, Laptop, ShoppingCart, GraduationCap, Briefcase, Factory, HeartPulse, Landmark, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DemoHubPage() {
@@ -9,56 +9,56 @@ export default function DemoHubPage() {
       name: 'Retail',
       path: '/demo/retail',
       description: '5-store chain with sales, inventory, traffic, margin',
-      icon: '\uD83C\uDFEA',
+      icon: <Store className="w-12 h-12" />,
       color: 'from-blue-500 to-blue-600',
     },
     {
       name: 'SaaS',
       path: '/demo/saas',
       description: 'MRR, ARR, churn, CAC, net revenue retention',
-      icon: '\uD83D\uDCBB',
+      icon: <Laptop className="w-12 h-12" />,
       color: 'from-purple-500 to-purple-600',
     },
     {
       name: 'E-Commerce',
       path: '/demo/ecommerce',
       description: 'Revenue, AOV, conversion, cart abandonment, LTV',
-      icon: '\uD83D\uDED2',
+      icon: <ShoppingCart className="w-12 h-12" />,
       color: 'from-green-500 to-green-600',
     },
     {
       name: 'EdTech',
       path: '/demo/edtech',
       description: 'Enrollment, completion, scores, retention metrics',
-      icon: '\uD83C\uDF93',
+      icon: <GraduationCap className="w-12 h-12" />,
       color: 'from-indigo-500 to-indigo-600',
     },
     {
       name: 'Services',
       path: '/demo/services',
       description: 'Billable utilization, margins, client retention',
-      icon: '\uD83D\uDCCB',
+      icon: <Briefcase className="w-12 h-12" />,
       color: 'from-amber-500 to-amber-600',
     },
     {
       name: 'Manufacturing',
       path: '/demo/manufacturing',
       description: 'OEE, yield rate, defect rate, downtime',
-      icon: '\uD83C\uDFED',
+      icon: <Factory className="w-12 h-12" />,
       color: 'from-red-500 to-red-600',
     },
     {
       name: 'Healthcare',
       path: '/demo/healthcare',
       description: 'Patient satisfaction, readmission, wait times',
-      icon: '\uD83C\uDFE5',
+      icon: <HeartPulse className="w-12 h-12" />,
       color: 'from-pink-500 to-pink-600',
     },
     {
       name: 'Finance',
       path: '/demo/finance',
       description: 'Net margin, ROI, debt-to-equity, cash flow',
-      icon: '\uD83D\uDCB0',
+      icon: <Landmark className="w-12 h-12" />,
       color: 'from-cyan-500 to-cyan-600',
     },
   ];
@@ -84,7 +84,7 @@ export default function DemoHubPage() {
 
                 {/* Content */}
                 <div className="relative p-6 h-full flex flex-col">
-                  <div className="text-5xl mb-4">{domain.icon}</div>
+                  <div className="mb-4 text-white">{domain.icon}</div>
 
                   <h2 className="text-2xl font-bold text-white mb-2">{domain.name}</h2>
 
@@ -92,7 +92,7 @@ export default function DemoHubPage() {
 
                   <div className="flex items-center text-blue-400 group-hover:text-blue-300 transition-colors">
                     <span className="text-sm font-semibold">Explore</span>
-                    <span className="ml-2 transition-transform group-hover:translate-x-1">&rarr;</span>
+                    <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
                   </div>
                 </div>
               </div>
