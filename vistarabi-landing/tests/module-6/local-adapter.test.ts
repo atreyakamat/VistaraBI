@@ -11,7 +11,10 @@ global.fetch = mockFetch;
 function makeOllamaResponse(text: string, promptTokens = 10, evalTokens = 20): Response {
     return new Response(
         JSON.stringify({
-            response: text,
+            message: {
+                role: 'assistant',
+                content: text,
+            },
             prompt_eval_count: promptTokens,
             eval_count: evalTokens,
             done: true,
@@ -23,14 +26,22 @@ function makeOllamaResponse(text: string, promptTokens = 10, evalTokens = 20): R
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('local-adapter — callLocalModel()', () => {
-    beforeEach(() => { mockFetch.mockClear(); });
+    beforeEach(() => { 
+        mockFetch.mockClear(); 
+        // Ensure no cloud env vars block local path in tests
+        delete process.env.RENDER;
+        delete process.env.RAILWAY_ENVIRONMENT;
+        delete process.env.VERCEL;
+        delete process.env.GROQ_API_KEY;
+        delete process.env.OPENROUTER_API_KEY;
+    });
 
     it('successful call → AdapterResponse with text and tokens', async () => {
         mockFetch.mockResolvedValueOnce(makeOllamaResponse('Revenue increased by 12% month-over-month.'));
 
         const result = await callLocalModel('You are a narrator.', 'What happened?', 0.1);
         expect(result.text).toBe('Revenue increased by 12% month-over-month.');
-        expect(result.modelId).toBe('qwen3.5:0.8b');
+        expect(result.modelId).toBe(process.env.OLLAMA_MODEL || 'qwen3.5:0.8b');
         expect(result.inputTokens).toBe(10);
         expect(result.outputTokens).toBe(20);
         expect(typeof result.latencyMs).toBe('number');
@@ -84,8 +95,8 @@ describe('local-adapter — callLocalModel()', () => {
 
     it('empty response string → LOCAL_CALL_FAILED', async () => {
         mockFetch.mockResolvedValueOnce(new Response(
-            JSON.stringify({ response: '', done: true }),
-            { status: 200 }
+            JSON.stringify({ message: { content: '' }, done: true }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
         ));
 
         await expect(callLocalModel('sys', 'user', 0.1))

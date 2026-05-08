@@ -41,7 +41,8 @@ export async function callLocalModel(
             latencyMs: Date.now() - startMs
         };
     } catch (err: any) {
-        if (err.message.includes('timeout')) {
+        const msg = (err.message || '').toLowerCase();
+        if (msg.includes('timeout') || msg.includes('timed out')) {
             throw new ModelCallError(
                 'LOCAL_TIMEOUT',
                 `AI request timed out: ${err.message}`,
