@@ -11,7 +11,7 @@ export interface AIMessage {
 }
 
 export interface AIModelConfig {
-    provider: 'ollama-local' | 'ollama-cloud' | 'openrouter';
+    provider: 'ollama-local' | 'ollama-cloud' | 'openrouter' | 'groq';
     model: string;
     baseUrl?: string;
     apiKey?: string;
@@ -26,6 +26,11 @@ export interface AIGenerateOptions {
     model?: string;
     domain?: string; // Added domain support
     stream?: boolean; // Enable streaming (server-side accumulation)
+    /**
+     * preferLocal: when true, prefer local Ollama provider; when false prefer cloud (Groq/OpenRouter).
+     * When undefined, the server default (process.env.FORCE_GROQ) is applied.
+     */
+    preferLocal?: boolean;
 }
 
 export interface AIResponse {
@@ -120,12 +125,12 @@ Provide clear, accurate, and actionable responses based on the data and context 
 function getModelConfigs(): AIModelConfig[] {
     const configs: AIModelConfig[] = [];
 
-    // 0. Groq (Highest Priority — free, 1-2s response, OpenAI-compatible)
+    // 0. Groq (Highest Priority — Groq exposes an OpenAI-compatible API)
     if (process.env.GROQ_API_KEY) {
         configs.push({
-            provider: 'openrouter', // reuses same callOpenRouter() — identical API format
+            provider: 'groq', // handled via OpenAI-compatible call path (callOpenRouter)
             model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-            baseUrl: 'https://api.groq.com/openai/v1',
+            baseUrl: process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1',
             apiKey: process.env.GROQ_API_KEY,
             timeout: 30000, // Groq is fast — 30s is generous
         });
@@ -184,8 +189,8 @@ async function callProvider(
     try {
         console.log(`[AI] Attempting ${config.provider} with model ${config.model}`);
 
-        if (config.provider === 'openrouter') {
-            // OpenRouter supports streaming — use it for faster TTFB
+        if (config.provider === 'openrouter' || config.provider === 'groq') {
+            // OpenRouter/Groq expose OpenAI-compatible endpoints — use the same handler
             return await callOpenRouter(config, options, startTime);
         }
         if (config.provider === 'ollama-local' || config.provider === 'ollama-cloud') {

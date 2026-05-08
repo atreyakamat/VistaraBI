@@ -60,11 +60,13 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
 
     const kpiExplanations: Record<string, any> = {};
     const kpiInputs = kpis.map(kpi => {
-        const kpiId = (kpi.id ?? kpi.kpiId ?? kpi.kpi_id)?.toString();
-        const kpiName = (kpi.name ?? kpi.kpiName ?? kpi.kpi_name ?? kpi.kpi)?.toString();
-        const formula = kpi.lineage?.formula ?? kpi.formula ?? kpi.aggregations?.map((a: any) => a.column).join(' + ') ?? '';
-        const category = kpi.category ?? kpi.kpiCategory ?? 'general';
-        const columns = (kpi.aggregations?.map((a: any) => a.column) ?? kpi.columns ?? []).filter(Boolean);
+        // Defensive mapping: blueprint KPIs may have different naming conventions depending on import or legacy schema
+        const anyKpi = kpi as any;
+        const kpiId = String(anyKpi.id ?? anyKpi.kpiId ?? anyKpi.kpi_id ?? '');
+        const kpiName = String(anyKpi.name ?? anyKpi.kpiName ?? anyKpi.kpi_name ?? anyKpi.kpi ?? '');
+        const formula = anyKpi.lineage?.formula ?? anyKpi.formula ?? (anyKpi.aggregations?.map((a: any) => a.column).join(' + ')) ?? '';
+        const category = anyKpi.category ?? anyKpi.kpiCategory ?? 'general';
+        const columns = ((anyKpi.aggregations?.map((a: any) => a.column)) ?? anyKpi.columns ?? []).filter(Boolean);
         return {
             kpiId,
             kpiName,

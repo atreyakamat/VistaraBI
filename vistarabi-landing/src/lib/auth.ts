@@ -57,6 +57,11 @@ export async function clearAuthCookie(): Promise<void> {
 // Get current user from cookie
 export async function getCurrentUser(): Promise<JWTPayload | null> {
     const token = await getAuthCookie();
-    if (!token) return null;
+    if (!token) {
+        if (process.env.DEMO_MODE === 'true' || !process.env.DATABASE_URL) {
+            return { userId: 'demo-user-id', email: 'demo@vistarabi.com' } as JWTPayload;
+        }
+        return null;
+    }
     return verifyToken(token);
 }

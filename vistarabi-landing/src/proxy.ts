@@ -91,8 +91,8 @@ export function proxy(request: NextRequest) {
 
             if (pathname.startsWith('/app') || pathname.startsWith('/api/projects') || pathname.startsWith('/api/v1')) {
                 if (!token) {
-                    if (isDemoMode && pathname.startsWith('/app')) {
-                        // Demo mode: allow /app access without token
+                    if (isDemoMode && (pathname.startsWith('/app') || pathname.startsWith('/api/'))) {
+                        // Demo mode: allow /app and /api access without token
                         const response = NextResponse.next();
                         response.headers.set('X-Demo-Mode', 'true');
                         response.cookies.set('vistarabi-demo', 'true', { path: '/', maxAge: 86400 });

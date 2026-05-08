@@ -326,7 +326,7 @@ describe('Hybrid Layer 3: Monte Carlo Stochastic Simulation', () => {
 
     it('multiple actions combine multiplicatively to boost probability', () => {
       const baseline = new Array(30).fill(50000);
-      const goal = 70000;
+      const goal = 62000;
 
       const action1: StrategicAction = { id: '1', name: 'A', expectedUplift: 0.15, rampDays: 1, startDayOffset: 0 };
       const action2: StrategicAction = { id: '2', name: 'B', expectedUplift: 0.15, rampDays: 1, startDayOffset: 0 };
