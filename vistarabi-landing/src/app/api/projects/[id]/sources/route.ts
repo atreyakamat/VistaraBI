@@ -5,6 +5,7 @@ import { parseFile, getFileType } from '@/lib/parsers';
 import { runFullAnalysis } from '@/lib/intelligence';
 import { purifyDataset } from '@/lib/purification';
 import { checkRateLimit, getIdentifier, RATE_LIMITS, buildRateLimitHeaders } from '@/lib/security/rate-limiter';
+import { apiError, apiSuccess } from '@/lib/api-response';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB — matches client-side validation
 const ALLOWED_EXTENSIONS = ['csv', 'json', 'xml', 'xlsx'];
@@ -17,18 +18,18 @@ export async function GET(
     try {
         const user = await getCurrentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+            return apiError('UNAUTHORIZED', 'Not authenticated');
         }
 
         const { id } = await params;
         const project = await db.project.findUnique({ where: { id } });
 
         if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+            return apiError('NOT_FOUND', 'Project not found');
         }
 
         if (project.userId !== user.userId) {
-            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+            return apiError('FORBIDDEN', 'Access denied');
         }
 
         const sources = await db.source.findMany({
@@ -49,10 +50,10 @@ export async function GET(
             uploadedAt: s.uploadedAt,
         }));
 
-        return NextResponse.json({ sources: sourcesWithoutData });
+        return apiSuccess({ sources: sourcesWithoutData });
     } catch (error) {
         console.error('Get sources error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return apiError('INTERNAL_ERROR', 'Failed to fetch sources');
     }
 }
 
@@ -64,28 +65,25 @@ export async function POST(
     try {
         const user = await getCurrentUser();
         if (!user) {
-            return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+            return apiError('UNAUTHORIZED', 'Not authenticated');
         }
 
         const { id } = await params;
         const project = await db.project.findUnique({ where: { id } });
 
         if (!project) {
-            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+            return apiError('NOT_FOUND', 'Project not found');
         }
 
         if (project.userId !== user.userId) {
-            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+            return apiError('FORBIDDEN', 'Access denied');
         }
 
         // ─── Rate Limiting ───
         const rl = checkRateLimit(getIdentifier(request, user.userId, 'upload'), RATE_LIMITS.UPLOAD);
         const rlHeaders = buildRateLimitHeaders(rl);
         if (!rl.success) {
-            return NextResponse.json(
-                { error: 'Upload rate limit exceeded. Please wait a minute.' },
-                { status: 429, headers: rlHeaders }
-            );
+            return apiError('RATE_LIMITED', 'Upload rate limit exceeded. Please wait a minute.');
         }
 
         let formData;
@@ -100,20 +98,16 @@ export async function POST(
             // Handle body size limit errors
             if (formDataError?.message?.includes('Request body exceeded') || 
                 formDataError?.message?.includes('Failed to parse')) {
-                return NextResponse.json(
-                    { 
-                        error: 'File upload too large. Maximum size is 100MB.',
-                        hint: 'Please reduce file size or split into smaller batches.'
-                    },
-                    { status: 413, headers: rlHeaders }
-                );
+                return apiError('FILE_TOO_LARGE', 'File upload too large. Maximum size is 50MB.', 413, {
+                    hint: 'Please reduce file size or split into smaller batches.'
+                });
             }
             
             throw formDataError;
         }
 
         if (files.length === 0) {
-            return NextResponse.json({ error: 'No files provided' }, { status: 400, headers: rlHeaders });
+            return apiError('VALIDATION_ERROR', 'No files provided');
         }
 
         const results = [];
@@ -229,9 +223,9 @@ export async function POST(
             }
         }
 
-        return NextResponse.json({ sources: results }, { status: 201, headers: rlHeaders });
+        return apiSuccess({ sources: results }, 201);
     } catch (error) {
         console.error('Upload sources error:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+        return apiError('INTERNAL_ERROR', 'Upload processing failed');
     }
 }

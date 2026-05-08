@@ -12,11 +12,15 @@ model User {
   name               String
   email              String              @unique
   password           String
+  emailVerified      DateTime?
+  emailVerifyToken   String?             @unique
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   deletedAt          DateTime?
   projects           Project[]
   passwordResetToken PasswordResetToken?
+
+  @@index([emailVerifyToken])
 }
 
 model PasswordResetToken {

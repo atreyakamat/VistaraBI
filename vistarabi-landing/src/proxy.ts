@@ -22,7 +22,7 @@ const PUBLIC_PREFIXES = [
     '/manifest',
 ];
 
-const PUBLIC_EXACT = ['/', '/login', '/register', '/forgot-password', '/reset-password'];
+const PUBLIC_EXACT = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
 
 function isPublic(pathname: string): boolean {
     if (PUBLIC_EXACT.includes(pathname)) return true;

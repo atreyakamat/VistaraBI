@@ -110,3 +110,42 @@ export function passwordResetEmail(resetUrl: string): string {
 </body>
 </html>`;
 }
+
+export function verificationEmail(verifyUrl: string, name: string): string {
+    return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#0f172a;font-family:Inter,system-ui,sans-serif;">
+  <div style="max-width:560px;margin:40px auto;padding:0 20px;">
+    <!-- Logo -->
+    <div style="text-align:center;padding:32px 0 24px;">
+      <div style="display:inline-flex;align-items:center;gap:10px;">
+        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:20px;color:white;">✓</div>
+        <span style="font-size:22px;font-weight:800;color:#f1f5f9;letter-spacing:-0.5px;">VistaraBI</span>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:40px;">
+      <h1 style="margin:0 0 12px;font-size:28px;font-weight:800;color:#f8fafc;letter-spacing:-0.5px;">Verify your email</h1>
+      <p style="margin:0 0 24px;color:#94a3b8;font-size:16px;line-height:1.7;">
+        Hi ${name}, thanks for signing up! Click the button below to verify your email address and get started.
+      </p>
+
+      <a href="${verifyUrl}" style="display:block;text-align:center;padding:16px 32px;background:linear-gradient(135deg,#10b981,#059669);color:white;text-decoration:none;border-radius:14px;font-weight:700;font-size:16px;margin:28px 0;">
+        Verify Email →
+      </a>
+
+      <p style="color:#64748b;font-size:14px;margin:20px 0;text-align:center;">
+        Or copy this link:<br>
+        <code style="background:rgba(16,185,129,0.1);padding:8px 12px;border-radius:8px;font-size:12px;color:#10b981;word-break:break-all;">${verifyUrl}</code>
+      </p>
+
+      <p style="color:#475569;font-size:13px;margin-top:24px;">
+        This link expires in 24 hours. If you didn't sign up, you can safely ignore this email.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { comparePassword, signToken, setAuthCookie } from '@/lib/auth';
 import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
+import { apiError, apiSuccess } from '@/lib/api-response';
 import prisma from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
@@ -8,10 +9,7 @@ export async function POST(request: NextRequest) {
     const rl = checkRateLimit(getIdentifier(request, undefined, 'login'), RATE_LIMITS.AUTH);
     const rlHeaders = buildRateLimitHeaders(rl);
     if (!rl.success) {
-        return NextResponse.json(
-            { error: 'Too many login attempts. Please wait and try again.' },
-            { status: 429, headers: rlHeaders }
-        );
+        return apiError('RATE_LIMITED', 'Too many login attempts. Please wait and try again.');
     }
 
     try {
@@ -20,23 +18,15 @@ export async function POST(request: NextRequest) {
 
         // Validate inputs
         if (!email || !password) {
-            return NextResponse.json(
-                { error: 'Email and password are required' },
-                { status: 400 }
-            );
+            return apiError('VALIDATION_ERROR', 'Email and password are required');
         }
 
         // Check if database is available
         if (!prisma) {
-            return NextResponse.json(
-                { 
-                  error: 'Authentication service unavailable',
-                  message: 'Database connection required. Please ensure PostgreSQL is running on localhost:5432',
-                  mode: 'demo',
-                  note: 'Demo dashboards are available at /demo without authentication'
-                },
-                { status: 503 }
-            );
+            return apiError('SERVICE_UNAVAILABLE', 'Database connection required. Please ensure PostgreSQL is running.', 503, {
+                mode: 'demo',
+                note: 'Demo dashboards are available at /demo without authentication'
+            });
         }
 
         // Find user
@@ -44,42 +34,37 @@ export async function POST(request: NextRequest) {
         try {
           user = await prisma.user.findUnique({
               where: { email },
-          }) as { id: string; name: string; email: string; password: string } | null;
+          });
         } catch (dbError: any) {
           if (dbError.code === 'P1000' || dbError.code === 'P1001' || dbError.message?.toLowerCase().includes('connection') || dbError.message?.toLowerCase().includes('reach database')) {
-            return NextResponse.json(
-                { 
-                  error: 'Database connection failed',
-                  message: 'PostgreSQL is not running on localhost:5432. Demo dashboards are available at /demo without authentication',
-                  mode: 'demo'
-                },
-                { status: 503 }
-            );
+            return apiError('SERVICE_UNAVAILABLE', 'Database connection failed. Demo dashboards are available at /demo.', 503, { mode: 'demo' });
           }
           throw dbError;
         }
 
         if (!user) {
-            return NextResponse.json(
-                { error: 'Invalid email or password' },
-                { status: 401 }
-            );
+            return apiError('UNAUTHORIZED', 'Invalid email or password');
         }
 
         // Compare password
         const isValid = await comparePassword(password, user.password);
         if (!isValid) {
-            return NextResponse.json(
-                { error: 'Invalid email or password' },
-                { status: 401 }
-            );
+            return apiError('UNAUTHORIZED', 'Invalid email or password');
+        }
+
+        // Check if email is verified
+        if (!user.emailVerified) {
+            return apiError('UNAUTHORIZED', 'Please verify your email before logging in. Check your inbox for a verification link.', 403, {
+                requiresVerification: true,
+                email: user.email,
+            });
         }
 
         // Create JWT and set cookie
         const token = signToken({ userId: user.id, email: user.email });
         await setAuthCookie(token);
 
-        return NextResponse.json({
+        return apiSuccess({
             message: 'Login successful',
             user: {
                 id: user.id,
@@ -98,19 +83,9 @@ export async function POST(request: NextRequest) {
           error?.message?.toLowerCase().includes('connect') ||
           error?.message?.toLowerCase().includes('reach database')
         ) {
-          return NextResponse.json(
-              { 
-                error: 'Database connection failed',
-                message: 'PostgreSQL is not running. Demo dashboards available at /demo',
-                mode: 'demo'
-              },
-              { status: 503 }
-          );
+          return apiError('SERVICE_UNAVAILABLE', 'Database connection failed. Demo dashboards available at /demo', 503, { mode: 'demo' });
         }
         
-        return NextResponse.json(
-            { error: 'Internal server error' },
-            { status: 500 }
-        );
+        return apiError('INTERNAL_ERROR', 'Login failed');
     }
 }
