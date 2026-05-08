@@ -633,6 +633,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [preferLocal, setPreferLocal] = useState(true);
     const [lastUserMessage, setLastUserMessage] = useState('');
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -725,6 +726,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                 body: JSON.stringify({
                     message: messageText.trim(),
                     sessionId: projectId,
+                    preferLocal,
                     // State Injection Pipeline: forward live strategy context to the AI
                     ...(strategyContext ? { strategyContext } : {}),
                 }),
@@ -771,7 +773,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
         } finally {
             setIsLoading(false);
         }
-    }, [projectId, isLoading, onCommandSuccess]);
+    }, [projectId, isLoading, preferLocal, strategyContext, onCommandSuccess]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -801,6 +803,20 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setPreferLocal(!preferLocal)}
+                            className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all border ${
+                                preferLocal 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                            }`}
+                            title={preferLocal ? "Using Local AI (Ollama)" : "Using Cloud AI (Groq)"}
+                        >
+                            <span className="material-symbols-outlined text-[14px]">
+                                {preferLocal ? 'nest_remote_iris' : 'cloud'}
+                            </span>
+                            {preferLocal ? 'Local' : 'Cloud'}
+                        </button>
                         <button
                             onClick={() => setMessages([{
                                 id: genId(), role: 'assistant' as const, timestamp: new Date(),

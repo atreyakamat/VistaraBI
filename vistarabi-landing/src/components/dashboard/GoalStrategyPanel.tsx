@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 // Module 7 — Goal Strategy Panel (Full Implementation)
 // Premium intelligence panel for the Goal Strategy Engine.
@@ -108,7 +108,7 @@ const EXAMPLE_GOALS = [
 
 const TIER_BADGE: Record<string, { cls: string; label: string }> = {
     HIGH: { cls: 'goal-loc-tier--high', label: '↑ High' },
-    MEDIUM: { cls: 'goal-loc-tier--medium', label: ' to  Avg' },
+    MEDIUM: { cls: 'goal-loc-tier--medium', label: '↔ Avg' },
     LOW: { cls: 'goal-loc-tier--low', label: '↓ Low' },
 };
 
@@ -434,6 +434,7 @@ export function GoalStrategyPanel({
 }) {
     const [input, setInput] = useState(initialQuery);
     const [loading, setLoading] = useState(false);
+    const [preferLocal, setPreferLocal] = useState(true);
     const [stage, setStage] = useState<string | null>(null);
     const [canvas, setCanvas] = useState<StrategyCanvas | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -513,18 +514,21 @@ export function GoalStrategyPanel({
         setError(null);
         setStage('PARSING');
 
-        const [res] = await Promise.all([
-            fetch(`/api/projects/${projectId}/goals`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ rawQuery: q }),
-            }),
-            animateStages(),
-        ]);
-
-        setStage(null);
-
         try {
+            const [res] = await Promise.all([
+                fetch(`/api/projects/${projectId}/goals`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        rawQuery: q,
+                        preferLocal
+                    }),
+                }),
+                animateStages(),
+            ]);
+
+            setStage(null);
+
             if (!res.ok) {
                 const e = await res.json().catch(() => ({}));
                 throw new Error(e.error ?? `Server error ${res.status}`);
@@ -546,7 +550,7 @@ export function GoalStrategyPanel({
         } finally {
             setLoading(false);
         }
-    }, [input, loading, projectId, animateStages]);
+    }, [input, loading, projectId, preferLocal, animateStages]);
 
     const handleGenerateReport = async () => {
         if (!simulationContext) return;
@@ -728,9 +732,25 @@ export function GoalStrategyPanel({
                             <p className="text-[10px] text-slate-400">Prescriptive intelligence · Module 7</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="ask-ai-close-btn" title="Close">
-                        <span className="material-symbols-outlined text-sm">close</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setPreferLocal(!preferLocal)}
+                            className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all border ${
+                                preferLocal 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                            }`}
+                            title={preferLocal ? "Using Local AI (Ollama)" : "Using Cloud AI (Groq)"}
+                        >
+                            <span className="material-symbols-outlined text-[14px]">
+                                {preferLocal ? 'nest_remote_iris' : 'cloud'}
+                            </span>
+                            {preferLocal ? 'Local' : 'Cloud'}
+                        </button>
+                        <button onClick={onClose} className="ask-ai-close-btn" title="Close">
+                            <span className="material-symbols-outlined text-sm">close</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Body */}

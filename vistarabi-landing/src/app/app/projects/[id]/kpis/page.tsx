@@ -65,6 +65,7 @@ export default function KPIWorkspacePage() {
     const [blueprint, setBlueprint] = useState<{ kpis: ApprovedKPI[]; isLocked: boolean; version: number } | null>(null);
     const [loading, setLoading] = useState(true);
     const [aiLoading, setAiLoading] = useState(false);
+    const [preferLocal, setPreferLocal] = useState(true);
     const [aiRequested, setAiRequested] = useState(false);
     const [adding, setAdding] = useState<string | null>(null);
     const [finalizing, setFinalizing] = useState(false);
@@ -108,7 +109,9 @@ export default function KPIWorkspacePage() {
         setAiLoading(true);
         setAiRequested(true);
         try {
-            const discoveryRes = await api.post<{ proposals: any[] }>(`/api/projects/${projectId}/ai-kpi-discovery`);
+            const discoveryRes = await api.post<{ proposals: any[] }>(`/api/projects/${projectId}/ai-kpi-discovery`, {
+                preferLocal
+            });
             
             if (discoveryRes.data?.proposals?.length) {
                 const aiProposals = discoveryRes.data.proposals.map((p) => ({
@@ -320,6 +323,20 @@ export default function KPIWorkspacePage() {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setPreferLocal(!preferLocal)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
+                                preferLocal 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                            }`}
+                            title={preferLocal ? "Using Local AI (Ollama)" : "Using Cloud AI (Groq)"}
+                        >
+                            <span className="material-symbols-outlined text-[14px]">
+                                {preferLocal ? 'nest_remote_iris' : 'cloud'}
+                            </span>
+                            {preferLocal ? 'Local' : 'Cloud'}
+                        </button>
                         <div className="hidden md:flex items-center gap-2 text-sm font-bold">
                             <Target className="w-4 h-4 text-[var(--accent)]" />
                             <span className="text-[var(--foreground)]">{blueprint?.kpis?.length || 0}</span>

@@ -14,6 +14,7 @@ import { z } from 'zod';
 
 const createGoalRequestSchema = z.object({
     rawQuery: z.string().trim().min(1),
+    preferLocal: z.boolean().optional(),
 });
 
 export async function POST(
@@ -44,7 +45,7 @@ export async function POST(
                 { status: 400, headers: rlHeaders }
             );
         }
-        const { rawQuery } = parsedBody.data;
+        const { rawQuery, preferLocal } = parsedBody.data;
 
         // 1. Fetch Project for Domain Context
         const project = await prisma.project.findFirst({
@@ -81,8 +82,8 @@ export async function POST(
             : fallbackLocationsForDomain(domain);
 
         // 3. Execute the 7-stage Goal Pipeline
-        console.log(`[Module 7] Executing Goal Engine for Project ${projectId}: "${rawQuery}"`);
-        const canvas = await executeGoalPipeline(rawQuery, domain, locations);
+        console.log(`[Module 7] Executing Goal Engine for Project ${projectId}: "${rawQuery}" (preferLocal: ${preferLocal})`);
+        const canvas = await executeGoalPipeline(rawQuery, domain, locations, undefined, preferLocal);
         const parsedGeneratedPlan = safeParseGeneratedPlan(canvas);
         if (!parsedGeneratedPlan.success) {
             return NextResponse.json(

@@ -100,7 +100,7 @@ export async function analyzeProjectRelationships(projectId: string): Promise<vo
 }
 
 // Full analysis: source + project relationships
-export async function runFullAnalysis(sourceId: string): Promise<void> {
+export async function runFullAnalysis(sourceId: string, preferLocal?: boolean): Promise<void> {
     const source = await db.source.findUnique({ where: { id: sourceId } });
     if (!source) return;
 

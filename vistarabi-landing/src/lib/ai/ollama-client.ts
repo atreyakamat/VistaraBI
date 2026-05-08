@@ -87,6 +87,8 @@ export interface OllamaGenerateOptions {
     messages?: OllamaMessage[];
     prompt?: string; // For simple prompts
     temperature?: number;
+    preferLocal?: boolean;
+    agentRole?: string;
 }
 
 // Generate completion using unified AI client with automatic fallback
@@ -96,6 +98,8 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
         messages = [],
         prompt,
         temperature = 0.3,
+        preferLocal,
+        agentRole,
     } = options;
 
     try {
@@ -111,6 +115,8 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
             messages: aiMessages,
             temperature,
             model,
+            preferLocal,
+            agentRole: agentRole as any,
         });
 
         return response.content;
@@ -154,6 +160,7 @@ export async function generateKPISuggestions(
     columns: string[],
     sampleRows: Record<string, unknown>[],
     domain: string,
+    preferLocal?: boolean,
     model?: string
 ): Promise<{ name: string; formula: string; category: string; explanation: string }[]> {
 
@@ -202,6 +209,7 @@ JSON Array:`;
             messages: [{ role: 'user', content: prompt }],
             temperature: 0.3,
             model: kpiModel,
+            preferLocal,
             agentRole: 'kpi-designer', // Use specialized KPI designer agent
         });
 
@@ -314,3 +322,4 @@ function parseSemanticResponse(
         keySignals: [],
     };
 }
+

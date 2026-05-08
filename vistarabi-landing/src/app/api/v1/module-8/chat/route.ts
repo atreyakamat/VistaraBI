@@ -7,6 +7,7 @@ import { z } from 'zod';
 const module8ChatRequestSchema = z.object({
   message: z.string().trim().min(1),
   context: z.unknown().optional(),
+  preferLocal: z.boolean().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { message, context } = parsed.data;
+    const { message, context, preferLocal } = parsed.data;
 
     const systemPrompt = `You are the VistaraBI AI Strategist, an expert business analyst and data scientist.
 You are currently helping the user evaluate their goal strategy and Module 8 Monte Carlo forecasting results.
@@ -54,7 +55,7 @@ CRITICAL INSTRUCTIONS:
 
     // Call the local Ollama adapter (same one used by Module 6)
     // Temperature 0.3 for a mix of creativity and analytical precision
-    const response = await callLocalModel(systemPrompt, userMessage, 0.3);
+    const response = await callLocalModel(systemPrompt, userMessage, 0.3, undefined, preferLocal);
 
     return NextResponse.json({ reply: response.text }, { headers: rlHeaders });
   } catch (error: unknown) {

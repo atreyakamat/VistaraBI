@@ -65,7 +65,9 @@ export async function POST(
 
         console.log('[API] Running AI KPI Discovery for project:', id);
 
-        const result = await runAIKPIDiscovery(id);
+        const { preferLocal } = await request.json().catch(() => ({ preferLocal: true }));
+
+        const result = await runAIKPIDiscovery(id, preferLocal);
 
         console.log('[API] Discovery result:', {
             proposalCount: result.proposals.length,

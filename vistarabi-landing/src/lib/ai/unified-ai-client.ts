@@ -53,6 +53,7 @@ export type AgentRole =
     | 'statistician'          // Statistical analysis, correlations, forecasting
     | 'narrative-writer'      // Event narratives, explanations, summaries
     | 'strategy-planner'      // Goal setting, action planning, prescriptive insights
+    | 'scenario-planner'      // Multi-tier execution plans and simulations
     | 'quality-auditor'       // Data quality assessment, validation
     | 'kpi-designer'          // KPI suggestions, metric formulation
     | 'general';              // General-purpose reasoning
@@ -94,13 +95,18 @@ Focus on clarity, storytelling, and making complex data accessible to all audien
 
     // ACTION 3: Refined to be strictly PRESCRIPTIVE (forward-looking).
     // Distinction from business-analyst: SP answers "WHAT SHOULD WE DO NEXT" by turning diagnosis into action.
-    // Triggers: goal, target, strategy, plan, improve, action, initiative, recommendation, forecast.
+    // Triggers: goal, target, strategy, plan, improve, action, initiative, recommendation, next step, forecast.
     'strategy-planner': `You are a strategic planning consultant focused exclusively on PRESCRIPTIVE reasoning.
  Your role is to answer "WHAT SHOULD WE DO NEXT" by translating diagnosed problems into concrete action plans.
  You define goals, recommend initiatives, simulate expected impact, and create prioritized roadmaps.
  Do NOT re-diagnose historical data — that is handled by the business-analyst agent.
  Output: Actionable roadmap with timeline, measurable KPI targets, and expected outcomes.
  Keywords that should route here: goal, target, strategy, plan, improve, action, initiative, recommendation, next step, forecast, Q3, achieve.`,
+
+    'scenario-planner': `You are a senior execution planner specialized in business scenario modeling.
+ Your role is to take a strategic action and generate concrete execution tiers (Lean, Balanced, Premium).
+ For each tier, you provide estimated costs, action steps, timelines, and expected metric improvements.
+ Focus on operational feasibility and tiered investment levels.`,
 
     // Accuracy tasks: data value completeness, consistency, anomaly detection, validation.
     // De-duplication boundary: QA answers "IS this data correct/complete" (value accuracy).
@@ -122,12 +128,16 @@ Provide clear, accurate, and actionable responses based on the data and context 
 };
 
 // Get configured AI models in priority order
-function getModelConfigs(): AIModelConfig[] {
+function getModelConfigs(preferLocal?: boolean): AIModelConfig[] {
     const configs: AIModelConfig[] = [];
+
+    // Local / Cloud definitions
+    const localConfigs: AIModelConfig[] = [];
+    const cloudConfigs: AIModelConfig[] = [];
 
     // 0. Groq (Highest Priority — Groq exposes an OpenAI-compatible API)
     if (process.env.GROQ_API_KEY) {
-        configs.push({
+        cloudConfigs.push({
             provider: 'groq', // handled via OpenAI-compatible call path (callOpenRouter)
             model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
             baseUrl: process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1',
@@ -138,7 +148,7 @@ function getModelConfigs(): AIModelConfig[] {
 
     // 1. OpenRouter (cloud fallback — paid, wide model selection)
     if (process.env.OPENROUTER_API_KEY) {
-        configs.push({
+        cloudConfigs.push({
             provider: 'openrouter',
             model: process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet',
             baseUrl: 'https://openrouter.ai/api/v1',
@@ -153,7 +163,7 @@ function getModelConfigs(): AIModelConfig[] {
     const cloudModelEnv = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'qwen3:0.6b';
 
     if (cloudUrl && cloudKey && !cloudUrl.includes('ollama.com')) {
-        configs.push({
+        cloudConfigs.push({
             provider: 'ollama-cloud',
             model: cloudModelEnv,
             baseUrl: cloudUrl,
@@ -168,12 +178,23 @@ function getModelConfigs(): AIModelConfig[] {
     // Skip local Ollama if we're in a cloud environment (Render, Railway, Vercel, etc.)
     const isCloudEnv = !!(process.env.RENDER || process.env.RAILWAY_ENVIRONMENT || process.env.VERCEL);
     if (!isCloudEnv) {
-        configs.push({
+        localConfigs.push({
             provider: 'ollama-local',
             model: ollamaModel,
             baseUrl: ollamaUrl,
             timeout: 90000,
         });
+    }
+
+    const defaultPreferLocal = process.env.FORCE_GROQ !== 'true' && process.env.PREFER_LOCAL !== 'false';
+    const useLocal = preferLocal ?? defaultPreferLocal;
+
+    if (useLocal) {
+        // If local is preferred, put local then cloud
+        configs.push(...localConfigs, ...cloudConfigs);
+    } else {
+        // If cloud is preferred, put cloud then local
+        configs.push(...cloudConfigs, ...localConfigs);
     }
 
     return configs;
@@ -420,7 +441,7 @@ async function callOpenRouter(
 export async function generateWithFallback(
     options: AIGenerateOptions
 ): Promise<AIResponse> {
-    const configs = getModelConfigs();
+    const configs = getModelConfigs(options.preferLocal);
 
     if (configs.length === 0) {
         throw new Error('No AI providers configured. Please set at least one provider in environment variables.');

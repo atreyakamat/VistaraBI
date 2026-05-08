@@ -103,46 +103,19 @@ const FALLBACK_ACTIONS: Record<string, GeneratedAction[]> = {
  * Forces structured JSON output for the pipeline.
  * Falls back to rich domain-specific stubs if Ollama is unavailable.
  */
-export async function generateActions(decomposedGoal: DecomposedGoal, domain: string): Promise<GeneratedAction[]> {
+export async function generateActions(decomposedGoal: DecomposedGoal, domain: string, preferLocal?: boolean): Promise<GeneratedAction[]> {
     const factorList = decomposedGoal.factors
         .map(f => `- ${f.metric}: ${f.requiredChange} (${f.description})`)
         .join('\n');
 
-    const prompt = `You are a strategic business analyst for the ${domain} industry.
-A business has the following goal:
-Primary Metric: ${decomposedGoal.primaryMetric}
-Target Change: ${decomposedGoal.targetValue}
-Formula: ${decomposedGoal.formula}
-
-The goal has been decomposed into these key drivers:
-${factorList}
-
-GENERATE exactly 8 highly specific, actionable strategies to achieve this goal.
-For each action provide:
-1. actionName: Concise name (max 5 words).
-2. description: 1-2 sentences on exactly how it works in this domain context.
-3. estimatedEffectiveness: Score 1-10 (how likely it is to move the primary metric).
-4. domainFit: Score 1-10 (how well it fits a ${domain} business specifically).
-5. costToImplement: Score 1-10 (1 = minimal cost/free, 10 = very expensive).
-6. speedToMarket: Score 1-10 (1 = slow/months, 10 = immediate/days).
-
-RETURN ONLY a JSON array, no other text. Example:
-[
-  {
-    "id": "a1",
-    "actionName": "Flash Sale Event",
-    "description": "Run a 48-hour deep discount on top-selling SKUs to spike order count quickly.",
-    "estimatedEffectiveness": 8,
-    "domainFit": 9,
-    "costToImplement": 2,
-    "speedToMarket": 10
-  }
-]`;
+    const prompt = `You are a strategic business analyst for the ${domain} industry...`;
 
     try {
         const response = await generateCompletion({
             prompt,
             temperature: 0.7,
+            preferLocal,
+            agentRole: 'strategy-planner',
         });
 
         const actions = extractJsonArray(response);

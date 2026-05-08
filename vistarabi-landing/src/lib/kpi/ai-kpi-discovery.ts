@@ -1,4 +1,4 @@
-﻿// AI KPI Discovery Engine - Module 4 Phase 4C
+// AI KPI Discovery Engine - Module 4 Phase 4C
 // Invents meaningful KPIs from data columns using Ollama
 
 import db from '@/lib/prisma';
@@ -145,7 +145,7 @@ function formulaToAggregations(
 }
 
 // Invent KPIs from columns using Ollama
-async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIProposal[]> {
+async function inventKPIsFromColumns(context: DiscoveryContext, preferLocal?: boolean): Promise<AIKPIProposal[]> {
     console.log('[AI-Discovery] 🤖 Starting Ollama KPI invention...');
 
     if (context.allColumns.length === 0) {
@@ -171,7 +171,8 @@ async function inventKPIsFromColumns(context: DiscoveryContext): Promise<AIKPIPr
         const suggestions = await generateKPISuggestions(
             sampleCols,
             sampleRows,
-            context.domain
+            context.domain,
+            preferLocal
         );
 
         console.log('[AI-Discovery] 📥 Got', suggestions.length, 'suggestions from Ollama');
@@ -283,7 +284,7 @@ function matchDerivedKPIs(context: DiscoveryContext): AIKPIProposal[] {
 }
 
 // Main: Run AI KPI Discovery
-export async function runAIKPIDiscovery(projectId: string): Promise<{
+export async function runAIKPIDiscovery(projectId: string, preferLocal?: boolean): Promise<{
     proposals: AIKPIProposal[];
     inventedCount: number;
     derivedCount: number;
@@ -334,7 +335,7 @@ export async function runAIKPIDiscovery(projectId: string): Promise<{
     // 2. Invent KPIs using Ollama
     if (ollamaReady) {
         console.log('[AI-Discovery] 🤖 Running Ollama invention...');
-        const inventedProposals = await inventKPIsFromColumns(context);
+        const inventedProposals = await inventKPIsFromColumns(context, preferLocal);
         console.log('[AI-Discovery] 🤖 Invented proposals:', inventedProposals.length);
         allProposals.push(...inventedProposals);
         debug.steps.push('AI invented: ' + inventedProposals.length);

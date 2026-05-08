@@ -277,6 +277,7 @@ export async function POST(
             sessionId?: string;
             message?: string;
             strategyContext?: StrategyCanvasResult; // M6→M8 State Injection
+            preferLocal?: boolean;
         };
 
         if (!body.message || typeof body.message !== 'string') {
@@ -289,6 +290,7 @@ export async function POST(
 
         const sanitized = sanitizeUserQuery(raw);
         const sessionId = body.sessionId || projectId;
+        const preferLocal = body.preferLocal;
 
         // ─── Module 6F: Conversational Orchestrator ──────────────────────────────
         const mem = getSessionMemory(sessionId);

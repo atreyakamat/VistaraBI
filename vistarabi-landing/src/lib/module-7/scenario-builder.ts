@@ -87,31 +87,19 @@ function buildFallbackScenarios(actionName: string): BudgetScenario[] {
  * Generates 3-tier budget execution plans (Lean / Balanced / Premium) for each ranked action.
  * Falls back to topic-aware stubs when Ollama is unavailable.
  */
-export async function buildScenarios(actions: RankedAction[]): Promise<ActionWithScenarios[]> {
+export async function buildScenarios(actions: RankedAction[], preferLocal?: boolean): Promise<ActionWithScenarios[]> {
     const results: ActionWithScenarios[] = [];
 
     for (const action of actions) {
-        const prompt = `For the business strategy "${action.actionName}":
-"${action.description}"
-
-Generate 3 concrete execution plans based on investment level:
-1. LEAN: Bootstrapped / DIY version (< $500, manual effort).
-2. BALANCED: Standard tools and moderate spend ($500 – $5k).
-3. PREMIUM: Agency / enterprise-grade aggressive investment (> $5k).
-
-For each level provide:
-- level: "LEAN" | "BALANCED" | "PREMIUM"
-- label: "Lean" | "Balanced" | "Premium"
-- estimatedCost: A cost range string.
-- executionPlan: Array of exactly 3 specific, actionable steps.
-- timeline: Time to first measurable impact (e.g. "2 weeks").
-- expectedKpiLift: Estimated percentage improvement (e.g. "5-10%").
-- monitoringMetrics: Array of 2 KPIs to track success.
-
-RETURN ONLY a JSON array with exactly 3 objects. No other text.`;
+        const prompt = `For the business strategy "${action.actionName}":...`;
 
         try {
-            const response = await generateCompletion({ prompt, temperature: 0.3 });
+            const response = await generateCompletion({ 
+                prompt, 
+                temperature: 0.3,
+                preferLocal,
+                agentRole: 'scenario-planner'
+            });
             const scenarios = extractJsonArray(response);
             if (!scenarios || scenarios.length === 0) throw new Error('No valid scenarios returned');
 

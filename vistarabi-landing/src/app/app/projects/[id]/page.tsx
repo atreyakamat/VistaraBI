@@ -85,6 +85,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
     const [relationships, setRelationships] = useState<RelationshipData[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [preferLocal, setPreferLocal] = useState(true);
     const [deleting, setDeleting] = useState(false);
     const [previewSource, setPreviewSource] = useState<SourceWithPreview | null>(null);
     const [previewColumnMeta, setPreviewColumnMeta] = useState<ColumnInfo[] | undefined>();
@@ -174,6 +175,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
             Array.from(files).forEach((file) => {
                 formData.append("files", file);
             });
+            formData.append("preferLocal", preferLocal.toString());
 
             const res = await fetch(`/api/projects/${id}/sources`, {
                 method: "POST",
@@ -347,6 +349,20 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setPreferLocal(!preferLocal)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
+                                preferLocal 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                            }`}
+                            title={preferLocal ? "Using Local AI (Ollama)" : "Using Cloud AI (Groq)"}
+                        >
+                            <span className="material-symbols-outlined text-[14px]">
+                                {preferLocal ? 'nest_remote_iris' : 'cloud'}
+                            </span>
+                            {preferLocal ? 'Local' : 'Cloud'}
+                        </button>
                         <div className="hidden md:flex items-center gap-3">
                             {sources.length > 0 && (
                                 <DomainBadge

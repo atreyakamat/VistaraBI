@@ -88,10 +88,12 @@ export async function POST(
 
         let formData;
         let files: File[];
+        let preferLocal: boolean = true;
         
         try {
             formData = await request.formData();
             files = formData.getAll('files') as File[];
+            preferLocal = formData.get('preferLocal') === 'true';
         } catch (formDataError: any) {
             console.error('FormData parsing error:', formDataError);
             
@@ -169,7 +171,7 @@ export async function POST(
                 }))!;
 
                 // Run intelligence analysis (column types, stats, relationships)
-                await runFullAnalysis(source.id);
+                await runFullAnalysis(source.id, preferLocal);
 
                 // Run data purification (cleaning pipeline)
                 await purifyDataset(source.id);
@@ -229,3 +231,4 @@ export async function POST(
         return apiError('INTERNAL_ERROR', 'Upload processing failed');
     }
 }
+
