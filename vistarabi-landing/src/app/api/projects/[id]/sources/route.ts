@@ -183,6 +183,24 @@ export async function POST(
                 // Fetch updated source with quality score
                 const updatedSource = await db.source.findUnique({ where: { id: source.id } });
 
+                // Fetch cleaning stats for the response
+                let cleaningStats = null;
+                try {
+                    const cleaningLog = await db.cleaningLog.findUnique({ where: { sourceId: source.id } });
+                    if (cleaningLog) {
+                        cleaningStats = {
+                            nullsFilled: cleaningLog.nullsFilled,
+                            duplicatesRemoved: cleaningLog.duplicatesRemoved,
+                            datesNormalized: cleaningLog.datesNormalized,
+                            currenciesNormalized: cleaningLog.currenciesNormalized,
+                            textsStandardized: cleaningLog.textsStandardized,
+                            emptyColumnsRemoved: cleaningLog.emptyColumnsRemoved,
+                            originalRowCount: cleaningLog.originalRowCount,
+                            cleanedRowCount: cleaningLog.cleanedRowCount,
+                        };
+                    }
+                } catch { /* silent */ }
+
                 results.push({
                     id: source.id,
                     fileName: source.fileName,
@@ -190,6 +208,7 @@ export async function POST(
                     rowCount: source.rowCount,
                     colCount: source.colCount,
                     qualityScore: updatedSource?.qualityScore,
+                    cleaningStats,
                 });
             } catch (error) {
                 // Update source with error

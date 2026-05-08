@@ -15,7 +15,7 @@ function getLocalOllamaBaseUrl(): string {
 function getCloudConfig() {
     const url = (process.env.CLOUD_AI_BASE_URL || process.env.OLLAMA_CLOUD_URL)?.replace(/\/$/, '');
     const key = process.env.CLOUD_AI_API_KEY || process.env.OLLAMA_CLOUD_API_KEY;
-    const model = process.env.CLOUD_AI_MODEL || process.env.OLLAMA_CLOUD_MODEL || 'qwen3.5:397b';
+    const model = process.env.CLOUD_AI_MODEL || process.env.OLLAMA_CLOUD_MODEL || 'qwen3:0.6b';
 
     return {
         url,
@@ -61,7 +61,7 @@ export async function callLocalModel(
     if (cloud.url && cloud.key) {
         console.log(`[AI Router] Attempting Cloud Model: ${cloud.model} at ${cloud.url}`);
         try {
-            return await _doCallOllama(systemPrompt, userMessage, temperature, cloud.model, cloud.url, cloud.key, 120000);
+            return await _doCallOllama(systemPrompt, userMessage, temperature, cloud.model, cloud.url, cloud.key, 60000);
         } catch (cloudErr: any) {
             console.warn(`[AI Router] Cloud model failed (${cloudErr.message}). Falling back to local...`);
             // Fall through to local
@@ -69,7 +69,7 @@ export async function callLocalModel(
     }
 
     console.log(`[AI Router] Using Local Model: ${localModelId}`);
-    return await _doCallOllama(systemPrompt, userMessage, temperature, localModelId, getLocalOllamaBaseUrl(), undefined, 120000);
+    return await _doCallOllama(systemPrompt, userMessage, temperature, localModelId, getLocalOllamaBaseUrl(), undefined, 90000);
 }
 
 async function _doCallOllama(
@@ -91,6 +91,7 @@ async function _doCallOllama(
         options: {
             temperature,
             num_predict: MAX_TOKENS,
+            num_ctx: 2048,       // RAM-optimized context window
             stop: ['\n\n\n'],   // Prevent runaway generation
         }
     };

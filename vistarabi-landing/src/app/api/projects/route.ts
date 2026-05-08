@@ -7,6 +7,11 @@ export async function GET() {
     try {
         const user = await getCurrentUser();
         if (!user) {
+            // Demo mode fallback: return empty projects list
+            const isDemoMode = process.env.DEMO_MODE === 'true' || !process.env.DATABASE_URL;
+            if (isDemoMode) {
+                return NextResponse.json({ projects: [], demo: true });
+            }
             return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
         }
 
@@ -15,8 +20,13 @@ export async function GET() {
         });
 
         return NextResponse.json({ projects });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Get projects error:', error);
+        // Handle DB connection errors gracefully in demo mode
+        const isDemoMode = process.env.DEMO_MODE === 'true' || !process.env.DATABASE_URL;
+        if (isDemoMode || error?.code === 'P1001' || error?.message?.includes('connect')) {
+            return NextResponse.json({ projects: [], demo: true });
+        }
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

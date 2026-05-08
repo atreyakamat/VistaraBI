@@ -7,6 +7,19 @@ export async function GET() {
         const payload = await getCurrentUser();
 
         if (!payload) {
+            // Demo mode fallback: return mock user if no DB configured
+            const isDemoMode = process.env.DEMO_MODE === 'true' || !process.env.DATABASE_URL;
+            if (isDemoMode) {
+                return NextResponse.json({
+                    user: {
+                        id: 'demo-user-001',
+                        name: 'Demo User',
+                        email: 'demo@vistarabi.com',
+                        createdAt: new Date().toISOString(),
+                    },
+                    demo: true,
+                });
+            }
             return NextResponse.json(
                 { error: 'Not authenticated' },
                 { status: 401 }

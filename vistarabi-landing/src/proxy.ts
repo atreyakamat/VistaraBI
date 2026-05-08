@@ -15,7 +15,7 @@ function getRateLimitConfig(pathname: string): RateLimitConfig {
     return RATE_LIMITS.API;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     try {
         const { pathname } = request.nextUrl;
 
@@ -35,10 +35,20 @@ export function middleware(request: NextRequest) {
 
         const token = request.cookies.get('vistarabi-token')?.value;
 
+        // Demo mode detection: allow unauthenticated access to /app when no DB
+        const isDemoMode = process.env.DEMO_MODE === 'true' || !process.env.DATABASE_URL;
+
         // Protected routes that require authentication
         if (pathname.startsWith('/app')) {
-            if (!token) {
+            if (!token && !isDemoMode) {
                 return NextResponse.redirect(new URL('/login', request.url));
+            }
+            // In demo mode without token, set a demo header so API routes can return mock data
+            if (!token && isDemoMode) {
+                const response = NextResponse.next();
+                response.headers.set('X-Demo-Mode', 'true');
+                response.cookies.set('vistarabi-demo', 'true', { path: '/', maxAge: 86400 });
+                return response;
             }
         }
 
@@ -46,14 +56,6 @@ export function middleware(request: NextRequest) {
         if (pathname === '/login' || pathname === '/register') {
             if (token) {
                 return NextResponse.redirect(new URL('/app', request.url));
-            }
-            // For demo mode without database, redirect login to demo
-            // Gracefully handle missing environment variables
-            const dbUrl = process.env.DATABASE_URL || '';
-            if (process.env.DEMO_MODE === 'true' || !dbUrl.includes('localhost:5432')) {
-                const response = NextResponse.next();
-                response.headers.set('X-Demo-Mode', 'true');
-                return response;
             }
         }
 

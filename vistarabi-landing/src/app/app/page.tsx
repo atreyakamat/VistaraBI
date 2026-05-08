@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
+import { OnboardingGuide } from "@/components/ui/OnboardingGuide";
 
 interface UserData {
     id: string;
@@ -145,6 +146,13 @@ export default function AppPage() {
                                 </p>
                             </div>
 
+                            {/* Onboarding Guide (shown for new users) */}
+                            <OnboardingGuide
+                                userName={user?.name.split(" ")[0] || 'there'}
+                                projectCount={projects.length}
+                                onDismiss={() => {}}
+                            />
+
                             {/* Action Cards */}
                             <div className="grid md:grid-cols-2 gap-6">
                                 <Link
@@ -227,6 +235,45 @@ export default function AppPage() {
                                     </div>
                                 </section>
                             )}
+
+                            {/* Profile Section */}
+                            <section className="space-y-4">
+                                <h2 className="text-2xl font-bold text-[var(--foreground)]">Your Profile</h2>
+                                <div className="bg-[var(--card)] rounded-3xl p-8 border border-[var(--border)]">
+                                    <div className="flex items-center gap-6">
+                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                                            {user?.name?.charAt(0).toUpperCase() || 'U'}
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="text-xl font-bold text-[var(--foreground)]">{user?.name}</h3>
+                                            <p className="text-sm text-[var(--muted)]">{user?.email}</p>
+                                        </div>
+                                        <Link
+                                            href="/app/settings"
+                                            className="px-4 py-2 rounded-xl text-sm font-semibold text-[var(--accent)] border border-[var(--accent)]/30 hover:bg-[var(--accent)]/5 transition-all flex items-center gap-2"
+                                        >
+                                            <Settings className="w-4 h-4" />
+                                            Edit Profile
+                                        </Link>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-[var(--border)]">
+                                        <div className="text-center">
+                                            <p className="text-2xl font-bold text-[var(--foreground)]">{projects.length}</p>
+                                            <p className="text-xs text-[var(--muted)] mt-1">Projects</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-2xl font-bold text-[var(--foreground)]">
+                                                {projects.length > 0 ? Math.min(projects.length * 4, 32) : 0}
+                                            </p>
+                                            <p className="text-xs text-[var(--muted)] mt-1">KPIs Tracked</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-2xl font-bold text-emerald-500">Active</p>
+                                            <p className="text-xs text-[var(--muted)] mt-1">Account Status</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
 
                             {/* Empty State */}
                             {projects.length === 0 && (

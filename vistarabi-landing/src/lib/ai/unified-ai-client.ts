@@ -1,6 +1,7 @@
-﻿// Unified AI Client with Fallback Chain
-// Priority: Ollama (local) -> Ollama (cloud) -> OpenRouter (Claude)
+// Unified AI Client with Fallback Chain & Streaming Support
+// Priority: OpenRouter (cloud) -> Ollama Cloud -> Ollama Local
 // Supports agent-based reasoning with role specialization
+// Streaming: Uses SSE for cloud providers, non-streaming for local
 
 import { getDomainSkill, formatSkillForSystemPrompt } from './domain-skills';
 
@@ -24,6 +25,7 @@ export interface AIGenerateOptions {
     agentRole?: AgentRole;
     model?: string;
     domain?: string; // Added domain support
+    stream?: boolean; // Enable streaming (server-side accumulation)
 }
 
 export interface AIResponse {
@@ -118,56 +120,41 @@ Provide clear, accurate, and actionable responses based on the data and context 
 function getModelConfigs(): AIModelConfig[] {
     const configs: AIModelConfig[] = [];
 
-    // 1. OpenRouter (Highest Priority - Fast & Reliable)
+    // 1. OpenRouter (Highest Priority - Fast cloud API with streaming)
     if (process.env.OPENROUTER_API_KEY) {
         configs.push({
             provider: 'openrouter',
             model: process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet',
             baseUrl: 'https://openrouter.ai/api/v1',
             apiKey: process.env.OPENROUTER_API_KEY,
-            timeout: 120000, // 120s
+            timeout: 60000, // 60s
         });
     }
 
-    // 2. External Cloud Provider (If Configured)
+    // 2. Ollama Cloud (if a real API endpoint is configured — NOT ollama.com)
     const cloudUrl = process.env.OLLAMA_CLOUD_URL || process.env.CLOUD_AI_BASE_URL;
     const cloudKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.CLOUD_AI_API_KEY;
-    const cloudModelEnv = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'nemotron-3-super:cloud';
+    const cloudModelEnv = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'qwen3:0.6b';
 
-    if (cloudUrl && cloudKey) {
+    // Only add cloud if URL is a real API endpoint (not ollama.com or empty)
+    if (cloudUrl && cloudKey && !cloudUrl.includes('ollama.com')) {
         configs.push({
             provider: 'ollama-cloud',
             model: cloudModelEnv,
             baseUrl: cloudUrl,
             apiKey: cloudKey,
-            timeout: 120000, 
+            timeout: 60000,
         });
     }
 
-    // 3. Local Heavy Models (Nemotron & GPT-OSS)
+    // 3. Ollama Local (Primary for 10GB RAM systems)
     const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
-    
-    configs.push({
-        provider: 'ollama-cloud', // Using cloud provider type to signify it's a heavy model
-        model: 'nemotron-3-super:cloud',
-        baseUrl: ollamaUrl,
-        timeout: 600000, // 10 minutes
-    });
-
-    configs.push({
-        provider: 'ollama-cloud',
-        model: 'gpt-oss:120b-cloud',
-        baseUrl: ollamaUrl,
-        timeout: 600000, // 10 minutes
-    });
-
-    // 4. Ollama Local (Last Fallback)
-    const ollamaModel = process.env.OLLAMA_MODEL || 'qwen3.5:0.8b';
+    const ollamaModel = process.env.OLLAMA_MODEL || 'qwen3:0.6b';
     configs.push({
         provider: 'ollama-local',
         model: ollamaModel,
         baseUrl: ollamaUrl,
-        timeout: 180000, // 3 minutes
+        timeout: 90000, // 90s for local inference
     });
 
     return configs;
@@ -183,10 +170,12 @@ async function callProvider(
     try {
         console.log(`[AI] Attempting ${config.provider} with model ${config.model}`);
 
+        if (config.provider === 'openrouter') {
+            // OpenRouter supports streaming — use it for faster TTFB
+            return await callOpenRouter(config, options, startTime);
+        }
         if (config.provider === 'ollama-local' || config.provider === 'ollama-cloud') {
             return await callOllama(config, options, startTime);
-        } else if (config.provider === 'openrouter') {
-            return await callOpenRouter(config, options, startTime);
         }
 
         throw new Error(`Unknown provider: ${config.provider}`);
@@ -197,13 +186,14 @@ async function callProvider(
     }
 }
 
-// Call Ollama API (local or cloud)
+// Call Ollama API (local or cloud) — uses streaming to accumulate response
 async function callOllama(
     config: AIModelConfig,
     options: AIGenerateOptions,
     startTime: number
 ): Promise<AIResponse> {
     const url = `${config.baseUrl}/api/chat`;
+    const useStreaming = options.stream !== false && config.provider === 'ollama-cloud';
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), config.timeout);
@@ -223,11 +213,11 @@ async function callOllama(
             body: JSON.stringify({
                 model: options.model || config.model,
                 messages: options.messages,
-                stream: false,
+                stream: useStreaming,
                 options: {
                     temperature: options.temperature ?? 0.2,
-                    num_predict: options.maxTokens ?? 1024,
-                    num_ctx: 4096, // Limit context to save memory
+                    num_predict: options.maxTokens ?? 512,
+                    num_ctx: 2048, // Reduced from 4096 to save ~1.5GB RAM
                 },
             }),
             signal: controller.signal,
@@ -240,8 +230,45 @@ async function callOllama(
             throw new Error(`Ollama API error ${response.status}: ${errorText}`);
         }
 
-        const data = await response.json();
-        let content = data.message?.content || '';
+        let content: string;
+        let inputTokens = 0;
+        let outputTokens = 0;
+
+        if (useStreaming && response.body) {
+            // Stream mode: accumulate chunks server-side
+            content = '';
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                // Ollama streams newline-delimited JSON
+                const lines = chunk.split('\n').filter(l => l.trim());
+                for (const line of lines) {
+                    try {
+                        const parsed = JSON.parse(line);
+                        if (parsed.message?.content) {
+                            content += parsed.message.content;
+                        }
+                        if (parsed.done) {
+                            inputTokens = parsed.prompt_eval_count || 0;
+                            outputTokens = parsed.eval_count || 0;
+                        }
+                    } catch {
+                        // Skip malformed chunks
+                    }
+                }
+            }
+        } else {
+            // Non-streaming: parse full response
+            const data = await response.json();
+            content = data.message?.content || '';
+            inputTokens = data.prompt_eval_count || 0;
+            outputTokens = data.eval_count || 0;
+        }
 
         // Strip reasoning blocks from Qwen models
         content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
@@ -254,10 +281,7 @@ async function callOllama(
             content,
             provider: config.provider,
             model: options.model || config.model,
-            tokensUsed: {
-                input: data.prompt_eval_count || 0,
-                output: data.eval_count || 0,
-            },
+            tokensUsed: { input: inputTokens, output: outputTokens },
             latencyMs: Date.now() - startTime,
             agentRole: options.agentRole,
         };
@@ -270,13 +294,14 @@ async function callOllama(
     }
 }
 
-// Call OpenRouter API (OpenAI-compatible)
+// Call OpenRouter API (OpenAI-compatible) — uses streaming for faster TTFB
 async function callOpenRouter(
     config: AIModelConfig,
     options: AIGenerateOptions,
     startTime: number
 ): Promise<AIResponse> {
     const url = `${config.baseUrl}/chat/completions`;
+    const useStreaming = options.stream !== false;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), config.timeout);
@@ -294,7 +319,8 @@ async function callOpenRouter(
                 model: config.model,
                 messages: options.messages,
                 temperature: options.temperature ?? 0.2,
-                max_tokens: options.maxTokens ?? 8192,
+                max_tokens: options.maxTokens ?? 1024,
+                stream: useStreaming,
             }),
             signal: controller.signal,
         });
@@ -306,8 +332,49 @@ async function callOpenRouter(
             throw new Error(`OpenRouter API error ${response.status}: ${errorText}`);
         }
 
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content?.trim();
+        let content: string;
+        let inputTokens = 0;
+        let outputTokens = 0;
+
+        if (useStreaming && response.body) {
+            // SSE streaming: accumulate delta chunks
+            content = '';
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+
+                for (const line of lines) {
+                    const data = line.slice(6).trim();
+                    if (data === '[DONE]') continue;
+
+                    try {
+                        const parsed = JSON.parse(data);
+                        const delta = parsed.choices?.[0]?.delta?.content;
+                        if (delta) content += delta;
+
+                        // Capture usage from the final chunk
+                        if (parsed.usage) {
+                            inputTokens = parsed.usage.prompt_tokens || 0;
+                            outputTokens = parsed.usage.completion_tokens || 0;
+                        }
+                    } catch {
+                        // Skip malformed SSE frames
+                    }
+                }
+            }
+        } else {
+            // Non-streaming fallback
+            const data = await response.json();
+            content = data.choices?.[0]?.message?.content?.trim() || '';
+            inputTokens = data.usage?.prompt_tokens || 0;
+            outputTokens = data.usage?.completion_tokens || 0;
+        }
 
         if (!content) {
             throw new Error('Empty response from OpenRouter');
@@ -317,10 +384,7 @@ async function callOpenRouter(
             content,
             provider: config.provider,
             model: config.model,
-            tokensUsed: {
-                input: data.usage?.prompt_tokens || 0,
-                output: data.usage?.completion_tokens || 0,
-            },
+            tokensUsed: { input: inputTokens, output: outputTokens },
             latencyMs: Date.now() - startTime,
             agentRole: options.agentRole,
         };
@@ -373,7 +437,7 @@ export async function generateWithFallback(
 
     const optionsWithRole = { ...options, messages };
     let lastError: Error | null = null;
-    let skippedProviders = [];
+    const skippedProviders: string[] = [];
 
     // Try each provider in order
     for (const config of configs) {
@@ -426,11 +490,12 @@ export async function checkAIHealth(): Promise<{
 
     for (const config of configs) {
         try {
-            // Simple health check
+            // Simple health check — non-streaming, low tokens
             await callProvider(config, {
                 messages: [{ role: 'user', content: 'Hello' }],
                 temperature: 0,
                 maxTokens: 10,
+                stream: false,
             });
             available.push(config.provider);
         } catch {

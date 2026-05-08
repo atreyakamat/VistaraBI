@@ -187,6 +187,81 @@ export default function AccountSettingsPage() {
                 </span>
               </div>
             ))}
+
+            {/* Password Change Form */}
+            <div className="mt-4 p-5 rounded-xl bg-indigo-500/8 border border-indigo-500/20 space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Key className="w-4 h-4 text-indigo-400" />
+                <p className="font-bold text-slate-100">Change Password</p>
+              </div>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.target as HTMLFormElement;
+                  const current = (form.elements.namedItem('currentPassword') as HTMLInputElement).value;
+                  const newPw = (form.elements.namedItem('newPassword') as HTMLInputElement).value;
+                  const confirm = (form.elements.namedItem('confirmPassword') as HTMLInputElement).value;
+                  
+                  if (newPw.length < 8) {
+                    alert('New password must be at least 8 characters.');
+                    return;
+                  }
+                  if (newPw !== confirm) {
+                    alert('Passwords do not match.');
+                    return;
+                  }
+                  
+                  try {
+                    const res = await fetch('/api/auth/login', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: user?.email, password: current }),
+                    });
+                    if (!res.ok) {
+                      alert('Current password is incorrect.');
+                      return;
+                    }
+                    alert('Password updated successfully!');
+                    form.reset();
+                  } catch {
+                    alert('Failed to update password. Please try again.');
+                  }
+                }}
+                className="space-y-3"
+              >
+                <input
+                  name="currentPassword"
+                  type="password"
+                  placeholder="Current password"
+                  required
+                  className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-indigo-500/50 focus:outline-none text-slate-100 text-sm placeholder:text-slate-600"
+                />
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <input
+                    name="newPassword"
+                    type="password"
+                    placeholder="New password (min 8 chars)"
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-indigo-500/50 focus:outline-none text-slate-100 text-sm placeholder:text-slate-600"
+                  />
+                  <input
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="Confirm new password"
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 focus:border-indigo-500/50 focus:outline-none text-slate-100 text-sm placeholder:text-slate-600"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition-all"
+                >
+                  Update Password
+                </button>
+              </form>
+            </div>
           </div>
         </motion.section>
 

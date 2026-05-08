@@ -28,6 +28,7 @@ import CleaningSummary from "@/components/app/CleaningSummary";
 import QualityDashboard from "@/components/app/QualityDashboard";
 import DomainBadge from "@/components/app/DomainBadge";
 import DomainSelectionPopup from "@/components/app/DomainSelectionPopup";
+import IngestionProgress from "@/components/app/IngestionProgress";
 import { api } from "@/lib/api/client";
 import { ProjectSkeleton } from "@/components/ui/skeleton";
 import { SourceStatus, QualityScore, QualityGrade, RiskLevel, DataType, DomainType, DomainStatus } from "@/lib/prisma";
@@ -92,6 +93,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
     const [qualityDashboard, setQualityDashboard] = useState<any>(null);
     const [domainData, setDomainData] = useState<any>(null);
     const [showDomainPopup, setShowDomainPopup] = useState(false);
+    const [ingestionFiles, setIngestionFiles] = useState<{ fileName: string; sourceId?: string }[]>([]);
 
     useEffect(() => {
         fetchProject();
@@ -160,6 +162,10 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
     const handleFilesSelected = async (files: FileList) => {
         setUploading(true);
+        // Show progress trackers immediately
+        const fileTrackers = Array.from(files).map(f => ({ fileName: f.name }));
+        setIngestionFiles(fileTrackers);
+
         try {
             const formData = new FormData();
             Array.from(files).forEach((file) => {
@@ -173,6 +179,16 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
             });
 
             if (res.ok) {
+                const data = await res.json();
+                // Update trackers with source IDs from response
+                if (data.sources) {
+                    setIngestionFiles(prev =>
+                        prev.map((tracker, i) => ({
+                            ...tracker,
+                            sourceId: data.sources[i]?.id,
+                        }))
+                    );
+                }
                 await fetchProject();
             }
         } catch (error) {
@@ -491,6 +507,26 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                                 </div>
 
                                 <div className="min-h-[400px]">
+                                    {/* Ingestion Progress Trackers */}
+                                    {ingestionFiles.length > 0 && (
+                                        <div className="mb-6">
+                                            {ingestionFiles.map((tracker, i) => (
+                                                <IngestionProgress
+                                                    key={`${tracker.fileName}-${i}`}
+                                                    fileName={tracker.fileName}
+                                                    isActive={uploading || !!tracker.sourceId}
+                                                    sourceId={tracker.sourceId}
+                                                    onComplete={() => {
+                                                        // Clear completed trackers after a delay
+                                                        setTimeout(() => {
+                                                            setIngestionFiles(prev => prev.filter((_, idx) => idx !== i));
+                                                        }, 5000);
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+
                                     {activeTab === "sources" ? (
                                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             <AnimatePresence>
