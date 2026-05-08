@@ -38,14 +38,14 @@ export async function GET(
             projectId: id,
             graph: {
                 // Nodes formatted for visualization
-                nodes: graph.nodes.map(node => ({
+                nodes: graph.nodes.map((node: any) => ({
                     id: node.id,
                     label: node.name.replace(/\.[^.]+$/, ''), // Remove file extension
                     type: node.entityType,
                     metadata: {
                         columns: node.columns,
                         primaryKey: node.primaryKeyCandidate,
-                        foreignKeys: node.foreignKeys.map(fk => ({
+                        foreignKeys: node.foreignKeys.map((fk: any) => ({
                             column: fk.column,
                             references: fk.referencedColumn,
                             confidence: fk.confidence,
@@ -53,7 +53,7 @@ export async function GET(
                     },
                 })),
                 // Edges formatted for visualization
-                edges: graph.edges.map(edge => ({
+                edges: graph.edges.map((edge: any) => ({
                     id: edge.id,
                     source: edge.fromNode,
                     target: edge.toNode,
@@ -65,7 +65,7 @@ export async function GET(
             stats: {
                 totalNodes: graph.nodes.length,
                 totalEdges: graph.edges.length,
-                entityTypes: [...new Set(graph.nodes.map(n => n.entityType))],
+                entityTypes: [...new Set(graph.nodes.map((n: any) => n.entityType))],
             },
             createdAt: graph.createdAt,
         });

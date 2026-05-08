@@ -2,9 +2,43 @@
 // Orchestrates entity graph building and KPI lineage tracing
 
 import { randomUUID } from 'crypto';
-import db, { DataLineage, EntityRelationshipGraph, KPILineage } from '@/lib/prisma';
+import db from '@/lib/prisma';
+import { DataLineage } from '@prisma/client';
 import { buildEntityGraph } from './relationship-graph';
 import { traceAllKPILineages, getKPILineage } from './kpi-lineage';
+
+// Types for entity relationship graph
+interface ForeignKeyCandidate {
+  column: string;
+  referencedColumn: string;
+  confidence: number;
+}
+
+interface EntityNode {
+  id: string;
+  name: string;
+  entityType: string;
+  columns: string[];
+  primaryKeyCandidate: string | null;
+  foreignKeys: ForeignKeyCandidate[];
+  createdAt?: Date;
+}
+
+interface EntityEdge {
+  id: string;
+  fromNode: string;
+  toNode: string;
+  joinCondition: { fromColumn: string; toColumn: string };
+  joinType: string;
+  confidence: number;
+  createdAt?: Date;
+}
+
+interface EntityRelationshipGraph {
+  nodes: EntityNode[];
+  edges: EntityEdge[];
+  createdAt?: Date;
+}
 
 // Generate complete data lineage for a project
 export async function generateDataLineage(projectId: string): Promise<DataLineage> {
@@ -103,4 +137,5 @@ export async function explainKPI(projectId: string, kpiId: string): Promise<{
 // Re-export components
 export { buildEntityGraph } from './relationship-graph';
 export { traceAllKPILineages, getKPILineage } from './kpi-lineage';
-export type { DataLineage, EntityRelationshipGraph, KPILineage } from '@/lib/prisma';
+export type { DataLineage } from '@prisma/client';
+export type { EntityRelationshipGraph, EntityNode, EntityEdge, ForeignKeyCandidate };

@@ -2,14 +2,7 @@
 // Orchestrates KPI lineage tracing, storage, and retrieval
 
 import { randomUUID } from 'crypto';
-import db, {
-    KPILineageEntry,
-    KPILineageRegistry,
-    KPISourceContribution,
-    KPIAggregation,
-    KPIJoinPath,
-    RelationshipEntry,
-} from '@/lib/prisma';
+import db from '@/lib/prisma';
 import type { ApprovedKPIWithRelations } from '@/lib/prisma';
 import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { getRelationshipRegistry } from './relationship-registry';
@@ -19,6 +12,67 @@ import {
     ExplanationContext,
 } from './explanation-generator';
 import { normalizeColumnName } from '@/lib/intelligence/columns';
+
+// Type definitions (from Prisma schema)
+interface KPIAggregation {
+    function: string;
+    column: string;
+    sourceId: string;
+}
+
+interface KPISourceContribution {
+    sourceId: string;
+    columns: string[];
+    joinPath?: string;
+    confidence: number;
+}
+
+interface KPIJoinPath {
+    relationshipId?: string;
+    from?: string;
+    to?: string;
+    path?: string;
+    joinCondition?: string;
+    sourceTable?: string;
+    sourceColumn?: string;
+    targetTable?: string;
+    targetColumn?: string;
+    joinType?: string;
+    confidence: number;
+}
+
+interface RelationshipEntry {
+    id?: string;
+    from?: string;
+    to?: string;
+    type?: string;
+    confidence: number;
+    sourceTableId?: string;
+    targetTableId?: string;
+    sourceTableName?: string;
+    targetTableName?: string;
+    sourceColumn?: string;
+    targetColumn?: string;
+}
+
+interface KPILineageEntry {
+    id: string;
+    kpiId: string;
+    kpiName: string;
+    domain?: string;
+    category?: string;
+    formula: string;
+    sourceContributions?: KPISourceContribution[];
+    joinPaths: KPIJoinPath[];
+    aggregations: KPIAggregation[];
+    explanation: string;
+    technicalExplanation?: string;
+    businessExplanation?: string;
+    aiEnhanced?: boolean;
+    confidence: number;
+    tracedAt?: Date;
+    sources: Array<{ sourceName: string; columns: string[]; role?: string }>;
+}
 
 // Aggregation function patterns in formulas
 const AGGREGATION_PATTERNS: { regex: RegExp; func: KPIAggregation['function'] }[] = [

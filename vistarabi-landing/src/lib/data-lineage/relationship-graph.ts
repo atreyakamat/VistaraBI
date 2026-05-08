@@ -1,12 +1,8 @@
 // Relationship Graph Builder - Module 4D
 // Builds an entity relationship graph from project data sources
 
-import db, {
-    EntityNode,
-    EntityEdge,
-    EntityRelationshipGraph,
-    ForeignKeyCandidate,
-} from '@/lib/prisma';
+import db from '@/lib/prisma';
+import type { EntityNode, EntityEdge, EntityRelationshipGraph, ForeignKeyCandidate } from './index';
 
 // Entity type patterns - infer entity type from file/table name
 const ENTITY_PATTERNS: Record<string, RegExp[]> = {

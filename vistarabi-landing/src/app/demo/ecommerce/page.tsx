@@ -1,3 +1,4 @@
+﻿import { DemoCTABanner } from '@/components/demo/DemoCTABanner';
 import { EcommerceDashboard } from '@/components/domains/EcommerceDashboard';
 export const metadata = { title: 'E-Commerce Demo | VistaraBI', description: 'E-Commerce analytics demo' };
-export default function Page() { return <EcommerceDashboard />; }
+export default function Page() { return (<><EcommerceDashboard /><DemoCTABanner demoDomain='Ecommerce' /></>); }

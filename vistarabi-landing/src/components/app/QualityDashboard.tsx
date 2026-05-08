@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { motion } from "framer-motion";
-import { QualityGrade, RiskLevel, HealthStatus } from "@/lib/prisma";
+import { QualityGrade, RiskLevel, HealthStatus } from "@prisma/client";
 
 interface QualityDashboardProps {
     quality: {

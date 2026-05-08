@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: vistarabi
+    runtime: node
+    region: oregon  # or singapore for APAC
+    plan: free      # Render free tier — persistent server, no timeout
+    buildCommand: npx prisma generate && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_FONT_GOOGLE_MOCKED
+        value: ""        # Remove the mock — Render has internet access
+      # Secrets — set these in Render dashboard, NOT here
+      - key: DATABASE_URL
+        sync: false      # Set in Render dashboard → Environment → Secret Files
+      - key: JWT_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false      # e.g. https://vistarabi.onrender.com
+      # Optional
+      - key: RESEND_API_KEY
+        sync: false
+      - key: DISABLE_DOMAIN_MODELS
+        value: "true"    # Domain-specific Ollama models don't exist in cloud
+      - key: RENDER
+        value: "true"    # Tells unified-ai-client to skip local Ollama

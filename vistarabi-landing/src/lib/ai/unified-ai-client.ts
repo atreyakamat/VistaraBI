@@ -120,14 +120,25 @@ Provide clear, accurate, and actionable responses based on the data and context 
 function getModelConfigs(): AIModelConfig[] {
     const configs: AIModelConfig[] = [];
 
-    // 1. OpenRouter (Highest Priority - Fast cloud API with streaming)
+    // 0. Groq (Highest Priority — free, 1-2s response, OpenAI-compatible)
+    if (process.env.GROQ_API_KEY) {
+        configs.push({
+            provider: 'openrouter', // reuses same callOpenRouter() — identical API format
+            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+            baseUrl: 'https://api.groq.com/openai/v1',
+            apiKey: process.env.GROQ_API_KEY,
+            timeout: 30000, // Groq is fast — 30s is generous
+        });
+    }
+
+    // 1. OpenRouter (cloud fallback — paid, wide model selection)
     if (process.env.OPENROUTER_API_KEY) {
         configs.push({
             provider: 'openrouter',
             model: process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet',
             baseUrl: 'https://openrouter.ai/api/v1',
             apiKey: process.env.OPENROUTER_API_KEY,
-            timeout: 60000, // 60s
+            timeout: 60000,
         });
     }
 
@@ -136,7 +147,6 @@ function getModelConfigs(): AIModelConfig[] {
     const cloudKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.CLOUD_AI_API_KEY;
     const cloudModelEnv = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'qwen3:0.6b';
 
-    // Only add cloud if URL is a real API endpoint (not ollama.com or empty)
     if (cloudUrl && cloudKey && !cloudUrl.includes('ollama.com')) {
         configs.push({
             provider: 'ollama-cloud',
@@ -147,15 +157,19 @@ function getModelConfigs(): AIModelConfig[] {
         });
     }
 
-    // 3. Ollama Local (Primary for 10GB RAM systems)
+    // 3. Ollama Local (dev only — not available in cloud deployments)
     const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
     const ollamaModel = process.env.OLLAMA_MODEL || 'qwen3:0.6b';
-    configs.push({
-        provider: 'ollama-local',
-        model: ollamaModel,
-        baseUrl: ollamaUrl,
-        timeout: 90000, // 90s for local inference
-    });
+    // Skip local Ollama if we're in a cloud environment (Render, Railway, Vercel, etc.)
+    const isCloudEnv = !!(process.env.RENDER || process.env.RAILWAY_ENVIRONMENT || process.env.VERCEL);
+    if (!isCloudEnv) {
+        configs.push({
+            provider: 'ollama-local',
+            model: ollamaModel,
+            baseUrl: ollamaUrl,
+            timeout: 90000,
+        });
+    }
 
     return configs;
 }

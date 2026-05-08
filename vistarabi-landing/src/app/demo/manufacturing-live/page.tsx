@@ -1,3 +1,4 @@
+﻿import { DemoCTABanner } from '@/components/demo/DemoCTABanner';
 import ManufacturingDashboardLive from '@/components/domains/ManufacturingDashboardLive';
 
 export default function ManufacturingDemoPage() {

@@ -1,4 +1,4 @@
-﻿
+
 import { PrismaClient } from '@prisma/client';
 
 // ----------------------------------------------------------------------
@@ -23,7 +23,18 @@ if (process.env.NODE_ENV !== 'production') globalThis.prisma = db;
 // Re-export generated types
 // ----------------------------------------------------------------------
 
-export * from '@prisma/client';
+// Explicit re-exports — avoids Turbopack "export * from CJS module" warning
+export {
+    SourceStatus,
+    QualityScore,
+    QualityGrade,
+    RiskLevel,
+    DataType,
+    DomainType,
+    DomainStatus,
+    BillingPlan,
+    type Prisma,
+} from '@prisma/client';
 
 // ----------------------------------------------------------------------
 // Manual Type Definitions for JSON Fields

@@ -8,19 +8,34 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(uuid())
-  name               String
-  email              String              @unique
-  password           String
-  emailVerified      DateTime?
-  emailVerifyToken   String?             @unique
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  deletedAt          DateTime?
-  projects           Project[]
-  passwordResetToken PasswordResetToken?
+  id                    String              @id @default(uuid())
+  name                  String
+  email                 String              @unique
+  password              String
+  emailVerified         DateTime?
+  emailVerifyToken      String?             @unique
+  
+  // Billing
+  plan                  BillingPlan         @default(STARTER)
+  stripeCustomerId      String?             @unique
+  stripeSubscriptionId  String?
+  
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  deletedAt             DateTime?
+  projects              Project[]
+  passwordResetToken    PasswordResetToken?
+  notifications         Notification[]
 
   @@index([emailVerifyToken])
+  @@index([stripeCustomerId])
+}
+
+enum BillingPlan {
+  STARTER
+  PRO
+  GROWTH
+  BUSINESS
 }
 
 model PasswordResetToken {
@@ -573,4 +588,18 @@ enum AggregationFunction {
   AVG
   MIN
   MAX
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // 'upload_complete' | 'anomaly_detected' | 'kpi_goal_reached' | 'share_viewed' | 'pipeline_failed' | 'report_ready'
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([createdAt])
 }
