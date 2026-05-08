@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   // Configure the middleware client max body size for App Router
   experimental: {
     esmExternals: true,
-    middlewareClientMaxBodySize: '500mb',
+    proxyClientMaxBodySize: '500mb',
   },
 };
 

@@ -1,4 +1,4 @@
-﻿import {
+import {
   Navbar,
   Hero,
   SocialProof,
@@ -21,9 +21,9 @@ export default function Home() {
       {/* Demo Banner */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 text-center">
         <p className="text-sm">
-          🚀 Try the live demo now  to {" "}
+          Try the live demo now &mdash;{" "}
           <Link href="/demo" className="font-bold underline hover:opacity-80">
-            View Real Data Dashboards
+            View Real Data Dashboards &rarr;
           </Link>
         </p>
       </div>

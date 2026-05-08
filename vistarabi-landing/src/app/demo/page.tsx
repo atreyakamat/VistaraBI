@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 
@@ -6,58 +6,58 @@ export default function DemoHubPage() {
   const domains = [
     {
       name: 'Retail',
-      path: '/demo',
+      path: '/demo/retail',
       description: '5-store chain with sales, inventory, traffic, margin',
-      icon: 'store',
+      icon: '\uD83C\uDFEA',
       color: 'from-blue-500 to-blue-600',
     },
     {
       name: 'SaaS',
       path: '/demo/saas',
       description: 'MRR, ARR, churn, CAC, net revenue retention',
-      icon: 'laptop',
+      icon: '\uD83D\uDCBB',
       color: 'from-purple-500 to-purple-600',
     },
     {
       name: 'E-Commerce',
       path: '/demo/ecommerce',
       description: 'Revenue, AOV, conversion, cart abandonment, LTV',
-      icon: 'shopping-cart',
+      icon: '\uD83D\uDED2',
       color: 'from-green-500 to-green-600',
     },
     {
       name: 'EdTech',
       path: '/demo/edtech',
       description: 'Enrollment, completion, scores, retention metrics',
-      icon: 'graduation-cap',
+      icon: '\uD83C\uDF93',
       color: 'from-indigo-500 to-indigo-600',
     },
     {
       name: 'Services',
       path: '/demo/services',
       description: 'Billable utilization, margins, client retention',
-      icon: 'receipt',
+      icon: '\uD83D\uDCCB',
       color: 'from-amber-500 to-amber-600',
     },
     {
       name: 'Manufacturing',
       path: '/demo/manufacturing',
       description: 'OEE, yield rate, defect rate, downtime',
-      icon: 'factory',
+      icon: '\uD83C\uDFED',
       color: 'from-red-500 to-red-600',
     },
     {
       name: 'Healthcare',
       path: '/demo/healthcare',
       description: 'Patient satisfaction, readmission, wait times',
-      icon: 'hospital',
+      icon: '\uD83C\uDFE5',
       color: 'from-pink-500 to-pink-600',
     },
     {
       name: 'Finance',
       path: '/demo/finance',
       description: 'Net margin, ROI, debt-to-equity, cash flow',
-      icon: 'dollar-sign',
+      icon: '\uD83D\uDCB0',
       color: 'from-cyan-500 to-cyan-600',
     },
   ];
@@ -91,7 +91,7 @@ export default function DemoHubPage() {
 
                   <div className="flex items-center text-blue-400 group-hover:text-blue-300 transition-colors">
                     <span className="text-sm font-semibold">Explore</span>
-                    <span className="ml-2"> to </span>
+                    <span className="ml-2 transition-transform group-hover:translate-x-1">&rarr;</span>
                   </div>
                 </div>
               </div>
