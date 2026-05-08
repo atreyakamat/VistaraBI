@@ -32,6 +32,7 @@ import IngestionProgress from "@/components/app/IngestionProgress";
 import { api } from "@/lib/api/client";
 import { ProjectSkeleton } from "@/components/ui/skeleton";
 import { SourceStatus, QualityScore, QualityGrade, RiskLevel, DataType, DomainType, DomainStatus } from "@/lib/prisma";
+import { toast } from "sonner";
 
 interface Project {
     id: string;
@@ -165,6 +166,8 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
         // Show progress trackers immediately
         const fileTrackers = Array.from(files).map(f => ({ fileName: f.name }));
         setIngestionFiles(fileTrackers);
+        const fileNames = Array.from(files).map(f => f.name).join(', ');
+        toast.loading(`Uploading ${files.length} file${files.length > 1 ? 's' : ''}...`, { id: 'upload' });
 
         try {
             const formData = new FormData();
@@ -172,7 +175,6 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                 formData.append("files", file);
             });
 
-            // Standard fetch for FormData as api client is for JSON
             const res = await fetch(`/api/projects/${id}/sources`, {
                 method: "POST",
                 body: formData,
@@ -180,7 +182,6 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
             if (res.ok) {
                 const data = await res.json();
-                // Update trackers with source IDs from response
                 if (data.sources) {
                     setIngestionFiles(prev =>
                         prev.map((tracker, i) => ({
@@ -189,10 +190,20 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                         }))
                     );
                 }
+                const failed = data.sources?.filter((s: any) => s.status === 'FAILED') || [];
+                if (failed.length > 0) {
+                    toast.error(`${failed.length} file(s) failed to process`, { id: 'upload', description: failed.map((f: any) => f.fileName).join(', ') });
+                } else {
+                    toast.success(`${files.length} file${files.length > 1 ? 's' : ''} ingested successfully`, { id: 'upload', description: 'Data purification and quality analysis complete' });
+                }
                 await fetchProject();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                toast.error('Upload failed', { id: 'upload', description: err.error || 'Server error. Please try again.' });
             }
         } catch (error) {
             console.error("Error uploading files:", error);
+            toast.error('Upload failed', { id: 'upload', description: 'Network error. Check your connection.' });
         } finally {
             setUploading(false);
         }
