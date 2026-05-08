@@ -623,7 +623,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: genId(),
-            role: 'assistant',
+            role: 'assistant' as const,
             timestamp: new Date(),
             content: {
                 type: 'text',
@@ -662,6 +662,36 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
         if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
     }, [isOpen]);
 
+    // If AI providers are unavailable, show canned suggestions and a friendly banner
+    useEffect(() => {
+        if (!isOpen) return;
+        (async () => {
+            try {
+                const res = await fetch('/api/v1/ai/health', { cache: 'no-store' });
+                const data = await res.json();
+                const healthy = data.status === 'healthy' || (data.providers?.available?.length ?? 0) > 0;
+                if (!healthy) {
+                    const canned = [
+                        'What caused the recent revenue drop?',
+                        'Show top 3 contributors to sales growth.',
+                        'Which KPI shows an anomaly in last 30 days?'
+                    ];
+                    setSuggestions(prev => prev.length ? prev : canned);
+                    setMessages(prev => {
+                        const intro: ChatMessage = {
+                            id: genId(), role: 'assistant', timestamp: new Date(),
+                            content: { type: 'text', text: 'Live AI providers are currently unavailable. Showing cached suggestions and guidance — try one of the suggestions below.' } as ChatContent
+                        };
+                        if (prev.length && prev[0]?.content?.type === 'text' && typeof prev[0].content.text === 'string' && prev[0].content.text.includes('Live AI providers are currently unavailable')) return prev;
+                        return [intro, ...prev];
+                    });
+                }
+            } catch (e) {
+                // silently ignore health check failures
+            }
+        })();
+    }, [isOpen]);
+
     const sendMessage = useCallback(async (messageText: string) => {
         if (!messageText.trim() || isLoading) return;
 
@@ -669,7 +699,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
             id: genId(),
             role: 'user',
             timestamp: new Date(),
-            content: { type: 'text', text: messageText.trim() },
+            content: { type: 'text' as const, text: messageText.trim() },
         };
         setMessages(prev => [...prev, userMsg]);
         setLastUserMessage(messageText.trim());
@@ -681,7 +711,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
         const clientTimeout = setTimeout(() => {
             setMessages(prev => [...prev, {
                 id: genId(),
-                role: 'assistant',
+                role: 'assistant' as const,
                 timestamp: new Date(),
                 content: { type: 'error', message: 'AI response timed out. Please try again.', recoverable: true },
             }]);
@@ -707,7 +737,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
 
             setMessages(prev => [...prev, {
                 id: genId(),
-                role: 'assistant',
+                role: 'assistant' as const,
                 timestamp: new Date(),
                 content,
             }]);
@@ -728,13 +758,15 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                     setTimeout(() => onOpenGoalEngine(messageText.trim()), 800); // slight delay for better UX
                 }
             }
-        } catch {
+        } catch (error) {
             clearTimeout(clientTimeout);
+            console.error('AskAI Error:', error);
+            // Graceful fallback for offline / demo mode
             setMessages(prev => [...prev, {
                 id: genId(),
-                role: 'assistant',
+                role: 'assistant' as const,
                 timestamp: new Date(),
-                content: { type: 'error', message: 'Failed to reach the analytics engine. Please try again.', recoverable: true },
+                content: { type: 'text' as const, text: 'AI is currently offline or operating in demo mode. Please ensure Ollama is running locally for live chat features, or check the dashboard for pre-calculated insights.' },
             }]);
         } finally {
             setIsLoading(false);
@@ -771,8 +803,8 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setMessages([{
-                                id: genId(), role: 'assistant', timestamp: new Date(),
-                                content: { type: 'text', text: "Chat cleared. What would you like to explore?" },
+                                id: genId(), role: 'assistant' as const, timestamp: new Date(),
+                                content: { type: 'text' as const, text: "Chat cleared. What would you like to explore?" },
                             }])}
                             className="ask-ai-clear-btn"
                             title="Clear chat"

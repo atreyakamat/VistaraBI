@@ -3,7 +3,7 @@
 // Module 5 — Dashboard Shell (Premium Glassmorphism Redesign)
 // 2×2 KPI grid, AI Insights section, Active Streams, FilterBar, drill-down breadcrumb
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { KPIMetricCard } from './KPIMetricCard';
@@ -24,6 +24,7 @@ import { DashboardErrorBoundary } from './DashboardErrorBoundary';
 import { SharePanel } from './SharePanel';
 import { ExportButton } from './ExportButton';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
+import { toast } from 'sonner';
 
 interface DrillState {
     kpiId: string;
@@ -92,6 +93,14 @@ export function DashboardShell({
     const [bottomDateRange, setBottomDateRange] = useState<DateRange>('90d');
     const [bottomGranularity, setBottomGranularity] = useState<Granularity>('monthly');
 
+    // Auto-trigger insight panel if anomalies are detected
+    useEffect(() => {
+        if (anomalyCount > 0 && !isReadOnly) {
+            setInsightPanelOpen(true);
+            toast.warning(`Detected ${anomalyCount} anomal${anomalyCount === 1 ? 'y' : 'ies'} in your data.`);
+        }
+    }, [anomalyCount, isReadOnly]);
+
     const handleExportPDF = async () => {
         try {
             const targetVal = 75000;
@@ -130,9 +139,10 @@ export function DashboardShell({
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+            toast.success('Report generated successfully!');
         } catch (error) {
             console.error('Export failed:', error);
-            alert('Failed to generate PDF report. Please try again.');
+            toast.error('Failed to generate PDF report. Please try again.');
         }
     };
 
