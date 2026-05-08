@@ -1,5 +1,5 @@
-﻿import { DemoCTABanner } from '@/components/demo/DemoCTABanner';
-'use client';
+﻿'use client';
+import { DemoCTABanner } from '@/components/demo/DemoCTABanner';
 
 import Link from 'next/link';
 

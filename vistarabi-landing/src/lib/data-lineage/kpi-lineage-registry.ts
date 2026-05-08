@@ -13,31 +13,29 @@ import {
 } from './explanation-generator';
 import { normalizeColumnName } from '@/lib/intelligence/columns';
 
-// Type definitions (from Prisma schema)
+
 interface KPIAggregation {
-    function: string;
+    function: 'SUM' | 'AVG' | 'COUNT' | 'COUNT_DISTINCT' | 'MIN' | 'MAX';
     column: string;
     sourceId: string;
 }
 
 interface KPISourceContribution {
     sourceId: string;
+    sourceName: string;
     columns: string[];
     joinPath?: string;
-    confidence: number;
+    role: 'PRIMARY' | 'JOINED' | 'AGGREGATED';
+    confidence?: number;
 }
 
 interface KPIJoinPath {
-    relationshipId?: string;
-    from?: string;
-    to?: string;
-    path?: string;
-    joinCondition?: string;
-    sourceTable?: string;
-    sourceColumn?: string;
-    targetTable?: string;
-    targetColumn?: string;
-    joinType?: string;
+    relationshipId: string;
+    sourceTable: string;
+    sourceColumn: string;
+    targetTable: string;
+    targetColumn: string;
+    joinType: 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';
     confidence: number;
 }
 
@@ -57,6 +55,7 @@ interface RelationshipEntry {
 
 interface KPILineageEntry {
     id: string;
+    projectId: string;
     kpiId: string;
     kpiName: string;
     domain?: string;
@@ -155,11 +154,11 @@ export function findJoinPaths(
 
             if (rel) {
                 joinPaths.push({
-                    relationshipId: rel.id,
-                    sourceTable: rel.sourceTableName.replace(/\.[^.]+$/, ''),
-                    sourceColumn: rel.sourceColumn,
-                    targetTable: rel.targetTableName.replace(/\.[^.]+$/, ''),
-                    targetColumn: rel.targetColumn,
+                    relationshipId: rel.id || 'unknown',
+                    sourceTable: rel.sourceTableName?.replace(/\.[^.]+$/, '') ?? 'unknown',
+                    sourceColumn: rel.sourceColumn ?? 'unknown',
+                    targetTable: rel.targetTableName?.replace(/\.[^.]+$/, '') ?? 'unknown',
+                    targetColumn: rel.targetColumn ?? 'unknown',
                     joinType: 'INNER',
                     confidence: rel.confidence,
                 });
@@ -262,6 +261,7 @@ export async function traceKPILineage(
         sources: sourcesList,
         joinPaths,
         aggregations,
+        explanation: explanations.business || explanations.technical || '',
         technicalExplanation: explanations.technical,
         businessExplanation: explanations.business,
         aiEnhanced: explanations.aiEnhanced,
