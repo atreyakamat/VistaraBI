@@ -57,6 +57,18 @@ function isTokenLikelyValid(token: string): boolean {
 }
 
 export function proxy(request: NextRequest) {
+    const start = Date.now();
+
+    function logRequest(status: number) {
+        const ms = Date.now() - start;
+        const { pathname } = request.nextUrl;
+        // Only log API calls (pages are logged by Next.js itself)
+        if (pathname.startsWith('/api/')) {
+            const level = ms > 3000 ? 'SLOW' : ms > 1000 ? 'WARN' : 'INFO';
+            console.log(`[${level}] ${request.method} ${pathname} → ${status} (${ms}ms)`);
+        }
+    }
+
     try {
         const { pathname } = request.nextUrl;
 

@@ -4,6 +4,7 @@
 // Matches premium template: w-20 icon-only nav, Material Symbols, active glow
 
 import { useRouter } from 'next/navigation';
+import { InviteButton } from '@/components/app/InviteButton';
 
 interface SidebarProps {
     projectId: string;
@@ -103,6 +104,8 @@ export function Sidebar({
                             settings
                         </span>
                     </button>
+
+                    <InviteButton referralSource="sidebar" />
 
                     <div className="sidebar-avatar">
                         <div

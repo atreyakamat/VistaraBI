@@ -22,6 +22,8 @@ import { getAvailableRanges, type DateRange, type Granularity } from './ChartCon
 import type { StrategyCanvasResult } from '@/lib/module-8/types';
 import { DashboardErrorBoundary } from './DashboardErrorBoundary';
 import { SharePanel } from './SharePanel';
+import { ExportButton } from './ExportButton';
+import { HelpTooltip } from '@/components/ui/HelpTooltip';
 
 interface DrillState {
     kpiId: string;
@@ -234,6 +236,13 @@ export function DashboardShell({
                         <span className="material-symbols-outlined text-base">share</span>
                         Share
                     </button>
+
+                    {/* Export CSV */}
+                    <ExportButton
+                        projectId={projectId}
+                        label="Export CSV"
+                        className="bg-sky-100 hover:bg-sky-200 text-sky-700"
+                    />
 
                     {/* Insight Panel Toggle */}
                     <button

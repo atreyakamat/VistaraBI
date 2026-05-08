@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { KPICardBack } from './KPICardBack';
 import type { KPICardData, KPIExplanationData } from './types';
+import { HelpTooltip, DASHBOARD_TOOLTIPS } from '@/components/ui/HelpTooltip';
 
 // Register Chart.js components once
 if (typeof window !== 'undefined') {
@@ -121,6 +122,10 @@ export function KPIMetricCard({ data, explanation }: KPIMetricCardProps) {
                                 <p className="kpi-card-title">
                                     {data.kpiName.replace(/_/g, ' ')}
                                 </p>
+                                <HelpTooltip
+                                    content={DASHBOARD_TOOLTIPS.kpi(data.kpiName.replace(/_/g, ' '))}
+                                    side="right"
+                                />
                             </div>
                             {/* Primary Value */}
                             <h3 className="kpi-card-value">
@@ -130,11 +135,14 @@ export function KPIMetricCard({ data, explanation }: KPIMetricCardProps) {
 
                         {/* Trend Badge */}
                         {data.trendPercent !== undefined && (
-                            <div
-                                className={`kpi-trend-badge ${data.trend || 'flat'}`}
-                            >
-                                <span className="material-symbols-outlined text-xs">{trend.icon}</span>
-                                {trend.label}{Math.abs(data.trendPercent).toFixed(1)}%
+                            <div className="flex items-center gap-1">
+                                <div
+                                    className={`kpi-trend-badge ${data.trend || 'flat'}`}
+                                >
+                                    <span className="material-symbols-outlined text-xs">{trend.icon}</span>
+                                    {trend.label}{Math.abs(data.trendPercent).toFixed(1)}%
+                                </div>
+                                <HelpTooltip content={DASHBOARD_TOOLTIPS.trend} side="top" />
                             </div>
                         )}
                     </div>

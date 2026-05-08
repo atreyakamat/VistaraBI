@@ -6,7 +6,7 @@ import { runFullAnalysis } from '@/lib/intelligence';
 import { purifyDataset } from '@/lib/purification';
 import { checkRateLimit, getIdentifier, RATE_LIMITS, buildRateLimitHeaders } from '@/lib/security/rate-limiter';
 
-const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1GB
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB — matches client-side validation
 const ALLOWED_EXTENSIONS = ['csv', 'json', 'xml', 'xlsx'];
 
 // GET /api/projects/[id]/sources - List sources for a project
