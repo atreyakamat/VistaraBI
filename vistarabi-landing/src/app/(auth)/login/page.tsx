@@ -96,9 +96,14 @@ export default function LoginPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-[var(--foreground)] uppercase tracking-widest ml-1">
-                                Password
-                            </label>
+                            <div className="flex items-center justify-between ml-1">
+                                <label className="text-xs font-bold text-[var(--foreground)] uppercase tracking-widest">
+                                    Password
+                                </label>
+                                <Link href="/forgot-password" className="text-xs font-semibold text-[var(--accent)] hover:underline underline-offset-4">
+                                    Forgot password?
+                                </Link>
+                            </div>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--muted)]" />
                                 <input
@@ -141,3 +146,4 @@ export default function LoginPage() {
         </motion.div>
     );
 }
+

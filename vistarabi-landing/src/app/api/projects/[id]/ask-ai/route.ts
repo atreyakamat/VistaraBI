@@ -548,10 +548,38 @@ export async function POST(
                     break;
                 }
                 case 'UNSUPPORTED':
-                default:
-                    // Return pure unhandled intent without generic fallback message, per architectural rules
-                    result = { status: 'rejected', route: 'UNSUPPORTED_SCOPE', message: 'This type of query is outside the platform\'s structured reasoning capabilities.' };
+                default: {
+                    // Smart fallback: suggest related query types the platform supports
+                    const lowerMsg = sanitized.toLowerCase();
+                    const suggestions: string[] = [];
+
+                    // Suggest the most likely intended routes based on keywords present
+                    if (/\b(revenue|sales|mrr|arr|churn|ltv|cac)\b/i.test(lowerMsg)) {
+                        suggestions.push('What is our current revenue?', 'Show revenue trend over the last 3 months');
+                    }
+                    if (/\b(customer|user|client|subscriber)\b/i.test(lowerMsg)) {
+                        suggestions.push('How many active customers do we have?', 'Show customer churn trend');
+                    }
+                    if (/\b(cost|expense|profit|margin)\b/i.test(lowerMsg)) {
+                        suggestions.push('What is our gross margin?', 'Show cost trends over time');
+                    }
+                    if (suggestions.length === 0) {
+                        suggestions.push(
+                            'What is our revenue this month?',
+                            'Why did our top KPI change last week?',
+                            'Compare revenue vs expenses',
+                            'Show me an overview of all KPIs'
+                        );
+                    }
+
+                    result = {
+                        status: 'unsupported',
+                        route: 'UNSUPPORTED',
+                        message: `I couldn't find a structured reasoning path for that query. I'm specialized in business KPI analysis — try rephrasing around a specific metric, trend, or goal.`,
+                        suggestions: suggestions.slice(0, 3),
+                    };
                     break;
+                }
             }
         } catch (routeErr: unknown) {
             const message = routeErr instanceof Error ? routeErr.message : String(routeErr);

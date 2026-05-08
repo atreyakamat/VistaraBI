@@ -16,6 +16,7 @@ import { AIFilter } from './AIFilter';
 import { AskAIPanel } from './AskAIPanel';
 import { GoalStrategyPanel } from './GoalStrategyPanel';
 import { ForecastPanel } from './ForecastPanel';
+import { OllamaHealthBanner } from './OllamaHealthBanner';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from './types';
 import { getAvailableRanges, type DateRange, type Granularity } from './ChartContainer';
 import type { StrategyCanvasResult } from '@/lib/module-8/types';
@@ -200,6 +201,8 @@ export function DashboardShell({
 
             {/* Main Content */}
             <main className="dashboard-main">
+                {/* Ollama Health Banner — shows only when AI is offline */}
+                <OllamaHealthBanner />
                 {/* Frosted Glass Header */}
                 <Header
                     title="Data Intelligence"
