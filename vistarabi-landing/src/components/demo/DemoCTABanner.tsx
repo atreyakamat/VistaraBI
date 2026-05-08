@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { BarChart3 } from 'lucide-react';
 
 interface DemoCTABannerProps {
     demoDomain?: string;
@@ -39,7 +40,7 @@ export function DemoCTABanner({ demoDomain }: DemoCTABannerProps) {
             >
                 {/* Icon */}
                 <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center shrink-0 text-xl">
-                    📊
+                    <BarChart3 className="w-6 h-6 text-white" />
                 </div>
 
                 {/* Text */}
