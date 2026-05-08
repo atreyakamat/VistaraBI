@@ -59,13 +59,20 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     console.log('[Dashboard] Generating AI explanations for', kpis.length, 'KPIs...');
 
     const kpiExplanations: Record<string, any> = {};
-    const kpiInputs = kpis.map(kpi => ({
-        kpiId: kpi.id,
-        kpiName: kpi.name,
-        formula: kpi.lineage?.formula || '',
-        category: kpi.category || 'general',
-        columns: kpi.aggregations?.map((a: any) => a.column) || [],
-    }));
+    const kpiInputs = kpis.map(kpi => {
+        const kpiId = (kpi.id ?? kpi.kpiId ?? kpi.kpi_id)?.toString();
+        const kpiName = (kpi.name ?? kpi.kpiName ?? kpi.kpi_name ?? kpi.kpi)?.toString();
+        const formula = kpi.lineage?.formula ?? kpi.formula ?? kpi.aggregations?.map((a: any) => a.column).join(' + ') ?? '';
+        const category = kpi.category ?? kpi.kpiCategory ?? 'general';
+        const columns = (kpi.aggregations?.map((a: any) => a.column) ?? kpi.columns ?? []).filter(Boolean);
+        return {
+            kpiId,
+            kpiName,
+            formula,
+            category,
+            columns,
+        };
+    });
 
     try {
         // Create timeout promise (600s to support heavy 120B parameter models)

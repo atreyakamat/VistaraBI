@@ -121,8 +121,21 @@ export async function loadEcommerceData(): Promise<{
   );
 
   try {
-    const highQuality = await loadCSVFile<EcommerceRecord>(highQualityPath);
+    const rawHighQuality = await loadCSVFile<Record<string, any>>(highQualityPath);
     const orders = await loadCSVFile<EcommerceOrdersRecord>(ordersPath);
+
+    // Normalize columns to expected EcommerceRecord shape
+    const highQuality: EcommerceRecord[] = rawHighQuality.map((r: Record<string, any>) => ({
+      date: (r.date || r.order_date || r.orderDate || '').toString(),
+      order_id: (r.order_id || r.orderId || r.order_id)?.toString() || '',
+      customer_id: (r.customer_id || r.customerId || r.customer_id)?.toString() || '',
+      revenue: Number(r.revenue ?? r.total_spend ?? r.total_spend_usd ?? 0) || 0,
+      cogs: Number(r.cogs ?? r.cost_of_goods_sold ?? 0) || 0,
+      marketing_cost: Number(r.marketing_cost ?? r.marketing_spend ?? 0) || 0,
+      sessions: Number(r.sessions ?? 0) || 0,
+      cart_additions: Number(r.cart_additions ?? r.cart_size ?? 0) || 0,
+      category: (r.category || r.drink_category || r.category || r.product_category || '').toString() || 'Unknown',
+    }));
 
     const quality = assessDataQuality(
       highQuality,
@@ -154,21 +167,45 @@ export async function loadFinanceData(): Promise<{
   // Try alternative path if current doesn't exist
   let actualPath = financePath;
   if (!fs.existsSync(financePath)) {
-    const altPath = path.join(
-      projectRoot,
-      '..',
-      'vistarabi-landing',
-      'datasets',
-      'finance',
-      'archive (52)',
-      'synthetic_personal_finance_dataset.csv'
-    );
-    if (fs.existsSync(altPath)) {
-      actualPath = altPath;
+    // Search for any synthetic finance CSV in datasets/finance recursively
+    const financeDir = path.join(projectRoot, 'datasets', 'finance');
+    if (fs.existsSync(financeDir)) {
+      const entries = fs.readdirSync(financeDir, { withFileTypes: true });
+      let found: string | null = null;
+
+      function searchDir(dir: string) {
+        const items = fs.readdirSync(dir, { withFileTypes: true });
+        for (const it of items) {
+          const p = path.join(dir, it.name);
+          if (it.isDirectory()) {
+            // Recurse one level deep
+            try { searchDir(p); } catch { /* ignore */ }
+          } else if (it.isFile()) {
+            if (/synthetic.*finance.*\.csv$/i.test(it.name) || /synthetic_personal_finance_dataset.*\.csv$/i.test(it.name)) {
+              found = p;
+              return;
+            }
+          }
+        }
+      }
+
+      try {
+        searchDir(financeDir);
+      } catch {}
+
+      if (found) actualPath = found;
     }
+
+    // last resort: look in repo root dummy-data
+    const altRoot = path.join(projectRoot, '..', 'dummy-data', 'synthetic_personal_finance_dataset.csv');
+    if (!fs.existsSync(actualPath) && fs.existsSync(altRoot)) actualPath = altRoot;
   }
 
   try {
+    if (!fs.existsSync(actualPath)) {
+      throw new Error(`Finance CSV not found at expected locations (tried: ${financePath}, ${actualPath})`);
+    }
+
     const records = await loadCSVFile<FinanceRecord>(actualPath);
 
     const quality = assessDataQuality(

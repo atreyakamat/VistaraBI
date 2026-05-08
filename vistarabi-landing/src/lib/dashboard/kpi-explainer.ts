@@ -29,9 +29,10 @@ export async function generateKPIExplanations(
     domain?: DomainType | null
 ): Promise<Record<string, KPIExplanation>> {
     const explanations: Record<string, KPIExplanation> = {};
-    const isOllamaAvailable = await checkOllamaHealth();
+    const isTestEnv = process.env.NODE_ENV === 'test';
+    const isOllamaAvailable = isTestEnv ? false : await checkOllamaHealth();
 
-    console.log(`[KPIExplainer] Starting explanations for ${kpis.length} KPIs. Ollama available: ${isOllamaAvailable}. Domain: ${domain}`);
+    console.log(`[KPIExplainer] Starting explanations for ${kpis.length} KPIs. Ollama available: ${isOllamaAvailable}. Domain: ${domain}. TestEnv: ${isTestEnv}`);
 
     for (const kpi of kpis) {
         try {
