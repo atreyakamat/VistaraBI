@@ -1,6 +1,7 @@
 // Consistency scorer - measures format uniformity
 
-import { ColumnMeta, DataType } from '@/lib/prisma';
+import { DataType } from '@/lib/prisma';
+import type { ColumnMeta } from '@prisma/client';
 
 export interface ConsistencyResult {
     overallScore: number;  // 0-100

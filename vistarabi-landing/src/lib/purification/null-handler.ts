@@ -1,6 +1,7 @@
 // Null value handler - fills missing values using statistical strategies
 
-import { ColumnMeta, DataType } from '@/lib/prisma';
+import { DataType } from '@/lib/prisma';
+import type { ColumnMeta } from '@prisma/client';
 
 export interface NullHandlerResult {
     cleanedData: Record<string, unknown>[];

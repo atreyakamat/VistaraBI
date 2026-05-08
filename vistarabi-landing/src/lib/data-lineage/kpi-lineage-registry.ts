@@ -4,6 +4,7 @@
 import { randomUUID } from 'crypto';
 import db from '@/lib/prisma';
 import type { ApprovedKPIWithRelations } from '@/lib/prisma';
+import type { KPILineageRegistry } from '@prisma/client';
 import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { getRelationshipRegistry } from './relationship-registry';
 import {
@@ -369,7 +370,10 @@ function createEmptyRegistry(projectId: string): ParsedKPILineageRegistry {
 // Store registry in database
 async function storeKPILineageRegistry(registry: ParsedKPILineageRegistry): Promise<void> {
     const data = {
-        ...registry,
+        id: registry.id,
+        projectId: registry.projectId,
+        version: registry.version,
+        generatedAt: registry.generatedAt,
         entries: registry.entries as any,
         stats: registry.stats as any,
     };
@@ -440,10 +444,10 @@ export async function explainKPI(projectId: string, kpiId: string): Promise<{
     return {
         kpiId: lineage.kpiId,
         kpiName: lineage.kpiName,
-        domain: lineage.domain,
+        domain: lineage.domain ?? '',
         formula: lineage.formula,
-        technicalExplanation: lineage.technicalExplanation,
-        businessExplanation: lineage.businessExplanation,
+        technicalExplanation: lineage.technicalExplanation ?? '',
+        businessExplanation: lineage.businessExplanation ?? '',
         sources: lineage.sources.map(s => s.sourceName.replace(/\.[^.]+$/, '')),
         joins: lineage.joinPaths.map(j => ({
             from: j.sourceTable,

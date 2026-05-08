@@ -6,11 +6,11 @@ import db, {
     KPISourceContribution,
     KPIJoin,
     KPIAggregation,
-    EntityRelationshipGraph,
 } from '@/lib/prisma';
 import type { ApprovedKPIWithRelations } from '@/lib/prisma';
 import { loadBlueprintWithKPIs } from '@/lib/kpi/blueprint-loader';
 import { buildEntityGraph, findEntityPath } from './relationship-graph';
+import type { EntityRelationshipGraph } from './index';
 
 // Aggregation function patterns in formulas
 const AGGREGATION_PATTERNS: { regex: RegExp; func: KPIAggregation['function'] }[] = [

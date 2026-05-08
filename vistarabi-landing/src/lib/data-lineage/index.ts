@@ -10,6 +10,7 @@ import { traceAllKPILineages, getKPILineage } from './kpi-lineage';
 // Types for entity relationship graph
 interface ForeignKeyCandidate {
   column: string;
+  referencedEntity: string;
   referencedColumn: string;
   confidence: number;
 }
@@ -35,6 +36,7 @@ interface EntityEdge {
 }
 
 interface EntityRelationshipGraph {
+  projectId?: string;
   nodes: EntityNode[];
   edges: EntityEdge[];
   createdAt?: Date;

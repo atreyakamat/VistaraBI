@@ -1,13 +1,13 @@
-﻿// Relationship Registry - Module 4D-A
+// Relationship Registry - Module 4D-A
 // Orchestrates relationship detection, validation, and storage
 
 import { randomUUID } from 'crypto';
 import db, {
     RelationshipEntry,
-    RelationshipRegistry,
     RelationshipType,
     JoinCardinality,
 } from '@/lib/prisma';
+import type { RelationshipRegistry } from '@prisma/client';
 import {
     detectRelationships,
     calculateConfidence,

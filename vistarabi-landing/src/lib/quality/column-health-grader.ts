@@ -1,6 +1,6 @@
 // Column health grader - assigns GOOD/PARTIAL/POOR status
 
-import { HealthStatus } from '@/lib/prisma';
+import type { HealthStatus } from '@prisma/client';
 
 export function gradeColumnHealth(
     completeness: number,

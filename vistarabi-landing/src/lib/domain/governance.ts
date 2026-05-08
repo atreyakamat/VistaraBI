@@ -3,7 +3,8 @@
 
 import { randomUUID } from 'crypto';
 import db from '@/lib/prisma';
-import type { DomainType, GovernanceStatus } from '@/lib/prisma';
+import type { DomainType } from '@/lib/prisma';
+import type { GovernanceStatus } from '@prisma/client';
 import { detectDomain } from './index';
 
 export interface GovernDomainParams {
