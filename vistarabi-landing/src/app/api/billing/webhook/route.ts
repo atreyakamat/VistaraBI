@@ -1,102 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { updateUserPlanFromSubscription, cancelSubscription } from '@/lib/billing';
 import prisma from '@/lib/prisma';
+import { headers } from 'next/headers';
 
-const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-
-/**
- * POST /api/billing/webhook
- * Handle Stripe webhook events
- */
 export async function POST(request: NextRequest) {
-    if (!WEBHOOK_SECRET || !stripe) {
-        return NextResponse.json({ error: 'Webhook not configured' }, { status: 400 });
+    const body = await request.text();
+    const sig = (await headers()).get('stripe-signature');
+
+    if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
+        return NextResponse.json({ error: 'Missing signature or secret' }, { status: 400 });
     }
 
+    let event;
+
     try {
-        const body = await request.text();
-        const signature = request.headers.get('stripe-signature');
+        event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err: any) {
+        console.error(`[stripe-webhook] signature error: ${err.message}`);
+        return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+    }
 
-        if (!signature) {
-            return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
-        }
-
-        // Verify webhook signature
-        let event;
-        try {
-            event = stripe.webhooks.constructEvent(body, signature, WEBHOOK_SECRET);
-        } catch (err) {
-            console.error('[webhook] Signature verification failed:', err);
-            return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
-        }
-
-        // Handle events
+    // Handle the event
+    try {
         switch (event.type) {
-            case 'customer.subscription.created':
-            case 'customer.subscription.updated': {
-                const subscription = event.data.object;
-                const userId = subscription.metadata?.userId;
+            case 'checkout.session.completed': {
+                const session = event.data.object as any;
+                const userId = session.metadata?.userId;
+                const stripeCustomerId = session.customer as string;
+                const stripeSubscriptionId = session.subscription as string;
 
                 if (userId) {
-                    await updateUserPlanFromSubscription(userId, subscription);
-                    console.log(`[webhook] Updated subscription for user ${userId}`);
-                }
-                break;
-            }
-
-            case 'customer.subscription.deleted': {
-                const subscription = event.data.object;
-                const userId = subscription.metadata?.userId;
-
-                if (userId) {
-                    // Downgrade user to STARTER plan
                     await prisma.user.update({
                         where: { id: userId },
                         data: {
-                            plan: 'STARTER',
-                            stripeSubscriptionId: null,
+                            stripeCustomerId,
+                            stripeSubscriptionId,
+                            // Map price ID to plan (this would be dynamic in production)
+                            plan: 'PRO', 
                         },
                     });
-                    console.log(`[webhook] Downgraded user ${userId} to STARTER`);
                 }
                 break;
             }
+            case 'customer.subscription.updated':
+            case 'customer.subscription.deleted': {
+                const subscription = event.data.object as any;
+                const stripeCustomerId = subscription.customer as string;
+                const status = subscription.status;
 
-            case 'customer.updated': {
-                const customer = event.data.object;
-                const userId = customer.metadata?.userId;
-
-                if (userId && customer.email) {
-                    // Sync email if changed
-                    await prisma.user.update({
-                        where: { id: userId },
-                        data: { email: customer.email },
-                    });
-                }
+                await prisma.user.update({
+                    where: { stripeCustomerId },
+                    data: {
+                        plan: status === 'active' ? 'PRO' : 'STARTER',
+                        stripeSubscriptionId: status === 'active' ? subscription.id : null,
+                    },
+                });
                 break;
             }
-
-            case 'invoice.payment_failed': {
-                const invoice = event.data.object;
-                console.warn(`[webhook] Payment failed for customer ${invoice.customer}: ${invoice.amount_due}¢`);
-                // Could send email notification here
-                break;
-            }
-
-            case 'invoice.payment_succeeded': {
-                const invoice = event.data.object;
-                console.log(`[webhook] Payment succeeded for customer ${invoice.customer}: ${invoice.amount_paid}¢`);
-                break;
-            }
-
             default:
-                console.log(`[webhook] Unhandled event type: ${event.type}`);
+                console.log(`[stripe-webhook] unhandled event type: ${event.type}`);
         }
 
-        return NextResponse.json({ received: true }, { status: 200 });
-    } catch (error) {
-        console.error('[webhook] Error processing webhook:', error);
-        return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
+        return NextResponse.json({ received: true });
+    } catch (dbError: any) {
+        console.error('[stripe-webhook] database update failed:', dbError);
+        return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
     }
 }
