@@ -73,7 +73,8 @@ export class LLMCallError extends Error {
  */
 export async function callLLM(
     userQuery: string,
-    contextJson: string
+    contextJson: string,
+    preferLocal?: boolean
 ): Promise<string> {
     const userMessage = `Dashboard context:
 ${contextJson}
@@ -83,7 +84,7 @@ User request: "${userQuery}"
 Output your JSON command now:`;
 
     try {
-        const response = await callLocalModel(SYSTEM_PROMPT, userMessage, TEMPERATURE);
+        const response = await callLocalModel(SYSTEM_PROMPT, userMessage, TEMPERATURE, undefined, preferLocal);
         return response.text;
     } catch (err: any) {
         const code = err.name === 'ModelCallError' ? err.code : MODULE6_ERROR_CODES.LLM_CALL_FAILED;

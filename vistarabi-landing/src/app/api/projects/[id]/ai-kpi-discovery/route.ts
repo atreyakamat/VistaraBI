@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import db from '@/lib/prisma';
 import { runAIKPIDiscovery, getAIKPIProposals, updateProposalStatus } from '@/lib/kpi/ai-kpi-discovery';
+import { resolvePreferLocalFromRequest } from '@/lib/ai/request-ai-mode';
 
 // GET /api/projects/[id]/ai-kpi-discovery - Get AI KPI proposals
 export async function GET(
@@ -65,7 +66,8 @@ export async function POST(
 
         console.log('[API] Running AI KPI Discovery for project:', id);
 
-        const { preferLocal } = await request.json().catch(() => ({ preferLocal: true }));
+        const body = await request.json().catch(() => ({} as { preferLocal?: boolean }));
+        const preferLocal = resolvePreferLocalFromRequest(request, body.preferLocal);
 
         const result = await runAIKPIDiscovery(id, preferLocal);
 

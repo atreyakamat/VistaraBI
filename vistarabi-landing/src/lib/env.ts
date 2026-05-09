@@ -75,6 +75,8 @@ export function getAIConfig() {
         groqApiKey: process.env.GROQ_API_KEY,
         groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
         groqBaseUrl: process.env.GROQ_BASE_URL,
+        preferLocal: process.env.PREFER_LOCAL === 'true',
+        forceGroq: process.env.FORCE_GROQ === 'true',
         hasLocalAI: !!(process.env.OLLAMA_URL || process.env.OLLAMA_MODEL),
         hasCloudAI: !!(process.env.CLOUD_AI_BASE_URL),
         hasOpenRouter: !!(process.env.OPENROUTER_API_KEY),

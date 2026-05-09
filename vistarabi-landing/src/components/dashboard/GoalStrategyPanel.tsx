@@ -10,6 +10,8 @@ import StrategyCanvas from '@/components/module-8/StrategyCanvas';
 import AIChatPanel from '@/components/module-8/AIChatPanel';
 import { StrategyCanvasResult } from '@/lib/module-8/types';
 import { resolveForecastHistory, type DashboardKpiExecutionItem } from '@/lib/module-8/kpi-history-resolver';
+import { AI_MODE_HEADER_KEY } from '@/lib/ai/ai-mode';
+import { useAIMode } from '@/lib/ai/use-ai-mode';
 import { Target, X, FileText } from 'lucide-react';
 import html2canvas from 'html2canvas';
 
@@ -434,7 +436,7 @@ export function GoalStrategyPanel({
 }) {
     const [input, setInput] = useState(initialQuery);
     const [loading, setLoading] = useState(false);
-    const [preferLocal, setPreferLocal] = useState(true);
+    const { preferLocal, setPreferLocal } = useAIMode();
     const [stage, setStage] = useState<string | null>(null);
     const [canvas, setCanvas] = useState<StrategyCanvas | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -518,7 +520,10 @@ export function GoalStrategyPanel({
             const [res] = await Promise.all([
                 fetch(`/api/projects/${projectId}/goals`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [AI_MODE_HEADER_KEY]: preferLocal ? 'local' : 'cloud',
+                    },
                     body: JSON.stringify({ 
                         rawQuery: q,
                         preferLocal

@@ -7,6 +7,8 @@ import {
     getEnhancedClassification,
 } from '@/lib/ai/domain-reasoning';
 import { checkOllamaHealth } from '@/lib/ai/ollama-client';
+import { checkAIHealth } from '@/lib/ai/unified-ai-client';
+import { resolvePreferLocalFromRequest } from '@/lib/ai/request-ai-mode';
 
 // GET /api/projects/[id]/ai-reasoning - Get AI domain reasoning
 export async function GET(
@@ -36,8 +38,10 @@ export async function GET(
         // Get enhanced classification (combines rule-based + AI)
         const enhanced = await getEnhancedClassification(id);
 
-        // Check Ollama health
-        const ollamaAvailable = await checkOllamaHealth();
+        const preferLocal = resolvePreferLocalFromRequest(request);
+        const ollamaAvailable = preferLocal
+            ? await checkOllamaHealth()
+            : (await checkAIHealth(false)).available.length > 0;
 
         return NextResponse.json({
             aiReasoning,
@@ -72,19 +76,13 @@ export async function POST(
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 
-        // Check Ollama availability first
-        const ollamaAvailable = await checkOllamaHealth();
-        if (!ollamaAvailable) {
-            return NextResponse.json({
-                error: 'Ollama is not running. Please start Ollama with: ollama serve',
-                ollamaAvailable: false,
-            }, { status: 503 });
-        }
+        const body = await request.json().catch(() => ({} as { preferLocal?: boolean }));
+        const preferLocal = resolvePreferLocalFromRequest(request, body.preferLocal);
 
         console.log('[AI-API] Triggering semantic reasoning for project:', id);
 
         // Perform semantic reasoning
-        const aiReasoning = await triggerDomainReasoning(id);
+        const aiReasoning = await triggerDomainReasoning(id, preferLocal);
 
         if (!aiReasoning) {
             // Check if rule-based confidence is already high
@@ -100,7 +98,7 @@ export async function POST(
 
             return NextResponse.json({
                 error: 'AI reasoning failed or no data to analyze.',
-                ollamaAvailable: true,
+                ollamaAvailable: preferLocal,
             }, { status: 500 });
         }
 

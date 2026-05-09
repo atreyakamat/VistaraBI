@@ -186,15 +186,17 @@ function getModelConfigs(preferLocal?: boolean): AIModelConfig[] {
         });
     }
 
-    const defaultPreferLocal = process.env.FORCE_GROQ !== 'true' && process.env.PREFER_LOCAL !== 'false';
+    const defaultPreferLocal = process.env.NODE_ENV === 'test'
+        ? true
+        : (process.env.FORCE_GROQ !== 'true' && process.env.PREFER_LOCAL === 'true');
     const useLocal = preferLocal ?? defaultPreferLocal;
 
     if (useLocal) {
-        // If local is preferred, put local then cloud
+        // Local mode: local first with cloud fallback.
         configs.push(...localConfigs, ...cloudConfigs);
     } else {
-        // If cloud is preferred, put cloud then local
-        configs.push(...cloudConfigs, ...localConfigs);
+        // Cloud mode: cloud only. Do not route to local unless explicitly selected.
+        configs.push(...cloudConfigs);
     }
 
     return configs;
@@ -519,12 +521,12 @@ export async function generateSimple(
 }
 
 // Check health of all configured providers
-export async function checkAIHealth(): Promise<{
+export async function checkAIHealth(preferLocal?: boolean): Promise<{
     configured: number;
     available: string[];
     unavailable: string[];
 }> {
-    const configs = getModelConfigs();
+    const configs = getModelConfigs(preferLocal);
     const available: string[] = [];
     const unavailable: string[] = [];
 

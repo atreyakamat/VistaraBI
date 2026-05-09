@@ -6,6 +6,8 @@
 import { ModelCallError, LOCAL_MODEL_ID } from './types';
 import type { AdapterResponse } from './types';
 import { generateWithFallback } from '@/lib/ai/unified-ai-client';
+import { AI_MODE_COOKIE_KEY, AI_MODE_HEADER_KEY, normalizeAIMode, modeToPreferLocal } from '@/lib/ai/ai-mode';
+import { cookies, headers } from 'next/headers';
 
 // ─── Adapter ──────────────────────────────────────────────────────────────────
 
@@ -21,6 +23,24 @@ export async function callLocalModel(
     preferLocal?: boolean
 ): Promise<AdapterResponse> {
     const startMs = Date.now();
+    let effectivePreferLocal = preferLocal;
+
+    // If the caller did not pass explicit mode, resolve from active request (header/cookie).
+    if (effectivePreferLocal === undefined) {
+        try {
+            const requestHeaderMode = normalizeAIMode((await headers()).get(AI_MODE_HEADER_KEY));
+            if (requestHeaderMode) {
+                effectivePreferLocal = modeToPreferLocal(requestHeaderMode);
+            } else {
+                const cookieMode = normalizeAIMode((await cookies()).get(AI_MODE_COOKIE_KEY)?.value);
+                if (cookieMode) {
+                    effectivePreferLocal = modeToPreferLocal(cookieMode);
+                }
+            }
+        } catch {
+            // Non-request execution context (tests/background jobs): fall back to unified client defaults.
+        }
+    }
 
     try {
         const response = await generateWithFallback({
@@ -30,7 +50,7 @@ export async function callLocalModel(
             ],
             temperature,
             model: localModelId,
-            preferLocal
+            preferLocal: effectivePreferLocal
         });
 
         return {

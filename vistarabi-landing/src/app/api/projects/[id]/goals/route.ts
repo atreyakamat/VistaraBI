@@ -10,6 +10,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
 import { safeParseGeneratedPlan } from '@/lib/prisma/json-schemas';
 import { toPrismaJsonField } from '@/lib/prisma/json-input';
+import { resolvePreferLocalFromRequest } from '@/lib/ai/request-ai-mode';
 import { z } from 'zod';
 
 const createGoalRequestSchema = z.object({
@@ -45,7 +46,8 @@ export async function POST(
                 { status: 400, headers: rlHeaders }
             );
         }
-        const { rawQuery, preferLocal } = parsedBody.data;
+        const { rawQuery } = parsedBody.data;
+        const preferLocal = resolvePreferLocalFromRequest(request, parsedBody.data.preferLocal);
 
         // 1. Fetch Project for Domain Context
         const project = await prisma.project.findFirst({

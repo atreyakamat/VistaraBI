@@ -1,3 +1,5 @@
+import { AI_MODE_HEADER_KEY, readClientAIMode } from '@/lib/ai/ai-mode';
+
 export type ApiResponse<T> = {
   data?: T;
   error?: string;
@@ -14,6 +16,7 @@ class ApiClient {
         ...options,
         headers: {
           "Content-Type": "application/json",
+          ...(typeof window !== 'undefined' ? { [AI_MODE_HEADER_KEY]: readClientAIMode() } : {}),
           ...options.headers,
         },
       });

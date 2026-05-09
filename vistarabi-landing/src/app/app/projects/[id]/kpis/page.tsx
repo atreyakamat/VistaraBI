@@ -19,6 +19,7 @@ import {
     BarChart3
 } from "lucide-react";
 import { api } from "@/lib/api/client";
+import { useAIMode } from "@/lib/ai/use-ai-mode";
 import { KPISkeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
@@ -65,7 +66,7 @@ export default function KPIWorkspacePage() {
     const [blueprint, setBlueprint] = useState<{ kpis: ApprovedKPI[]; isLocked: boolean; version: number } | null>(null);
     const [loading, setLoading] = useState(true);
     const [aiLoading, setAiLoading] = useState(false);
-    const [preferLocal, setPreferLocal] = useState(true);
+    const { preferLocal, setPreferLocal } = useAIMode();
     const [aiRequested, setAiRequested] = useState(false);
     const [adding, setAdding] = useState<string | null>(null);
     const [finalizing, setFinalizing] = useState(false);

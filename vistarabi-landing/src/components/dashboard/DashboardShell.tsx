@@ -24,6 +24,7 @@ import { DashboardErrorBoundary } from './DashboardErrorBoundary';
 import { SharePanel } from './SharePanel';
 import { ExportButton } from './ExportButton';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
+import { useAIMode } from '@/lib/ai/use-ai-mode';
 import { toast } from 'sonner';
 
 interface DrillState {
@@ -92,6 +93,7 @@ export function DashboardShell({
     // UI state for bottom bar
     const [bottomDateRange, setBottomDateRange] = useState<DateRange>('90d');
     const [bottomGranularity, setBottomGranularity] = useState<Granularity>('monthly');
+    const { preferLocal, setPreferLocal } = useAIMode();
 
     // Auto-trigger insight panel if anomalies are detected
     useEffect(() => {
@@ -208,7 +210,6 @@ export function DashboardShell({
 
     return (
         <div className="dashboard-layout dashboard-root">
-            {/* Slim Sidebar */}
             <Sidebar
                 projectId={projectId}
                 projectName={projectName}
@@ -222,6 +223,9 @@ export function DashboardShell({
                 onOpenForecast={() => setForecastPanelOpen(true)}
                 onOpenStrategy={() => setGoalPanelOpen(true)}
                 onOpenAskAI={() => setAskAiOpen(true)}
+                isReadOnly={isReadOnly}
+            />
+                isReadOnly={isReadOnly}
             />
 
             {/* Main Content */}
@@ -247,6 +251,20 @@ export function DashboardShell({
                     kpiSearchQuery={kpiSearchQuery}
                     onSearchChange={setKpiSearchQuery}
                 >
+                    <button
+                        onClick={() => setPreferLocal(!preferLocal)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                            preferLocal
+                                ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                                : 'bg-indigo-100 text-indigo-700 border-indigo-200'
+                        }`}
+                        title={preferLocal ? 'Using Local AI (Ollama)' : 'Using Cloud AI (Groq)'}
+                    >
+                        <span className="material-symbols-outlined text-base">
+                            {preferLocal ? 'nest_remote_iris' : 'cloud'}
+                        </span>
+                        {preferLocal ? 'Local' : 'Cloud'}
+                    </button>
                     {/* Share Button */}
                     {!isReadOnly && (
                         <button
@@ -714,6 +732,24 @@ export function DashboardShell({
                 feed={insightFeed}
                 alerts={smartAlerts}
                 strongestUp={strongestUp}
+                strongestDown={strongestDown}
+                anomalyCount={anomalyCount}
+                trendingUp={trendingUp}
+                trendingDown={trendingDown}
+                isOpen={insightPanelOpen}
+                onClose={() => setInsightPanelOpen(false)}
+            />
+            {/* Share Panel */}
+            <SharePanel
+                projectId={projectId}
+                projectName={projectName}
+                isOpen={showSharePanel}
+                onClose={() => setShowSharePanel(false)}
+            />
+        </div>
+    );
+}
+     strongestUp={strongestUp}
                 strongestDown={strongestDown}
                 anomalyCount={anomalyCount}
                 trendingUp={trendingUp}

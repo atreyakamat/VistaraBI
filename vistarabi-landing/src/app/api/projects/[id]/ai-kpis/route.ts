@@ -4,6 +4,8 @@ import db from '@/lib/prisma';
 import { getSampleDataForAI } from '@/lib/kpi';
 import { getGovernedDomain } from '@/lib/domain/governance';
 import { checkOllamaHealth, generateKPISuggestions } from '@/lib/ai/ollama-client';
+import { checkAIHealth } from '@/lib/ai/unified-ai-client';
+import { resolvePreferLocalFromRequest } from '@/lib/ai/request-ai-mode';
 
 // POST /api/projects/[id]/ai-kpis - Get AI-derived KPIs using Ollama
 export async function POST(
@@ -15,20 +17,31 @@ export async function POST(
         if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
         const { id } = await params;
+        const body = await request.json().catch(() => ({} as { preferLocal?: boolean }));
+        const preferLocal = resolvePreferLocalFromRequest(request, body.preferLocal);
         const project = await db.project.findUnique({ where: { id } });
         if (!project || project.userId !== user.userId) {
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 
-        // Check Ollama availability
-        console.log('[AI-KPI] Checking Ollama health...');
-        const ollamaReady = await checkOllamaHealth();
-        if (!ollamaReady) {
-            console.error('[AI-KPI] Ollama not available');
-            return NextResponse.json({
-                error: 'Ollama is not running. Start it with: ollama serve',
-                aiKpis: [],
-            }, { status: 503 });
+        // Check active AI provider availability based on selected mode
+        if (preferLocal) {
+            const ollamaReady = await checkOllamaHealth();
+            if (!ollamaReady) {
+                return NextResponse.json({
+                    error: 'Local AI is unavailable. Switch to Cloud mode or start Ollama.',
+                    aiKpis: [],
+                }, { status: 503 });
+            }
+        } else {
+            const health = await checkAIHealth(false);
+            const cloudReady = health.available.some(p => p !== 'ollama-local');
+            if (!cloudReady) {
+                return NextResponse.json({
+                    error: 'Cloud AI is unavailable. Configure GROQ_API_KEY or switch to Local mode.',
+                    aiKpis: [],
+                }, { status: 503 });
+            }
         }
 
         // Get domain
@@ -49,7 +62,7 @@ export async function POST(
 
         // Generate KPIs using the dedicated function
         console.log('[AI-KPI] Calling Ollama for KPI suggestions...');
-        const aiKpis = await generateKPISuggestions(columns, rows, domain);
+        const aiKpis = await generateKPISuggestions(columns, rows, domain, preferLocal);
         console.log('[AI-KPI] Received', aiKpis.length, 'KPI suggestions');
 
         // Format for frontend

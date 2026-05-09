@@ -18,6 +18,8 @@
 //   - Input length capped to 500 chars
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { AI_MODE_HEADER_KEY } from '@/lib/ai/ai-mode';
+import { useAIMode } from '@/lib/ai/use-ai-mode';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -633,7 +635,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [preferLocal, setPreferLocal] = useState(true);
+    const { preferLocal, setPreferLocal } = useAIMode();
     const [lastUserMessage, setLastUserMessage] = useState('');
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -722,7 +724,10 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
         try {
             const res = await fetch(`/api/projects/${projectId}/ask-ai`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    [AI_MODE_HEADER_KEY]: preferLocal ? 'local' : 'cloud',
+                },
                 body: JSON.stringify({
                     message: messageText.trim(),
                     sessionId: projectId,

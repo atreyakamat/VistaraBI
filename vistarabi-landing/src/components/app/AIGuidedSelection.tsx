@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AI_MODE_HEADER_KEY } from '@/lib/ai/ai-mode';
+import { useAIMode } from '@/lib/ai/use-ai-mode';
 
 interface DomainInfo {
     type: string;
@@ -51,6 +53,7 @@ export default function AIGuidedSelection({
     const [error, setError] = useState<string | null>(null);
     const [aiReasoning, setAIReasoning] = useState<AIDomainReasoning | null>(null);
     const [ollamaAvailable, setOllamaAvailable] = useState<boolean | null>(null);
+    const { preferLocal } = useAIMode();
 
     const fetchAIReasoning = async () => {
         setLoading(true);
@@ -59,6 +62,11 @@ export default function AIGuidedSelection({
         try {
             const res = await fetch(`/api/projects/${projectId}/ai-reasoning`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [AI_MODE_HEADER_KEY]: preferLocal ? 'local' : 'cloud',
+                },
+                body: JSON.stringify({ preferLocal }),
             });
 
             const data = await res.json();
@@ -102,7 +110,7 @@ export default function AIGuidedSelection({
                                     AI Domain Intelligence
                                 </h2>
                                 <p className="text-sm text-[var(--muted)]">
-                                    Powered by local Ollama • qwen3:0.6b
+                                    Powered by {preferLocal ? 'local Ollama' : 'cloud Groq'} • {preferLocal ? 'qwen3:0.6b' : 'llama-3.3-70b-versatile'}
                                 </p>
                             </div>
                         </div>

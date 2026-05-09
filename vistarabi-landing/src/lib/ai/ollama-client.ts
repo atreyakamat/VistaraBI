@@ -234,7 +234,8 @@ JSON Array:`;
 
 // Perform semantic domain reasoning (for Module 3C) with domain expert agent
 export async function performSemanticReasoning(
-    context: SemanticReasoningContext
+    context: SemanticReasoningContext,
+    preferLocal?: boolean
 ): Promise<SemanticReasoningResult> {
     const prompt = buildSemanticPrompt(context);
 
@@ -257,6 +258,7 @@ export async function performSemanticReasoning(
                 }
             ],
             temperature: 0.2,
+            preferLocal,
             agentRole: 'domain-expert', // Use domain expert for classification
         });
 

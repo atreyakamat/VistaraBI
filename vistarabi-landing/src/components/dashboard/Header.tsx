@@ -15,11 +15,13 @@ interface HeaderProps {
     kpiSearchQuery?: string;
     onSearchChange?: (q: string) => void;
     children?: React.ReactNode;
+    isReadOnly?: boolean;
 }
 
 export function Header({
     title, subtitle, kpiCount, onRefresh, onToggleSidebar, isRefreshing,
     onAskAI, onOpenNotifications, kpiSearchQuery, onSearchChange, children,
+    isReadOnly = false
 }: HeaderProps) {
     return (
         <header className="dashboard-header">
@@ -46,17 +48,21 @@ export function Header({
                     <span className="material-symbols-outlined">menu</span>
                 </button>
 
-                {/* Gradient AI Button */}
-                <button
-                    onClick={onAskAI}
-                    className="gradient-btn px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg"
-                    style={{ boxShadow: '0 8px 24px rgba(19, 91, 236, 0.25)' }}
-                >
-                    <span className="material-symbols-outlined text-lg">magic_button</span>
-                    Ask AI
-                </button>
+                {!isReadOnly && (
+                    <>
+                        {/* Gradient AI Button */}
+                        <button
+                            onClick={onAskAI}
+                            className="gradient-btn px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-lg"
+                            style={{ boxShadow: '0 8px 24px rgba(19, 91, 236, 0.25)' }}
+                        >
+                            <span className="material-symbols-outlined text-lg">magic_button</span>
+                            Ask AI
+                        </button>
 
-                <div className="header-divider hidden sm:block" />
+                        <div className="header-divider hidden sm:block" />
+                    </>
+                )}
 
                 {/* Refresh */}
                 <button
@@ -71,7 +77,7 @@ export function Header({
                 </button>
 
                 {/* Module 5C: Additional header actions */}
-                {children}
+                {!isReadOnly && children}
 
                 {/* Notifications — opens Insights panel */}
                 <button

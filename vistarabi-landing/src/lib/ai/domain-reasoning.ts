@@ -12,6 +12,7 @@ import {
     type SemanticReasoningContext,
     type SemanticReasoningResult,
 } from '@/lib/ai/ollama-client';
+import { checkAIHealth } from '@/lib/ai/unified-ai-client';
 
 // Confidence thresholds
 const AUTO_ASSIGN_THRESHOLD = 60;  // Above this: auto-assign domain
@@ -122,7 +123,8 @@ function calculateCombinedConfidence(
 
 // Main: Trigger domain reasoning with AI assistance
 export async function triggerDomainReasoning(
-    projectId: string
+    projectId: string,
+    preferLocal?: boolean
 ): Promise<AIDomainReasoning | null> {
     console.log('[AI-Domain] Starting semantic reasoning for project:', projectId);
     const startTime = Date.now();
@@ -144,11 +146,20 @@ export async function triggerDomainReasoning(
         return null;
     }
 
-    // Check Ollama availability
-    const ollamaAvailable = await checkOllamaHealth();
-    if (!ollamaAvailable) {
-        console.warn('[AI-Domain] Ollama not available');
-        return null;
+    // Check provider availability based on selected mode
+    if (preferLocal) {
+        const ollamaAvailable = await checkOllamaHealth();
+        if (!ollamaAvailable) {
+            console.warn('[AI-Domain] Local AI not available');
+            return null;
+        }
+    } else {
+        const health = await checkAIHealth(false);
+        const cloudAvailable = health.available.some(p => p !== 'ollama-local');
+        if (!cloudAvailable) {
+            console.warn('[AI-Domain] Cloud AI not available');
+            return null;
+        }
     }
 
     try {
@@ -163,7 +174,7 @@ export async function triggerDomainReasoning(
         console.log('[AI-Domain] Analyzing', context.unmatchedColumns.length, 'unmatched columns');
 
         // Call Ollama semantic reasoning
-        const suggestion = await callSemanticReasoning(context);
+        const suggestion = await callSemanticReasoning(context, preferLocal);
 
         const processingTime = Date.now() - startTime;
         console.log('[AI-Domain] Semantic analysis complete in', processingTime, 'ms');

@@ -7,12 +7,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { handleAskAI } from '@/lib/module-6';
+import { resolvePreferLocalFromRequest } from '@/lib/ai/request-ai-mode';
 
 // ─── Request Body ────────────────────────────────────────────────────────────
 
 interface AskAIRequestBody {
     message: string;
     sessionId: string;
+    preferLocal?: boolean;
 }
 
 // ─── Route Handler ────────────────────────────────────────────────────────────
@@ -91,7 +93,8 @@ export async function POST(
     const userId = authHeader ? authHeader.replace('Bearer ', '') : undefined;
 
     // Run the full Module 6A pipeline
-    const result = await handleAskAI(projectId, sessionId, message, userId);
+    const preferLocal = resolvePreferLocalFromRequest(request, body.preferLocal);
+    const result = await handleAskAI(projectId, sessionId, message, userId, preferLocal);
 
     // Map status to HTTP status code
     const httpStatus =

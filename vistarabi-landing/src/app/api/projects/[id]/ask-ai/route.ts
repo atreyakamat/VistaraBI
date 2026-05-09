@@ -19,6 +19,7 @@ import { sanitizeUserQuery } from '@/lib/module-6/infrastructure/prompt-builder'
 import { getSessionMemory, updateSessionMemory, resolvePronouns, injectContext, getFollowUpSuggestions } from '@/lib/module-6/orchestration/orchestrator';
 import type { StrategyCanvasResult } from '@/lib/module-8/types';
 import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
+import { resolvePreferLocalFromRequest } from '@/lib/ai/request-ai-mode';
 
 // ─── Utility: Levenshtein Distance & Fuzzy Match ──────────────────────────────
 
@@ -290,7 +291,7 @@ export async function POST(
 
         const sanitized = sanitizeUserQuery(raw);
         const sessionId = body.sessionId || projectId;
-        const preferLocal = body.preferLocal;
+        const preferLocal = resolvePreferLocalFromRequest(request, body.preferLocal);
 
         // ─── Module 6F: Conversational Orchestrator ──────────────────────────────
         const mem = getSessionMemory(sessionId);
@@ -368,7 +369,7 @@ export async function POST(
                 }
                 case '6A': {
                     const { handleAskAI } = await import('@/lib/module-6');
-                    result = (await handleAskAI(projectId, sessionId, sanitized, user.userId)) as unknown as Record<string, unknown>;
+                    result = (await handleAskAI(projectId, sessionId, sanitized, user.userId, preferLocal)) as unknown as Record<string, unknown>;
                     break;
                 }
                 case '6B': {
@@ -639,7 +640,7 @@ RULES:
 The underlying analytical engines (6A-6E) produced this structured payload:
 ${JSON.stringify({ ...safeResult, dataset: undefined })} // Intentionally omitting dataset arrays from prompt to save context length`;
 
-                const response = await callLocalModel(systemPrompt, userPrompt, 0.3);
+                const response = await callLocalModel(systemPrompt, userPrompt, 0.3, undefined, preferLocal);
                 conversationalPreamble = response.text || '';
             } catch (err) {
                 console.warn('[ask-ai] Failed to generate conversational wrapper:', err);

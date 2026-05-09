@@ -19,6 +19,7 @@ interface SidebarProps {
     onOpenForecast?: () => void;
     onOpenStrategy?: () => void;
     onOpenAskAI?: () => void;
+    isReadOnly?: boolean;
 }
 
 // Map section icons to Material Symbols (fallback to emoji)
@@ -44,7 +45,8 @@ function getMaterialIcon(emoji: string): string {
 export function Sidebar({
     projectId, projectName, domainIcon, domainName, domainColor,
     sections, activeSection, isOpen, onToggle,
-    onOpenForecast, onOpenStrategy, onOpenAskAI
+    onOpenForecast, onOpenStrategy, onOpenAskAI,
+    isReadOnly = false
 }: SidebarProps) {
     const router = useRouter();
 
@@ -96,44 +98,52 @@ export function Sidebar({
                         </button>
                     ))}
                     
-                    <div className="my-2 border-t border-slate-700/50 mx-4"></div>
+                    {!isReadOnly && (
+                        <>
+                            <div className="my-2 border-t border-slate-700/50 mx-4"></div>
 
-                    {onOpenForecast && (
-                        <button className="sidebar-nav-item" onClick={onOpenForecast} title="Forecast">
-                            <div className="nav-icon-wrapper text-emerald-400">
-                                <span className="material-symbols-outlined">monitoring</span>
-                            </div>
-                        </button>
-                    )}
-                    {onOpenStrategy && (
-                        <button className="sidebar-nav-item" onClick={onOpenStrategy} title="Strategy">
-                            <div className="nav-icon-wrapper text-blue-400">
-                                <span className="material-symbols-outlined">target</span>
-                            </div>
-                        </button>
-                    )}
-                    {onOpenAskAI && (
-                        <button className="sidebar-nav-item" onClick={onOpenAskAI} title="Ask AI">
-                            <div className="nav-icon-wrapper text-purple-400">
-                                <span className="material-symbols-outlined">auto_awesome</span>
-                            </div>
-                        </button>
+                            {onOpenForecast && (
+                                <button className="sidebar-nav-item" onClick={onOpenForecast} title="Forecast">
+                                    <div className="nav-icon-wrapper text-emerald-400">
+                                        <span className="material-symbols-outlined">monitoring</span>
+                                    </div>
+                                </button>
+                            )}
+                            {onOpenStrategy && (
+                                <button className="sidebar-nav-item" onClick={onOpenStrategy} title="Strategy">
+                                    <div className="nav-icon-wrapper text-blue-400">
+                                        <span className="material-symbols-outlined">target</span>
+                                    </div>
+                                </button>
+                            )}
+                            {onOpenAskAI && (
+                                <button className="sidebar-nav-item" onClick={onOpenAskAI} title="Ask AI">
+                                    <div className="nav-icon-wrapper text-purple-400">
+                                        <span className="material-symbols-outlined">auto_awesome</span>
+                                    </div>
+                                </button>
+                            )}
+                        </>
                     )}
                 </nav>
 
                 {/* Footer Actions */}
                 <div className="sidebar-footer">
-                    <button
-                        className="sidebar-nav-item"
-                        onClick={() => router.push(`/app/projects/${projectId}/kpis`)}
-                        title="Edit KPIs"
-                    >
-                        <span className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-all">
-                            settings
-                        </span>
-                    </button>
+                    {!isReadOnly && (
+                        <>
+                            <button
+                                className="sidebar-nav-item"
+                                onClick={() => router.push(`/app/projects/${projectId}/kpis`)}
+                                title="Edit KPIs"
+                            >
+                                <span className="material-symbols-outlined text-slate-400 hover:text-slate-600 transition-all">
+                                    settings
+                                </span>
+                            </button>
 
-                    <InviteButton referralSource="sidebar" />
+                            <InviteButton referralSource="sidebar" />
+                        </>
+                    )}
 
                     <div className="sidebar-avatar">
                         <div

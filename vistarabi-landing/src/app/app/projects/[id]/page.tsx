@@ -30,6 +30,7 @@ import DomainBadge from "@/components/app/DomainBadge";
 import DomainSelectionPopup from "@/components/app/DomainSelectionPopup";
 import IngestionProgress from "@/components/app/IngestionProgress";
 import { api } from "@/lib/api/client";
+import { useAIMode } from "@/lib/ai/use-ai-mode";
 import { ProjectSkeleton } from "@/components/ui/skeleton";
 import { SourceStatus, QualityScore, QualityGrade, RiskLevel, DataType, DomainType, DomainStatus } from "@/lib/prisma";
 import { toast } from "sonner";
@@ -85,7 +86,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
     const [relationships, setRelationships] = useState<RelationshipData[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
-    const [preferLocal, setPreferLocal] = useState(true);
+    const { preferLocal, setPreferLocal } = useAIMode();
     const [deleting, setDeleting] = useState(false);
     const [previewSource, setPreviewSource] = useState<SourceWithPreview | null>(null);
     const [previewColumnMeta, setPreviewColumnMeta] = useState<ColumnInfo[] | undefined>();
@@ -527,20 +528,21 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                                     </div>
 
                                     {activeTab === "sources" && (
-                                        <div className="pb-3 space-y-3">
+                                        <div className="pb-3 flex flex-col md:flex-row items-start md:items-center gap-4">
                                             <UploadZone onFilesSelected={handleFilesSelected} uploading={uploading} />
-                                            {/* Domain CSV Templates */}
-                                            <div className="border border-[var(--border)] rounded-xl p-3 bg-[var(--background)]">
-                                                <p className="text-xs font-bold text-[var(--muted)] uppercase tracking-widest mb-2">
-                                                    📥 Download a template to get started
+                                            
+                                            <div className="flex-1 p-3 rounded-xl bg-slate-800/20 border border-slate-700/40">
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                    <Info className="w-3 h-3" />
+                                                    Don't have data? Download a template
                                                 </p>
-                                                <div className="flex flex-wrap gap-2">
+                                                <div className="flex flex-wrap gap-1.5">
                                                     {['retail','saas','healthcare','finance','manufacturing','ecommerce','edtech','services'].map(d => (
-                                                        <a
-                                                            key={d}
-                                                            href={`/api/templates/${d}`}
-                                                            download
-                                                            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-[var(--accent)]/8 hover:bg-[var(--accent)]/15 text-[var(--accent)] transition-colors border border-[var(--accent)]/20 capitalize"
+                                                        <a 
+                                                            key={d} 
+                                                            href={`/api/templates/${d}`} 
+                                                            download 
+                                                            className="px-2 py-0.5 bg-[var(--accent)]/10 hover:bg-[var(--accent)]/20 text-[var(--accent)] text-[10px] font-bold rounded border border-[var(--accent)]/20 transition-all capitalize"
                                                         >
                                                             {d}
                                                         </a>

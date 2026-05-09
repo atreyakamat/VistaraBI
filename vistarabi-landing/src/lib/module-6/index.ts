@@ -98,7 +98,8 @@ export async function handleAskAI(
     projectId: string,
     sessionId: string,
     rawUserQuery: string,
-    userId?: string
+    userId?: string,
+    preferLocal?: boolean
 ): Promise<Module6Response> {
     const normalizedQuery = normalizeQuery(rawUserQuery);
 
@@ -163,7 +164,7 @@ export async function handleAskAI(
     // Step 6: Call LLM
     let llmRawOutput: string | undefined;
     try {
-        llmRawOutput = await callLLM(rawUserQuery, contextToPromptString(context));
+        llmRawOutput = await callLLM(rawUserQuery, contextToPromptString(context), preferLocal);
     } catch (err: unknown) {
         const code = err instanceof LLMCallError ? err.code : MODULE6_ERROR_CODES.LLM_CALL_FAILED;
         const message = err instanceof Error ? err.message : 'LLM call failed';
