@@ -225,8 +225,6 @@ export function DashboardShell({
                 onOpenAskAI={() => setAskAiOpen(true)}
                 isReadOnly={isReadOnly}
             />
-                isReadOnly={isReadOnly}
-            />
 
             {/* Main Content */}
             <main className="dashboard-main">
@@ -732,24 +730,6 @@ export function DashboardShell({
                 feed={insightFeed}
                 alerts={smartAlerts}
                 strongestUp={strongestUp}
-                strongestDown={strongestDown}
-                anomalyCount={anomalyCount}
-                trendingUp={trendingUp}
-                trendingDown={trendingDown}
-                isOpen={insightPanelOpen}
-                onClose={() => setInsightPanelOpen(false)}
-            />
-            {/* Share Panel */}
-            <SharePanel
-                projectId={projectId}
-                projectName={projectName}
-                isOpen={showSharePanel}
-                onClose={() => setShowSharePanel(false)}
-            />
-        </div>
-    );
-}
-     strongestUp={strongestUp}
                 strongestDown={strongestDown}
                 anomalyCount={anomalyCount}
                 trendingUp={trendingUp}

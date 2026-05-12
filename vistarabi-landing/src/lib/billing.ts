@@ -1,5 +1,14 @@
-import { stripe, BILLING_PLANS, type BillingPlan } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
+
+export type BillingPlan = 'STARTER' | 'PRO' | 'GROWTH' | 'BUSINESS';
+
+const BILLING_PLANS: Record<string, any> = {
+    STARTER: { stripe_price_id_monthly: 'price_starter_m', stripe_price_id_annual: 'price_starter_a' },
+    PRO: { stripe_price_id_monthly: 'price_pro_m', stripe_price_id_annual: 'price_pro_a' },
+    GROWTH: { stripe_price_id_monthly: 'price_growth_m', stripe_price_id_annual: 'price_growth_a' },
+    BUSINESS: { stripe_price_id_monthly: 'price_business_m', stripe_price_id_annual: 'price_business_a' }
+};
 
 /**
  * Create a Stripe customer for a user
