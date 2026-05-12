@@ -13,7 +13,7 @@ import type { DomainType } from '../prisma';
 const SECTION_DEFINITIONS = [
     { sectionId: 'revenue', title: 'Revenue & Sales', description: 'Financial performance metrics', icon: 'dollar-sign', order: 1, categories: ['revenue', 'sales', 'financial', 'pricing'] },
     { sectionId: 'customers', title: 'Customer Intelligence', description: 'Customer behavior and lifecycle metrics', icon: 'users', order: 2, categories: ['customer', 'user', 'retention', 'engagement', 'churn'] },
-    { sectionId: 'operations', title: 'Operational Metrics', description: 'Efficiency and process metrics', icon: 'settings', order: 3, categories: ['operational', 'efficiency', 'logistics', 'inventory', 'process'] },
+    { sectionId: 'operations', title: 'Operational Metrics', description: 'Efficiency and process metrics', icon: 'settings', order: 3, categories: ['operational', 'efficiency', 'services', 'inventory', 'process'] },
     { sectionId: 'growth', title: 'Growth & Conversion', description: 'Growth trajectory and conversion metrics', icon: 'trending-up', order: 4, categories: ['growth', 'conversion', 'acquisition', 'marketing'] },
     { sectionId: 'product', title: 'Product Analytics', description: 'Product performance and usage metrics', icon: 'package', order: 5, categories: ['product', 'catalog', 'feature', 'usage'] },
     { sectionId: 'quality', title: 'Quality & Compliance', description: 'Data quality and compliance metrics', icon: 'check-circle', order: 6, categories: ['quality', 'compliance', 'risk', 'audit'] },

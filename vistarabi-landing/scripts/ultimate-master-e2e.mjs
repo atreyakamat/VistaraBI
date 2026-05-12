@@ -207,12 +207,12 @@ async function main() {
     const domainsToTest = [
         { name: 'ECOMMERCE', file: '../datasets/ecommerce/archive (66)/2019-Nov.csv' },
         { name: 'RETAIL', file: '../datasets/retail/archive (1)/Chocolate Sales.csv' },
-        { name: 'LOGISTICS', file: '../datasets/logistics/archive (1)/shipments.csv' },
+        { name: 'SAAS', file: '../datasets/saas/archive (1)/shipments.csv' },
         { name: 'MANUFACTURING', file: '../datasets/manufacturing/archive (51)/data.csv' },
         { name: 'HEALTHCARE', file: '../datasets/healthcare/archive (1)/patient_data.csv' },
         { name: 'FINANCE', file: '../datasets/finance/archive (1)/financial_data.csv' },
         { name: 'EDTECH', file: '../datasets/edtech/archive (1)/student_data.csv' },
-        { name: 'REAL_ESTATE', file: '../datasets/real_estate/re1/House_Price_dataset.csv' }
+        { name: 'SERVICES', file: '../datasets/services/re1/House_Price_dataset.csv' }
     ];
 
     let successCount = 0;

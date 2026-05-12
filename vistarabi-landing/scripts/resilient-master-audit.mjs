@@ -224,11 +224,11 @@ async function main() {
         { name: 'ECOMMERCE', dir: '../datasets/ecommerce' },
         { name: 'EDTECH', dir: '../datasets/edtech' },
         { name: 'RETAIL', dir: '../datasets/retail' },
-        { name: 'LOGISTICS', dir: '../datasets/logistics' },
+        { name: 'SAAS', dir: '../datasets/saas' },
         { name: 'MANUFACTURING', dir: '../datasets/manufacturing' },
         { name: 'HEALTHCARE', dir: '../datasets/healthcare' },
         { name: 'FINANCE', dir: '../datasets/finance' },
-        { name: 'REAL_ESTATE', dir: '../datasets/real_estate' }
+        { name: 'SERVICES', dir: '../datasets/services' }
     ];
 
     for (const d of domains) {

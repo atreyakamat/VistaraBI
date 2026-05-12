@@ -45,7 +45,7 @@ export function FinanceDashboard(){
     {t:'AUM',v:'$48.6M',c:'+8.4%',I:PiggyBank,s:'Assets Under Mgmt'},
     {t:'Sharpe Ratio',v:'1.82',c:'+0.08',I:BarChart3,s:'Risk-Adj Return'},
   ];
-  const portfolios=[{n:'Growth Fund',a:'$18.2M',r:'18.5%',s:'1.92',d:'Low'},{n:'Value Fund',a:'$12.8M',r:'12.4%',s:'1.68',d:'Medium'},{n:'Bond Fund',a:'$8.4M',r:'6.2%',s:'2.15',d:'Very Low'},{n:'Real Estate',a:'$5.8M',r:'14.1%',s:'1.45',d:'Medium'},{n:'Emerging Mkts',a:'$3.4M',r:'22.8%',s:'1.12',d:'High'}];
+  const portfolios=[{n:'Growth Fund',a:'$18.2M',r:'18.5%',s:'1.92',d:'Low'},{n:'Value Fund',a:'$12.8M',r:'12.4%',s:'1.68',d:'Medium'},{n:'Bond Fund',a:'$8.4M',r:'6.2%',s:'2.15',d:'Very Low'},{n:'Services',a:'$5.8M',r:'14.1%',s:'1.45',d:'Medium'},{n:'Emerging Mkts',a:'$3.4M',r:'22.8%',s:'1.12',d:'High'}];
   return(
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950">
       <header className="border-b border-slate-800/60 bg-slate-950/60 backdrop-blur-md sticky top-0 z-10">
