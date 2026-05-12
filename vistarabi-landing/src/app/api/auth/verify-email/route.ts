@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('token');
 
     if (!token) {
-        return apiError('BAD_REQUEST', 'Verification token is required');
+        return apiError('VALIDATION_ERROR', 'Verification token is required');
     }
 
     try {

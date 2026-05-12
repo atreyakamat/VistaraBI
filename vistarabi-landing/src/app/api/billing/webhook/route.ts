@@ -11,6 +11,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Missing signature or secret' }, { status: 400 });
     }
 
+    if (!stripe) {
+        return NextResponse.json({ error: 'Stripe is not configured' }, { status: 500 });
+    }
+
     let event;
 
     try {

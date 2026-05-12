@@ -15,11 +15,6 @@ model User {
   emailVerified         DateTime?
   emailVerifyToken      String?             @unique
   
-  // Billing
-  plan                  BillingPlan         @default(STARTER)
-  stripeCustomerId      String?             @unique
-  stripeSubscriptionId  String?
-  
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
   deletedAt             DateTime?
@@ -28,14 +23,6 @@ model User {
   notifications         Notification[]
 
   @@index([emailVerifyToken])
-  @@index([stripeCustomerId])
-}
-
-enum BillingPlan {
-  STARTER
-  PRO
-  GROWTH
-  BUSINESS
 }
 
 model PasswordResetToken {

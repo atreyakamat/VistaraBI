@@ -12,10 +12,14 @@ export async function POST(request: NextRequest) {
     try {
         const { priceId } = await request.json();
         if (!priceId) {
-            return apiError('BAD_REQUEST', 'Price ID is required');
+            return apiError('VALIDATION_ERROR', 'Price ID is required');
         }
 
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+        if (!stripe) {
+            return apiError('INTERNAL_ERROR', 'Stripe is not configured');
+        }
 
         // Create checkout session
         const session = await stripe.checkout.sessions.create({
