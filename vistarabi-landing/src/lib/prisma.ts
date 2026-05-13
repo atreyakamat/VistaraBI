@@ -32,7 +32,6 @@ export {
     DataType,
     DomainType,
     DomainStatus,
-    BillingPlan,
     type Prisma,
 } from '@prisma/client';
 
