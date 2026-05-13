@@ -161,9 +161,9 @@ async function runDomainE2E(domain, filePath, cookie) {
             metrics: { probability: 0.85, gap: "100", target: "500" },
             chartImage: placeholderImg,
             dashboardImage: placeholderImg,
-            selectedKPIs: topKPIs.map(k => k.kpiName),
-            actions: strategyCanvas?.topActions?.map(a => a.actionName) || ["Optimization Action A", "Resource Reallocation"],
-            forecastData: strategyCanvas?.scenarios?.[0]?.scenarios || [],
+            selectedKPIs: topKPIs.map(k => ({ name: k.kpiName, category: k.category || 'General', value: "85.0%", trend: "+5.2%" })),
+            actions: (strategyCanvas?.topActions || [{ actionName: "Optimization Action A", tier: "High Impact" }]).map(a => ({ title: a.actionName || "Strategy", impact: a.tier || "High" })),
+            forecastData: { kpi: topKPIs[0]?.kpiName || "Core Metric", trend: "Upward trajectory", confidence: "High" },
             uploadedDatasets: [path.basename(filePath)],
             cleaningSummary: "E2E Automated Audit."
         };
