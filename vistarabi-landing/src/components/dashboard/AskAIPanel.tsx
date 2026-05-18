@@ -103,7 +103,15 @@ function genId() {
 }
 
 function parseResponse(data: any): ChatContent {
-    const { route, status, directive } = data;
+    const { route, status, directive, error } = data;
+
+    if (error) {
+        return {
+            type: 'error',
+            message: error,
+            recoverable: true,
+        };
+    }
 
     if (directive === 'OPEN_GOAL_ENGINE') {
         return {
