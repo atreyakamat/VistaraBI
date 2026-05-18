@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 import withBundleAnalyzer from "@next/bundle-analyzer";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  
+  // ── Docker / Production ──
+  // Produces a self-contained .next/standalone directory for Docker images
+  output: 'standalone',
+
   // ── File Upload Configuration ──
   experimental: {
     esmExternals: true,
