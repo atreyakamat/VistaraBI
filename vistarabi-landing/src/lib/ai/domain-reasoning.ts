@@ -7,10 +7,8 @@ import db from '@/lib/prisma';
 import type { DomainType } from '@/lib/prisma';
 import {
     checkOllamaHealth,
-    generateCompletion,
     performSemanticReasoning as callSemanticReasoning,
     type SemanticReasoningContext,
-    type SemanticReasoningResult,
 } from '@/lib/ai/ollama-client';
 import { checkAIHealth } from '@/lib/ai/unified-ai-client';
 
@@ -46,26 +44,56 @@ export interface AIDomainReasoning {
     createdAt: Date;
 }
 
+type RuleDomainDetection = {
+    detectedDomain: DomainType | null;
+    confidence: number;
+    matchedColumns: string[];
+    unmatchedColumns?: string[];
+    scoringBreakdown: unknown;
+};
+
+function asStringArray(value: unknown): string[] {
+    return Array.isArray(value)
+        ? value.filter((item): item is string => typeof item === 'string')
+        : [];
+}
+
+function asRecordRows(value: unknown): Record<string, unknown>[] {
+    if (!Array.isArray(value)) return [];
+    return value.filter((row): row is Record<string, unknown> =>
+        !!row && typeof row === 'object' && !Array.isArray(row)
+    );
+}
+
+function asNumberRecord(value: unknown): Record<string, number> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+
+    return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>)
+            .filter((entry): entry is [string, number] => typeof entry[1] === 'number')
+    );
+}
+
 // Gather context for semantic reasoning
 async function gatherSemanticContext(
     projectId: string,
-    ruleDetection: any
+    ruleDetection: RuleDomainDetection
 ): Promise<SemanticReasoningContext> {
     const project = await db.project.findUnique({ where: { id: projectId } });
     const sources = await db.source.findMany({ where: { projectId } });
 
     // Extract sample values from unmatched columns
     const sampleValues: Record<string, string[]> = {};
-    const unmatchedColumns = ruleDetection?.unmatchedColumns || [];
+    const unmatchedColumns = asStringArray(ruleDetection.unmatchedColumns);
 
     for (const source of sources) {
-        const sourceData = source.data as unknown as Record<string, any>[];
+        const sourceData = asRecordRows(source.data);
         if (sourceData && sourceData.length > 0) {
             for (const col of unmatchedColumns.slice(0, 15)) {
                 if (!sampleValues[col]) {
                     const samples = sourceData
                         .slice(0, 5)
-                        .map((row: Record<string, any>) => String(row[col] || ''))
+                        .map(row => String(row[col] ?? ''))
                         .filter((v: string) => v && v !== 'null' && v !== 'undefined' && v.length < 50);
                     if (samples.length > 0) {
                         sampleValues[col] = samples;
@@ -76,16 +104,17 @@ async function gatherSemanticContext(
     }
 
     // Build matched columns info
-    const matchedColumns = (ruleDetection?.matchedColumns || []).map((col: string) => ({
+    const matchedColumns = asStringArray(ruleDetection.matchedColumns).map((col: string) => ({
         column: col,
-        domain: ruleDetection?.detectedDomain || 'UNKNOWN',
+        domain: ruleDetection.detectedDomain || 'UNKNOWN',
         keyword: col,
     }));
 
     const totalRows = sources.reduce((sum, s) => sum + (s.rowCount || 0), 0);
 
     // Get second domain (for comparison)
-    const scores = Object.entries(ruleDetection?.scoringBreakdown || {})
+    const scoreMap = asNumberRecord(ruleDetection.scoringBreakdown);
+    const scores = Object.entries(scoreMap)
         .sort(([, a], [, b]) => (b as number) - (a as number));
     const secondDomain = scores.length > 1 ? scores[1][0] : null;
 
@@ -94,8 +123,8 @@ async function gatherSemanticContext(
         matchedColumns,
         unmatchedColumns,
         sampleValues,
-        ruleBasedScores: ruleDetection?.scoringBreakdown || {},
-        topDomain: ruleDetection?.detectedDomain || null,
+        ruleBasedScores: scoreMap,
+        topDomain: ruleDetection.detectedDomain || null,
         secondDomain,
         ambiguityScore: totalRows > 0 ? 50 : 0,
     };
@@ -266,7 +295,7 @@ export async function getEnhancedClassification(projectId: string): Promise<{
     confidence: number;
     source: 'rule-based' | 'ai-enhanced' | 'ai-recommended' | 'needs-selection';
     aiReasoning: AIDomainReasoning | null;
-    ruleDetection: any;
+    ruleDetection: RuleDomainDetection | null;
 }> {
     const ruleDetection = await db.domainDetection.findUnique({ where: { projectId } });
     const aiReasoning = await getAIDomainReasoning(projectId);

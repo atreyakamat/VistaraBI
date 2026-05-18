@@ -51,7 +51,7 @@ export async function resolveAIModeForUser(
 
     if (userId && userId !== 'demo-user-id') {
         try {
-            const user = await (db.user as any).findUnique({
+            const user = await db.user.findUnique({
                 where: { id: userId },
                 select: { preferences: true },
             });

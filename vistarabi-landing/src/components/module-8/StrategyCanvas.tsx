@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, AreaChart, Area, ComposedChart, ReferenceLine
+  Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Area, ComposedChart, ReferenceLine
 } from 'recharts';
-import { Activity, AlertTriangle, TrendingUp, CheckCircle, Settings, SlidersHorizontal } from 'lucide-react';
+import { Activity, AlertTriangle, TrendingUp, CheckCircle, SlidersHorizontal } from 'lucide-react';
 import { ForecastRequest, StrategyCanvasResult } from '@/lib/module-8/types';
 import { motion } from 'framer-motion';
 
@@ -24,10 +24,15 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
   const [data, setData] = useState<StrategyCanvasResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const onSimulationCompleteRef = React.useRef(onSimulationComplete);
+
+  useEffect(() => {
+    onSimulationCompleteRef.current = onSimulationComplete;
+  }, [onSimulationComplete]);
 
   // Form State
   const [goalValue, setGoalValue] = useState(initialContext?.goalValue ?? 75000);
-  const [horizonDays, setHorizonDays] = useState(180);
+  const [horizonDays] = useState(180);
   const [actionName, setActionName] = useState(initialContext?.actionName ?? "Email Campaign");
   const [uplift, setUplift] = useState(initialContext?.uplift ?? 15); // Percentage
   const [rampDays, setRampDays] = useState(30);
@@ -98,16 +103,14 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
       const result: StrategyCanvasResult = await res.json();
       setData(result);
       setRetryCount(0);
-      if (onSimulationComplete) {
-        onSimulationComplete(result);
-      }
-    } catch (err: any) {
+      onSimulationCompleteRef.current?.(result);
+    } catch (err: unknown) {
       console.error("[StrategyCanvas] Simulation error:", err);
-      setError(err.message || 'Failed to run simulation');
+      setError(err instanceof Error ? err.message : 'Failed to run simulation');
     } finally {
       setLoading(false);
     }
-  }, [history, goalValue, horizonDays, actionName, uplift, rampDays, startDay, onSimulationComplete]);
+  }, [history, goalValue, horizonDays, actionName, uplift, rampDays, startDay]);
 
   // Auto-run simulation on mount and when sliders change (debounced)
   // Use a ref to track the timeout ID to ensure only one timer is active
@@ -135,7 +138,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [history, goalValue, horizonDays, actionName, uplift, rampDays, startDay]);
+  }, [history, goalValue, horizonDays, actionName, uplift, rampDays, startDay, runSimulation]);
 
   // Format data for Recharts
   const chartData = React.useMemo(() => {
@@ -306,7 +309,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
             </div>
           </div>
 
-          <div className="flex-1 w-full bg-slate-50/50 rounded-xl border border-slate-100 p-4 min-h-[300px]">
+          <div className="w-full h-[420px] min-h-[320px] bg-slate-50/50 rounded-xl border border-slate-100 p-4">
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
@@ -326,7 +329,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
                   />
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: any, name: any) => [
+                    formatter={(value: unknown, name: unknown) => [
                       <span key={String(name)} className="font-bold text-slate-700">${Number(value).toFixed(0)}</span>, 
                       <span key={String(name)+"_label"} className="text-slate-500">{String(name)}</span>
                     ]}
@@ -334,13 +337,13 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
                   />
                   
                   {/* Confidence Interval Background */}
-                  <Area type="monotone" dataKey="ConfidenceUpper" stroke="none" fill="#e2e8f0" fillOpacity={0.4} />
-                  <Area type="monotone" dataKey="ConfidenceLower" stroke="none" fill="#ffffff" fillOpacity={1} />
+                  <Area type="monotone" dataKey="ConfidenceUpper" stroke="none" fill="#e2e8f0" fillOpacity={0.4} isAnimationActive={false} />
+                  <Area type="monotone" dataKey="ConfidenceLower" stroke="none" fill="#ffffff" fillOpacity={1} isAnimationActive={false} />
                   
                   {/* The 3 Scenario Lines */}
-                  <Line type="monotone" dataKey="Conservative" stroke="#ef4444" strokeWidth={2} strokeDasharray="6 6" dot={false} activeDot={{ r: 6, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }} />
-                  <Line type="monotone" dataKey="Baseline" stroke="#3b82f6" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }} />
-                  <Line type="monotone" dataKey="Optimistic" stroke="#22c55e" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }} />
+                  <Line type="monotone" dataKey="Conservative" stroke="#ef4444" strokeWidth={2} strokeDasharray="6 6" dot={false} activeDot={{ r: 6, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="Baseline" stroke="#3b82f6" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
+                  <Line type="monotone" dataKey="Optimistic" stroke="#22c55e" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
                   
                   {/* Target Goal Line */}
                   <ReferenceLine 

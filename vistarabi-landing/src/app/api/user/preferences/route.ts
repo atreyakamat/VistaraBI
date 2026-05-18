@@ -3,21 +3,21 @@ import prisma from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { normalizeAIMode, type AIMode } from '@/lib/ai/ai-mode';
 import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
+import type { Prisma } from '@prisma/client';
 
-type UserPreferences = {
-    aiMode: AIMode;
-    [key: string]: unknown;
-};
+type UserPreferences = Record<string, Prisma.InputJsonValue | null> & { aiMode: AIMode };
 
 function normalizePreferences(value: unknown): UserPreferences {
-    const source = value && typeof value === 'object' ? value as Record<string, unknown> : {};
+    const source = value && typeof value === 'object' && !Array.isArray(value)
+        ? value as Record<string, Prisma.InputJsonValue | null>
+        : {};
     return {
         ...source,
         aiMode: normalizeAIMode(source.aiMode) ?? 'auto',
     };
 }
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
     const user = await getCurrentUser();
     if (!user) {
         return NextResponse.json({ preferences: normalizePreferences(null), demo: true });
@@ -27,7 +27,7 @@ export async function GET(_request: NextRequest) {
         return NextResponse.json({ preferences: normalizePreferences(null), demo: true });
     }
 
-    const dbUser = await (prisma.user as any).findUnique({
+    const dbUser = await prisma.user.findUnique({
         where: { id: user.userId },
         select: { preferences: true },
     });
@@ -65,16 +65,16 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ preferences: normalizePreferences({ aiMode }), demo: true }, { headers: rlHeaders });
     }
 
-    const dbUser = await (prisma.user as any).findUnique({
+    const dbUser = await prisma.user.findUnique({
         where: { id: user.userId },
         select: { preferences: true },
     });
     const preferences = normalizePreferences(dbUser?.preferences);
     preferences.aiMode = aiMode;
 
-    const updated = await (prisma.user as any).update({
+    const updated = await prisma.user.update({
         where: { id: user.userId },
-        data: { preferences },
+        data: { preferences: preferences as Prisma.InputJsonObject },
         select: { preferences: true },
     });
 

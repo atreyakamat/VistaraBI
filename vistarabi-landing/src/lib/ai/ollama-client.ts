@@ -4,12 +4,27 @@
 
 import type { DomainType } from '@/lib/prisma';
 import { getDomainKPINames } from '@/lib/kpi/domain-metadata';
-import { generateWithFallback, type AIMessage } from './unified-ai-client';
+import { generateWithFallback, type AgentRole, type AIMessage } from './unified-ai-client';
 import type { AIRoutingMode } from './ai-mode';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3:0.6b';
-const TIMEOUT_MS = 60000; // 60s — reduced from 90s to fail faster
+
+interface OllamaTagResponse {
+    models?: Array<{ name?: unknown }>;
+}
+
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function readModelNames(data: unknown): string[] {
+    const models = (data as OllamaTagResponse)?.models;
+    if (!Array.isArray(models)) return [];
+    return models
+        .map(model => model.name)
+        .filter((name): name is string => typeof name === 'string');
+}
 
 // ─── Domain-to-Model Router ───────────────────────────────────────────────────
 
@@ -53,7 +68,7 @@ export async function checkOllamaHealth(): Promise<boolean> {
         }
 
         const data = await response.json();
-        const models = data.models?.map((m: any) => m.name) || [];
+        const models = readModelNames(data);
         console.log('[Ollama] Available models:', models);
 
         // Check if our default model is available
@@ -76,7 +91,7 @@ export async function listModels(): Promise<string[]> {
         if (!response.ok) return [];
 
         const data = await response.json();
-        return data.models?.map((m: any) => m.name) || [];
+        return readModelNames(data);
     } catch (error) {
         console.error('[Ollama] Failed to list models:', error);
         return [];
@@ -90,7 +105,7 @@ export interface OllamaGenerateOptions {
     temperature?: number;
     preferLocal?: boolean;
     routingMode?: AIRoutingMode;
-    agentRole?: string;
+    agentRole?: AgentRole;
 }
 
 // Generate completion using unified AI client with automatic fallback
@@ -120,24 +135,15 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
             model,
             preferLocal,
             routingMode,
-            agentRole: agentRole as any,
+            agentRole,
         });
 
         return response.content;
-    } catch (error: any) {
-        console.error('[Ollama-Client] All AI providers failed:', error.message);
-        throw new Error(`AI generation failed: ${error.message}`);
+    } catch (error: unknown) {
+        const message = getErrorMessage(error);
+        console.error('[Ollama-Client] All AI providers failed:', message);
+        throw new Error(`AI generation failed: ${message}`);
     }
-}
-
-// Simpler generate endpoint - now uses unified client
-async function generateSimple(prompt: string, model: string, temperature: number): Promise<string> {
-    const response = await generateWithFallback({
-        messages: [{ role: 'user', content: prompt }],
-        temperature,
-        model,
-    });
-    return response.content;
 }
 
 // Build semantic reasoning prompt for ambiguous domain detection

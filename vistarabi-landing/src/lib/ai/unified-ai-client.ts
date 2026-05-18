@@ -135,6 +135,17 @@ Focus on measurable, actionable, and business-relevant metrics.`,
 Provide clear, accurate, and actionable responses based on the data and context provided.`
 };
 
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function isAbortError(error: unknown): boolean {
+    return !!error &&
+        typeof error === 'object' &&
+        'name' in error &&
+        (error as { name?: unknown }).name === 'AbortError';
+}
+
 // Get configured AI models in priority order
 function getModelConfigs(preferLocal?: boolean, routingMode?: AIRoutingMode): AIModelConfig[] {
     const configs: AIModelConfig[] = [];
@@ -234,9 +245,9 @@ async function callProvider(
         }
 
         throw new Error(`Unknown provider: ${config.provider}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
         const latencyMs = Date.now() - startTime;
-        console.error(`[AI] ${config.provider} failed after ${latencyMs}ms:`, error.message);
+        console.error(`[AI] ${config.provider} failed after ${latencyMs}ms:`, getErrorMessage(error));
         throw error;
     }
 }
@@ -340,9 +351,9 @@ async function callOllama(
             latencyMs: Date.now() - startTime,
             agentRole: options.agentRole,
         };
-    } catch (error: any) {
+    } catch (error: unknown) {
         clearTimeout(timeoutId);
-        if (error.name === 'AbortError') {
+        if (isAbortError(error)) {
             throw new Error(`Ollama request timed out after ${config.timeout}ms`);
         }
         throw error;
@@ -443,9 +454,9 @@ async function callOpenRouter(
             latencyMs: Date.now() - startTime,
             agentRole: options.agentRole,
         };
-    } catch (error: any) {
+    } catch (error: unknown) {
         clearTimeout(timeoutId);
-        if (error.name === 'AbortError') {
+        if (isAbortError(error)) {
             throw new Error(`OpenRouter request timed out after ${config.timeout}ms`);
         }
         throw error;
@@ -506,9 +517,9 @@ export async function generateWithFallback(
             const response = await callProvider(config, optionsWithRole);
             console.log(`[AI] ✓ Success with ${config.provider} (${response.latencyMs}ms)`);
             return response;
-        } catch (error: any) {
-            lastError = error;
-            console.warn(`[AI] × Failed with ${config.provider}:`, error.message);
+        } catch (error: unknown) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            console.warn(`[AI] × Failed with ${config.provider}:`, getErrorMessage(error));
             // Continue to next provider
         }
     }

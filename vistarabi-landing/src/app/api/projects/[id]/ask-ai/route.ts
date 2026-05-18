@@ -594,12 +594,10 @@ export async function POST(
         }
 
         // Strip internal metadata before sending to frontend
-        const {
-            modelMetadata: _meta,
-            structuredCommand: _cmd,
-            evidence: _ev,
-            ...safeResult
-        } = result as Record<string, unknown>;
+        const safeResult = { ...(result as Record<string, unknown>) };
+        delete safeResult.modelMetadata;
+        delete safeResult.structuredCommand;
+        delete safeResult.evidence;
 
         // Add follow-up suggestions based on updated memory
         const suggestions = getFollowUpSuggestions(getSessionMemory(sessionId));

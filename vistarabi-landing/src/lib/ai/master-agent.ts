@@ -1,8 +1,7 @@
 ﻿import { generateWithFallback, type AgentRole, type AIResponse } from './unified-ai-client';
 import { DomainType } from '@/lib/prisma';
 import { getDomainModel } from './ollama-client';
-import { getDomainKPINames } from '@/lib/kpi/domain-metadata';
-import { compressContext, buildCompressedPrompt, buildSemanticSignature } from './context-compressor';
+import { buildCompressedPrompt, buildSemanticSignature } from './context-compressor';
 
 export interface MetaContext {
     query: string;

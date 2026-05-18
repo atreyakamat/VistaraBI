@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import StrategyCanvas from '@/components/module-8/StrategyCanvas';
 import AIChatPanel from '@/components/module-8/AIChatPanel';
 import { PlayCircle, Target, ArrowRight, X, FileText } from 'lucide-react';
@@ -13,6 +13,17 @@ export default function Module8IntegratedPage() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   // Lifted state: Both Canvas and AI Chat now share this context
   const [simulationContext, setSimulationContext] = useState<StrategyCanvasResult | null>(null);
+  const demoKpiHistory = useMemo(() => {
+    const start = new Date('2026-01-01T00:00:00.000Z');
+    return Array.from({ length: 120 }, (_, index) => {
+      const date = new Date(start);
+      date.setUTCDate(start.getUTCDate() + index);
+      return {
+        date: date.toISOString().slice(0, 10),
+        value: Math.round(50000 + index * 120 + Math.sin(index / 6) * 1000),
+      };
+    });
+  }, []);
 
   const handleGenerateReport = async () => {
     if (!simulationContext) return;
@@ -141,7 +152,15 @@ export default function Module8IntegratedPage() {
               
               {/* Left/Main Area: The Strategy Canvas */}
               <div id="strategy-canvas-container" className="w-[70%] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                <StrategyCanvas onSimulationComplete={(data) => setSimulationContext(data)} />
+                <StrategyCanvas
+                  initialContext={{
+                    goalValue: 75000,
+                    actionName: 'Expansion Campaign',
+                    kpiHistory: demoKpiHistory,
+                    uplift: 15,
+                  }}
+                  onSimulationComplete={(data) => setSimulationContext(data)}
+                />
               </div>
               
               {/* Right Area: AI Governance Chat */}

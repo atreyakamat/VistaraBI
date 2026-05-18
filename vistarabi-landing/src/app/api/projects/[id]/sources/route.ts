@@ -6,6 +6,7 @@ import { runFullAnalysis } from '@/lib/intelligence';
 import { purifyDataset } from '@/lib/purification';
 import { checkRateLimit, getIdentifier, RATE_LIMITS, buildRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { apiError, apiSuccess } from '@/lib/api-response';
+import type { Prisma } from '@prisma/client';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB — matches client-side validation
 const ALLOWED_EXTENSIONS = ['csv', 'json', 'xml', 'xlsx'];
@@ -83,7 +84,10 @@ export async function POST(
         const rl = checkRateLimit(getIdentifier(request, user.userId, 'upload'), RATE_LIMITS.UPLOAD);
         const rlHeaders = buildRateLimitHeaders(rl);
         if (!rl.success) {
-            return apiError('RATE_LIMITED', 'Upload rate limit exceeded. Please wait a minute.');
+            return NextResponse.json(
+                { error: 'Upload rate limit exceeded. Please wait a minute.', code: 'RATE_LIMITED' },
+                { status: 429, headers: rlHeaders }
+            );
         }
 
         let formData;
@@ -94,12 +98,13 @@ export async function POST(
             formData = await request.formData();
             files = formData.getAll('files') as File[];
             preferLocal = formData.get('preferLocal') === 'true';
-        } catch (formDataError: any) {
+        } catch (formDataError: unknown) {
             console.error('FormData parsing error:', formDataError);
+            const message = formDataError instanceof Error ? formDataError.message : String(formDataError);
             
             // Handle body size limit errors
-            if (formDataError?.message?.includes('Request body exceeded') || 
-                formDataError?.message?.includes('Failed to parse')) {
+            if (message.includes('Request body exceeded') ||
+                message.includes('Failed to parse')) {
                 return apiError('FILE_TOO_LARGE', 'File upload too large. Maximum size is 50MB.', 413, {
                     hint: 'Please reduce file size or split into smaller batches.'
                 });
@@ -166,7 +171,7 @@ export async function POST(
                         rowCount: parseResult.rowCount,
                         colCount: parseResult.colCount,
                         columns: parseResult.columns,
-                        data: parseResult.data as any,
+                        data: parseResult.data as Prisma.InputJsonValue,
                     },
                 }))!;
 
