@@ -1,0 +1,104 @@
+version: '3.9'
+
+# VistaraBI — Full Docker Compose Stack
+# Services: app (Next.js) + postgres + ollama (optional, local AI)
+#
+# Quick start:
+#   docker-compose up -d
+#   docker-compose logs -f app
+#
+# With cloud AI only (no Ollama):
+#   GROQ_API_KEY=gsk_xxx docker-compose up -d app postgres
+
+services:
+
+  # ─── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: vistarabi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vistarabi
+      POSTGRES_USER: vistarabi
+      POSTGRES_PASSWORD: vistarabi_secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vistarabi -d vistarabi"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Ollama (Local AI — optional) ──────────────────────────────────────────
+  # Comment this service out if you use Groq/OpenRouter instead.
+  # After first start, pull the model:
+  #   docker exec vistarabi-ollama ollama pull qwen3.5:0.8b
+  ollama:
+    image: ollama/ollama:latest
+    container_name: vistarabi-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    # Uncomment for GPU support (requires nvidia-container-toolkit):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # ─── VistaraBI App ──────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vistarabi-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      # ── Database ─────────────────────────────────────────────────────────
+      DATABASE_URL: postgresql://vistarabi:vistarabi_secret@postgres:5432/vistarabi
+
+      # ── App ───────────────────────────────────────────────────────────────
+      NODE_ENV: production
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+      # ── Auth ─────────────────────────────────────────────────────────────
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-generate-with-openssl}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-in-production-generate-with-openssl}
+
+      # ── AI: Local Ollama (connects to the ollama service above) ──────────
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.5:0.8b}
+      PREFER_LOCAL: ${PREFER_LOCAL:-true}
+
+      # ── AI: Groq (cloud, free tier) ───────────────────────────────────────
+      # Set GROQ_API_KEY in .env.docker or pass via environment
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+
+      # ── AI: OpenRouter (cloud, multi-model) ───────────────────────────────
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-anthropic/claude-3.5-sonnet}
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local
+  ollama_data:
+    driver: local
