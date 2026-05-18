@@ -156,6 +156,7 @@ function parseResponse(data: any): ChatContent {
             type: 'error',
             message: displayMsg,
             recoverable: isTimeout || status === 'rejected',
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
@@ -164,6 +165,7 @@ function parseResponse(data: any): ChatContent {
             type: 'unsupported',
             message: data.message || "I couldn't find a structured path for that query. Try rephrasing around a specific metric.",
             suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
