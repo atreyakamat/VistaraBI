@@ -181,14 +181,24 @@ function getModelConfigs(preferLocal?: boolean, routingMode?: AIRoutingMode): AI
     const cloudKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.CLOUD_AI_API_KEY;
     const cloudModelEnv = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'qwen3:0.6b';
 
-    if (cloudUrl && cloudKey && !cloudUrl.includes('ollama.com')) {
-        cloudConfigs.push({
-            provider: 'ollama-cloud',
-            model: cloudModelEnv,
-            baseUrl: cloudUrl,
-            apiKey: cloudKey,
-            timeout: 60000,
-        });
+        if (cloudUrl && cloudKey && !cloudUrl.includes('ollama.com')) {
+        if (cloudUrl.includes('openai') || cloudUrl.includes('groq') || cloudUrl.includes('openrouter')) {
+            cloudConfigs.push({
+                provider: 'openrouter',
+                model: cloudModelEnv,
+                baseUrl: cloudUrl,
+                apiKey: cloudKey,
+                timeout: 60000,
+            });
+        } else {
+            cloudConfigs.push({
+                provider: 'ollama-cloud',
+                model: cloudModelEnv,
+                baseUrl: cloudUrl,
+                apiKey: cloudKey,
+                timeout: 60000,
+            });
+        }
     }
 
     // 3. Ollama Local (dev only — not available in cloud deployments)
@@ -381,12 +391,13 @@ async function callOpenRouter(
                 'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://vistarabi.com',
                 'X-Title': 'VistaraBI',
             },
-            body: JSON.stringify({
+                        body: JSON.stringify({
                 model: config.model,
                 messages: options.messages,
                 temperature: options.temperature ?? 0.2,
                 max_tokens: options.maxTokens ?? 1024,
                 stream: useStreaming,
+                ...(useStreaming && { stream_options: { include_usage: true } }),
             }),
             signal: controller.signal,
         });

@@ -1,5 +1,3 @@
-version: '3.9'
-
 # VistaraBI — Full Docker Compose Stack
 # Services: app (Next.js) + postgres + ollama (optional, local AI)
 #
