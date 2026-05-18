@@ -7,7 +7,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { handleAskAI } from '@/lib/module-6';
-import { resolvePreferLocalFromRequest } from '@/lib/ai/request-ai-mode';
+import { resolveAIModeForUser } from '@/lib/ai/request-ai-mode';
+import { modeToPreferLocal, modeToRoutingMode } from '@/lib/ai/ai-mode';
 
 // ─── Request Body ────────────────────────────────────────────────────────────
 
@@ -93,8 +94,10 @@ export async function POST(
     const userId = authHeader ? authHeader.replace('Bearer ', '') : undefined;
 
     // Run the full Module 6A pipeline
-    const preferLocal = resolvePreferLocalFromRequest(request, body.preferLocal);
-    const result = await handleAskAI(projectId, sessionId, message, userId, preferLocal);
+    const aiMode = await resolveAIModeForUser(request, user.userId, body.preferLocal);
+    const preferLocal = modeToPreferLocal(aiMode);
+    const routingMode = modeToRoutingMode(aiMode);
+    const result = await handleAskAI(projectId, sessionId, message, userId, preferLocal, routingMode);
 
     // Map status to HTTP status code
     const httpStatus =

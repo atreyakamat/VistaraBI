@@ -10,7 +10,8 @@ import { getCurrentUser } from '@/lib/auth';
 import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
 import { safeParseGeneratedPlan } from '@/lib/prisma/json-schemas';
 import { toPrismaJsonField } from '@/lib/prisma/json-input';
-import { resolvePreferLocalFromRequest } from '@/lib/ai/request-ai-mode';
+import { resolveAIModeForUser } from '@/lib/ai/request-ai-mode';
+import { modeToPreferLocal, modeToRoutingMode } from '@/lib/ai/ai-mode';
 import { z } from 'zod';
 
 const createGoalRequestSchema = z.object({
@@ -47,7 +48,9 @@ export async function POST(
             );
         }
         const { rawQuery } = parsedBody.data;
-        const preferLocal = resolvePreferLocalFromRequest(request, parsedBody.data.preferLocal);
+        const aiMode = await resolveAIModeForUser(request, user.userId, parsedBody.data.preferLocal);
+        const preferLocal = modeToPreferLocal(aiMode);
+        const routingMode = modeToRoutingMode(aiMode);
 
         // 1. Fetch Project for Domain Context
         const project = await prisma.project.findFirst({
@@ -84,8 +87,8 @@ export async function POST(
             : fallbackLocationsForDomain(domain);
 
         // 3. Execute the 7-stage Goal Pipeline
-        console.log(`[Module 7] Executing Goal Engine for Project ${projectId}: "${rawQuery}" (preferLocal: ${preferLocal})`);
-        const canvas = await executeGoalPipeline(rawQuery, domain, locations, undefined, preferLocal);
+        console.log(`[Module 7] Executing Goal Engine for Project ${projectId}: "${rawQuery}" (aiMode: ${aiMode})`);
+        const canvas = await executeGoalPipeline(rawQuery, domain, locations, undefined, preferLocal, routingMode);
         const parsedGeneratedPlan = safeParseGeneratedPlan(canvas);
         if (!parsedGeneratedPlan.success) {
             return NextResponse.json(

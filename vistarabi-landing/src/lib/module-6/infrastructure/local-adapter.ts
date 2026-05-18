@@ -6,7 +6,14 @@
 import { ModelCallError, LOCAL_MODEL_ID } from './types';
 import type { AdapterResponse } from './types';
 import { generateWithFallback } from '@/lib/ai/unified-ai-client';
-import { AI_MODE_COOKIE_KEY, AI_MODE_HEADER_KEY, normalizeAIMode, modeToPreferLocal } from '@/lib/ai/ai-mode';
+import {
+    AI_MODE_COOKIE_KEY,
+    AI_MODE_HEADER_KEY,
+    normalizeAIMode,
+    modeToPreferLocal,
+    modeToRoutingMode,
+    type AIRoutingMode,
+} from '@/lib/ai/ai-mode';
 import { cookies, headers } from 'next/headers';
 
 // ─── Adapter ──────────────────────────────────────────────────────────────────
@@ -20,21 +27,25 @@ export async function callLocalModel(
     userMessage: string,
     temperature: number,
     localModelId: string = process.env.OLLAMA_MODEL || LOCAL_MODEL_ID,
-    preferLocal?: boolean
+    preferLocal?: boolean,
+    routingMode?: AIRoutingMode
 ): Promise<AdapterResponse> {
     const startMs = Date.now();
     let effectivePreferLocal = preferLocal;
+    let effectiveRoutingMode = routingMode;
 
     // If the caller did not pass explicit mode, resolve from active request (header/cookie).
-    if (effectivePreferLocal === undefined) {
+    if (!effectiveRoutingMode) {
         try {
             const requestHeaderMode = normalizeAIMode((await headers()).get(AI_MODE_HEADER_KEY));
             if (requestHeaderMode) {
                 effectivePreferLocal = modeToPreferLocal(requestHeaderMode);
+                effectiveRoutingMode = modeToRoutingMode(requestHeaderMode);
             } else {
                 const cookieMode = normalizeAIMode((await cookies()).get(AI_MODE_COOKIE_KEY)?.value);
                 if (cookieMode) {
                     effectivePreferLocal = modeToPreferLocal(cookieMode);
+                    effectiveRoutingMode = modeToRoutingMode(cookieMode);
                 }
             }
         } catch {
@@ -50,7 +61,8 @@ export async function callLocalModel(
             ],
             temperature,
             model: localModelId,
-            preferLocal: effectivePreferLocal
+            preferLocal: effectivePreferLocal,
+            routingMode: effectiveRoutingMode
         });
 
         return {

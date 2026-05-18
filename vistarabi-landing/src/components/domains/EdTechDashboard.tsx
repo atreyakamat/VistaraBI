@@ -9,7 +9,7 @@ function MiniLineChart({ data, color, height = 48 }: { data: number[]; color: st
   const chartData = data.map((val, i) => ({ index: i, value: val }));
   return (
     <div style={{ width: '100%', height }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
         <LineChart data={chartData}>
           <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={false} isAnimationActive={false} />
           <Tooltip 
@@ -27,7 +27,7 @@ function MiniBarChart({ data, color }: { data: number[]; color: string }) {
   const chartData = data.map((val, i) => ({ index: i, value: val }));
   return (
     <div style={{ width: '100%', height: '100%', minHeight: 48 }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
         <BarChart data={chartData}>
           <Bar dataKey="value" fill={color} isAnimationActive={false} radius={[2, 2, 0, 0]} />
           <Tooltip 

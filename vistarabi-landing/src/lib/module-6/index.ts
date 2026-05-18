@@ -13,6 +13,7 @@ import { executeCommand } from './execution-bridge';
 import { writeAuditRecord } from './audit-log';
 import { MODULE6_ERROR_CODES } from './types';
 import type { Module6Response, AuditRecord, Module6ErrorPayload } from './types';
+import type { AIRoutingMode } from '@/lib/ai/ai-mode';
 
 // ─── Query Normalization ──────────────────────────────────────────────────────
 
@@ -99,7 +100,8 @@ export async function handleAskAI(
     sessionId: string,
     rawUserQuery: string,
     userId?: string,
-    preferLocal?: boolean
+    preferLocal?: boolean,
+    routingMode?: AIRoutingMode
 ): Promise<Module6Response> {
     const normalizedQuery = normalizeQuery(rawUserQuery);
 
@@ -164,7 +166,7 @@ export async function handleAskAI(
     // Step 6: Call LLM
     let llmRawOutput: string | undefined;
     try {
-        llmRawOutput = await callLLM(rawUserQuery, contextToPromptString(context), preferLocal);
+        llmRawOutput = await callLLM(rawUserQuery, contextToPromptString(context), preferLocal, routingMode);
     } catch (err: unknown) {
         const code = err instanceof LLMCallError ? err.code : MODULE6_ERROR_CODES.LLM_CALL_FAILED;
         const message = err instanceof Error ? err.message : 'LLM call failed';

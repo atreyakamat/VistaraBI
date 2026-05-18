@@ -12,6 +12,7 @@ model User {
   name                  String
   email                 String              @unique
   password              String
+  preferences           Json                @default("{}")
   emailVerified         DateTime?
   emailVerifyToken      String?             @unique
   
@@ -290,6 +291,7 @@ model KPIBlueprint {
   project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+  @@index([projectId, domain])
 }
 
 model ApprovedKPI {
@@ -309,6 +311,7 @@ model ApprovedKPI {
   lineage      LineageDefinition?
 
   @@index([blueprintId])
+  @@index([blueprintId, createdAt])
   @@index([kpiLibraryId])
 }
 
@@ -462,6 +465,7 @@ model AuditLog {
   createdAt              DateTime @default(now())
 
   @@index([sessionId])
+  @@index([sessionId, createdAt])
   @@index([intentId])
   @@index([createdAt])
 }

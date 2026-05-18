@@ -5,28 +5,65 @@ import { preferLocalToMode, readClientAIMode, type AIMode, writeClientAIMode } f
 
 export function useAIMode() {
     const [mode, setModeState] = useState<AIMode>(readClientAIMode);
+    const [loadedFromProfile, setLoadedFromProfile] = useState(false);
 
     useEffect(() => {
         writeClientAIMode(mode);
     }, [mode]);
 
+    useEffect(() => {
+        let cancelled = false;
+        fetch('/api/user/preferences')
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                const savedMode = data?.preferences?.aiMode;
+                if (!cancelled && (savedMode === 'local' || savedMode === 'cloud' || savedMode === 'auto')) {
+                    setModeState(savedMode);
+                }
+            })
+            .catch(() => { /* anonymous/demo sessions can keep the client default */ })
+            .finally(() => {
+                if (!cancelled) setLoadedFromProfile(true);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const persistMode = useCallback((nextMode: AIMode) => {
+        fetch('/api/user/preferences', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ aiMode: nextMode }),
+        }).catch(() => { /* keep local preference even if server persistence is unavailable */ });
+    }, []);
+
     const setMode = useCallback((nextMode: AIMode) => {
         setModeState(nextMode);
-    }, []);
+        persistMode(nextMode);
+    }, [persistMode]);
 
     const setPreferLocal = useCallback((preferLocal: boolean) => {
-        setModeState(preferLocalToMode(preferLocal));
-    }, []);
+        const nextMode = preferLocalToMode(preferLocal);
+        setModeState(nextMode);
+        persistMode(nextMode);
+    }, [persistMode]);
 
     const toggleMode = useCallback(() => {
-        setModeState(prev => (prev === 'local' ? 'cloud' : 'local'));
-    }, []);
+        setModeState(prev => {
+            const nextMode = prev === 'cloud' ? 'local' : 'cloud';
+            persistMode(nextMode);
+            return nextMode;
+        });
+    }, [persistMode]);
 
-    const preferLocal = useMemo(() => mode === 'local', [mode]);
+    const preferLocal = useMemo(() => mode !== 'cloud', [mode]);
 
     return {
         mode,
         preferLocal,
+        loadedFromProfile,
         setMode,
         setPreferLocal,
         toggleMode,

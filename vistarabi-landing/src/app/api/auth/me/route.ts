@@ -15,6 +15,7 @@ export async function GET() {
                         id: 'demo-user-001',
                         name: 'Demo User',
                         email: 'demo@vistarabi.com',
+                        preferences: { aiMode: 'auto' },
                         createdAt: new Date().toISOString(),
                     },
                     demo: true,
@@ -32,6 +33,7 @@ export async function GET() {
                 id: true,
                 name: true,
                 email: true,
+                preferences: true,
                 createdAt: true,
             },
         });

@@ -1,26 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ComponentType } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, User, Shield, Download, Trash2,
-  AlertTriangle, CheckCircle2, Lock, Key, LogOut, ChevronRight
+  AlertTriangle, CheckCircle2, Lock, Key, LogOut, ChevronRight,
+  Brain, Cloud, Server, WandSparkles
 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { toast } from "sonner";
+import { useAIMode } from "@/lib/ai/use-ai-mode";
+import type { AIMode } from "@/lib/ai/ai-mode";
 
 interface UserData {
   id: string;
   name: string;
   email: string;
+  preferences?: {
+    aiMode?: AIMode;
+  };
 }
+
+const AI_MODE_OPTIONS: Array<{
+  value: AIMode;
+  label: string;
+  description: string;
+  icon: ComponentType<{ className?: string }>;
+}> = [
+  { value: "auto", label: "Auto", description: "Local first with cloud fallback", icon: WandSparkles },
+  { value: "cloud", label: "Cloud First", description: "Groq/OpenRouter first, local fallback", icon: Cloud },
+  { value: "local", label: "Local Only", description: "Use local Ollama only", icon: Server },
+];
 
 export default function AccountSettingsPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { mode: aiMode, setMode: setAIMode } = useAIMode();
 
   // Export state
   const [exporting, setExporting] = useState(false);
@@ -89,6 +107,11 @@ export default function AccountSettingsPage() {
     router.push("/login");
   };
 
+  const handleAIModeChange = (nextMode: AIMode) => {
+    setAIMode(nextMode);
+    toast.success(`AI preference updated to ${AI_MODE_OPTIONS.find(o => o.value === nextMode)?.label ?? nextMode}.`);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0d14] flex items-center justify-center">
@@ -154,6 +177,52 @@ export default function AccountSettingsPage() {
                 <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Email Address</p>
                 <p className="font-semibold text-slate-200">{user?.email}</p>
               </div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* AI Routing Section */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, duration: 0.4 }}
+          className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden"
+        >
+          <div className="px-6 py-4 border-b border-slate-800 flex items-center gap-2">
+            <Brain className="w-5 h-5 text-indigo-400" />
+            <h2 className="text-lg font-bold text-slate-100">AI Model Preference</h2>
+          </div>
+          <div className="p-6">
+            <div className="grid md:grid-cols-3 gap-3" role="radiogroup" aria-label="AI model preference">
+              {AI_MODE_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                const active = aiMode === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => handleAIModeChange(option.value)}
+                    className={`text-left p-4 rounded-xl border transition-all ${
+                      active
+                        ? "bg-indigo-500/15 border-indigo-400/60 shadow-lg shadow-indigo-950/30"
+                        : "bg-slate-800/50 border-slate-700 hover:border-slate-500"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        active ? "bg-indigo-500 text-white" : "bg-slate-900 text-slate-300"
+                      }`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      {active && <CheckCircle2 className="w-4 h-4 text-indigo-300" />}
+                    </div>
+                    <p className="mt-3 font-bold text-slate-100">{option.label}</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-400">{option.description}</p>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </motion.section>

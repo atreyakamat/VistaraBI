@@ -4,6 +4,7 @@
 // Streaming: Uses SSE for cloud providers, non-streaming for local
 
 import { getDomainSkill, formatSkillForSystemPrompt } from './domain-skills';
+import type { AIRoutingMode } from './ai-mode';
 
 export interface AIMessage {
     role: 'system' | 'user' | 'assistant';
@@ -31,6 +32,13 @@ export interface AIGenerateOptions {
      * When undefined, the server default (process.env.FORCE_GROQ) is applied.
      */
     preferLocal?: boolean;
+    /**
+     * routingMode gives the account-level selector sharper semantics:
+     * - local-only: local Ollama only
+     * - cloud-first: Groq/OpenRouter/Ollama Cloud first, then local fallback
+     * - auto: local first, then cloud fallback
+     */
+    routingMode?: AIRoutingMode;
 }
 
 export interface AIResponse {
@@ -128,7 +136,7 @@ Provide clear, accurate, and actionable responses based on the data and context 
 };
 
 // Get configured AI models in priority order
-function getModelConfigs(preferLocal?: boolean): AIModelConfig[] {
+function getModelConfigs(preferLocal?: boolean, routingMode?: AIRoutingMode): AIModelConfig[] {
     const configs: AIModelConfig[] = [];
 
     // Local / Cloud definitions
@@ -186,17 +194,22 @@ function getModelConfigs(preferLocal?: boolean): AIModelConfig[] {
         });
     }
 
-    const defaultPreferLocal = process.env.NODE_ENV === 'test'
-        ? true
-        : (process.env.FORCE_GROQ !== 'true' && process.env.PREFER_LOCAL === 'true');
-    const useLocal = preferLocal ?? defaultPreferLocal;
+    const defaultRoutingMode: AIRoutingMode = process.env.NODE_ENV === 'test'
+        ? 'auto'
+        : process.env.FORCE_GROQ === 'true'
+            ? 'cloud-first'
+            : process.env.PREFER_LOCAL === 'true'
+                ? 'auto'
+                : 'cloud-first';
+    const effectiveRoutingMode = routingMode
+        ?? (preferLocal === true ? 'auto' : preferLocal === false ? 'cloud-first' : defaultRoutingMode);
 
-    if (useLocal) {
-        // Local mode: local first with cloud fallback.
-        configs.push(...localConfigs, ...cloudConfigs);
+    if (effectiveRoutingMode === 'local-only') {
+        configs.push(...localConfigs);
+    } else if (effectiveRoutingMode === 'cloud-first') {
+        configs.push(...cloudConfigs, ...localConfigs);
     } else {
-        // Cloud mode: cloud only. Do not route to local unless explicitly selected.
-        configs.push(...cloudConfigs);
+        configs.push(...localConfigs, ...cloudConfigs);
     }
 
     return configs;
@@ -443,7 +456,7 @@ async function callOpenRouter(
 export async function generateWithFallback(
     options: AIGenerateOptions
 ): Promise<AIResponse> {
-    const configs = getModelConfigs(options.preferLocal);
+    const configs = getModelConfigs(options.preferLocal, options.routingMode);
 
     if (configs.length === 0) {
         throw new Error('No AI providers configured. Please set at least one provider in environment variables.');
@@ -521,12 +534,12 @@ export async function generateSimple(
 }
 
 // Check health of all configured providers
-export async function checkAIHealth(preferLocal?: boolean): Promise<{
+export async function checkAIHealth(preferLocal?: boolean, routingMode?: AIRoutingMode): Promise<{
     configured: number;
     available: string[];
     unavailable: string[];
 }> {
-    const configs = getModelConfigs(preferLocal);
+    const configs = getModelConfigs(preferLocal, routingMode);
     const available: string[] = [];
     const unavailable: string[] = [];
 

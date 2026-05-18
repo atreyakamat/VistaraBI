@@ -1,16 +1,23 @@
-export type AIMode = 'local' | 'cloud';
+export type AIMode = 'local' | 'cloud' | 'auto';
+export type AIRoutingMode = 'local-only' | 'cloud-first' | 'auto';
 
 export const AI_MODE_STORAGE_KEY = 'vbi-ai-mode';
 export const AI_MODE_COOKIE_KEY = 'vbi-ai-mode';
 export const AI_MODE_HEADER_KEY = 'x-ai-mode';
 
 export function normalizeAIMode(value: unknown): AIMode | null {
-    if (value === 'local' || value === 'cloud') return value;
+    if (value === 'local' || value === 'cloud' || value === 'auto') return value;
     return null;
 }
 
 export function modeToPreferLocal(mode: AIMode): boolean {
-    return mode === 'local';
+    return mode !== 'cloud';
+}
+
+export function modeToRoutingMode(mode: AIMode): AIRoutingMode {
+    if (mode === 'local') return 'local-only';
+    if (mode === 'cloud') return 'cloud-first';
+    return 'auto';
 }
 
 export function preferLocalToMode(preferLocal: boolean): AIMode {
@@ -18,8 +25,10 @@ export function preferLocalToMode(preferLocal: boolean): AIMode {
 }
 
 export function getDefaultAIMode(): AIMode {
+    const configured = normalizeAIMode(process.env.NEXT_PUBLIC_DEFAULT_AI_MODE);
+    if (configured) return configured;
     if (process.env.NEXT_PUBLIC_DEFAULT_AI_MODE === 'local') return 'local';
-    return 'cloud';
+    return 'auto';
 }
 
 export function readClientAIMode(): AIMode {

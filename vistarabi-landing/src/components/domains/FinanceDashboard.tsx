@@ -8,7 +8,7 @@ function Chart({ data, color, h = 48 }: { data: number[]; color: string; h?: num
   const chartData = data.map((val, i) => ({ index: i, value: val }));
   return (
     <div style={{ width: '100%', height: h }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
         <LineChart data={chartData}>
           <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={false} isAnimationActive={false} />
           <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff', fontSize: '12px', padding: '4px 8px' }} itemStyle={{ color: '#fff', padding: 0 }} labelStyle={{ display: 'none' }} />
@@ -21,7 +21,7 @@ function Bars({ data, color }: { data: number[]; color: string }) {
   const chartData = data.map((val, i) => ({ index: i, value: val }));
   return (
     <div style={{ width: '100%', height: '100%', minHeight: 48 }}>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
         <BarChart data={chartData}>
           <Bar dataKey="value" fill={color} isAnimationActive={false} radius={[2, 2, 0, 0]} />
           <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#fff', fontSize: '12px', padding: '4px 8px' }} itemStyle={{ color: '#fff', padding: 0 }} cursor={{ fill: 'rgba(255,255,255,0.1)' }} labelStyle={{ display: 'none' }} />

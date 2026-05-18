@@ -3,6 +3,7 @@
 
 import { DecomposedGoal } from './goal-decomposer';
 import { generateCompletion } from '../ai/ollama-client';
+import type { AIRoutingMode } from '@/lib/ai/ai-mode';
 
 export interface GeneratedAction {
     id: string;
@@ -103,7 +104,12 @@ const FALLBACK_ACTIONS: Record<string, GeneratedAction[]> = {
  * Forces structured JSON output for the pipeline.
  * Falls back to rich domain-specific stubs if Ollama is unavailable.
  */
-export async function generateActions(decomposedGoal: DecomposedGoal, domain: string, preferLocal?: boolean): Promise<GeneratedAction[]> {
+export async function generateActions(
+    decomposedGoal: DecomposedGoal,
+    domain: string,
+    preferLocal?: boolean,
+    routingMode?: AIRoutingMode
+): Promise<GeneratedAction[]> {
     const factorList = decomposedGoal.factors
         .map(f => `- ${f.metric}: ${f.requiredChange} (${f.description})`)
         .join('\n');
@@ -115,6 +121,7 @@ export async function generateActions(decomposedGoal: DecomposedGoal, domain: st
             prompt,
             temperature: 0.7,
             preferLocal,
+            routingMode,
             agentRole: 'strategy-planner',
         });
 

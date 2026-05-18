@@ -5,6 +5,7 @@
 import type { DomainType } from '@/lib/prisma';
 import { getDomainKPINames } from '@/lib/kpi/domain-metadata';
 import { generateWithFallback, type AIMessage } from './unified-ai-client';
+import type { AIRoutingMode } from './ai-mode';
 
 const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
 const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen3:0.6b';
@@ -88,6 +89,7 @@ export interface OllamaGenerateOptions {
     prompt?: string; // For simple prompts
     temperature?: number;
     preferLocal?: boolean;
+    routingMode?: AIRoutingMode;
     agentRole?: string;
 }
 
@@ -99,6 +101,7 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
         prompt,
         temperature = 0.3,
         preferLocal,
+        routingMode,
         agentRole,
     } = options;
 
@@ -116,6 +119,7 @@ export async function generateCompletion(options: OllamaGenerateOptions): Promis
             temperature,
             model,
             preferLocal,
+            routingMode,
             agentRole: agentRole as any,
         });
 

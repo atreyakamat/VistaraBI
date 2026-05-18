@@ -7,6 +7,7 @@ import { generateActions, GeneratedAction } from './action-generator';
 import { rankActions, RankedAction } from './action-ranker';
 import { buildScenarios, ActionWithScenarios } from './scenario-builder';
 import { splitByLocation, LocationPlan } from './location-splitter';
+import type { AIRoutingMode } from '@/lib/ai/ai-mode';
 
 export interface StrategyCanvas {
     goal: ParsedGoal;
@@ -44,7 +45,8 @@ export async function executeGoalPipeline(
     domain: string,
     locations: string[] = [],
     onStageChange?: StageCallback,
-    preferLocal?: boolean
+    preferLocal?: boolean,
+    routingMode?: AIRoutingMode
 ): Promise<StrategyCanvas> {
     const start = Date.now();
 
@@ -61,7 +63,7 @@ export async function executeGoalPipeline(
 
     // Stage 4: Generate creative actions using AI
     onStageChange?.('GENERATING');
-    const actions = await generateActions(decomposed, domain, preferLocal);
+    const actions = await generateActions(decomposed, domain, preferLocal, routingMode);
 
     // Stage 5: Rank and select top 3 actions
     onStageChange?.('RANKING');
@@ -69,7 +71,7 @@ export async function executeGoalPipeline(
 
     // Stage 6: Build 3-tier scenarios per top action
     onStageChange?.('BUILDING_SCENARIOS');
-    const scenarios = await buildScenarios(topActions, preferLocal);
+    const scenarios = await buildScenarios(topActions, preferLocal, routingMode);
 
     // Stage 7: Split strategy by location (if applicable)
     onStageChange?.('LOCATION_SPLIT');

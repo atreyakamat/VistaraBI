@@ -3,6 +3,7 @@
 
 import { RankedAction } from './action-ranker';
 import { generateCompletion } from '../ai/ollama-client';
+import type { AIRoutingMode } from '@/lib/ai/ai-mode';
 
 export type ScenarioLevel = 'LEAN' | 'BALANCED' | 'PREMIUM';
 
@@ -87,7 +88,11 @@ function buildFallbackScenarios(actionName: string): BudgetScenario[] {
  * Generates 3-tier budget execution plans (Lean / Balanced / Premium) for each ranked action.
  * Falls back to topic-aware stubs when Ollama is unavailable.
  */
-export async function buildScenarios(actions: RankedAction[], preferLocal?: boolean): Promise<ActionWithScenarios[]> {
+export async function buildScenarios(
+    actions: RankedAction[],
+    preferLocal?: boolean,
+    routingMode?: AIRoutingMode
+): Promise<ActionWithScenarios[]> {
     const results: ActionWithScenarios[] = [];
 
     for (const action of actions) {
@@ -98,6 +103,7 @@ export async function buildScenarios(actions: RankedAction[], preferLocal?: bool
                 prompt, 
                 temperature: 0.3,
                 preferLocal,
+                routingMode,
                 agentRole: 'scenario-planner'
             });
             const scenarios = extractJsonArray(response);

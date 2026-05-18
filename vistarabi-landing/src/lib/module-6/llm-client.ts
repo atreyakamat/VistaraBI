@@ -4,6 +4,7 @@
 // making one clean HTTP call and returning the raw model output.
 
 import { callLocalModel } from '@/lib/module-6/infrastructure/local-adapter';
+import type { AIRoutingMode } from '@/lib/ai/ai-mode';
 import { MODULE6_ERROR_CODES } from './types';
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -74,7 +75,8 @@ export class LLMCallError extends Error {
 export async function callLLM(
     userQuery: string,
     contextJson: string,
-    preferLocal?: boolean
+    preferLocal?: boolean,
+    routingMode?: AIRoutingMode
 ): Promise<string> {
     const userMessage = `Dashboard context:
 ${contextJson}
@@ -84,7 +86,7 @@ User request: "${userQuery}"
 Output your JSON command now:`;
 
     try {
-        const response = await callLocalModel(SYSTEM_PROMPT, userMessage, TEMPERATURE, undefined, preferLocal);
+        const response = await callLocalModel(SYSTEM_PROMPT, userMessage, TEMPERATURE, undefined, preferLocal, routingMode);
         return response.text;
     } catch (err: any) {
         const code = err.name === 'ModelCallError' ? err.code : MODULE6_ERROR_CODES.LLM_CALL_FAILED;

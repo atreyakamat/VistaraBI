@@ -28,8 +28,12 @@
     "analyze": "ANALYZE=true next build",
     "profile:domain": "npx tsx scripts/profile-domain-datasets.ts",
     "ingest:retail": "npx tsx scripts/ingest-and-tune.ts RETAIL",
+    "seed:demo": "node prisma/seed-demo.mjs",
     "sam:audit:release": "node sam/scripts/module-workflow-audit.js",
     "sam:tdd:modules": "node sam/scripts/module-workflow-audit.js --strict"
+  },
+  "prisma": {
+    "seed": "node prisma/seed-demo.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

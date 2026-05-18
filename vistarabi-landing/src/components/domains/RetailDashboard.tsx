@@ -161,7 +161,7 @@ export function RetailDashboard() {
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
           <h3 className="text-lg font-bold text-white mb-4">Sales Trend (90 days)</h3>
           <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <LineChart data={salesTrend}>
                 <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" />
                 <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 10 }} />
@@ -177,7 +177,7 @@ export function RetailDashboard() {
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-6">
           <h3 className="text-lg font-bold text-white mb-4">Store Comparison</h3>
           <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart data={storeTotals}>
                 <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 10 }} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />

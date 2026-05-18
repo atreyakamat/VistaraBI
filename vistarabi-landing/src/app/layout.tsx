@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { validateEnv } from "@/lib/env";
 import "./globals.css";
@@ -7,19 +6,6 @@ import "./globals.css";
 // Validate required environment variables at startup
 // This will throw with a clear message if DATABASE_URL or JWT_SECRET are missing
 validateEnv();
-
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains",
-  subsets: ["latin"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "VistaraBI | Turn Business Data Into Decisions — Automatically",
@@ -58,9 +44,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
       </head>
-      <body
-        className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         {children}
         <Toaster
           position="bottom-right"
