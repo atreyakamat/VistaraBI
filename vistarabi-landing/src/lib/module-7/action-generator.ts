@@ -114,8 +114,10 @@ export async function generateActions(
         .map(f => `- ${f.metric}: ${f.requiredChange} (${f.description})`)
         .join('\n');
 
-    const prompt = `You are a strategic business analyst for the ${domain} industry.
-The user wants to achieve this goal: "${decomposedGoal.originalGoal}"
+    const humanGoal = `${decomposedGoal.changeDirection} ${decomposedGoal.primaryMetric} to ${decomposedGoal.targetValue}`;
+
+const prompt = `You are a strategic business analyst for the ${domain} industry.
+The user wants to achieve this goal: "${humanGoal}"
 To achieve this, the following key metrics must be improved:
 ${factorList}
 
