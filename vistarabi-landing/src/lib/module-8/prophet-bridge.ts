@@ -1,11 +1,11 @@
-﻿import { spawn } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
 import { ForecastRequest, ForecastPoint, KpiDataPoint } from './types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-/** Prophet needs at least 2 full seasonal cycles to produce reliable forecasts */
-const PROPHET_MIN_DATA_POINTS = 14;
+/** Prophet needs at least 2 full seasonal cycles to produce reliable forecasts, but we lower it to 8 to allow it to run on smaller SaaS datasets before degrading to linear */
+const PROPHET_MIN_DATA_POINTS = 8;
 
 /** Maximum gap of N days to forward-fill with the last known value */
 const FORWARD_FILL_GAP_DAYS = 7;
@@ -143,7 +143,7 @@ export async function generateBaselineForecast(req: ForecastRequest): Promise<Fo
 
 async function callPythonProphet(req: ForecastRequest): Promise<ForecastPoint[]> {
     return new Promise((resolve, reject) => {
-        const scriptPath = path.join(process.cwd(), '..', 'scripts', 'forecast_bridge.py');
+        const scriptPath = path.join(process.cwd(), 'scripts', 'forecast_bridge.py');
         const pythonProcess = spawn('python', [scriptPath]);
 
         let output = '';

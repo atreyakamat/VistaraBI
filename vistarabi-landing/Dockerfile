@@ -30,8 +30,18 @@ RUN npx prisma generate
 RUN npm run build
 
 # ─── Stage 3: Runner ─────────────────────────────────────────────────────────
-FROM node:20-alpine AS runner
-RUN apk add --no-cache libc6-compat openssl
+FROM node:20-slim AS runner
+
+# Install Python and dependencies for Prophet
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl python3 python3-pip python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python virtual environment and install prophet
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --no-cache-dir pandas prophet
+
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -43,17 +53,20 @@ RUN adduser  --system --uid 1001 nextjs
 
 # Copy built output
 COPY --from=builder /app/public         ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static  ./.next/static
-COPY --from=builder /app/prisma        ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static  ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/prisma        ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy demo datasets (needed at runtime for demo pages)
-COPY --from=builder /app/datasets/demo ./datasets/demo
+COPY --from=builder --chown=nextjs:nodejs /app/datasets/demo ./datasets/demo
+
+# Copy python scripts for Prophet forecasting
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 
 # Startup script: run Prisma migrations then start app
-COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY --from=builder --chown=nextjs:nodejs /app/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x ./docker-entrypoint.sh
 
 USER nextjs
