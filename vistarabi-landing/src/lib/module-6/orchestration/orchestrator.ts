@@ -13,17 +13,44 @@ export interface ConversationMemory {
     updatedAt: number;
 }
 
-// In-memory cache for conversational state. 
-// Rules strictly mandate this is session-only and holds max 5 turns of semantic metadata (not raw data).
-// Note: In a true scale-out production environment, this would be Redis. We use an in-memory Map here per requirements.
-const memoryStore = new Map<string, ConversationMemory>();
+import fs from 'fs';
+import os from 'os';
 
-// Cleanup interval: Remove sessions older than 30 minutes
+// In-memory cache for conversational state.
+// Default: ephemeral Map. Optional: persist to a local file when PERSIST_CONVERSATION_FILE=true
+const memoryStore = new Map<string, ConversationMemory>();
+const PERSIST_FILE = process.env.CONVERSATION_FILE || (process.env.PERSIST_CONVERSATION_FILE === 'true' ? (process.env.CONVERSATION_FILE || (os.tmpdir() + '/orchestrator_memory.json')) : undefined);
+
+// Load persisted store if requested
+if (PERSIST_FILE) {
+    try {
+        if (fs.existsSync(PERSIST_FILE)) {
+            const raw = fs.readFileSync(PERSIST_FILE, 'utf8');
+            const parsed = JSON.parse(raw || '{}') as Record<string, ConversationMemory>;
+            for (const [k, v] of Object.entries(parsed)) memoryStore.set(k, v);
+            console.log(`[orchestrator] Loaded ${Object.keys(parsed).length} sessions from ${PERSIST_FILE}`);
+        }
+    } catch (e) {
+        console.warn('[orchestrator] Failed to load persisted conversation file:', e);
+    }
+}
+
+// Cleanup interval: Remove sessions older than 30 minutes and optionally persist
 setInterval(() => {
     const now = Date.now();
     for (const [key, mem] of Array.from(memoryStore.entries())) {
         if (now - mem.updatedAt > 30 * 60 * 1000) {
             memoryStore.delete(key);
+        }
+    }
+
+    if (PERSIST_FILE) {
+        try {
+            const obj: Record<string, ConversationMemory> = {};
+            for (const [k, v] of memoryStore.entries()) obj[k] = v;
+            fs.writeFileSync(PERSIST_FILE, JSON.stringify(obj), 'utf8');
+        } catch (e) {
+            console.warn('[orchestrator] Failed to persist conversation file:', e);
         }
     }
 }, 5 * 60 * 1000);
@@ -45,10 +72,31 @@ export function updateSessionMemory(sessionId: string, updates: Partial<Conversa
         ...updates,
         updatedAt: Date.now()
     });
+
+    // Persist immediately on updates when configured
+    if (PERSIST_FILE) {
+        try {
+            const obj: Record<string, ConversationMemory> = {};
+            for (const [k, v] of memoryStore.entries()) obj[k] = v;
+            fs.writeFileSync(PERSIST_FILE, JSON.stringify(obj), 'utf8');
+        } catch (e) {
+            console.warn('[orchestrator] Failed to persist conversation file on update:', e);
+        }
+    }
 }
 
 export function clearSessionMemory(sessionId: string) {
     memoryStore.delete(sessionId);
+
+    if (PERSIST_FILE) {
+        try {
+            const obj: Record<string, ConversationMemory> = {};
+            for (const [k, v] of memoryStore.entries()) obj[k] = v;
+            fs.writeFileSync(PERSIST_FILE, JSON.stringify(obj), 'utf8');
+        } catch (e) {
+            console.warn('[orchestrator] Failed to persist conversation file on clear:', e);
+        }
+    }
 }
 
 /**

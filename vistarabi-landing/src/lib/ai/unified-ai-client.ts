@@ -303,6 +303,18 @@ async function callOllama(
 
         if (!response.ok) {
             const errorText = await response.text();
+            // Auto-pull if model is missing
+            if (response.status === 404 || errorText.includes('not found')) {
+                 console.log(`[AI] Model ${options.model || config.model} missing. Triggering async pull...`);
+                 fetch(`${config.baseUrl}/api/pull`, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ name: options.model || config.model })
+                 }).catch(() => {});
+                 
+                 throw new Error(`Local model '${options.model || config.model}' is missing and is now downloading in the background. Please try again in a few minutes.`);
+            }
+
             throw new Error(`Ollama API error ${response.status}: ${errorText}`);
         }
 

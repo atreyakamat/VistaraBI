@@ -699,8 +699,8 @@ export function GoalStrategyPanel({
                     </div>
                 </div>
                 
-                <div className="flex-1 flex overflow-hidden p-4 gap-4 max-w-[1920px] mx-auto w-full">
-                    <div id="strategy-canvas-container" className="w-[70%] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div className="flex-1 overflow-auto p-4 gap-4 max-w-[1920px] mx-auto w-full flex flex-col">
+                    <div id="strategy-canvas-container" className="w-full min-h-[700px] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col shrink-0">
                         <StrategyCanvas 
                             initialContext={initialSimulatorContext}
                             onSimulationComplete={(data) => {
@@ -710,7 +710,7 @@ export function GoalStrategyPanel({
                             }} 
                         />
                     </div>
-                    <div className="w-[30%]">
+                    <div className="w-full min-h-[400px] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col shrink-0">
                         <AIChatPanel 
                             simulationContext={simulationContext} 
                             onMessagesChange={(msgs) => setChatMessages(msgs)}

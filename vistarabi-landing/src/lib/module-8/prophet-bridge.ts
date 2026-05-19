@@ -1,11 +1,12 @@
 import { spawn } from 'child_process';
 import path from 'path';
+import fs from 'fs';
 import { ForecastRequest, ForecastPoint, KpiDataPoint } from './types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 /** Prophet needs at least 2 full seasonal cycles to produce reliable forecasts, but we lower it to 8 to allow it to run on smaller SaaS datasets before degrading to linear */
-const PROPHET_MIN_DATA_POINTS = 8;
+const PROPHET_MIN_DATA_POINTS = parseInt(process.env.PROPHET_MIN_DATA_POINTS || '14', 10); // default to 14 (two seasonal cycles for monthly data)
 
 /** Maximum gap of N days to forward-fill with the last known value */
 const FORWARD_FILL_GAP_DAYS = 7;
@@ -144,33 +145,64 @@ export async function generateBaselineForecast(req: ForecastRequest): Promise<Fo
 async function callPythonProphet(req: ForecastRequest): Promise<ForecastPoint[]> {
     return new Promise((resolve, reject) => {
         const scriptPath = path.join(process.cwd(), 'scripts', 'forecast_bridge.py');
-        const pythonProcess = spawn('python', [scriptPath]);
 
-        let output = '';
-        let errorOutput = '';
+        if (!fs.existsSync(scriptPath)) {
+            return reject(new Error(`Forecast script missing at ${scriptPath}`));
+        }
 
-        pythonProcess.stdout.on('data', (data) => { output += data.toString(); });
-        pythonProcess.stderr.on('data', (data) => { errorOutput += data.toString(); });
+        // Try python3, then python for maximum compatibility
+        const candidates = ['python3', 'python'];
 
-        pythonProcess.on('close', (code) => {
-            if (code !== 0) {
-                return reject(new Error(`Python process exited with code ${code}. Error: ${errorOutput}`));
+        let tried = 0;
+        let finalErrorOutput = '';
+
+        const trySpawn = () => {
+            if (tried >= candidates.length) {
+                return reject(new Error(`No available Python runtime found. Last error: ${finalErrorOutput}`));
             }
+
+            const exe = candidates[tried++];
+            const pythonProcess = spawn(exe, [scriptPath]);
+
+            let output = '';
+            let errorOutput = '';
+
+            pythonProcess.stdout.on('data', (data) => { output += data.toString(); });
+            pythonProcess.stderr.on('data', (data) => { errorOutput += data.toString(); });
+
+            pythonProcess.on('close', (code) => {
+                if (code !== 0) {
+                    finalErrorOutput = errorOutput || `exit code ${code}`;
+                    // try next candidate
+                    trySpawn();
+                    return;
+                }
+                try {
+                    const result = JSON.parse(output);
+                    resolve(result);
+                } catch (e) {
+                    reject(new Error('Failed to parse Python Prophet output.'));
+                }
+            });
+
+            pythonProcess.on('error', (err) => {
+                finalErrorOutput = err.message;
+                // try next candidate
+                trySpawn();
+            });
+
+            // send request and close stdin
             try {
-                const result = JSON.parse(output);
-                resolve(result);
+                pythonProcess.stdin.write(JSON.stringify(req));
+                pythonProcess.stdin.end();
             } catch (e) {
-                reject(new Error('Failed to parse Python Prophet output.'));
+                // if we couldn't write, treat as failure and try next
+                finalErrorOutput = String(e);
+                trySpawn();
             }
-        });
+        };
 
-        // Handle process spawn errors directly (e.g. python not found)
-        pythonProcess.on('error', (err) => {
-            reject(err);
-        });
-
-        pythonProcess.stdin.write(JSON.stringify(req));
-        pythonProcess.stdin.end();
+        trySpawn();
     });
 }
 
