@@ -1,4 +1,4 @@
-﻿/**
+/**
  * sql-compiler.ts — Deterministic SQL Compiler for KPI Execution
  *
  * Pure-function module that transforms structured KPI definitions (from the
@@ -14,6 +14,7 @@
  */
 
 import type { ApprovedKPIWithRelations, AggregationRule, GroupByDefinition, LineageDefinition, KPIJoinPath } from '@/lib/prisma';
+import { KPIComputationError } from '@/lib/errors';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -80,7 +81,7 @@ const GRANULARITY_MAP: Record<string, string> = {
 function qi(identifier: string): string {
     const clean = identifier.replace(/"/g, '').trim();
     if (!clean || /[;\-\-\/\*]/.test(clean)) {
-        throw new Error(`[SQL Compiler] Invalid identifier: "${identifier}"`);
+        throw new KPIComputationError(`[SQL Compiler] Invalid identifier: "${identifier}"`);
     }
     return `"${clean}"`;
 }
@@ -130,11 +131,11 @@ function compileSelectClause(
             //   - Incorrect string ordering (MIN/MAX: '10' < '2' in lexicographic sort)
             // The ::NUMERIC cast returns NULL for non-numeric values (safe default).
             const fn = AGG_SQL_MAP[agg.function];
-            if (!fn) throw new Error(`[SQL Compiler] Unknown aggregation function: ${agg.function}`);
+            if (!fn) throw new KPIComputationError(`[SQL Compiler] Unknown aggregation function: ${agg.function}`);
             parts.push(`${fn}(${qi(agg.column)}::NUMERIC) AS ${qi(alias)}`);
         } else {
             const fn = AGG_SQL_MAP[agg.function];
-            if (!fn) throw new Error(`[SQL Compiler] Unknown aggregation function: ${agg.function}`);
+            if (!fn) throw new KPIComputationError(`[SQL Compiler] Unknown aggregation function: ${agg.function}`);
             parts.push(`${fn}(${qi(agg.column)}) AS ${qi(alias)}`);
         }
     }
@@ -178,7 +179,7 @@ function compileSelectClause(
     }
 
     if (parts.length === 0) {
-        throw new Error('[SQL Compiler] No SELECT expressions generated — KPI has no aggregations');
+        throw new KPIComputationError('[SQL Compiler] No SELECT expressions generated — KPI has no aggregations');
     }
 
     return `SELECT ${parts.join(', ')}`;
@@ -202,7 +203,7 @@ function compileJoinClause(lineage: LineageDefinition | null): string {
         const joinType = j.joinType || 'LEFT';
         const validJoins = ['INNER', 'LEFT', 'RIGHT', 'FULL'];
         if (!validJoins.includes(joinType)) {
-            throw new Error(`[SQL Compiler] Invalid join type: ${joinType}`);
+            throw new KPIComputationError(`[SQL Compiler] Invalid join type: ${joinType}`);
         }
         return `${joinType} JOIN ${qi(j.targetTable)} ON ${qi(j.sourceTable)}.${qi(j.sourceColumn)} = ${qi(j.targetTable)}.${qi(j.targetColumn)}`;
     }).join('\n');
@@ -337,10 +338,10 @@ export function compileFullQuery(ctx: CompilationContext): CompiledQuery {
 
     // Validation
     if (!kpi.aggregations || kpi.aggregations.length === 0) {
-        throw new Error(`[SQL Compiler] KPI "${kpi.name}" has no AggregationRules — cannot compile`);
+        throw new KPIComputationError(`[SQL Compiler] KPI "${kpi.name}" has no AggregationRules — cannot compile`);
     }
     if (!kpi.sourceTable) {
-        throw new Error(`[SQL Compiler] KPI "${kpi.name}" has no sourceTable — cannot compile`);
+        throw new KPIComputationError(`[SQL Compiler] KPI "${kpi.name}" has no sourceTable — cannot compile`);
     }
 
     const dateColumn = filters?.dateColumn;
@@ -426,7 +427,7 @@ export function compileScalarQuery(ctx: CompilationContext): CompiledQuery {
     const { kpi, filters } = ctx;
 
     if (!kpi.aggregations || kpi.aggregations.length === 0) {
-        throw new Error(`[SQL Compiler] KPI "${kpi.name}" has no AggregationRules — cannot compile`);
+        throw new KPIComputationError(`[SQL Compiler] KPI "${kpi.name}" has no AggregationRules — cannot compile`);
     }
 
     const formula = kpi.lineage?.formula || (kpi as { formula?: string }).formula;

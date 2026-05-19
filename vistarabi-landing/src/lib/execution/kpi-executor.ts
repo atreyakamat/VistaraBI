@@ -1,4 +1,4 @@
-﻿// Module 5B — KPI Executor
+// Module 5B — KPI Executor
 // Core orchestrator: cache -> load -> filter -> compute -> profile -> explain -> respond
 // Produces structured KPIExecutionResult payloads ready for frontend rendering
 
@@ -27,6 +27,7 @@ import { loadBlueprintWithKPIs, type ApprovedKPIWithRelations } from '../kpi/blu
 import { getAllKPIs } from '../kpi/kpi-library';
 import { DashboardConfigSchema } from '../dashboard/schemas';
 import { ensureDataMaterialized, getMaterializedTableName } from './data-materializer';
+import { KPIComputationError } from '@/lib/errors';
 
 // ─── Constants ────────────────────────────────────────────────────
 
@@ -128,14 +129,14 @@ export async function executeKPI(
 
     // ── Step 2: Load Blueprint & Validate ──
     const blueprint = await loadBlueprintWithKPIs(projectId);
-    if (!blueprint) throw new Error(`[Executor] No blueprint found for project ${projectId}`);
+    if (!blueprint) throw new KPIComputationError(`[Executor] No blueprint found for project ${projectId}`);
 
     const targetKpiId = kpiId;
     const kpi = blueprint.kpis.find(k => k.kpiLibraryId === targetKpiId || k.id === targetKpiId);
 
-    if (!kpi) throw new Error(`[Executor] KPI "${targetKpiId}" not found in project blueprint`);
+    if (!kpi) throw new KPIComputationError(`[Executor] KPI "${targetKpiId}" not found in project blueprint`);
     if (!kpi.aggregations || kpi.aggregations.length === 0) {
-        throw new Error(`[Executor] KPI "${targetKpiId}" lacks aggregation rules`);
+        throw new KPIComputationError(`[Executor] KPI "${targetKpiId}" lacks aggregation rules`);
     }
 
     const projectMaterializedTable = getMaterializedTableName(projectId);
@@ -168,7 +169,7 @@ export async function executeKPI(
     }
 
     if (colRes.rows.length === 0) {
-        throw new Error(
+        throw new KPIComputationError(
             `[Executor] Source table "${kpi.sourceTable}" has no readable schema for project ${projectId}.`
         );
     }
@@ -535,7 +536,7 @@ export async function executeDashboard(
     // Load dashboard config
     const config = await loadDashboardConfig(projectId);
     if (!config) {
-        throw new Error(`No dashboard config for project: ${projectId}. Run Module 5A first.`);
+        throw new KPIComputationError(`No dashboard config for project: ${projectId}. Run Module 5A first.`);
     }
 
     // Load lineage registry (used solely for validation here)
@@ -554,12 +555,12 @@ export async function executeDashboard(
             // BOUNDARY ENFORCEMENT: A Dashboard Config should never ask to execute a raw string with no lineage
             if (!lineage) {
                 console.error(`[Executor] FATAL STRUCTURAL ERROR: No KPI lineage found for '${card.kpiId}'. This means Module 4 incorrectly passed an unstructured column to Module 5.`);
-                throw new Error(`FATAL STRUCTURAL ERROR: KPI ${card.kpiId} lacks lineage. The Business Intelligence Data Contract was violated.`);
+                throw new KPIComputationError(`FATAL STRUCTURAL ERROR: KPI ${card.kpiId} lacks lineage. The Business Intelligence Data Contract was violated.`);
             }
 
             // BOUNDARY ENFORCEMENT: Ensure the formula exists mathematically
             if (!lineage.formula || lineage.formula.trim() === '') {
-                throw new Error(`Structural Error: KPI ${card.kpiId} has empty mathematical formula`);
+                throw new KPIComputationError(`Structural Error: KPI ${card.kpiId} has empty mathematical formula`);
             }
 
             try {
