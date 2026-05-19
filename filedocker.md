@@ -1,6 +1,6 @@
 # VistaraBI Windows Docker Deployment Guide
 
-This guide covers how to run the complete VistaraBI stack (Next.js App + PostgreSQL + Ollama AI) on a Windows PC using Docker.
+This guide covers how to run the complete VistaraBI stack (Next.js App + PostgreSQL + Ollama AI + Python/Prophet Forecasting) on a Windows PC using Docker.
 
 ## Step 1: Prerequisites
 
@@ -28,7 +28,7 @@ The application requires secure keys and configuration to run.
    JWT_SECRET=your_first_long_random_string_here
    NEXTAUTH_SECRET=your_second_long_random_string_here
    ```
-5. *(Optional but Highly Recommended)* Add your Groq API key to enable fast, cloud-based AI for complex tasks:
+5. *(Highly Recommended)* VistaraBI defaults to a **Cloud-First AI Orchestration**. Add your Groq API key to enable fast, cloud-based AI reasoning for complex strategy scenarios. If Groq is unavailable, it gracefully falls back to your local Ollama daemon.
    ```env
    GROQ_API_KEY=gsk_your_groq_api_key_here
    ```
@@ -45,17 +45,19 @@ The `docker-compose.yml` file is configured to spin up the database, the local A
    ```powershell
    docker-compose up -d --build
    ```
-   *Note: The first time you run this, it will take several minutes to download the base images (Node.js, Postgres, Ollama) and build the VistaraBI Next.js app.*
+   *Note: The first time you run this, it will take several minutes to download the base images (Node.js slim, Postgres, Ollama), install Python and Facebook Prophet, and build the VistaraBI Next.js app.*
 
 ## Step 4: Download the Local AI Model (Ollama)
 
-VistaraBI uses Ollama to run privacy-first AI models locally. While the Ollama container is running, it doesn't download models by default. You must pull the required model.
+VistaraBI uses Ollama to run privacy-first AI models locally. **VistaraBI now features Auto-Pulling.** If a local model is missing when a fallback request occurs, VistaraBI will automatically trigger a background pull. 
 
-1. Once the containers are running, execute this command to download the `qwen3.5:0.8b` model into the Ollama container:
+However, you can manually pre-warm the container by pulling the default `qwen3.5:0.8b` model immediately:
+
+1. Once the containers are running, execute this command:
    ```powershell
    docker exec vistarabi-ollama ollama pull qwen3.5:0.8b
    ```
-   *Note: This downloads about ~500MB - 1GB of data depending on the exact model. Wait for the download to finish (it will say "success").*
+   *Note: This downloads about ~500MB of data. Wait for the download to finish (it will say "success").*
 
 ## Step 5: Verify the Deployment
 
@@ -98,4 +100,5 @@ docker-compose up -d --build
 
 - **Port 5432 or 3000 is already in use:** If you have a local PostgreSQL installed on Windows, it might block port 5432. Stop your local Postgres service, or change the port mapping in `docker-compose.yml` from `"5432:5432"` to `"5433:5432"`.
 - **Database Connection Errors:** The `docker-entrypoint.sh` handles database migrations automatically. If the app fails to connect, wait 10 seconds and check `docker-compose logs app` again; it sometimes takes a moment for Postgres to accept connections on the very first boot.
-- **AI isn't responding:** Ensure you ran Step 4 to pull the model, or ensure your `GROQ_API_KEY` is valid in the `.env` file.
+- **AI isn't responding or throwing "Downloading" errors:** If the unified client encounters a missing local model, it will trigger an auto-pull and throw an error telling you to wait a few minutes. Check `docker logs vistarabi-ollama` to monitor the download progress.
+- **Prophet Forecasting falls back to Linear:** Ensure that your target dataset has at least 8 distinct data points. If you provide fewer points, the Python/Prophet bridge safely degrades to a linear fallback mechanism.
