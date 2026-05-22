@@ -328,20 +328,26 @@ async function callOllama(
                     }
                 }
             }
-        } else {
-            // Non-streaming: parse full response
-            const data = await response.json();
-            content = data.message?.content || '';
-            inputTokens = data.prompt_eval_count || 0;
-            outputTokens = data.eval_count || 0;
-        }
+        // Non-streaming: parse full response
+        const data = await response.json();
+        console.log('[AI] Ollama raw response keys:', Object.keys(data));
+        if (data.message) console.log('[AI] Ollama message keys:', Object.keys(data.message));
+        
+        content = data.message?.content || '';
+        inputTokens = data.prompt_eval_count || 0;
+        outputTokens = data.eval_count || 0;
+    }
 
-        // Strip reasoning blocks from Qwen models
-        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+    if (!content) {
+        console.error('[AI] Ollama response content is empty. Full data:', JSON.stringify(data));
+    }
 
-        if (!content) {
-            throw new Error('Empty response from Ollama');
-        }
+    // Strip reasoning blocks from Qwen models
+    content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+    if (!content) {
+        throw new Error('Empty response from Ollama');
+    }
 
         return {
             content,

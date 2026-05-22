@@ -2,8 +2,8 @@
 
 echo "⏳ Running Prisma migrations..."
 
-npx prisma generate
-npx prisma migrate deploy
+npx prisma@6.0.0 generate
+npx prisma@6.0.0 migrate deploy
 
 echo "🚀 Starting app..."
 
