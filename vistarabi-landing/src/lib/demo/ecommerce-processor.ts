@@ -3,7 +3,7 @@
  * Calculates KPIs from real e-commerce transaction data
  */
 
-import { EcommerceRecord } from './data-loaders.ts';
+import { EcommerceRecord } from './data-loaders';
 
 export interface EcommerceKPIs {
   totalRevenue: number;
