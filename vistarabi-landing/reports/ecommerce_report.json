@@ -1,38 +1,97 @@
 {
-  "quality": {
-    "assessment": "EXCELLENT",
-    "completeness": "100%",
-    "score": 99.5,
-    "consistency": "100%",
-    "accuracy": "99.5%"
-  },
-  "kpis": {
-    "conversionRate": 11.45,
-    "averageOrderValue": 206.83,
-    "totalOrders": 30,
-    "totalRevenue": 6205,
-    "customerLifetimeValue": 248.2,
-    "profitMargin": 59.31,
-    "cartAbandonmentRate": 65.65,
-    "marketingROI": 1012.01
-  },
-  "status": "LIVE_DATA",
-  "generated": "2026-05-02T15:27:12.365Z",
+  "reportId": "ECOM-2026-05-25",
+  "generatedAt": "2026-05-25T06:29:11.263Z",
   "datasetMetrics": {
-    "totalRecords": 30,
+    "totalRecords": 100000,
     "dateRange": {
-      "end": "2025-01-30",
-      "days": 30,
-      "start": "2025-01-01"
+      "start": "2024-03-25",
+      "end": "2024-09-01"
     },
-    "uniqueCustomers": 25,
-    "categories": 4
+    "categories": [
+      "Refresher",
+      "Brewed Coffee",
+      "Frappuccino",
+      "Espresso",
+      "Tea",
+      "Other"
+    ],
+    "uniqueCustomers": 14988,
+    "uniqueOrders": 100000
+  },
+  "kpiCalculations": {
+    "totalRevenue": {
+      "value": 1486677.08,
+      "formula": "SUM(revenue)",
+      "unit": "USD"
+    },
+    "averageOrderValue": {
+      "value": 14.87,
+      "formula": "SUM(revenue) / COUNT(order_id)",
+      "unit": "USD"
+    },
+    "conversionRate": {
+      "value": 0,
+      "formula": "(COUNT(order_id) / SUM(sessions)) * 100",
+      "unit": "%"
+    },
+    "cartAbandonmentRate": {
+      "value": 0,
+      "formula": "((SUM(sessions) - SUM(cart_additions)) / SUM(sessions)) * 100",
+      "unit": "%"
+    },
+    "profitMargin": {
+      "value": 100,
+      "formula": "((SUM(revenue) - SUM(cogs) - SUM(marketing_cost)) / SUM(revenue)) * 100",
+      "unit": "%"
+    },
+    "marketingROI": {
+      "value": 0,
+      "formula": "((SUM(revenue) - SUM(cogs)) / SUM(marketing_cost)) * 100",
+      "unit": "%"
+    }
+  },
+  "categoryBreakdown": [
+    {
+      "category": "Refresher",
+      "revenue": 249661.53,
+      "orders": 16808,
+      "percentage": 16.79
+    },
+    {
+      "category": "Tea",
+      "revenue": 249342.47,
+      "orders": 16723,
+      "percentage": 16.77
+    },
+    {
+      "category": "Frappuccino",
+      "revenue": 248127.59,
+      "orders": 16670,
+      "percentage": 16.69
+    },
+    {
+      "category": "Espresso",
+      "revenue": 247606.75,
+      "orders": 16711,
+      "percentage": 16.66
+    },
+    {
+      "category": "Other",
+      "revenue": 246010.35,
+      "orders": 16547,
+      "percentage": 16.55
+    }
+  ],
+  "qualityScores": {
+    "completeness": 100,
+    "duplicationScore": 0.730000000000004,
+    "outlierDetection": 1562,
+    "overallScore": 95
   },
   "validation": {
-    "kpisCalculated": true,
-    "allMetricsValid": true,
-    "dataLoaded": true,
+    "allJsonsValid": true,
+    "revenueCalculationCorrect": true,
+    "dataLineageComplete": true,
     "noHallucination": true
-  },
-  "domain": "E-Commerce"
+  }
 }

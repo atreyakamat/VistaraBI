@@ -296,13 +296,12 @@ async function callOllama(
             throw new Error(`Ollama API error ${response.status}: ${errorText}`);
         }
 
-        let content: string;
+        let content = '';
         let inputTokens = 0;
         let outputTokens = 0;
 
         if (useStreaming && response.body) {
             // Stream mode: accumulate chunks server-side
-            content = '';
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
 
@@ -328,26 +327,27 @@ async function callOllama(
                     }
                 }
             }
-        // Non-streaming: parse full response
-        const data = await response.json();
-        console.log('[AI] Ollama raw response keys:', Object.keys(data));
-        if (data.message) console.log('[AI] Ollama message keys:', Object.keys(data.message));
-        
-        content = data.message?.content || '';
-        inputTokens = data.prompt_eval_count || 0;
-        outputTokens = data.eval_count || 0;
-    }
+        } else {
+            // Non-streaming: parse full response
+            const data = await response.json();
+            console.log('[AI] Ollama raw response keys:', Object.keys(data));
+            if (data.message) console.log('[AI] Ollama message keys:', Object.keys(data.message));
+            
+            content = data.message?.content || '';
+            inputTokens = data.prompt_eval_count || 0;
+            outputTokens = data.eval_count || 0;
 
-    if (!content) {
-        console.error('[AI] Ollama response content is empty. Full data:', JSON.stringify(data));
-    }
+            if (!content) {
+                console.error('[AI] Ollama response content is empty. Full data:', JSON.stringify(data));
+            }
+        }
 
-    // Strip reasoning blocks from Qwen models
-    content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+        // Strip reasoning blocks from Qwen models
+        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
-    if (!content) {
-        throw new Error('Empty response from Ollama');
-    }
+        if (!content) {
+            throw new Error('Empty response from Ollama');
+        }
 
         return {
             content,

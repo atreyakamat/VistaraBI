@@ -1,40 +1,86 @@
 {
-  "status": "LIVE_DATA",
-  "kpis": {
-    "debtToIncomeRatio": 1.19,
-    "averageMonthlyIncome": 4027.86,
-    "averageMonthlyExpenses": 2419.44,
-    "savingsRate": 6051.65,
-    "riskProfile": "High Risk",
-    "averageSavings": 243752.04,
-    "averageCreditScore": 575
-  },
-  "generated": "2026-05-02T15:27:20.623Z",
+  "reportId": "FIN-2026-05-25",
+  "generatedAt": "2026-05-25T06:29:11.335Z",
   "datasetMetrics": {
     "totalRecords": 32424,
-    "individuals": 32424,
-    "employmentTypes": 4,
-    "regions": 5,
-    "coverage": "Comprehensive personal finance profiles"
+    "dateRange": {
+      "start": "2024-01-01",
+      "end": "2026-05-02"
+    },
+    "uniqueUsers": 32424,
+    "ageRange": {
+      "min": 18,
+      "max": 69,
+      "average": "43.42"
+    }
   },
-  "quality": {
-    "assessment": "VERY_GOOD",
-    "completeness": "96.2%",
-    "score": 94.8,
-    "consistency": "97.8%",
-    "accuracy": "94.5%"
+  "kpiCalculations": {
+    "averageIncome": {
+      "value": 4027.86,
+      "formula": "AVG(monthly_income_usd)",
+      "unit": "USD/month"
+    },
+    "averageExpenses": {
+      "value": 2419.44,
+      "formula": "AVG(monthly_expenses_usd)",
+      "unit": "USD/month"
+    },
+    "averageSavings": {
+      "value": 243752.04,
+      "formula": "AVG(savings_usd)",
+      "unit": "USD"
+    },
+    "savingsRate": {
+      "value": 6051.65,
+      "formula": "(AVG(savings_usd) / AVG(monthly_income_usd)) * 100",
+      "unit": "%"
+    },
+    "debtToIncomeRatio": {
+      "value": 1.19,
+      "formula": "AVG(debt_to_income_ratio)",
+      "unit": "ratio"
+    },
+    "averageCreditScore": {
+      "value": 575,
+      "formula": "AVG(credit_score)",
+      "unit": "score"
+    }
   },
-  "employment": {
-    "employed": "60%",
-    "student": "10%",
-    "unemployed": "10%",
-    "selfEmployed": "20%"
+  "employmentDistribution": {
+    "Self-employed": 20,
+    "Employed": 60,
+    "Student": 10,
+    "Unemployed": 10
+  },
+  "incomeDistributionByRegion": {
+    "Other": 4011,
+    "North America": 4021,
+    "Africa": 4026,
+    "Europe": 4052,
+    "Asia": 4028
+  },
+  "debtAnalysis": {
+    "totalWithLoans": 12995,
+    "averageLoanAmount": 249797.63,
+    "commonLoanTypes": {
+      "Education": 3275,
+      "Business": 3261,
+      "Car": 3175,
+      "Home": 3284
+    }
+  },
+  "riskProfile": "High Risk",
+  "qualityScores": {
+    "completeness": 100,
+    "duplicationScore": 100,
+    "outlierDetection": 309,
+    "overallScore": 94
   },
   "validation": {
-    "kpisCalculated": true,
-    "allMetricsValid": true,
-    "dataLoaded": true,
+    "allJsonsValid": true,
+    "incomeCalculationCorrect": true,
+    "debtRatioCalculationCorrect": true,
+    "dataLineageComplete": true,
     "noHallucination": true
-  },
-  "domain": "Finance"
+  }
 }
