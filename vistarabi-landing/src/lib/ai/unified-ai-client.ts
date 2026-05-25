@@ -99,6 +99,7 @@ Focus on statistical rigor, avoiding causal claims without evidence. Always quan
 
     'narrative-writer': `You are a skilled business writer who translates data insights into clear narratives.
 Your role is to create compelling, easy-to-understand explanations of data events and trends.
+If asked about a KPI, you MUST define it, explain its calculation logic (formula), and interpret why it is important for the business domain.
 Focus on clarity, storytelling, and making complex data accessible to all audiences.`,
 
     // ACTION 3: Refined to be strictly PRESCRIPTIVE (forward-looking).
@@ -106,6 +107,7 @@ Focus on clarity, storytelling, and making complex data accessible to all audien
     // Triggers: goal, target, strategy, plan, improve, action, initiative, recommendation, next step, forecast.
     'strategy-planner': `You are a strategic planning consultant focused exclusively on PRESCRIPTIVE reasoning.
  Your role is to answer "WHAT SHOULD WE DO NEXT" by translating diagnosed problems into concrete action plans.
+ IMPORTANT: You must generate DIVERSE and UNIQUE strategies. Do not repeat standard templates. Tailor the strategy to the specific domain and KPI context.
  You define goals, recommend initiatives, simulate expected impact, and create prioritized roadmaps.
  Do NOT re-diagnose historical data — that is handled by the business-analyst agent.
  Output: Actionable roadmap with timeline, measurable KPI targets, and expected outcomes.
@@ -232,24 +234,35 @@ async function callProvider(
     options: AIGenerateOptions
 ): Promise<AIResponse> {
     const startTime = Date.now();
-
-    try {
-        console.log(`[AI] Attempting ${config.provider} with model ${config.model}`);
-
-        if (config.provider === 'openrouter' || config.provider === 'groq') {
-            // OpenRouter/Groq expose OpenAI-compatible endpoints — use the same handler
-            return await callOpenRouter(config, options, startTime);
-        }
-        if (config.provider === 'ollama-local' || config.provider === 'ollama-cloud') {
-            return await callOllama(config, options, startTime);
-        }
-
-        throw new Error(`Unknown provider: ${config.provider}`);
-    } catch (error: unknown) {
-        const latencyMs = Date.now() - startTime;
-        console.error(`[AI] ${config.provider} failed after ${latencyMs}ms:`, getErrorMessage(error));
-        throw error;
+    const modelsToTry = [config.model];
+    
+    // Add fallback model if provider is local Ollama
+    if (config.provider === 'ollama-local' && process.env.OLLAMA_FALLBACK_MODEL) {
+        modelsToTry.push(process.env.OLLAMA_FALLBACK_MODEL);
     }
+
+    let lastError: unknown;
+
+    for (const model of modelsToTry) {
+        try {
+            console.log(`[AI] Attempting ${config.provider} with model ${model}`);
+            const configWithModel = { ...config, model };
+
+            if (config.provider === 'openrouter' || config.provider === 'groq') {
+                return await callOpenRouter(configWithModel, options, startTime);
+            }
+            if (config.provider === 'ollama-local' || config.provider === 'ollama-cloud') {
+                return await callOllama(configWithModel, options, startTime);
+            }
+            throw new Error(`Unknown provider: ${config.provider}`);
+        } catch (error: unknown) {
+            lastError = error;
+            console.warn(`[AI] ${config.provider} (model ${model}) failed after ${Date.now() - startTime}ms:`, getErrorMessage(error));
+            // Try next model if applicable
+        }
+    }
+    
+    throw lastError;
 }
 
 // Call Ollama API (local or cloud) — uses streaming to accumulate response
