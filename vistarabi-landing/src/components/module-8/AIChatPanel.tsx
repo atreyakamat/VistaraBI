@@ -5,23 +5,70 @@ import { Send, Bot, User, Sparkles, Target, Zap, AlertCircle } from 'lucide-reac
 import { motion } from 'framer-motion';
 import { StrategyCanvasResult } from '@/lib/module-8/types';
 
+interface ChatMessage {
+  role: string;
+  text: string;
+  isStreamingCompleted?: boolean;
+}
+
 interface AIChatPanelProps {
   simulationContext: StrategyCanvasResult | null;
   onMessagesChange?: (messages: { role: string, text: string }[]) => void;
 }
 
+function TypewriterText({ text, speed = 10, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
+  const [displayedText, setDisplayedText] = useState('');
+  const textRef = useRef(text);
+  const indexRef = useRef(0);
+
+  useEffect(() => {
+    textRef.current = text;
+    indexRef.current = 0;
+    setDisplayedText('');
+
+    const interval = setInterval(() => {
+      if (indexRef.current < textRef.current.length) {
+        setDisplayedText(prev => prev + textRef.current.charAt(indexRef.current));
+        indexRef.current += 1;
+        
+        // Scroll chat container
+        const container = document.querySelector('.chat-history-container');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      } else {
+        clearInterval(interval);
+        onComplete?.();
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [text, speed, onComplete]);
+
+  const isComplete = displayedText.length === text.length;
+  return (
+    <span>
+      {displayedText}
+      {!isComplete && (
+        <span className="inline-block w-1.5 h-3.5 ml-0.5 bg-indigo-600 align-middle animate-pulse" />
+      )}
+    </span>
+  );
+}
+
 export default function AIChatPanel({ simulationContext, onMessagesChange }: AIChatPanelProps) {
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<ChatMessage[]>([
     { 
       role: 'ai', 
-      text: "I am the Vistara AI Strategist. I have live access to your Strategy Canvas. Whenever you adjust the sliders, I analyze the new Monte Carlo probabilities. How can I help you optimize this goal?" 
+      text: "I am the Vistara AI Strategist. I have live access to your Strategy Canvas. Whenever you adjust the sliders, I analyze the new Monte Carlo probabilities. How can I help you optimize this goal?",
+      isStreamingCompleted: true
     }
   ]);
 
   // Update parent whenever messages change
   useEffect(() => {
     if (onMessagesChange) {
-      onMessagesChange(messages);
+      onMessagesChange(messages.map(m => ({ role: m.role, text: m.text })));
     }
   }, [messages, onMessagesChange]);
   const [input, setInput] = useState('');
@@ -45,7 +92,8 @@ export default function AIChatPanel({ simulationContext, onMessagesChange }: AIC
       setTimeout(() => {
         setMessages(prev => [...prev, {
           role: 'ai',
-          text: `⚠️ I noticed your probability of success just dropped to ${(prob*100).toFixed(1)}%. The current uplift isn't strong enough. You either need to increase the budget/uplift, or pull the launch date forward.`
+          text: `⚠️ I noticed your probability of success just dropped to ${(prob*100).toFixed(1)}%. The current uplift isn't strong enough. You either need to increase the budget/uplift, or pull the launch date forward.`,
+          isStreamingCompleted: false
         }]);
       }, 1000);
     } 
@@ -54,7 +102,8 @@ export default function AIChatPanel({ simulationContext, onMessagesChange }: AIC
       setTimeout(() => {
         setMessages(prev => [...prev, {
           role: 'ai',
-          text: `🎯 Great adjustment! At ${(prob*100).toFixed(1)}%, this strategy looks highly achievable. The pessimistic scenario even keeps you close to the target.`
+          text: `🎯 Great adjustment! At ${(prob*100).toFixed(1)}%, this strategy looks highly achievable. The pessimistic scenario even keeps you close to the target.`,
+          isStreamingCompleted: false
         }]);
       }, 1000);
     }
@@ -65,7 +114,7 @@ export default function AIChatPanel({ simulationContext, onMessagesChange }: AIC
     if (!input.trim() || isTyping) return;
 
     const userText = input;
-    setMessages(prev => [...prev, { role: 'user', text: userText }]);
+    setMessages(prev => [...prev, { role: 'user', text: userText, isStreamingCompleted: true }]);
     setInput('');
     setIsTyping(true);
     setError(null);
@@ -85,17 +134,22 @@ export default function AIChatPanel({ simulationContext, onMessagesChange }: AIC
       }
 
       const data = await res.json();
-      setMessages(prev => [...prev, { role: 'ai', text: data.reply }]);
+      setMessages(prev => [...prev, { role: 'ai', text: data.reply, isStreamingCompleted: false }]);
     } catch (err: any) {
       console.error(err);
       setError("The AI Engine is currently offline or unreachable. Please check your Ollama connection.");
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "I'm having trouble connecting to my cognitive backend right now. Ensure the Ollama service is running." 
+        text: "I'm having trouble connecting to my cognitive backend right now. Ensure the Ollama service is running.",
+        isStreamingCompleted: true
       }]);
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const handleStreamComplete = (index: number) => {
+    setMessages(prev => prev.map((m, idx) => idx === index ? { ...m, isStreamingCompleted: true } : m));
   };
 
   return (
@@ -130,7 +184,7 @@ export default function AIChatPanel({ simulationContext, onMessagesChange }: AIC
       )}
 
       {/* Chat History */}
-      <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-50 min-h-[400px]">
+      <div className="chat-history-container flex-1 p-4 overflow-y-auto flex flex-col gap-4 bg-slate-50 min-h-[400px]">
         {messages.map((msg, i) => (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -142,7 +196,11 @@ export default function AIChatPanel({ simulationContext, onMessagesChange }: AIC
               {msg.role === 'user' ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
             </div>
             <div className={`p-3 rounded-2xl text-sm shadow-sm leading-relaxed whitespace-pre-wrap ${msg.role === 'user' ? 'bg-slate-900 text-white rounded-tr-none' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none'}`}>
-              {msg.text}
+              {msg.role === 'ai' && !msg.isStreamingCompleted ? (
+                <TypewriterText text={msg.text} onComplete={() => handleStreamComplete(i)} />
+              ) : (
+                msg.text
+              )}
             </div>
           </motion.div>
         ))}

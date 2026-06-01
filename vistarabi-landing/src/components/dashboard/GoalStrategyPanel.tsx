@@ -669,52 +669,54 @@ export function GoalStrategyPanel({
         };
 
         return (
-            <div className="fixed inset-0 z-50 bg-slate-200 flex flex-col font-sans overflow-hidden">
-                <div className="h-16 bg-white border-b border-slate-200 px-6 flex justify-between items-center shrink-0 shadow-sm z-10 relative">
+            <div className="fixed inset-0 z-[100] bg-slate-100 flex flex-col font-sans overflow-hidden">
+                <div className="h-16 bg-white border-b border-slate-200 px-6 flex justify-between items-center shrink-0 shadow-md z-10 relative">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-indigo-600 text-white rounded-lg flex items-center justify-center">
-                            <Target className="w-4 h-4" />
+                        <div className="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center shadow-sm">
+                            <Target className="w-5 h-5" />
                         </div>
                         <div>
-                            <h1 className="text-sm font-bold text-slate-900 leading-tight">Strategic Decision Simulator</h1>
-                            <p className="text-xs text-slate-500 font-medium leading-tight">{canvas.goal.targetMetric} - {simulatingAction.actionName}</p>
+                            <h1 className="text-base font-bold text-slate-900 leading-tight">Strategic Decision Simulator</h1>
+                            <p className="text-xs text-slate-500 font-medium leading-tight">Targeting: {canvas.goal.targetMetric} | Simulating: {simulatingAction.actionName}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
                         <button 
                             onClick={handleGenerateReport}
                             disabled={!simulationContext || isGeneratingReport}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 rounded-lg transition-colors shadow-sm"
+                            className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 rounded-lg transition-colors shadow-sm"
                         >
                             <FileText className="w-4 h-4" />
-                            {isGeneratingReport ? 'Generating PDF...' : 'Executive Report'}
+                            {isGeneratingReport ? 'Generating PDF...' : 'Export Executive Report'}
                         </button>
-                        <div className="w-px h-6 bg-slate-200 mx-2"></div>
+                        <div className="w-px h-8 bg-slate-200 mx-2"></div>
                         <button 
                             onClick={() => { setSimulatingAction(null); setSimulationContext(null); }}
-                            className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="flex items-center justify-center w-10 h-10 text-slate-500 hover:bg-rose-100 hover:text-rose-600 rounded-full transition-colors"
+                            title="Close Simulator"
                         >
-                            Back to Goals <X className="w-4 h-4" />
+                            <X className="w-6 h-6" />
                         </button>
                     </div>
                 </div>
                 
-                <div className="flex-1 overflow-auto p-4 gap-4 max-w-[1920px] mx-auto w-full flex flex-col">
-                    <div id="strategy-canvas-container" className="w-full min-h-[700px] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col shrink-0">
-                        <StrategyCanvas 
-                            initialContext={initialSimulatorContext}
-                            onSimulationComplete={(data) => {
-                                setSimulationContext(data);
-                                // Propagate up to DashboardShell for State Injection Pipeline
-                                onSimulationComplete?.(data);
-                            }} 
-                        />
-                    </div>
-                    <div className="w-full min-h-[400px] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col shrink-0">
-                        <AIChatPanel 
-                            simulationContext={simulationContext} 
-                            onMessagesChange={(msgs) => setChatMessages(msgs)}
-                        />
+                <div className="flex-1 overflow-auto p-6 max-w-[2000px] mx-auto w-full">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full min-h-[800px]">
+                        <div id="strategy-canvas-container" className="xl:col-span-2 w-full h-full min-h-[700px] bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+                            <StrategyCanvas 
+                                initialContext={initialSimulatorContext}
+                                onSimulationComplete={(data) => {
+                                    setSimulationContext(data);
+                                    onSimulationComplete?.(data);
+                                }} 
+                            />
+                        </div>
+                        <div className="xl:col-span-1 w-full h-full min-h-[500px] bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+                            <AIChatPanel 
+                                simulationContext={simulationContext} 
+                                onMessagesChange={(msgs) => setChatMessages(msgs)}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
