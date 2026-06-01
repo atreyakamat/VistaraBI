@@ -62,6 +62,13 @@ export async function POST(request: Request) {
     cleaningSummary
   } = body;
 
+  if (!chartImage || !metrics) {
+    return NextResponse.json(
+      { error: 'Missing required fields: chartImage and metrics are required.' },
+      { status: 400 }
+    );
+  }
+
   const safeMetrics = metrics || { probability: 0.85, gap: 0, target: 0 };
   const safeDomain = domain || "General Business";
 

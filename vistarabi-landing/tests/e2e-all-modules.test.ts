@@ -234,7 +234,7 @@ describe('VistaraBI E2E Integration Tests', () => {
 
 describe('Production Readiness Checks', () => {
     it('should have environment variables set', () => {
-        expect(process.env.OLLAMA_URL || process.env.OLLAMA_CLOUD_URL || process.env.OPENROUTER_API_KEY).toBeTruthy();
+        expect(process.env.OLLAMA_URL || process.env.OLLAMA_CLOUD_URL || process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY).toBeTruthy();
         console.log('✓ At least one AI provider is configured');
     });
 
