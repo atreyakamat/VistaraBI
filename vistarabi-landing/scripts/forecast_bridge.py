@@ -65,12 +65,10 @@ def main():
             yhat_lower = row['yhat_lower']
             yhat_upper = row['yhat_upper']
             
-            # Apply business strategy actions
-            uplift = apply_actions(i, actions)
-            
-            final_yhat = max(0, yhat + uplift)
-            final_lower = max(0, yhat_lower + uplift)
-            final_upper = max(0, yhat_upper + uplift)
+            # Keep baseline clean - strategy scenarios are computed stochastically in JS
+            final_yhat = max(0, yhat)
+            final_lower = max(0, yhat_lower)
+            final_upper = max(0, yhat_upper)
             
             results.append({
                 "date": date_str,

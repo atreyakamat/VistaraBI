@@ -289,11 +289,29 @@ export async function executeKPI(
 
     let possibleDateColumn: string | undefined = options.dateColumn;
     if (!possibleDateColumn && (options.dateFrom || options.dateTo || options.granularity)) {
-        let dc = resolveColumn('date');
-        if (!actualCols.includes(dc)) dc = resolveColumn('order_date');
-        if (!actualCols.includes(dc)) {
-            const kw = ['date', 'time', 'created', 'updated', 'timestamp', 'day', 'month', 'year'];
-            dc = actualCols.find(c => kw.some(k => c.includes(k))) || 'date';
+        const priorityKeywords = [
+            'order_date', 'signup_date', 'transaction_date', 'created_at', 
+            'created', 'timestamp', 'date', 'order_time', 'transaction_time'
+        ];
+        
+        // 1. Try exact or fuzzy matches for priority date columns first
+        let dc = priorityKeywords.find(k => actualCols.includes(k));
+        if (!dc) {
+            dc = actualCols.find(c => priorityKeywords.some(pk => c.includes(pk)));
+        }
+        if (!dc) {
+            // 2. Fallback to any date column that does NOT contain secondary keywords like 'churn', 'end', 'close', 'terminate', 'delete'
+            const ignoreKeywords = ['churn', 'end', 'close', 'terminate', 'delete', 'cancel'];
+            const generalKeywords = ['date', 'time', 'created', 'updated', 'timestamp', 'day', 'month', 'year'];
+            dc = actualCols.find(c => 
+                generalKeywords.some(gk => c.includes(gk)) && 
+                !ignoreKeywords.some(ik => c.includes(ik))
+            );
+        }
+        if (!dc) {
+            // 3. Ultimate fallback to first matching date column
+            const generalKeywords = ['date', 'time', 'created', 'updated', 'timestamp', 'day', 'month', 'year'];
+            dc = actualCols.find(c => generalKeywords.some(gk => c.includes(gk))) || 'date';
         }
         possibleDateColumn = dc;
     }

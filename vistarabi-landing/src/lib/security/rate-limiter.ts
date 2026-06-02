@@ -49,8 +49,17 @@ export function checkRateLimit(
   config: RateLimitConfig
 ): RateLimitResult {
   const now = Date.now();
-  const key = identifier;
+  
+  if (process.env.DISABLE_RATE_LIMITER === 'true') {
+    return {
+      success: true,
+      limit: config.limit,
+      remaining: config.limit,
+      reset: now + config.windowMs,
+    };
+  }
 
+  const key = identifier;
   const entry = store.get(key);
 
   if (!entry || now - entry.windowStart > config.windowMs) {

@@ -557,6 +557,47 @@ export function GoalStrategyPanel({
         }
     }, [input, loading, projectId, preferLocal, animateStages]);
 
+    const captureSvgAsPng = async (containerId: string): Promise<string | null> => {
+        if (typeof window === 'undefined') return null;
+        const container = document.getElementById(containerId);
+        if (!container) return null;
+        const svgElement = container.querySelector('svg');
+        if (!svgElement) return null;
+
+        return new Promise((resolve) => {
+            try {
+                const svgString = new XMLSerializer().serializeToString(svgElement);
+                const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                const URL = window.URL || window.webkitURL || window;
+                const blobURL = URL.createObjectURL(svgBlob);
+                const image = new window.Image();
+                image.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = svgElement.clientWidth || 800;
+                    canvas.height = svgElement.clientHeight || 450;
+                    const context = canvas.getContext('2d');
+                    if (context) {
+                        context.fillStyle = '#ffffff';
+                        context.fillRect(0, 0, canvas.width, canvas.height);
+                        context.drawImage(image, 0, 0);
+                        resolve(canvas.toDataURL('image/png'));
+                    } else {
+                        resolve(null);
+                    }
+                    URL.revokeObjectURL(blobURL);
+                };
+                image.onerror = () => {
+                    URL.revokeObjectURL(blobURL);
+                    resolve(null);
+                };
+                image.src = blobURL;
+            } catch (e) {
+                console.warn("SVG serialization failed", e);
+                resolve(null);
+            }
+        });
+    };
+
     const handleGenerateReport = async () => {
         if (!simulationContext) return;
         setIsGeneratingReport(true);
@@ -568,8 +609,13 @@ export function GoalStrategyPanel({
           try {
             const chartElement = document.getElementById('strategy-canvas-container');
             if (chartElement) {
-                const canvasEl = await html2canvas(chartElement, { scale: 2 });
-                chartImageBase64 = canvasEl.toDataURL('image/png');
+                // Try SVG capture first to bypass html2canvas oklch issues
+                chartImageBase64 = await captureSvgAsPng('strategy-canvas-container');
+                
+                if (!chartImageBase64) {
+                    const canvasEl = await html2canvas(chartElement, { scale: 2 });
+                    chartImageBase64 = canvasEl.toDataURL('image/png');
+                }
             }
             const dashboardElement = document.getElementById('dashboard-grid-container');
             if (dashboardElement) {
@@ -577,9 +623,10 @@ export function GoalStrategyPanel({
                 dashboardImageBase64 = dashCanvas.toDataURL('image/png');
             }
           } catch (e) {
-            console.warn("html2canvas failed to capture UI (likely due to lab/oklch colors). Using placeholders.", e);
-            // Fallback to placeholder image if html2canvas crashes due to Tailwind v4 CSS features
-            chartImageBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
+            console.warn("UI capture failed. Using placeholders where necessary.", e);
+            if (!chartImageBase64) {
+                chartImageBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
+            }
             dashboardImageBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==";
           }
     

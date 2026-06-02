@@ -23,6 +23,19 @@ export function handleNulls(
         const columnName = col.originalName;
         const dataType = col.dataType;
 
+        const lowerName = columnName.toLowerCase();
+        if (dataType === 'DATE' && (
+            lowerName.includes('churn') ||
+            lowerName.includes('end') ||
+            lowerName.includes('cancel') ||
+            lowerName.includes('terminate') ||
+            lowerName.includes('death') ||
+            lowerName.includes('departure') ||
+            lowerName.includes('leave')
+        )) {
+            continue; // Skip filling nullable/conditional date fields
+        }
+
         // Extract non-null values for this column
         const nonNullValues = cleanedData
             .map(row => row[columnName])
