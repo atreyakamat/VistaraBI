@@ -322,7 +322,9 @@ async function runBulkE2E() {
                         kpi: {
                             id: kpi.kpiId,
                             name: kpi.kpiName,
-                            aggregations: kpi.matchedColumns.map(c => ({ function: "SUM", column: c })),
+                            aggregations: kpi.aggregations && kpi.aggregations.length > 0
+                                ? kpi.aggregations
+                                : kpi.matchedColumns.map(c => ({ function: "SUM", column: c })),
                             sourceTable: "merged_data",
                             category: kpi.category,
                             lineage: { formula: kpi.formulaExpression }
