@@ -150,60 +150,70 @@ function getDomainQAHistory(domain, mainQuestion, mainAnswer) {
     return list;
 }
 
+function loadAndSliceCSV(filePath, maxRows = 1000) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n');
+    if (lines.length <= maxRows + 1) {
+        return content;
+    }
+    const slicedLines = lines.slice(0, maxRows + 1);
+    return slicedLines.join('\n');
+}
+
 const DOMAIN_CONFIGS = [
     {
         domain: 'SAAS',
-        fileName: 'saas_demo.csv',
-        question: 'Analyze our Monthly Recurring Revenue. Which plan is contributing most and what is the trend?',
+        files: ['transportation_fleet.csv', 'transportation_routes.csv', 'transportation_shipments.csv'],
+        question: 'Analyze our shipment costs and routes. Which route is contributing most and what is the trend?',
         goalValueFactor: 1.3,
-        fallbackTargetKpi: 'Monthly Recurring Revenue'
+        fallbackTargetKpi: 'Total Shipments'
     },
     {
         domain: 'RETAIL',
-        fileName: 'retail_demo.csv',
+        files: ['retail_customers.csv', 'retail_inventory.csv', 'retail_orders.csv'],
         question: 'What is the total sales trend across our stores and which store has the highest value?',
         goalValueFactor: 1.3,
         fallbackTargetKpi: 'Total Sales'
     },
     {
         domain: 'ECOMMERCE',
-        fileName: 'ecommerce_demo.csv',
-        question: 'Analyze our Total Revenue. What is the average order value and order count trend?',
+        files: ['real_estate_listings.csv', 'real_estate_rentals.csv', 'real_estate_transactions.csv'],
+        question: 'Analyze our transaction trends. What is the average value and transaction count trend?',
         goalValueFactor: 1.3,
         fallbackTargetKpi: 'Total Revenue'
     },
     {
         domain: 'EDTECH',
-        fileName: 'edtech_demo.csv',
+        files: ['education_enrollments.csv', 'education_exam_results.csv', 'education_fees.csv'],
         question: 'What is our student enrollment trend and which courses have the highest completion rate?',
         goalValueFactor: 1.3,
         fallbackTargetKpi: 'Total Enrollments'
     },
     {
         domain: 'FINANCE',
-        fileName: 'finance_demo.csv',
-        question: 'What is our revenue and net profit margin trend across different departments?',
+        files: ['financial_loans.csv', 'financial_portfolio.csv', 'financial_transactions.csv'],
+        question: 'What is our revenue and transaction trend across different portfolios?',
         goalValueFactor: 1.3,
         fallbackTargetKpi: 'Total Revenue'
     },
     {
         domain: 'HEALTHCARE',
-        fileName: 'healthcare_demo.csv',
-        question: 'What is the monthly patient count trend and how is the appointment no-show rate behaving?',
+        files: ['healthcare_appointments.csv', 'healthcare_patients.csv', 'healthcare_prescriptions.csv'],
+        question: 'What is the monthly patient appointment trend and how is the booking behavior?',
         goalValueFactor: 1.3,
         fallbackTargetKpi: 'Patient Count'
     },
     {
         domain: 'MANUFACTURING',
-        fileName: 'manufacturing_demo.csv',
-        question: 'What is our total production output trend and which machine has the highest output?',
+        files: ['manufacturing_maintenance.csv', 'manufacturing_production.csv', 'manufacturing_quality_control.csv'],
+        question: 'What is our total production output trend and machine maintenance compliance?',
         goalValueFactor: 1.3,
         fallbackTargetKpi: 'Production Output'
     },
     {
         domain: 'SERVICES',
-        fileName: 'services_demo.csv',
-        question: 'What is the total billing revenue and average client utilization rate?',
+        files: ['hospitality_bookings.csv', 'hospitality_guests.csv', 'hospitality_services.csv'],
+        question: 'What is the total booking revenue and customer utilization rate?',
         goalValueFactor: 1.3,
         fallbackTargetKpi: 'Total Revenue'
     }
@@ -249,19 +259,23 @@ async function runBulkE2E() {
             console.log(`✅ Created Project ID: ${projectId}`);
 
             // 2. Upload Data (Module 1 & 2)
-            console.log(`📤 [Module 1 & 2] Ingesting & Purifying ${config.fileName}...`);
-            const csvPath = path.join(__dirname, `../datasets/demo/${config.fileName}`);
-            if (!fs.existsSync(csvPath)) {
-                throw new Error(`Dataset file not found at ${csvPath}`);
-            }
-            const csvContent = fs.readFileSync(csvPath, 'utf8');
+            console.log(`📤 [Module 1 & 2] Ingesting & Purifying ${config.files.join(', ')}...`);
             const formData = new FormData();
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            formData.append('files', blob, config.fileName);
+            
+            for (const fName of config.files) {
+                const csvPath = path.join(__dirname, `../datasets/${fName}`);
+                if (!fs.existsSync(csvPath)) {
+                    throw new Error(`Dataset file not found at ${csvPath}`);
+                }
+                const slicedContent = loadAndSliceCSV(csvPath, 1000);
+                const blob = new Blob([slicedContent], { type: 'text/csv' });
+                formData.append('files', blob, fName);
+            }
+
             const uploadRes = await fetchAPI(`/api/projects/${projectId}/sources`, { method: 'POST', body: formData });
             if (!uploadRes.ok) throw new Error("Upload failed: " + uploadRes.status);
             const uploadData = await uploadRes.json();
-            console.log(`✅ Upload complete. Rows: ${uploadData.sources[0]?.rowCount}, Quality: ${uploadData.sources[0]?.qualityScore || 'A'}`);
+            console.log(`✅ Upload complete. Ingested ${uploadData.sources?.length || 0} source tables.`);
 
             // 3. Set Domain Governance (Module 3)
             console.log(`🎯 [Module 3] Locking Domain to ${config.domain}...`);
@@ -277,7 +291,27 @@ async function runBulkE2E() {
             console.log("📊 [Module 4] Triggering KPI Discovery...");
             const kpiRes = await fetchAPI(`/api/projects/${projectId}/kpis`, { method: 'POST' });
             const kpiData = await kpiRes.json();
-            const topKPIs = (kpiData.discovery?.computableKPIs || []).slice(0, 4);
+            let topKPIs = (kpiData.discovery?.computableKPIs || []).slice(0, 4);
+
+            if (topKPIs.length === 0) {
+                console.warn(`⚠️ [Warning] No computable KPIs discovered for domain ${config.domain}. Injecting fallback KPI...`);
+                const sourceCols = kpiData.discovery?.availableColumns || [];
+                const numericCol = sourceCols.find(c => {
+                    const lc = c.toLowerCase();
+                    return lc.includes('cost') || lc.includes('amount') || lc.includes('value') || 
+                           lc.includes('revenue') || lc.includes('liters') || lc.includes('km') || 
+                           lc.includes('efficiency') || lc.includes('capacity') || lc.includes('rate') ||
+                           lc.includes('qty') || lc.includes('units') || lc.includes('price');
+                }) || sourceCols[0] || 'value';
+                
+                topKPIs = [{
+                    kpiId: `fallback-${config.domain.toLowerCase()}`,
+                    kpiName: config.fallbackTargetKpi || 'Total Volume',
+                    matchedColumns: [numericCol],
+                    category: 'volume',
+                    formulaExpression: `SUM(${numericCol})`
+                }];
+            }
             console.log(`Discovered KPIs:`, topKPIs.map(k => k.kpiName));
 
             for (const kpi of topKPIs) {

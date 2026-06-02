@@ -14,6 +14,67 @@ const FORWARD_FILL_GAP_DAYS = 7;
 /** Cap linear fallback uncertainty so it never exceeds 50% of predicted value */
 const MAX_UNCERTAINTY_RATIO = 0.5;
 
+// ─── Date Parsing and Validation Helpers ────────────────────────────────────────
+
+/**
+ * Checks if a value can be parsed into a valid Date object.
+ */
+export function isValidDateString(dateInput: any): boolean {
+    if (!dateInput) return false;
+    const d = new Date(dateInput);
+    if (!isNaN(d.getTime())) return true;
+
+    if (typeof dateInput === 'string') {
+        const trimmed = dateInput.trim();
+        const match = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/]?(\d{1,2})?/);
+        if (match) {
+            const y = parseInt(match[1], 10);
+            const m = parseInt(match[2], 10) - 1;
+            const day = match[3] ? parseInt(match[3], 10) : 1;
+            const d2 = new Date(Date.UTC(y, m, day));
+            return !isNaN(d2.getTime());
+        }
+    }
+    return false;
+}
+
+/**
+ * Safely parses any date input, falling back to current date if invalid.
+ */
+export function safeParseDate(dateInput: any): Date {
+    if (!dateInput) return new Date();
+
+    if (dateInput instanceof Date) {
+        if (!isNaN(dateInput.getTime())) {
+            return dateInput;
+        }
+        return new Date();
+    }
+
+    if (typeof dateInput === 'number') {
+        const d = new Date(dateInput);
+        if (!isNaN(d.getTime())) return d;
+    }
+
+    if (typeof dateInput === 'string') {
+        const trimmed = dateInput.trim();
+        let d = new Date(trimmed);
+        if (!isNaN(d.getTime())) return d;
+
+        // Try manually parsing format YYYY-MM-DD or YYYY-MM
+        const match = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/]?(\d{1,2})?/);
+        if (match) {
+            const y = parseInt(match[1], 10);
+            const m = parseInt(match[2], 10) - 1; // 0-indexed month
+            const day = match[3] ? parseInt(match[3], 10) : 1;
+            d = new Date(Date.UTC(y, m, day));
+            if (!isNaN(d.getTime())) return d;
+        }
+    }
+
+    return new Date();
+}
+
 // ─── Sparse Data Cleaning ─────────────────────────────────────────────────────
 
 /**
@@ -35,15 +96,15 @@ const MAX_UNCERTAINTY_RATIO = 0.5;
 export function cleanAndFillTimeSeries(history: KpiDataPoint[]): KpiDataPoint[] {
     if (history.length < 2) return history;
 
-    // Sort ascending and normalise to valid numeric values
+    // Sort ascending and normalise to valid numeric values and valid date formats
     const sorted = history
-        .filter(p => p.value != null && !isNaN(p.value))
+        .filter(p => p.value != null && !isNaN(p.value) && isValidDateString(p.date))
         .sort((a, b) => a.date.localeCompare(b.date));
 
     if (sorted.length < 2) return sorted;
 
-    const start = new Date(sorted[0].date);
-    const end   = new Date(sorted[sorted.length - 1].date);
+    const start = safeParseDate(sorted[0].date);
+    const end   = safeParseDate(sorted[sorted.length - 1].date);
 
     // Build a lookup of all known date -> index in sorted array
     const knownDates = new Map<string, number>(sorted.map((p, i) => [p.date, i]));
@@ -64,8 +125,8 @@ export function cleanAndFillTimeSeries(history: KpiDataPoint[]): KpiDataPoint[] 
 
             if (prevKnown && nextKnown) {
                 // Linear interpolation: v = v0 + (v1-v0) * (t-t0)/(t1-t0)
-                const t0 = new Date(prevKnown.date).getTime();
-                const t1 = new Date(nextKnown.date).getTime();
+                const t0 = safeParseDate(prevKnown.date).getTime();
+                const t1 = safeParseDate(nextKnown.date).getTime();
                 const t  = d.getTime();
                 const ratio = (t - t0) / (t1 - t0);
                 const interpolated = prevKnown.value + (nextKnown.value - prevKnown.value) * ratio;
@@ -214,7 +275,7 @@ export function generateFallbackLinearForecast(req: ForecastRequest): ForecastPo
     const { kpiHistory, horizonDays } = req;
     const safeHorizon = Math.max(1, horizonDays);
 
-    const validHistory = kpiHistory.filter(p => p.value != null && !isNaN(p.value));
+    const validHistory = kpiHistory.filter(p => p.value != null && !isNaN(p.value) && isValidDateString(p.date));
     const n = validHistory.length;
 
     if (n < 2) {
@@ -241,7 +302,7 @@ export function generateFallbackLinearForecast(req: ForecastRequest): ForecastPo
     const slope     = denominator !== 0 ? (n * sumXY - sumX * sumY) / denominator : 0;
     const intercept = (sumY - slope * sumX) / n;
 
-    const lastDate   = new Date(validHistory[n - 1].date);
+    const lastDate   = safeParseDate(validHistory[n - 1].date);
     const forecast: ForecastPoint[] = [];
 
     // H3 FIX: Honor confidenceLevel in linear fallback
