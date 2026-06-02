@@ -59,7 +59,13 @@ export async function POST(request: Request) {
     dashboardImage,
     globalChatSummary,
     uploadedDatasets,
-    cleaningSummary
+    cleaningSummary,
+    module6Question,
+    module6Answer,
+    kpiHistory,
+    forecastScenarios,
+    strategyCanvas,
+    module6ChatHistory
   } = body;
 
   if (!chartImage || !metrics) {
@@ -95,6 +101,12 @@ export async function POST(request: Request) {
       globalChatSummary={globalChatSummary}
       uploadedDatasets={uploadedDatasets || []}
       cleaningSummary={cleaningSummary || "Data processed successfully."}
+      module6Question={module6Question}
+      module6Answer={module6Answer}
+      kpiHistory={kpiHistory}
+      forecastScenarios={forecastScenarios}
+      strategyCanvas={strategyCanvas}
+      module6ChatHistory={module6ChatHistory}
     />
   );
 

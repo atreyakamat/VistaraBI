@@ -638,6 +638,26 @@ export function GoalStrategyPanel({
 
           const gap = Math.max(0, targetGoalVal - simulationContext.scenarios.baseline[simulationContext.scenarios.baseline.length - 1].yhat);
     
+          const lastUserMsg = [...askAiMessages].reverse().find(m => m.role.toLowerCase() === 'user');
+          const lastAssistantMsg = lastUserMsg 
+            ? askAiMessages.find((m, i) => i > askAiMessages.indexOf(lastUserMsg) && m.role.toLowerCase() === 'assistant')
+            : null;
+
+          const chatHistoryPairs = [];
+          for (let i = 0; i < askAiMessages.length; i++) {
+              if (askAiMessages[i].role.toLowerCase() === 'user') {
+                  const q = askAiMessages[i].text;
+                  let ans = "No response recorded.";
+                  for (let j = i + 1; j < askAiMessages.length; j++) {
+                      if (askAiMessages[j].role.toLowerCase() === 'assistant' || askAiMessages[j].role.toLowerCase() === 'system') {
+                          ans = askAiMessages[j].text;
+                          break;
+                      }
+                  }
+                  chatHistoryPairs.push({ question: q, answer: ans });
+              }
+          }
+
           const payload = {
             chartImage: chartImageBase64,
             dashboardImage: dashboardImageBase64,
@@ -668,7 +688,13 @@ export function GoalStrategyPanel({
                 : `User selected action: ${simulatingAction?.actionName}. Tested simulated outcomes for achieving ${canvas?.goal.targetMetric}.`,
             globalChatSummary: askAiMessages.length > 0 
                 ? askAiMessages.map(m => `${m.role.toUpperCase()}: ${m.text}`).join('\n') 
-                : 'No recent exploratory questions logged.'
+                : 'No recent exploratory questions logged.',
+            module6Question: lastUserMsg?.text || "",
+            module6Answer: lastAssistantMsg?.text || "",
+            kpiHistory: realHistory,
+            forecastScenarios: simulationContext?.scenarios,
+            strategyCanvas: canvas,
+            module6ChatHistory: chatHistoryPairs
           };
     
           const response = await fetch('/api/v1/report/generate', {
