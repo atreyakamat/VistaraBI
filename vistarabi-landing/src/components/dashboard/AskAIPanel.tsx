@@ -28,6 +28,7 @@ interface ChatMessage {
     role: 'user' | 'assistant';
     content: ChatContent;
     timestamp: Date;
+    isStreamingCompleted?: boolean;
 }
 
 type ChatContentBase = { conversationalPreamble?: string };
@@ -103,7 +104,15 @@ function genId() {
 }
 
 function parseResponse(data: any): ChatContent {
-    const { route, status, directive } = data;
+    const { route, status, directive, error } = data;
+
+    if (error) {
+        return {
+            type: 'error',
+            message: error,
+            recoverable: true,
+        };
+    }
 
     if (directive === 'OPEN_GOAL_ENGINE') {
         return {
@@ -148,6 +157,7 @@ function parseResponse(data: any): ChatContent {
             type: 'error',
             message: displayMsg,
             recoverable: isTimeout || status === 'rejected',
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
@@ -156,6 +166,7 @@ function parseResponse(data: any): ChatContent {
             type: 'unsupported',
             message: data.message || "I couldn't find a structured path for that query. Try rephrasing around a specific metric.",
             suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+            conversationalPreamble: data.conversationalPreamble
         };
     }
 
@@ -577,9 +588,66 @@ function DirectiveCard({ c }: { c: Extract<ChatContent, { type: 'directive' }> }
     );
 }
 
-function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?: () => void; onClarify?: (name: string) => void }) {
+function TypewriterText({ text, speed = 10, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
+    const [displayedText, setDisplayedText] = useState('');
+    const textRef = useRef(text);
+    const indexRef = useRef(0);
+
+    useEffect(() => {
+        textRef.current = text;
+        indexRef.current = 0;
+        setDisplayedText('');
+
+        const interval = setInterval(() => {
+            if (indexRef.current < textRef.current.length) {
+                setDisplayedText(prev => prev + textRef.current.charAt(indexRef.current));
+                indexRef.current += 1;
+                
+                // Scroll container to bottom
+                const container = document.querySelector('.ask-ai-messages');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            } else {
+                clearInterval(interval);
+                onComplete?.();
+            }
+        }, speed);
+
+        return () => clearInterval(interval);
+    }, [text, speed, onComplete]);
+
+    const isComplete = displayedText.length === text.length;
+    return (
+        <span className="whitespace-pre-wrap">
+            {displayedText}
+            {!isComplete && (
+                <span className="inline-block w-1 h-3.5 ml-0.5 bg-indigo-600 align-middle animate-pulse" />
+            )}
+        </span>
+    );
+}
+
+function MessageBubble({ msg, onRetry, onClarify, onStreamComplete }: { 
+    msg: ChatMessage; 
+    onRetry?: () => void; 
+    onClarify?: (name: string) => void;
+    onStreamComplete?: (msgId: string) => void;
+}) {
     const isUser = msg.role === 'user';
     const c = msg.content;
+    const [preambleDone, setPreambleDone] = useState(!!msg.isStreamingCompleted);
+
+    const hasPreamble = !!c.conversationalPreamble;
+    const hasText = c.type === 'text' && !c.conversationalPreamble && !!c.text;
+
+    useEffect(() => {
+        if (msg.isStreamingCompleted) return;
+        if (!hasPreamble && !hasText) {
+            setPreambleDone(true);
+            onStreamComplete?.(msg.id);
+        }
+    }, [msg.isStreamingCompleted, hasPreamble, hasText, msg.id, onStreamComplete]);
 
     if (isUser && c.type === 'text') {
         return (
@@ -596,20 +664,53 @@ function MessageBubble({ msg, onRetry, onClarify }: { msg: ChatMessage; onRetry?
                     <span className="material-symbols-outlined text-sm text-indigo-600">psychology</span>
                 </div>
                 <div className="flex-1">
-                    {c.conversationalPreamble && <p className="text-sm text-slate-800 leading-relaxed mb-3">{c.conversationalPreamble}</p>}
-                    {c.type === 'text' && !c.conversationalPreamble && <p className="text-sm text-slate-700 leading-relaxed">{c.text}</p>}
-                    {c.type === 'insight' && <InsightCard c={c} />}
-                    {c.type === 'correlation' && <CorrelationCard c={c} />}
-                    {c.type === 'synthesis' && <SynthesisCard c={c} />}
-                    {c.type === 'command' && <CommandCard c={c} />}
-                    {c.type === 'suppressed' && <SuppressedCard c={c} />}
-                    {c.type === 'error' && <ErrorCard c={c} onRetry={onRetry} />}
-                    {c.type === 'unsupported' && <UnsupportedCard c={c} onSuggest={onClarify} />}
-                    {c.type === 'kpi_value' && <ScalarKpiCard c={c} />}
-                    {c.type === 'trend_analysis' && <TrendCard c={c} />}
-                    {c.type === 'comparison' && <ComparisonCard c={c} />}
-                    {c.type === 'clarification' && <ClarificationCard c={c} onSelect={onClarify || (() => { })} />}
-                    {c.type === 'directive' && <DirectiveCard c={c} />}
+                    {hasPreamble && (
+                        <p className="text-sm text-slate-800 leading-relaxed mb-3">
+                            {!msg.isStreamingCompleted ? (
+                                <TypewriterText 
+                                    text={c.conversationalPreamble!} 
+                                    onComplete={() => {
+                                        setPreambleDone(true);
+                                        if (!hasText) onStreamComplete?.(msg.id);
+                                    }}
+                                />
+                            ) : (
+                                c.conversationalPreamble
+                            )}
+                        </p>
+                    )}
+
+                    {hasText && (
+                        <p className="text-sm text-slate-700 leading-relaxed">
+                            {!msg.isStreamingCompleted ? (
+                                <TypewriterText 
+                                    text={c.text} 
+                                    onComplete={() => onStreamComplete?.(msg.id)}
+                                />
+                            ) : (
+                                c.text
+                            )}
+                        </p>
+                    )}
+
+                    {/* Render cards only when preamble is done typing */}
+                    {preambleDone && (
+                        <>
+                            {c.type === 'insight' && <InsightCard c={c} />}
+                            {c.type === 'correlation' && <CorrelationCard c={c} />}
+                            {c.type === 'synthesis' && <SynthesisCard c={c} />}
+                            {c.type === 'command' && <CommandCard c={c} />}
+                            {c.type === 'suppressed' && <SuppressedCard c={c} />}
+                            {c.type === 'error' && <ErrorCard c={c} onRetry={onRetry} />}
+                            {c.type === 'unsupported' && <UnsupportedCard c={c} onSuggest={onClarify} />}
+                            {c.type === 'kpi_value' && <ScalarKpiCard c={c} />}
+                            {c.type === 'trend_analysis' && <TrendCard c={c} />}
+                            {c.type === 'comparison' && <ComparisonCard c={c} />}
+                            {c.type === 'clarification' && <ClarificationCard c={c} onSelect={onClarify || (() => { })} />}
+                            {c.type === 'directive' && <DirectiveCard c={c} />}
+                        </>
+                    )}
+
                     <span className="text-[10px] text-slate-400 mt-1 block">
                         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -631,6 +732,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                 type: 'text',
                 text: "Hi! I can explain KPI trends, show correlations, create dashboard cards, or give you a financial overview. What would you like to explore?",
             },
+            isStreamingCompleted: true,
         },
     ]);
     const [input, setInput] = useState('');
@@ -683,7 +785,8 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                     setMessages(prev => {
                         const intro: ChatMessage = {
                             id: genId(), role: 'assistant', timestamp: new Date(),
-                            content: { type: 'text', text: 'Live AI providers are currently unavailable. Showing cached suggestions and guidance — try one of the suggestions below.' } as ChatContent
+                            content: { type: 'text', text: 'Live AI providers are currently unavailable. Showing cached suggestions and guidance — try one of the suggestions below.' } as ChatContent,
+                            isStreamingCompleted: true
                         };
                         if (prev.length && prev[0]?.content?.type === 'text' && typeof prev[0].content.text === 'string' && prev[0].content.text.includes('Live AI providers are currently unavailable')) return prev;
                         return [intro, ...prev];
@@ -717,6 +820,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                 role: 'assistant' as const,
                 timestamp: new Date(),
                 content: { type: 'error', message: 'AI response timed out. Please try again.', recoverable: true },
+                isStreamingCompleted: true,
             }]);
             setIsLoading(false);
         }, 3000);
@@ -747,6 +851,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                 role: 'assistant' as const,
                 timestamp: new Date(),
                 content,
+                isStreamingCompleted: false,
             }]);
 
             // Add suggestions if present
@@ -774,11 +879,16 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                 role: 'assistant' as const,
                 timestamp: new Date(),
                 content: { type: 'text' as const, text: 'AI is currently offline or operating in demo mode. Please ensure Ollama is running locally for live chat features, or check the dashboard for pre-calculated insights.' },
+                isStreamingCompleted: true,
             }]);
         } finally {
             setIsLoading(false);
         }
     }, [projectId, isLoading, preferLocal, strategyContext, onCommandSuccess]);
+
+    const handleStreamComplete = useCallback((msgId: string) => {
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, isStreamingCompleted: true } : m));
+    }, []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -826,6 +936,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                             onClick={() => setMessages([{
                                 id: genId(), role: 'assistant' as const, timestamp: new Date(),
                                 content: { type: 'text' as const, text: "Chat cleared. What would you like to explore?" },
+                                isStreamingCompleted: true
                             }])}
                             className="ask-ai-clear-btn"
                             title="Clear chat"
@@ -846,6 +957,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                             msg={msg}
                             onRetry={handleRetry}
                             onClarify={(name) => sendMessage(name)}
+                            onStreamComplete={handleStreamComplete}
                         />
                     ))}
                     {isLoading && (

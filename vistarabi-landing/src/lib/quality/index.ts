@@ -40,6 +40,7 @@ export async function analyzeQuality(sourceId: string): Promise<void> {
         // 5. Detect outliers for numeric columns
         let totalOutliers = 0;
         const outliersByColumn = new Map<string, number>();
+        const outlierRecordsToCreate: any[] = [];
 
         for (const col of columnMeta) {
             if (col.dataType === 'NUMBER') {
@@ -49,22 +50,27 @@ export async function analyzeQuality(sourceId: string): Promise<void> {
                     outliersByColumn.set(col.originalName, outlierResult.totalOutliers);
                     totalOutliers += outlierResult.totalOutliers;
 
-                    // Store outlier records
+                    // Prepare outlier records for batch insert
                     for (const outlier of outlierResult.outliers) {
-                        await db.outlierRecord.create({
-                            data: {
-                                sourceId,
-                                columnName: col.originalName,
-                                rowIndex: outlier.rowIndex,
-                                value: outlier.value as any,
-                                detectionMethod: outlier.method,
-                                severity: outlier.severity,
-                                expectedRange: outlier.expectedRange,
-                            },
+                        outlierRecordsToCreate.push({
+                            sourceId,
+                            columnName: col.originalName,
+                            rowIndex: outlier.rowIndex,
+                            value: outlier.value as any,
+                            detectionMethod: outlier.method,
+                            severity: outlier.severity,
+                            expectedRange: outlier.expectedRange,
                         });
                     }
                 }
             }
+        }
+
+        // Batch insert outliers
+        if (outlierRecordsToCreate.length > 0) {
+            await db.outlierRecord.createMany({
+                data: outlierRecordsToCreate,
+            });
         }
 
         console.log('[Quality] Outliers detected:', totalOutliers);
@@ -75,6 +81,8 @@ export async function analyzeQuality(sourceId: string): Promise<void> {
 
         // 7. Grade column health
         const columns = Object.keys(data[0]);
+        const columnHealthToCreate: any[] = [];
+
         for (const colName of columns) {
             const completeness = completenessResult.columnScores.get(colName) || 0;
             const consistency = consistencyResult.columnScores.get(colName) || 100;
@@ -88,17 +96,22 @@ export async function analyzeQuality(sourceId: string): Promise<void> {
             const uniqueValues = new Set(data.map(row => row[colName])).size;
             const uniqueness = (uniqueValues / totalRecords) * 100;
 
-            await db.columnHealth.create({
-                data: {
-                    sourceId,
-                    columnName: colName,
-                    healthStatus,
-                    completeness,
-                    consistency,
-                    outlierCount: colOutliers,
-                    uniqueness,
-                    issues,
-                },
+            columnHealthToCreate.push({
+                sourceId,
+                columnName: colName,
+                healthStatus,
+                completeness,
+                consistency,
+                outlierCount: colOutliers,
+                uniqueness,
+                issues,
+            });
+        }
+
+        // Batch insert column health
+        if (columnHealthToCreate.length > 0) {
+            await db.columnHealth.createMany({
+                data: columnHealthToCreate,
             });
         }
 

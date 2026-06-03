@@ -76,7 +76,7 @@ services:
 
       # ── AI: Local Ollama (connects to the ollama service above) ──────────
       OLLAMA_URL: http://ollama:11434
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen3.5:0.8b}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3:8b}  # Default to a stronger local model if host supports it (reduce hallucination risk)
       PREFER_LOCAL: ${PREFER_LOCAL:-true}
 
       # ── AI: Groq (cloud, free tier) ───────────────────────────────────────

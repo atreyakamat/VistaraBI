@@ -1,4 +1,4 @@
-﻿// Module 6B — Entry Point
+// Module 6B — Entry Point
 // handleEventQuery() orchestrates the full event narration pipeline.
 // Input: sessionId + userQuery (NL question about a KPI)
 // Output: NarrationResult (structured response with explanation + evidence)
@@ -132,12 +132,14 @@ export async function handleEventQuery(
     try {
         llmRaw = await callEventLLM(userQuery, packet);
     } catch (err: unknown) {
-        const msg = err instanceof LLMEventCallError ? err.message : 'LLM call failed';
-        return {
-            status: 'rejected',
-            message: msg,
-            evidence: packet,
-        };
+        console.warn('[Event-AI] AI call failed. Using rule-based fallback generation.', err);
+        const direction = packet.metric_delta_percent > 0 ? 'increase' : 'decrease';
+        const pct = Math.abs(packet.metric_delta_percent).toFixed(1);
+        const eventText = packet.detected_events && packet.detected_events.length > 0
+            ? ` This coincided with event: ${packet.detected_events[0].title} (${packet.detected_events[0].description}).`
+            : '';
+            
+        llmRaw = `${packet.kpi_name} experienced a ${direction} of ${pct}% over the period, moving from ${packet.baseline_value} to ${packet.current_value}.${eventText} This trend represents a ${packet.volatility_category} volatility pattern.`;
     }
 
     // ── Step 6: Validate numeric claims ──

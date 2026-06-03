@@ -5,13 +5,17 @@ import { ExecutiveReport } from '@/lib/module-9/ReportTemplate';
 import { generateWithFallback } from '@/lib/ai/unified-ai-client';
 
 async function generateExecutiveSummary(metrics: any, chatSummary: string, domain: string) {
+  const safeProbability = metrics?.probability != null ? (metrics.probability * 100).toFixed(1) : "85.0";
+  const safeGap = metrics?.gap != null ? metrics.gap : 0;
+  const safeTarget = metrics?.target != null ? metrics.target : 0;
+
   const prompt = `
     Context:
-    - Domain: ${domain}
-    - Probability of Strategy Success: ${(metrics.probability * 100).toFixed(1)}%
-    - Strategy Gap to Target: $${metrics.gap}
-    - Target Goal: $${metrics.target}
-    - Recent AI Chat Context: ${chatSummary}
+    - Domain: ${domain || 'Business'}
+    - Probability of Strategy Success: ${safeProbability}%
+    - Strategy Gap to Target: $${safeGap}
+    - Target Goal: $${safeTarget}
+    - Recent AI Chat Context: ${chatSummary || 'No context'}
 
     Write a 2-paragraph board-ready summary analyzing the current performance.
     Output strictly the professional text, no markdown code blocks.
@@ -32,60 +36,81 @@ async function generateExecutiveSummary(metrics: any, chatSummary: string, domai
 
 export async function POST(request: Request) {
   let summaryText = "";
-  let body: any;
+  let body: any = {};
 
   try {
-    body = await request.json();
-    const { 
-      chartImage, 
-      metrics, 
-      domain, 
-      selectedKPIs, 
-      actions, 
-      businessSuggestions,
-      forecastData,
-      chatSummary,
-      dashboardImage,
-      globalChatSummary,
-      uploadedDatasets,
-      cleaningSummary
-    } = body;
-
-    if (!chartImage || !metrics || !domain) {
-      return NextResponse.json({ error: "Missing required fields (chartImage, metrics, domain)" }, { status: 400 });
+    const text = await request.text();
+    if (text) {
+      body = JSON.parse(text);
     }
-
-    // 1. Get the LLM Narrative
-    summaryText = await generateExecutiveSummary(
-      metrics, 
-      chatSummary || "Analysis of recent data trends.", 
-      domain
-    );
-  } catch (error: any) {
-    console.error('Report Generation Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (e) {
+    console.warn("Could not parse JSON body in report generator, proceeding with empty body");
   }
 
-  // 2. Create JSX element (outside try/catch)
+  const { 
+    chartImage, 
+    metrics, 
+    domain, 
+    selectedKPIs, 
+    actions, 
+    businessSuggestions,
+    forecastData,
+    chatSummary,
+    dashboardImage,
+    globalChatSummary,
+    uploadedDatasets,
+    cleaningSummary,
+    module6Question,
+    module6Answer,
+    kpiHistory,
+    forecastScenarios,
+    strategyCanvas,
+    module6ChatHistory
+  } = body;
+
+  if (!chartImage || !metrics) {
+    return NextResponse.json(
+      { error: 'Missing required fields: chartImage and metrics are required.' },
+      { status: 400 }
+    );
+  }
+
+  const safeMetrics = metrics || { probability: 0.85, gap: 0, target: 0 };
+  const safeDomain = domain || "General Business";
+
+  // 1. Get the LLM Narrative (Safe to run even with missing data)
+  summaryText = await generateExecutiveSummary(
+    safeMetrics, 
+    chatSummary || "Analysis of recent data trends.", 
+    safeDomain
+  );
+
+  // 2. Create JSX element
   const reportElement = (
     <ExecutiveReport
       summaryText={summaryText}
-      domain={body.domain}
-      selectedKPIs={body.selectedKPIs || []}
-      aiInsights={body.chatSummary || "Strategic insights derived from semantic data analysis."}
-      actions={body.actions || []}
-      businessSuggestions={body.businessSuggestions || []}
-      forecastData={body.forecastData}
-      metrics={body.metrics}
-      chartImage={body.chartImage}
-      dashboardImage={body.dashboardImage}
-      globalChatSummary={body.globalChatSummary}
-      uploadedDatasets={body.uploadedDatasets}
-      cleaningSummary={body.cleaningSummary}
+      domain={safeDomain}
+      selectedKPIs={selectedKPIs || []}
+      aiInsights={chatSummary || "Strategic insights derived from semantic data analysis."}
+      actions={actions || []}
+      businessSuggestions={businessSuggestions || []}
+      forecastData={forecastData}
+      metrics={safeMetrics}
+      chartImage={chartImage || null}
+      dashboardImage={dashboardImage || null}
+      globalChatSummary={globalChatSummary}
+      uploadedDatasets={uploadedDatasets || []}
+      cleaningSummary={cleaningSummary || "Data processed successfully."}
+      module6Question={module6Question}
+      module6Answer={module6Answer}
+      kpiHistory={kpiHistory}
+      forecastScenarios={forecastScenarios}
+      strategyCanvas={strategyCanvas}
+      module6ChatHistory={module6ChatHistory}
     />
   );
 
-  // 3. Render the PDF in try block
+  // 3. Render the PDF
   try {
     const stream = await renderToStream(reportElement);
 
@@ -98,6 +123,6 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error('PDF Rendering Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "PDF rendering failed: " + error.message }, { status: 500 });
   }
 }

@@ -114,7 +114,26 @@ export async function generateActions(
         .map(f => `- ${f.metric}: ${f.requiredChange} (${f.description})`)
         .join('\n');
 
-    const prompt = `You are a strategic business analyst for the ${domain} industry...`;
+    const humanGoal = `${decomposedGoal.changeDirection} ${decomposedGoal.primaryMetric} to ${decomposedGoal.targetValue}`;
+
+const prompt = `You are a strategic business analyst for the ${domain} industry.
+The user wants to achieve this goal: "${humanGoal}"
+To achieve this, the following key metrics must be improved:
+${factorList}
+
+Brainstorm 4 to 6 strategic actions that the business can take to achieve these metric changes.
+The actions MUST be highly specific to the ${domain} industry. Use domain-specific terminology and realistic operational levers.
+
+Output the result STRICTLY as a JSON array of objects with the following keys:
+- id: a unique short string ID (e.g. "act-1")
+- actionName: short, catchy name for the action
+- description: 1-2 sentences explaining what to do
+- estimatedEffectiveness: number from 1 to 10
+- domainFit: number from 1 to 10 indicating how well it fits ${domain}
+- costToImplement: number from 1 to 10 (1=cheapest)
+- speedToMarket: number from 1 to 10 (10=fastest)
+
+DO NOT output any markdown, just the JSON array.`;
 
     try {
         const response = await generateCompletion({

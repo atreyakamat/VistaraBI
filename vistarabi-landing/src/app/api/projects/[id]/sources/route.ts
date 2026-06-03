@@ -7,11 +7,11 @@ import { purifyDataset } from '@/lib/purification';
 import { checkRateLimit, getIdentifier, RATE_LIMITS, buildRateLimitHeaders } from '@/lib/security/rate-limiter';
 import { apiError, apiSuccess } from '@/lib/api-response';
 import type { Prisma } from '@prisma/client';
+import { checkFileUploadLimit } from '@/lib/plan-limits';
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB — matches client-side validation
-const ALLOWED_EXTENSIONS = ['csv', 'json', 'xml', 'xlsx'];
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+const ALLOWED_EXTENSIONS = ['csv', 'xlsx', 'xls', 'json', 'xml'];
 
-// GET /api/projects/[id]/sources - List sources for a project
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -125,8 +125,10 @@ export async function POST(
 
             // ─── Security Validations ───
             // 1. File size check
-            if (file.size > MAX_FILE_SIZE) {
-                results.push({ fileName, status: 'FAILED', error: 'File size exceeds 50MB limit' });
+            const fileSizeMb = file.size / (1024 * 1024);
+            const sizeLimitCheck = await checkFileUploadLimit(user.userId, fileSizeMb);
+            if (!sizeLimitCheck.allowed) {
+                results.push({ fileName, status: 'FAILED', error: sizeLimitCheck.message || `File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit` });
                 continue;
             }
 
@@ -157,7 +159,23 @@ export async function POST(
                 if (fileType === 'xlsx') {
                     content = await file.arrayBuffer();
                 } else {
-                    content = await file.text();
+                    const arrayBuffer = await file.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    
+                    // UTF-16 BOM detection
+                    if (buffer.length >= 2 && buffer[0] === 0xFF && buffer[1] === 0xFE) {
+                        content = buffer.toString('utf16le');
+                    } else if (buffer.length >= 2 && buffer[0] === 0xFE && buffer[1] === 0xFF) {
+                        // UTF-16 BE BOM: swap bytes for Node.js UTF-16LE conversion
+                        const swapped = Buffer.alloc(buffer.length);
+                        for (let i = 0; i < buffer.length - 1; i += 2) {
+                            swapped[i] = buffer[i + 1];
+                            swapped[i + 1] = buffer[i];
+                        }
+                        content = swapped.toString('utf16le');
+                    } else {
+                        content = buffer.toString('utf8');
+                    }
                 }
 
                 // Parse file
@@ -236,4 +254,3 @@ export async function POST(
         return apiError('INTERNAL_ERROR', 'Upload processing failed');
     }
 }
-

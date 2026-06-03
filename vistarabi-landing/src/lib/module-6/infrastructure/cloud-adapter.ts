@@ -26,7 +26,15 @@ function getCloudProviderConfig(requestedModelId: string): CloudProviderConfig {
     const ollamaKey = process.env.CLOUD_AI_API_KEY || process.env.OLLAMA_CLOUD_API_KEY;
     const ollamaModel = process.env.CLOUD_AI_MODEL || process.env.OLLAMA_CLOUD_MODEL || requestedModelId;
 
-    if (ollamaUrl && ollamaKey) {
+        if (ollamaUrl && ollamaKey) {
+        if (ollamaUrl.includes('openai') || ollamaUrl.includes('groq') || ollamaUrl.includes('openrouter')) {
+            return {
+                mode: 'openai',
+                baseUrl: ollamaUrl,
+                apiKey: ollamaKey,
+                model: ollamaModel,
+            };
+        }
         return {
             mode: 'ollama-chat',
             baseUrl: ollamaUrl,
