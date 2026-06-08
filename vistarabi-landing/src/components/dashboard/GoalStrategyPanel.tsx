@@ -14,6 +14,7 @@ import { AI_MODE_HEADER_KEY } from '@/lib/ai/ai-mode';
 import { useAIMode } from '@/lib/ai/use-ai-mode';
 import { Target, X, FileText } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { toast } from 'sonner';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -138,10 +139,66 @@ function parseLiftPercent(rawLift: string | undefined): number | null {
 
 // ─── Scenario Tabs ────────────────────────────────────────────────────────────
 
-function ScenarioTabs({ scenarios, onSimulate }: { scenarios: BudgetScenario[], onSimulate: () => void }) {
+function ScenarioTabs({ 
+    scenarios, 
+    onSimulate, 
+    projectId, 
+    actionName, 
+    actionDescription 
+}: { 
+    scenarios: BudgetScenario[]; 
+    onSimulate: () => void; 
+    projectId: string; 
+    actionName: string; 
+    actionDescription: string; 
+}) {
     const map = Object.fromEntries(scenarios.map(s => [s.level, s]));
     const [active, setActive] = useState<BudgetScenario['level']>('LEAN');
+    const [isExecuting, setIsExecuting] = useState(false);
     const cur = map[active];
+
+    const handleExecuteAction = async () => {
+        setIsExecuting(true);
+        try {
+            let system = 'GOOGLE_ADS';
+            if (actionName.toLowerCase().includes('stripe') || actionDescription.toLowerCase().includes('stripe') || actionName.toLowerCase().includes('billing')) {
+                system = 'STRIPE';
+            } else if (actionName.toLowerCase().includes('slack') || actionName.toLowerCase().includes('email') || actionName.toLowerCase().includes('resend')) {
+                system = 'RESEND';
+            } else if (actionName.toLowerCase().includes('marketing') || actionName.toLowerCase().includes('campaign') || actionName.toLowerCase().includes('ad')) {
+                system = 'GOOGLE_ADS';
+            }
+
+            const response = await fetch('/api/v1/action/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    actionId: actionName.replace(/\s+/g, '-').toLowerCase(),
+                    system,
+                    endpoint: '/v1/mutate',
+                    payload: {
+                        cost: cur.estimatedCost,
+                        timeline: cur.timeline,
+                        expectedLift: cur.expectedKpiLift,
+                    },
+                    justification: actionDescription,
+                    projectId,
+                }),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                toast.success(`Action Executed: ${data.detailedMessage}`);
+            } else {
+                toast.error(`Execution failed: ${data.error || 'Unknown error'}`);
+            }
+        } catch (error: any) {
+            console.error('Failed to execute action:', error);
+            toast.error(`Execution error: ${error.message}`);
+        } finally {
+            setIsExecuting(false);
+        }
+    };
 
     return (
         <div className="goal-scenario-block">
@@ -170,13 +227,23 @@ function ScenarioTabs({ scenarios, onSimulate }: { scenarios: BudgetScenario[], 
                                 </span>
                             )}
                         </div>
-                        <button 
-                            onClick={onSimulate}
-                            className="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-indigo-700 flex items-center gap-1 font-semibold transition-colors"
-                        >
-                            <span className="material-symbols-outlined text-[14px]">play_circle</span>
-                            Simulate Strategy
-                        </button>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={onSimulate}
+                                className="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-indigo-700 flex items-center gap-1 font-semibold transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">play_circle</span>
+                                Simulate
+                            </button>
+                            <button 
+                                onClick={handleExecuteAction}
+                                disabled={isExecuting}
+                                className="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-emerald-700 disabled:bg-emerald-800 disabled:opacity-50 flex items-center gap-1.5 font-semibold transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">{isExecuting ? 'sync' : 'bolt'}</span>
+                                {isExecuting ? 'Executing...' : 'Execute'}
+                            </button>
+                        </div>
                     </div>
                     <ol className="goal-scenario-steps">
                         {cur.executionPlan.map((step, i) => (
@@ -202,7 +269,17 @@ function ScenarioTabs({ scenarios, onSimulate }: { scenarios: BudgetScenario[], 
 
 // ─── Action Card ──────────────────────────────────────────────────────────────
 
-function ActionCard({ action, index, onSimulateAction }: { action: ActionWithScenarios; index: number; onSimulateAction: (action: ActionWithScenarios) => void }) {
+function ActionCard({ 
+    action, 
+    index, 
+    projectId, 
+    onSimulateAction 
+}: { 
+    action: ActionWithScenarios; 
+    index: number; 
+    projectId: string; 
+    onSimulateAction: (action: ActionWithScenarios) => void; 
+}) {
     const [expanded, setExpanded] = useState(index === 0);
     return (
         <div className="goal-action-card">
@@ -221,7 +298,15 @@ function ActionCard({ action, index, onSimulateAction }: { action: ActionWithSce
                     </span>
                 </div>
             </button>
-            {expanded && <ScenarioTabs scenarios={action.scenarios} onSimulate={() => onSimulateAction(action)} />}
+            {expanded && (
+                <ScenarioTabs 
+                    scenarios={action.scenarios} 
+                    onSimulate={() => onSimulateAction(action)} 
+                    projectId={projectId}
+                    actionName={action.actionName}
+                    actionDescription={action.description}
+                />
+            )}
         </div>
     );
 }
@@ -328,7 +413,21 @@ function StrategyDocView({ canvas, onBack }: { canvas: StrategyCanvas, onBack: (
 // ─── Strategy Canvas ──────────────────────────────────────────────────────────
 
 
-function StrategyCanvasView({ canvas, onReset, onRefine, onViewDoc, onSimulateAction }: { canvas: StrategyCanvas; onReset: () => void; onRefine?: () => void; onViewDoc?: () => void; onSimulateAction: (action: ActionWithScenarios) => void; }) {
+function StrategyCanvasView({ 
+    canvas, 
+    projectId, 
+    onReset, 
+    onRefine, 
+    onViewDoc, 
+    onSimulateAction 
+}: { 
+    canvas: StrategyCanvas; 
+    projectId: string; 
+    onReset: () => void; 
+    onRefine?: () => void; 
+    onViewDoc?: () => void; 
+    onSimulateAction: (action: ActionWithScenarios) => void; 
+}) {
     const realLocations = canvas.locationSplits?.filter(l => l.locationName !== 'Global') ?? [];
 
     return (
@@ -381,7 +480,13 @@ function StrategyCanvasView({ canvas, onReset, onRefine, onViewDoc, onSimulateAc
                     </div>
                     <div className="goal-actions">
                         {canvas.scenarios.map((action, i) => (
-                            <ActionCard key={action.id} action={action} index={i} onSimulateAction={onSimulateAction} />
+                            <ActionCard 
+                                key={action.id} 
+                                action={action} 
+                                index={i} 
+                                projectId={projectId} 
+                                onSimulateAction={onSimulateAction} 
+                            />
                         ))}
                     </div>
                 </div>
@@ -899,6 +1004,7 @@ export function GoalStrategyPanel({
                     {canvas && !loading && !isDocView && (
                         <StrategyCanvasView 
                             canvas={canvas} 
+                            projectId={projectId}
                             onReset={() => { setCanvas(null); setError(null); }} 
                             onRefine={() => { }} 
                             onViewDoc={() => setIsDocView(true)} 
