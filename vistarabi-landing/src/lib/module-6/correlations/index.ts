@@ -165,12 +165,13 @@ export async function handleCorrelationQuery(
         llmRaw = await callCorrelationLLM(userQuery, packet);
     } catch (err: unknown) {
         console.warn('[Correlation-AI] AI call failed. Using rule-based fallback generation.', err);
-        const strength = Math.abs(packet.pearson_r) > 0.7 ? 'strong' : Math.abs(packet.pearson_r) > 0.3 ? 'moderate' : 'weak';
-        const direction = packet.pearson_r > 0 ? 'positive' : 'negative';
+        const pearsonR = packet.pearson_r ?? 0;
+        const strength = Math.abs(pearsonR) > 0.7 ? 'strong' : Math.abs(pearsonR) > 0.3 ? 'moderate' : 'weak';
+        const direction = pearsonR > 0 ? 'positive' : 'negative';
         const sigText = packet.statistically_significant ? 'statistically significant' : 'not statistically significant';
         const limitedText = packet.confidence_level === 'low' ? ' This correlation is based on limited evidence.' : '';
         
-        llmRaw = `${packet.kpi_a_name} and ${packet.kpi_b_name} show a ${strength} ${direction} correlation (r = ${packet.pearson_r.toFixed(2)}) over the period from ${packet.time_window_start} to ${packet.time_window_end}. This relationship is ${sigText} (alpha = ${packet.bonferroni_alpha.toFixed(3)}, p-value = ${packet.p_value?.toFixed(3) ?? 'N/A'}).${limitedText}`;
+        llmRaw = `${packet.kpi_a_name} and ${packet.kpi_b_name} show a ${strength} ${direction} correlation (r = ${pearsonR.toFixed(2)}) over the period from ${packet.time_window_start} to ${packet.time_window_end}. This relationship is ${sigText} (alpha = ${packet.bonferroni_alpha.toFixed(3)}, p-value = ${packet.p_value?.toFixed(3) ?? 'N/A'}).${limitedText}`;
     }
 
     // ── Step 9: Validate numeric claims ──

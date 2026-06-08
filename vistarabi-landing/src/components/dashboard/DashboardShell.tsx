@@ -156,7 +156,7 @@ export function DashboardShell({
                 chartImage: chartImageBase64 || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
                 dashboardImage: dashboardImageBase64,
                 selectedKPIs: topKpis.map(k => ({ name: k.kpiName, category: k.category, value: String(k.currentValue) })),
-                actions: activeStrategyContext?.topActions?.map(a => ({ title: a.actionName, impact: a.tier })) || [],
+                actions: (activeStrategyContext as any)?.topActions?.map((a: any) => ({ title: a.actionName, impact: a.tier })) || [],
                 globalChatSummary: askAiMessages.length > 0 ? askAiMessages[askAiMessages.length - 1].text : undefined,
                 module6ChatHistory: chatHistoryPairs,
                 forecastData: activeStrategyContext ? {
@@ -222,9 +222,16 @@ export function DashboardShell({
     const filteredKpis = kpiSearchQuery.trim()
         ? kpis.filter(k => k.kpiName.toLowerCase().includes(kpiSearchQuery.toLowerCase()))
         : kpis;
+    // Get top 4 KPIs for the main grid (respects search filter and prioritizes anomalies/high-variance trends)
+    const topKpis = [...filteredKpis].sort((a, b) => {
+        const aCrit = a.anomalySeverity === 'critical' ? 2 : a.anomalySeverity === 'warning' ? 1 : 0;
+        const bCrit = b.anomalySeverity === 'critical' ? 2 : b.anomalySeverity === 'warning' ? 1 : 0;
+        if (aCrit !== bCrit) return bCrit - aCrit;
 
-    // Get top 4 KPIs for the main grid (respects search filter)
-    const topKpis = filteredKpis.slice(0, 4);
+        const aTrend = Math.abs(a.trendPercent || 0);
+        const bTrend = Math.abs(b.trendPercent || 0);
+        return bTrend - aTrend;
+    }).slice(0, 4);
 
     // ── Filter Change ──────────────────────────────────────────────
     const handleFilterChange = useCallback((f: DashboardFilters) => {

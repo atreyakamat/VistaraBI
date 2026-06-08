@@ -132,14 +132,15 @@ export async function handleEventQuery(
     try {
         llmRaw = await callEventLLM(userQuery, packet);
     } catch (err: unknown) {
-        console.warn('[Event-AI] AI call failed. Using rule-based fallback generation.', err);
-        const direction = packet.metric_delta_percent > 0 ? 'increase' : 'decrease';
-        const pct = Math.abs(packet.metric_delta_percent).toFixed(1);
-        const eventText = packet.detected_events && packet.detected_events.length > 0
-            ? ` This coincided with event: ${packet.detected_events[0].title} (${packet.detected_events[0].description}).`
-            : '';
-            
-        llmRaw = `${packet.kpi_name} experienced a ${direction} of ${pct}% over the period, moving from ${packet.baseline_value} to ${packet.current_value}.${eventText} This trend represents a ${packet.volatility_category} volatility pattern.`;
+        const deltaPct = targetResult.deltaPercent ?? 0;
+        const direction = deltaPct > 0 ? 'increase' : 'decrease';
+        const pct = Math.abs(deltaPct).toFixed(1);
+        const baselineVal = targetResult.previousValue !== null ? targetResult.previousValue.toLocaleString() : 'N/A';
+        const currentVal = targetResult.primaryValue.toLocaleString();
+        const volatilityIndex = targetResult.profiling?.volatilityIndex ?? 0;
+        const volatilityText = volatilityIndex > 0.5 ? 'high' : volatilityIndex > 0.2 ? 'moderate' : 'low';
+        
+        llmRaw = `${targetResult.kpiName} experienced an overall ${direction} of ${pct}% over the period, moving from a baseline of ${baselineVal} to a current value of ${currentVal}. This trend represents a ${volatilityText} volatility pattern.`;
     }
 
     // ── Step 6: Validate numeric claims ──
