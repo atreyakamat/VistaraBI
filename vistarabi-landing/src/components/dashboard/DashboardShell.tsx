@@ -26,6 +26,7 @@ import { ExportButton } from './ExportButton';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { useAIMode } from '@/lib/ai/use-ai-mode';
 import { toast } from 'sonner';
+import html2canvas from 'html2canvas';
 
 interface DrillState {
     kpiId: string;
@@ -76,6 +77,7 @@ export function DashboardShell({
     const [goalQuery, setGoalQuery] = useState('');
     const [kpiSearchQuery, setKpiSearchQuery] = useState('');
     const [showSharePanel, setShowSharePanel] = useState(false);
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     // Active StrategyCanvasResult shared between GoalStrategyPanel and AskAIPanel
     // (implements the State Injection Pipeline from MODULE_6_7_8_INTEGRATION_PLAN.md)
     const [activeStrategyContext, setActiveStrategyContext] = useState<StrategyCanvasResult | null>(null);
@@ -104,8 +106,46 @@ export function DashboardShell({
     }, [anomalyCount, isReadOnly]);
 
     const handleExportPDF = async () => {
+        setIsGeneratingReport(true);
         try {
+            let dashboardImageBase64 = null;
+            let chartImageBase64 = null;
+
+            // Capture the Dashboard Grid
+            try {
+                const dashboardElement = document.getElementById('dashboard-grid-container');
+                if (dashboardElement) {
+                    const dashCanvas = await html2canvas(dashboardElement, { scale: 1.5 });
+                    dashboardImageBase64 = dashCanvas.toDataURL('image/png');
+                }
+                
+                // If strategy simulator was ever opened, we might have a canvas container to capture
+                const chartElement = document.getElementById('strategy-canvas-container');
+                if (chartElement) {
+                    const chartCanvas = await html2canvas(chartElement, { scale: 1.5 });
+                    chartImageBase64 = chartCanvas.toDataURL('image/png');
+                }
+            } catch (e) {
+                console.warn("UI capture failed for report", e);
+            }
+
             const targetVal = 75000;
+            
+            const chatHistoryPairs = [];
+            for (let i = 0; i < askAiMessages.length; i++) {
+                if (askAiMessages[i].role.toLowerCase() === 'user') {
+                    const q = askAiMessages[i].text;
+                    let ans = "No response recorded.";
+                    for (let j = i + 1; j < askAiMessages.length; j++) {
+                        if (askAiMessages[j].role.toLowerCase() === 'assistant' || askAiMessages[j].role.toLowerCase() === 'system') {
+                            ans = askAiMessages[j].text;
+                            break;
+                        }
+                    }
+                    chatHistoryPairs.push({ question: q, answer: ans });
+                }
+            }
+
             const payload = {
                 domain: domainName,
                 metrics: {
@@ -113,10 +153,12 @@ export function DashboardShell({
                     gap: activeStrategyContext ? Math.max(0, targetVal - activeStrategyContext.scenarios.baseline[activeStrategyContext.scenarios.baseline.length - 1].yhat) : 5000,
                     target: targetVal
                 },
-                chartImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                chartImage: chartImageBase64 || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+                dashboardImage: dashboardImageBase64,
                 selectedKPIs: topKpis.map(k => ({ name: k.kpiName, category: k.category, value: String(k.currentValue) })),
-                actions: [],
+                actions: activeStrategyContext?.topActions?.map(a => ({ title: a.actionName, impact: a.tier })) || [],
                 globalChatSummary: askAiMessages.length > 0 ? askAiMessages[askAiMessages.length - 1].text : undefined,
+                module6ChatHistory: chatHistoryPairs,
                 forecastData: activeStrategyContext ? {
                     kpi: topKpis[0]?.kpiName || 'Primary Metric',
                     trend: activeStrategyContext.probabilityOfSuccess > 0.6 ? 'Positive' : 'At Risk',
@@ -136,15 +178,17 @@ export function DashboardShell({
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${domainName}_Strategic_Report.pdf`;
+            a.download = `VistaraBI_Executive_Report_${domainName}.pdf`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-            toast.success('Report generated successfully!');
+            toast.success('Executive Report generated successfully!');
         } catch (error) {
             console.error('Export failed:', error);
-            toast.error('Failed to generate PDF report. Please try again.');
+            toast.error('Failed to generate Executive Report. Please try again.');
+        } finally {
+            setIsGeneratingReport(false);
         }
     };
 
@@ -200,6 +244,16 @@ export function DashboardShell({
     };
 
     const clearDrill = () => setDrillStack([]);
+
+    const handleGoalSimulationComplete = useCallback((ctx: StrategyCanvasResult) => {
+        setActiveStrategyContext(ctx);
+    }, []);
+
+    const handleOpenGoalEngine = useCallback((query: string) => {
+        setGoalQuery(query);
+        setAskAiOpen(false);
+        setGoalPanelOpen(true);
+    }, []);
 
     // Build AI insight summary for welcome subtitle
     const aiSummary = strongestUp
@@ -343,10 +397,13 @@ export function DashboardShell({
                                     <AIFilter onFilterGenerated={handleFilterChange} />
                                     <button 
                                         onClick={handleExportPDF}
-                                        className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all flex items-center gap-2"
+                                        disabled={isGeneratingReport}
+                                        className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50 transition-all flex items-center gap-2 disabled:opacity-50"
                                     >
-                                        <span className="material-symbols-outlined text-lg text-slate-500">ios_share</span>
-                                        Export PDF
+                                        <span className="material-symbols-outlined text-lg text-slate-500">
+                                            {isGeneratingReport ? 'hourglass_empty' : 'ios_share'}
+                                        </span>
+                                        {isGeneratingReport ? 'Generating...' : 'Export Executive Report'}
                                     </button>
                                 </>
                             )}
@@ -700,7 +757,7 @@ export function DashboardShell({
                         isOpen={goalPanelOpen}
                         onClose={() => setGoalPanelOpen(false)}
                         initialQuery={goalQuery}
-                        onSimulationComplete={(ctx) => setActiveStrategyContext(ctx)}
+                        onSimulationComplete={handleGoalSimulationComplete}
                         domainName={domainName}
                         activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
                         askAiMessages={askAiMessages}
@@ -717,11 +774,7 @@ export function DashboardShell({
                     onCommandSuccess={onRefresh}
                     strategyContext={activeStrategyContext ?? undefined}
                     onMessagesChange={setAskAiMessages}
-                    onOpenGoalEngine={(query) => {
-                        setGoalQuery(query);
-                        setAskAiOpen(false);
-                        setGoalPanelOpen(true);
-                    }}
+                    onOpenGoalEngine={handleOpenGoalEngine}
                 />
             </DashboardErrorBoundary>
 

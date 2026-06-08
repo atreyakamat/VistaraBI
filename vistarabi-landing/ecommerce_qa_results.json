@@ -1,0 +1,57 @@
+[
+  {
+    "question": "Analyze our Average Order Value trend and list key recommendations.",
+    "answer": "Your Average Order Value trend flat, with no percentage change and low volatility.",
+    "duration": 945
+  },
+  {
+    "question": "What is our cart abandonment rate and main drop-off point?",
+    "answer": "No response text found.",
+    "duration": 37
+  },
+  {
+    "question": "Analyze the repeat customer rate and contribution.",
+    "answer": "No response text found.",
+    "duration": 33
+  },
+  {
+    "question": "What is the Average Order Value?",
+    "answer": "The Average Order Value is $109.11.",
+    "duration": 420
+  },
+  {
+    "question": "Show trend of Average Order Value",
+    "answer": "The Average Order Value trended, with no percentage change over the period.",
+    "duration": 441
+  },
+  {
+    "question": "Compare performance of marketing channels.",
+    "answer": "The Average Order Value is currently 109.11, which is 0.01 times relative to the Orders Count of 15,000.",
+    "duration": 454
+  },
+  {
+    "question": "Identify top-performing product segments.",
+    "answer": "No response text found.",
+    "duration": 35
+  },
+  {
+    "question": "How does mobile traffic compare to desktop traffic?",
+    "answer": "The average order value from mobile traffic isn't directly compared to desktop traffic in the data, can you clarify which specific metrics you'd like to compare between mobile and desktop traffic?",
+    "duration": 393
+  },
+  {
+    "question": "What is the seasonal peak for sales?",
+    "answer": "No response text found.",
+    "duration": 39
+  },
+  {
+    "question": "Analyze the refund rate and common reasons.",
+    "answer": "No response text found.",
+    "duration": 29
+  },
+  {
+    "question": "Recommend a strategy to increase AOV.",
+    "answer": "No response text found.",
+    "duration": 30
+  }
+]

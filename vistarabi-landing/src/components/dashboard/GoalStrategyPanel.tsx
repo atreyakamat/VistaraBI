@@ -453,6 +453,15 @@ export function GoalStrategyPanel({
     const [chatMessages, setChatMessages] = useState<{ role: string, text: string }[]>([]);
     const [projectSources, setProjectSources] = useState<any[]>([]);
 
+    const handleSimulationComplete = useCallback((data: StrategyCanvasResult) => {
+        setSimulationContext(data);
+        onSimulationComplete?.(data);
+    }, [onSimulationComplete]);
+
+    const handleMessagesChange = useCallback((msgs: { role: string, text: string }[]) => {
+        setChatMessages(msgs);
+    }, []);
+
     // Fetch real dashboard data to pass into simulator when opened
     useEffect(() => {
         if (!isOpen || !projectId) return;
@@ -778,16 +787,13 @@ export function GoalStrategyPanel({
                         <div id="strategy-canvas-container" className="xl:col-span-2 w-full h-full min-h-[700px] bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
                             <StrategyCanvas 
                                 initialContext={initialSimulatorContext}
-                                onSimulationComplete={(data) => {
-                                    setSimulationContext(data);
-                                    onSimulationComplete?.(data);
-                                }} 
+                                onSimulationComplete={handleSimulationComplete} 
                             />
                         </div>
                         <div className="xl:col-span-1 w-full h-full min-h-[500px] bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
                             <AIChatPanel 
                                 simulationContext={simulationContext} 
-                                onMessagesChange={(msgs) => setChatMessages(msgs)}
+                                onMessagesChange={handleMessagesChange}
                             />
                         </div>
                     </div>
