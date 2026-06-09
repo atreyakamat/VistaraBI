@@ -47,6 +47,10 @@ export async function POST(request: Request) {
     console.warn("Could not parse JSON body in report generator, proceeding with empty body");
   }
 
+  if (!body || Object.keys(body).length === 0 || !body.chartImage) {
+    return NextResponse.json({ error: 'Missing required fields: chartImage is required' }, { status: 400 });
+  }
+
   const { 
     chartImage, 
     metrics, 

@@ -8,12 +8,17 @@ declare module '@/lib/security/rate-limiter' {
 }
 
 describe('Rate Limiter', () => {
+  let originalDisableRateLimiter: string | undefined;
+
   beforeEach(() => {
     vi.useFakeTimers();
+    originalDisableRateLimiter = process.env.DISABLE_RATE_LIMITER;
+    process.env.DISABLE_RATE_LIMITER = 'false';
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    process.env.DISABLE_RATE_LIMITER = originalDisableRateLimiter;
   });
 
   describe('checkRateLimit', () => {
