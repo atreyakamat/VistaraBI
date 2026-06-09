@@ -17,6 +17,7 @@ import { AskAIPanel } from './AskAIPanel';
 import { GoalStrategyPanel } from './GoalStrategyPanel';
 import { ForecastPanel } from './ForecastPanel';
 import { OllamaHealthBanner } from './OllamaHealthBanner';
+import { PurificationAuditPanel } from './PurificationAuditPanel';
 import type { KPICardData, KPIExplanationData, DashboardSection, InsightFeedItem, SmartAlert } from './types';
 import { getAvailableRanges, type DateRange, type Granularity } from './ChartContainer';
 import type { StrategyCanvasResult } from '@/lib/module-8/types';
@@ -74,6 +75,7 @@ export function DashboardShell({
     const [askAiOpen, setAskAiOpen] = useState(false);
     const [goalPanelOpen, setGoalPanelOpen] = useState(false);
     const [forecastPanelOpen, setForecastPanelOpen] = useState(false);
+    const [governancePanelOpen, setGovernancePanelOpen] = useState(false);
     const [goalQuery, setGoalQuery] = useState('');
     const [kpiSearchQuery, setKpiSearchQuery] = useState('');
     const [showSharePanel, setShowSharePanel] = useState(false);
@@ -284,6 +286,7 @@ export function DashboardShell({
                 onOpenForecast={() => setForecastPanelOpen(true)}
                 onOpenStrategy={() => setGoalPanelOpen(true)}
                 onOpenAskAI={() => setAskAiOpen(true)}
+                onOpenGovernance={() => setGovernancePanelOpen(true)}
                 isReadOnly={isReadOnly}
             />
 
@@ -369,6 +372,18 @@ export function DashboardShell({
                         >
                             <span className="material-symbols-outlined text-base">target</span>
                             Strategy
+                        </button>
+                    )}
+
+                    {/* Data Governance & Quality Toggle */}
+                    {!isReadOnly && (
+                        <button
+                            onClick={() => setGovernancePanelOpen(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+                            title="Data Governance & Quality"
+                        >
+                            <span className="material-symbols-outlined text-base">clinical_feasibility</span>
+                            Governance
                         </button>
                     )}
 
@@ -728,6 +743,17 @@ export function DashboardShell({
                             <span className="material-symbols-outlined text-base">target</span>
                             Strategy
                         </button>
+
+                        <button
+                            className={`ask-ai-fab${governancePanelOpen ? ' open' : ''}`}
+                            onClick={() => setGovernancePanelOpen(true)}
+                            aria-label="Data Governance"
+                            title="Data Governance Panel"
+                            style={{ background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)', position: 'static' }}
+                        >
+                            <span className="material-symbols-outlined text-base">clinical_feasibility</span>
+                            Governance
+                        </button>
                     </>
                 )}
 
@@ -742,6 +768,18 @@ export function DashboardShell({
                     Ask AI
                 </button>
             </div>
+
+            {/* Data Governance Panel */}
+            {!isReadOnly && (
+                <DashboardErrorBoundary label="Data Governance Panel">
+                    <PurificationAuditPanel
+                        projectId={projectId}
+                        isOpen={governancePanelOpen}
+                        onClose={() => setGovernancePanelOpen(false)}
+                        domainColor={domainColor}
+                    />
+                </DashboardErrorBoundary>
+            )}
 
             {/* Forecast Panel */}
             {!isReadOnly && (

@@ -19,6 +19,7 @@ interface SidebarProps {
     onOpenForecast?: () => void;
     onOpenStrategy?: () => void;
     onOpenAskAI?: () => void;
+    onOpenGovernance?: () => void;
     isReadOnly?: boolean;
 }
 
@@ -45,7 +46,7 @@ function getMaterialIcon(emoji: string): string {
 export function Sidebar({
     projectId, projectName, domainIcon, domainName, domainColor,
     sections, activeSection, isOpen, onToggle,
-    onOpenForecast, onOpenStrategy, onOpenAskAI,
+    onOpenForecast, onOpenStrategy, onOpenAskAI, onOpenGovernance,
     isReadOnly = false
 }: SidebarProps) {
     const router = useRouter();
@@ -120,6 +121,13 @@ export function Sidebar({
                                 <button className="sidebar-nav-item" onClick={onOpenAskAI} title="Ask AI">
                                     <div className="nav-icon-wrapper text-purple-400">
                                         <span className="material-symbols-outlined">auto_awesome</span>
+                                    </div>
+                                </button>
+                            )}
+                            {onOpenGovernance && (
+                                <button className="sidebar-nav-item" onClick={onOpenGovernance} title="Data Governance & Quality">
+                                    <div className="nav-icon-wrapper text-amber-500">
+                                        <span className="material-symbols-outlined">clinical_feasibility</span>
                                     </div>
                                 </button>
                             )}
