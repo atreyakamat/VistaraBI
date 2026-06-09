@@ -91,6 +91,8 @@
 .card-flip-container {
     perspective: 1200px;
     cursor: pointer;
+    container-type: inline-size;
+    container-name: kpi-container;
 }
 
 .card-flip-inner {
@@ -522,6 +524,8 @@
     display: flex;
     flex-direction: column;
     font-family: var(--font-display);
+    container-type: inline-size;
+    container-name: plot-container;
 }
 
 .chart-container:hover {
@@ -3237,4 +3241,86 @@
 
 @media (max-width: 480px) {
     .goal-panel { width: 100vw; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ─── CSS Container Queries (Module 9 Responsive Improvements) ─────
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* --- KPI Card Container Queries --- */
+@container kpi-container (max-width: 320px) {
+    .kpi-card {
+        padding: 1rem !important;
+    }
+    .kpi-card-value {
+        font-size: 1.6rem !important;
+    }
+    .kpi-sparkline-area {
+        height: 80px !important;
+        margin-top: 1rem !important;
+    }
+    .kpi-trend-badge {
+        font-size: 0.65rem !important;
+        padding: 0.1rem 0.35rem !important;
+    }
+    .kpi-insight-line {
+        font-size: 0.65rem !important;
+        margin-top: 0.75rem !important;
+    }
+}
+
+@container kpi-container (min-width: 420px) {
+    .kpi-card {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        grid-template-areas: 
+            "header sparkline"
+            "insight insight" !important;
+        align-items: center !important;
+        gap: 1.25rem !important;
+        padding: 1.5rem !important;
+    }
+    
+    .kpi-card > div:first-child {
+        grid-area: header !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .kpi-sparkline-area {
+        grid-area: sparkline !important;
+        margin-top: 0 !important;
+        height: 95px !important;
+    }
+    
+    .kpi-insight-line {
+        grid-area: insight !important;
+        margin-top: 0.5rem !important;
+        border-top: 1px dashed rgba(241, 245, 249, 0.2) !important;
+        padding-top: 0.5rem !important;
+    }
+}
+
+/* --- Chart Container Container Queries --- */
+@container plot-container (max-width: 400px) {
+    .chart-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        padding: 12px 14px 10px !important;
+    }
+    
+    .chart-toolbar {
+        width: 100% !important;
+        justify-content: flex-end !important;
+    }
+    
+    .chart-stats-bar {
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+    }
+    
+    .chart-stat-divider {
+        display: none !important;
+    }
 }
