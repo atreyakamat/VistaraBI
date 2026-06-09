@@ -3,6 +3,7 @@ import { GET as getCleaningSummary } from '../../src/app/api/sources/[id]/cleani
 import { GET as getQuality } from '../../src/app/api/sources/[id]/quality/route';
 import { GET as getColumnHealth } from '../../src/app/api/sources/[id]/column-health/route';
 import { GET as getAuditLog } from '../../src/app/api/sources/[id]/audit-log/route';
+import { GET as getAlerts, PUT as putAlerts } from '../../src/app/api/projects/[id]/alerts/route';
 
 // ─── Hoisted Mocks ────────────────────────────────────────────────
 
@@ -90,6 +91,7 @@ const mockDb = vi.hoisted(() => ({
   qualityIntelligence: { findUnique: vi.fn() },
   columnHealth: { findMany: vi.fn() },
   transformationAudit: { findMany: vi.fn() },
+  dashboardConfig: { findUnique: vi.fn(), update: vi.fn() },
 }));
 
 // Mock authentication
@@ -196,6 +198,113 @@ describe('Module 5 — Data Quality & Lineage API Endpoints', () => {
       expect(body.auditLog).toHaveLength(1);
       expect(body.auditLog[0].transformationType).toBe('NULL_FILL');
       expect(body.auditLog[0].affectedColumn).toBe('Revenue');
+    });
+  });
+
+  describe('Alerts Settings API Endpoints', () => {
+    const mockDashboardConfig = {
+      id: 'cfg-1',
+      projectId: 'proj-1',
+      metadata: {
+        alertSettings: {
+          enabled: true,
+          slackWebhookUrl: 'https://hooks.slack.com/services/test',
+          notificationEmail: 'alerts@vistara.com',
+          thresholdPercent: 20,
+        },
+      },
+    };
+
+    describe('GET /api/projects/[id]/alerts', () => {
+      it('returns 200 with persisted alert settings if config exists', async () => {
+        mockDb.dashboardConfig.findUnique.mockResolvedValue(mockDashboardConfig);
+
+        const res = await getAlerts(
+          new Request('http://localhost/api/projects/proj-1/alerts') as any,
+          makeParams('proj-1')
+        );
+        expect(res.status).toBe(200);
+
+        const body = await res.json();
+        expect(body.settings.enabled).toBe(true);
+        expect(body.settings.slackWebhookUrl).toBe('https://hooks.slack.com/services/test');
+        expect(body.settings.thresholdPercent).toBe(20);
+      });
+
+      it('returns 200 with default settings if config does not exist', async () => {
+        mockDb.dashboardConfig.findUnique.mockResolvedValue(null);
+
+        const res = await getAlerts(
+          new Request('http://localhost/api/projects/proj-1/alerts') as any,
+          makeParams('proj-1')
+        );
+        expect(res.status).toBe(200);
+
+        const body = await res.json();
+        expect(body.settings.enabled).toBe(false);
+        expect(body.settings.thresholdPercent).toBe(15);
+      });
+
+      it('returns 404 if the project is not found', async () => {
+        mockDb.project.findUnique.mockResolvedValue(null);
+
+        const res = await getAlerts(
+          new Request('http://localhost/api/projects/proj-1/alerts') as any,
+          makeParams('proj-1')
+        );
+        expect(res.status).toBe(404);
+      });
+    });
+
+    describe('PUT /api/projects/[id]/alerts', () => {
+      it('returns 200 and updates configuration metadata', async () => {
+        mockDb.dashboardConfig.findUnique.mockResolvedValue(mockDashboardConfig);
+        mockDb.dashboardConfig.update.mockResolvedValue({
+          ...mockDashboardConfig,
+          metadata: {
+            alertSettings: {
+              enabled: true,
+              slackWebhookUrl: 'https://hooks.slack.com/services/new-url',
+              notificationEmail: 'ops@vistara.com',
+              thresholdPercent: 10,
+            },
+          },
+        });
+
+        const req = new Request('http://localhost/api/projects/proj-1/alerts', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            enabled: true,
+            slackWebhookUrl: 'https://hooks.slack.com/services/new-url',
+            notificationEmail: 'ops@vistara.com',
+            thresholdPercent: 10,
+          }),
+        });
+
+        const res = await putAlerts(req as any, makeParams('proj-1'));
+        expect(res.status).toBe(200);
+
+        const body = await res.json();
+        expect(body.success).toBe(true);
+        expect(body.settings.slackWebhookUrl).toBe('https://hooks.slack.com/services/new-url');
+        expect(body.settings.thresholdPercent).toBe(10);
+      });
+
+      it('returns 404 if dashboard config does not exist', async () => {
+        mockDb.dashboardConfig.findUnique.mockResolvedValue(null);
+
+        const req = new Request('http://localhost/api/projects/proj-1/alerts', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            enabled: true,
+          }),
+        });
+
+        const res = await putAlerts(req as any, makeParams('proj-1'));
+        expect(res.status).toBe(404);
+      });
     });
   });
 });

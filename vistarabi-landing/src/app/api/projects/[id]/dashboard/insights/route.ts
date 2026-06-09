@@ -72,6 +72,18 @@ export async function GET(
         // Aggregate into dashboard-wide insights
         const response = generateDashboardInsights(projectId, kpiInsights);
 
+        // Asynchronous background alert dispatch
+        if (response.alerts && response.alerts.length > 0) {
+            const { dispatchAlerts } = await import('@/lib/alerts/dispatcher');
+            for (const alert of response.alerts) {
+                dispatchAlerts(projectId, alert.kpiName, {
+                    reason: alert.reason,
+                    deltaPercent: alert.deltaPercent,
+                    severity: alert.severity,
+                }).catch(err => console.error('[Insights Route] Alert dispatch failed:', err));
+            }
+        }
+
         return NextResponse.json(response);
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);

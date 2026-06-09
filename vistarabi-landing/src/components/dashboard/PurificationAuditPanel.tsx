@@ -86,13 +86,81 @@ export function PurificationAuditPanel({
 }: PurificationAuditPanelProps) {
     const [sources, setSources] = useState<SourceItem[]>([]);
     const [selectedSourceId, setSelectedSourceId] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<'overview' | 'columns' | 'audit'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'columns' | 'audit' | 'alerts'>('overview');
     const [summary, setSummary] = useState<CleaningSummary | null>(null);
     const [quality, setQuality] = useState<QualityScore | null>(null);
     const [columns, setColumns] = useState<ColumnHealthItem[]>([]);
     const [audits, setAudits] = useState<TransformationAuditItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [alertSettings, setAlertSettings] = useState<{
+        enabled: boolean;
+        slackWebhookUrl: string;
+        notificationEmail: string;
+        thresholdPercent: number;
+    }>({
+        enabled: false,
+        slackWebhookUrl: '',
+        notificationEmail: '',
+        thresholdPercent: 15,
+    });
+    const [fetchingAlerts, setFetchingAlerts] = useState<boolean>(false);
+    const [savingAlerts, setSavingAlerts] = useState<boolean>(false);
+
+    // Fetch project alerts configuration
+    const fetchAlertSettings = useCallback(async () => {
+        setFetchingAlerts(true);
+        try {
+            const res = await fetch(`/api/projects/${projectId}/alerts`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.settings) {
+                    setAlertSettings({
+                        enabled: !!data.settings.enabled,
+                        slackWebhookUrl: data.settings.slackWebhookUrl || '',
+                        notificationEmail: data.settings.notificationEmail || '',
+                        thresholdPercent: typeof data.settings.thresholdPercent === 'number' ? data.settings.thresholdPercent : 15,
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch alert settings:', err);
+        } finally {
+            setFetchingAlerts(false);
+        }
+    }, [projectId]);
+
+    const handleSaveAlertSettings = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSavingAlerts(true);
+        try {
+            const res = await fetch(`/api/projects/${projectId}/alerts`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(alertSettings),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                toast.success('Alert settings updated successfully.');
+                if (data.settings) {
+                    setAlertSettings({
+                        enabled: !!data.settings.enabled,
+                        slackWebhookUrl: data.settings.slackWebhookUrl || '',
+                        notificationEmail: data.settings.notificationEmail || '',
+                        thresholdPercent: typeof data.settings.thresholdPercent === 'number' ? data.settings.thresholdPercent : 15,
+                    });
+                }
+            } else {
+                const errData = await res.json();
+                throw new Error(errData.error || 'Failed to update alert settings.');
+            }
+        } catch (err: any) {
+            console.error('Save alert settings error:', err);
+            toast.error(err.message || 'Failed to save alert settings.');
+        } finally {
+            setSavingAlerts(false);
+        }
+    };
 
     // Fetch project sources
     const fetchSources = useCallback(async () => {
@@ -167,8 +235,9 @@ export function PurificationAuditPanel({
     useEffect(() => {
         if (isOpen) {
             fetchSources();
+            fetchAlertSettings();
         }
-    }, [isOpen, fetchSources]);
+    }, [isOpen, fetchSources, fetchAlertSettings]);
 
     useEffect(() => {
         if (selectedSourceId) {
@@ -275,7 +344,7 @@ export function PurificationAuditPanel({
                     <div className="flex-1 flex flex-col overflow-hidden">
                         {/* Tabs Selector */}
                         <div className="flex border-b border-slate-800">
-                            {(['overview', 'columns', 'audit'] as const).map((tab) => (
+                            {(['overview', 'columns', 'audit', 'alerts'] as const).map((tab) => (
                                 <button
                                     key={tab}
                                     className={`flex-1 text-xs py-3 font-semibold transition-colors uppercase tracking-wider ${
@@ -476,6 +545,115 @@ export function PurificationAuditPanel({
                                         <div className="text-center text-slate-500 text-xs py-8">No transformation audits recorded for this source.</div>
                                     )}
                                 </div>
+                            )}
+
+                            {/* Tab 4: Alerts */}
+                            {activeTab === 'alerts' && (
+                                <form onSubmit={handleSaveAlertSettings} className="space-y-5">
+                                    {fetchingAlerts ? (
+                                        <div className="flex flex-col items-center justify-center p-8 gap-3">
+                                            <div className="w-6 h-6 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
+                                            <span className="text-[10px] text-slate-400 font-medium">Loading settings...</span>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="bg-slate-900/20 border border-slate-850 rounded-xl p-4 space-y-4 shadow-inner">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="space-y-0.5">
+                                                        <label htmlFor="alerts-enabled" className="text-xs font-bold text-slate-300 uppercase tracking-wide cursor-pointer">Enable Outbound Alerts</label>
+                                                        <p className="text-[10px] text-slate-500 font-medium leading-tight">Dispatch webhooks and emails on anomaly detection</p>
+                                                    </div>
+                                                    <div className="relative inline-flex items-center cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="alerts-enabled"
+                                                            className="sr-only peer"
+                                                            checked={alertSettings.enabled}
+                                                            onChange={(e) => setAlertSettings(prev => ({ ...prev, enabled: e.target.checked }))}
+                                                        />
+                                                        <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-slate-900 peer-checked:after:border-slate-900"></div>
+                                                    </div>
+                                                </div>
+
+                                                <hr className="border-slate-850" />
+
+                                                {/* Slack Webhook Input */}
+                                                <div className="space-y-1.5">
+                                                    <label htmlFor="slack-webhook" className="text-xs font-semibold text-slate-300">Slack Webhook URL</label>
+                                                    <input
+                                                        type="url"
+                                                        id="slack-webhook"
+                                                        placeholder="https://hooks.slack.com/services/..."
+                                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-lg py-2 px-3 text-xs text-white placeholder-slate-600 outline-none focus:border-slate-700 transition-colors"
+                                                        value={alertSettings.slackWebhookUrl}
+                                                        onChange={(e) => setAlertSettings(prev => ({ ...prev, slackWebhookUrl: e.target.value }))}
+                                                        disabled={!alertSettings.enabled}
+                                                    />
+                                                    <p className="text-[9px] text-slate-500">Slack incoming webhook endpoint for channel alerts</p>
+                                                </div>
+
+                                                {/* Notification Email Input */}
+                                                <div className="space-y-1.5">
+                                                    <label htmlFor="notification-email" className="text-xs font-semibold text-slate-300">Target Notification Email</label>
+                                                    <input
+                                                        type="email"
+                                                        id="notification-email"
+                                                        placeholder="ops@company.com"
+                                                        className="w-full bg-slate-950/50 border border-slate-800 rounded-lg py-2 px-3 text-xs text-white placeholder-slate-600 outline-none focus:border-slate-700 transition-colors"
+                                                        value={alertSettings.notificationEmail}
+                                                        onChange={(e) => setAlertSettings(prev => ({ ...prev, notificationEmail: e.target.value }))}
+                                                        disabled={!alertSettings.enabled}
+                                                    />
+                                                    <p className="text-[9px] text-slate-500">Recipient email address for anomaly alerts</p>
+                                                </div>
+
+                                                <hr className="border-slate-850" />
+
+                                                {/* Threshold slider */}
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between items-center text-xs">
+                                                        <span className="font-semibold text-slate-300">Anomaly Trigger Threshold</span>
+                                                        <span className="font-mono font-bold text-amber-500">{alertSettings.thresholdPercent}%</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min="5"
+                                                        max="100"
+                                                        step="5"
+                                                        className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                                        value={alertSettings.thresholdPercent}
+                                                        onChange={(e) => setAlertSettings(prev => ({ ...prev, thresholdPercent: parseInt(e.target.value, 10) }))}
+                                                        disabled={!alertSettings.enabled}
+                                                    />
+                                                    <p className="text-[9px] text-slate-500">Trigger notifications when a KPI value deviates by more than this percent</p>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                className="w-full text-xs py-2.5 px-4 font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                style={{
+                                                    backgroundColor: alertSettings.enabled ? domainColor : '#1E293B',
+                                                    color: alertSettings.enabled ? '#0F172A' : '#64748B',
+                                                    cursor: savingAlerts ? 'not-allowed' : 'pointer'
+                                                }}
+                                                disabled={savingAlerts}
+                                            >
+                                                {savingAlerts ? (
+                                                    <>
+                                                        <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-900/20 border-t-slate-900 animate-spin" />
+                                                        Saving Settings...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <span className="material-symbols-outlined text-sm">save</span>
+                                                        Save Alert Settings
+                                                    </>
+                                                )}
+                                            </button>
+                                        </>
+                                    )}
+                                </form>
                             )}
 
                         </div>
