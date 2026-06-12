@@ -1,0 +1,53 @@
+[
+  {
+    "company_id": "ORG-001",
+    "name": "Acme Corp",
+    "tier": "Enterprise",
+    "mrr": 5000,
+    "signup_date": "2023-01-15",
+    "status": "active",
+    "users": 150,
+    "features_enabled": ["sso", "custom_reporting", "api_access"]
+  },
+  {
+    "company_id": "ORG-002",
+    "name": "Globex",
+    "tier": "Pro",
+    "mrr": 499,
+    "signup_date": "2023-03-22",
+    "status": "churned",
+    "churn_date": "2023-09-01",
+    "users": 20,
+    "features_enabled": ["api_access"]
+  },
+  {
+    "company_id": "ORG-003",
+    "name": "Soylent",
+    "tier": "Pro",
+    "mrr": 499,
+    "signup_date": "2023-05-10",
+    "status": "active",
+    "users": 45,
+    "features_enabled": []
+  },
+  {
+    "company_id": "ORG-004",
+    "name": "Initech",
+    "tier": "Starter",
+    "mrr": 49,
+    "signup_date": "2023-06-01",
+    "status": "active",
+    "users": 5,
+    "features_enabled": []
+  },
+  {
+    "company_id": "ORG-005",
+    "name": "Massive Dynamic",
+    "tier": "Enterprise",
+    "mrr": 7500,
+    "signup_date": "2023-08-14",
+    "status": "active",
+    "users": 320,
+    "features_enabled": ["sso", "custom_reporting", "api_access", "dedicated_support"]
+  }
+]

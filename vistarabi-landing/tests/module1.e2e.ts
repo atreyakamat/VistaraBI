@@ -45,7 +45,7 @@ export class Module1TestSuite {
             const timeoutId = setTimeout(() => controller.abort(), 1000);
             const response = await fetch(this.baseUrl, { signal: controller.signal }).catch(() => null);
             clearTimeout(timeoutId);
-            return !!response;
+            return !!response && response.status !== 404;
         } catch (error) {
             return false;
         }
@@ -179,9 +179,13 @@ export class Module1TestSuite {
 
             // Cleanup
             files.forEach(file => {
-                fs.unlinkSync(path.join(testDir, file.name));
+                if (fs.existsSync(path.join(testDir, file.name))) {
+                    fs.unlinkSync(path.join(testDir, file.name));
+                }
             });
-            fs.rmdirSync(testDir);
+            if (fs.existsSync(testDir)) {
+                fs.rmSync(testDir, { recursive: true, force: true });
+            }
 
         } catch (error) {
             this.addResult({

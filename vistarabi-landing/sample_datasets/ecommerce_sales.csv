@@ -1,0 +1,16 @@
+customer_id,order_id,date,product_category,amount,status,payment_method,region
+CUST-1001,ORD-5001,2023-10-01,Electronics,1299.99,Completed,Credit Card,North America
+CUST-1002,ORD-5002,2023-10-02,Apparel,45.50,Completed,PayPal,Europe
+CUST-1003,ORD-5003,2023-10-02,Home & Garden,250.00,Refunded,Credit Card,North America
+CUST-1001,ORD-5004,2023-10-15,Accessories,29.99,Completed,Credit Card,North America
+CUST-1004,ORD-5005,2023-10-18,Electronics,899.00,Completed,Debit Card,Asia
+CUST-1005,ORD-5006,2023-11-01,Apparel,120.00,Completed,PayPal,North America
+CUST-1002,ORD-5007,2023-11-05,Electronics,450.00,Completed,PayPal,Europe
+CUST-1006,ORD-5008,2023-11-12,Home & Garden,85.00,Completed,Credit Card,North America
+CUST-1007,ORD-5009,2023-11-20,Accessories,15.99,Cancelled,Credit Card,Europe
+CUST-1008,ORD-5010,2023-12-01,Electronics,1999.99,Completed,Bank Transfer,Asia
+CUST-1009,ORD-5011,2023-12-05,Apparel,75.00,Completed,Credit Card,North America
+CUST-1001,ORD-5012,2023-12-10,Home & Garden,340.00,Completed,Credit Card,North America
+CUST-1010,ORD-5013,2023-12-15,Electronics,150.00,Completed,PayPal,Europe
+CUST-1004,ORD-5014,2023-12-20,Accessories,55.00,Completed,Debit Card,Asia
+CUST-1011,ORD-5015,2023-12-24,Apparel,210.00,Completed,Credit Card,North America

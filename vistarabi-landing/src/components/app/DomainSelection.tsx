@@ -4,6 +4,37 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { DomainType } from '@/lib/domain/domain-keywords';
 import { getKPIsForDomain, type KPI } from '@/lib/domain/domain-kpis';
+import { 
+    ShoppingCart, 
+    Laptop, 
+    GraduationCap, 
+    Store, 
+    Receipt, 
+    Factory, 
+    Hospital, 
+    DollarSign,
+    Crosshair,
+    BarChart2
+} from 'lucide-react';
+
+const DOMAIN_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+    'shopping-cart': ShoppingCart,
+    'laptop': Laptop,
+    'graduation-cap': GraduationCap,
+    'store': Store,
+    'receipt': Receipt,
+    'factory': Factory,
+    'hospital': Hospital,
+    'dollar-sign': DollarSign,
+    'crosshair': Crosshair,
+    'bar-chart': BarChart2,
+};
+
+const renderIcon = (iconName: string, className = "w-6 h-6") => {
+    const IconComponent = DOMAIN_ICONS[iconName];
+    return IconComponent ? <IconComponent className={className} /> : null;
+};
+
 
 interface DomainInfo {
     type: string;
@@ -77,9 +108,10 @@ export default function DomainSelection({
                 <div className="p-6 border-b border-[var(--border)] bg-gradient-to-r from-purple-500/10 to-blue-500/10">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-2xl">
-                                {step === 'domain' ? 'crosshair' : 'bar-chart'}
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white">
+                                {step === 'domain' ? renderIcon('crosshair', 'w-6 h-6') : renderIcon('bar-chart', 'w-6 h-6')}
                             </div>
+
                             <div>
                                 <h2 className="text-2xl font-bold text-[var(--foreground)]">
                                     {step === 'domain' ? 'Select Your Business Domain' : 'Choose Your KPIs'}
@@ -151,7 +183,7 @@ export default function DomainSelection({
                                             }}
                                         >
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className="text-3xl">{info.icon}</span>
+                                                <span className="text-3xl flex items-center justify-center" style={{ color: info.color }}>{renderIcon(info.icon, "w-8 h-8")}</span>
                                                 <span className="text-xl font-bold" style={{ color: info.color }}>
                                                     {info.name}
                                                 </span>
@@ -173,7 +205,7 @@ export default function DomainSelection({
                                 {/* Selected Domain */}
                                 <div className="p-4 rounded-xl border-2" style={{ borderColor: domainInfo.color, backgroundColor: `${domainInfo.color}10` }}>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-3xl">{domainInfo.icon}</span>
+                                        <span className="text-3xl flex items-center justify-center" style={{ color: domainInfo.color }}>{renderIcon(domainInfo.icon, "w-8 h-8")}</span>
                                         <div>
                                             <div className="text-xl font-bold" style={{ color: domainInfo.color }}>
                                                 {domainInfo.name}
@@ -184,6 +216,7 @@ export default function DomainSelection({
                                         </div>
                                     </div>
                                 </div>
+
 
                                 {/* Core KPIs */}
                                 {coreKPIs.length > 0 && (

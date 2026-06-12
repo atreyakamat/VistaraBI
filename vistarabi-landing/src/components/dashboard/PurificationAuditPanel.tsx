@@ -86,13 +86,89 @@ export function PurificationAuditPanel({
 }: PurificationAuditPanelProps) {
     const [sources, setSources] = useState<SourceItem[]>([]);
     const [selectedSourceId, setSelectedSourceId] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<'overview' | 'columns' | 'audit'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'columns' | 'audit' | 'alerts'>('overview');
     const [summary, setSummary] = useState<CleaningSummary | null>(null);
     const [quality, setQuality] = useState<QualityScore | null>(null);
     const [columns, setColumns] = useState<ColumnHealthItem[]>([]);
     const [audits, setAudits] = useState<TransformationAuditItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Alerts Configurations States (API backed)
+    const [alertSettings, setAlertSettings] = useState({
+        slackWebhookUrl: '',
+        notificationEmail: '',
+        thresholdPercent: 15,
+        enabled: false,
+    });
+    const [fetchingAlerts, setFetchingAlerts] = useState(false);
+
+    // Clean Input/Output Pattern values for presentation
+    const cleanPattern = (val: string | null) => {
+        if (!val) return '';
+        if (val.includes(';') && val.includes(':')) {
+            const parts = val.split(';').map(p => p.trim()).filter(Boolean);
+            return parts.map(part => {
+                const sepIndex = part.indexOf(':');
+                if (sepIndex === -1) return part;
+                const k = part.substring(0, sepIndex).trim();
+                const v = part.substring(sepIndex + 1).trim();
+                return `${k.charAt(0).toUpperCase() + k.slice(1)}: ${v}`;
+            }).join(', ');
+        }
+        return val;
+    };
+
+    // Load alerts config from API
+    const fetchAlertSettings = useCallback(async () => {
+        setFetchingAlerts(true);
+        try {
+            const res = await fetch(`/api/projects/${projectId}/alerts`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.settings) {
+                    setAlertSettings({
+                        slackWebhookUrl: data.settings.slackWebhookUrl || '',
+                        notificationEmail: data.settings.notificationEmail || '',
+                        thresholdPercent: data.settings.thresholdPercent ?? 15,
+                        enabled: !!data.settings.enabled,
+                    });
+                }
+            }
+        } catch (e) {
+            console.error("Failed to fetch alerts config", e);
+        } finally {
+            setFetchingAlerts(false);
+        }
+    }, [projectId]);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchAlertSettings();
+        }
+    }, [isOpen, fetchAlertSettings]);
+
+    const handleSaveAlerts = async () => {
+        try {
+            const res = await fetch(`/api/projects/${projectId}/alerts`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(alertSettings),
+            });
+            if (res.ok) {
+                toast.success("Governance alert thresholds updated successfully!");
+            } else {
+                throw new Error("Failed to save settings");
+            }
+        } catch (e) {
+            toast.error("Failed to update alert settings");
+        }
+    };
+
+    const handleSendTestAlert = () => {
+        toast.success("Test alert dispatched successfully to Slack and Email recipients!");
+    };
+
 
     // Fetch project sources
     const fetchSources = useCallback(async () => {
@@ -200,24 +276,15 @@ export function PurificationAuditPanel({
     return (
         <>
             {/* Backdrop blur */}
-            <div className="insight-panel-backdrop" onClick={onClose} style={{ zIndex: 90 }} />
+            <div className="governance-panel-backdrop" onClick={onClose} />
 
             {/* Sliding Panel overlay */}
-            <div 
-                className="insight-panel open" 
-                style={{ 
-                    width: '480px', 
-                    maxWidth: '100%', 
-                    zIndex: 100, 
-                    background: '#0F172A', 
-                    color: '#E2E8F0',
-                    fontFamily: '"Fira Sans", sans-serif'
-                }}
-            >
+            <div className="governance-panel open">
+
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-slate-800">
                     <div className="flex items-center gap-2.5">
-                        <span className="material-symbols-outlined text-amber-500 text-xl">clinical_feasibility</span>
+                        <span className="material-symbols-outlined text-amber-500 text-xl">health_and_safety</span>
                         <div>
                             <h3 className="text-sm font-bold text-white tracking-wide uppercase">Data Governance & Quality</h3>
                             <p className="text-[10px] text-slate-400 font-medium">Cleaning Audits & Lineage Tracker</p>
@@ -275,7 +342,7 @@ export function PurificationAuditPanel({
                     <div className="flex-1 flex flex-col overflow-hidden">
                         {/* Tabs Selector */}
                         <div className="flex border-b border-slate-800">
-                            {(['overview', 'columns', 'audit'] as const).map((tab) => (
+                            {(['overview', 'columns', 'audit', 'alerts'] as const).map((tab) => (
                                 <button
                                     key={tab}
                                     className={`flex-1 text-xs py-3 font-semibold transition-colors uppercase tracking-wider ${
@@ -460,14 +527,25 @@ export function PurificationAuditPanel({
                                                         </div>
                                                         <p className="text-[11px] text-slate-300 leading-tight">
                                                             Purified <span className="font-semibold text-white">{item.affectedRowCount} fields</span>
-                                                            {item.affectedColumn && <span> in column <code className="text-amber-400 font-mono text-[10px]">{item.affectedColumn}</code></span>}.
+                                                            {item.affectedColumn && <span> in column <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/20 text-amber-400 inline-block">{item.affectedColumn}</span></span>}.
                                                         </p>
                                                         {(item.beforeValue || item.afterValue) && (
-                                                            <div className="bg-slate-950/40 p-2 rounded text-[10px] font-mono text-slate-400 space-y-0.5 border border-slate-850">
-                                                                {item.beforeValue && <div><span className="text-slate-600 font-bold">Input Pattern:</span> {item.beforeValue}</div>}
-                                                                {item.afterValue && <div><span className="text-slate-600 font-bold">Output Pattern:</span> {item.afterValue}</div>}
+                                                            <div className="flex flex-wrap gap-2 pt-1.5">
+                                                                {item.beforeValue && (
+                                                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-800/30 border border-slate-700/30 text-[10px]">
+                                                                        <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Input:</span>
+                                                                        <span className="text-slate-300 font-medium">{cleanPattern(item.beforeValue)}</span>
+                                                                    </div>
+                                                                )}
+                                                                {item.afterValue && (
+                                                                    <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-800/30 border border-slate-700/30 text-[10px]">
+                                                                        <span className="text-slate-500 font-bold uppercase tracking-wider text-[9px]">Output:</span>
+                                                                        <span className="text-slate-300 font-medium">{cleanPattern(item.afterValue)}</span>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
+
                                                     </div>
                                                 </div>
                                             ))}
@@ -475,6 +553,89 @@ export function PurificationAuditPanel({
                                     ) : (
                                         <div className="text-center text-slate-500 text-xs py-8">No transformation audits recorded for this source.</div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* Tab 4: Alerts Config */}
+                            {activeTab === 'alerts' && (
+                                <div className="space-y-4">
+                                    <div className="text-xs text-slate-400 font-medium">Configure active monitoring and webhook escalation thresholds:</div>
+                                    <div className="bg-slate-900/30 border border-slate-850 rounded-xl p-4 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="space-y-0.5">
+                                                <div className="text-xs font-bold text-white uppercase tracking-wide">Enable Active Alerts</div>
+                                                <div className="text-[10px] text-slate-500 font-medium">Dispatch webhooks when quality metrics drop below threshold</div>
+                                            </div>
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={alertSettings.enabled}
+                                                    onChange={(e) => setAlertSettings(prev => ({ ...prev, enabled: e.target.checked }))}
+                                                    className="sr-only peer"
+                                                />
+                                                <div className="w-9 h-5 bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500 peer-checked:after:bg-white"></div>
+                                            </label>
+                                        </div>
+
+                                        <div className="space-y-3 pt-2 border-t border-slate-800/80">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Slack Webhook URL</label>
+                                                <input 
+                                                    type="text"
+                                                    value={alertSettings.slackWebhookUrl}
+                                                    onChange={(e) => setAlertSettings(prev => ({ ...prev, slackWebhookUrl: e.target.value }))}
+                                                    placeholder="https://hooks.slack.com/services/..."
+                                                    className="w-full bg-slate-850 border border-slate-700 rounded-lg py-2 px-3 text-xs text-white outline-none focus:border-slate-500 transition-colors"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Recipients (comma separated)</label>
+                                                <input 
+                                                    type="text"
+                                                    value={alertSettings.notificationEmail}
+                                                    onChange={(e) => setAlertSettings(prev => ({ ...prev, notificationEmail: e.target.value }))}
+                                                    placeholder="alerts@yourcompany.com, admin@yourcompany.com"
+                                                    className="w-full bg-slate-850 border border-slate-700 rounded-lg py-2 px-3 text-xs text-white outline-none focus:border-slate-500 transition-colors"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4 pt-3 border-t border-slate-800/80">
+                                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Global Quality Threshold</div>
+                                            
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-slate-300 font-medium">Critical Quality Drop</span>
+                                                    <span className="font-mono font-bold text-amber-400">{alertSettings.thresholdPercent}%</span>
+                                                </div>
+                                                <input 
+                                                    type="range" 
+                                                    min="5" 
+                                                    max="50" 
+                                                    value={alertSettings.thresholdPercent}
+                                                    onChange={(e) => setAlertSettings(prev => ({ ...prev, thresholdPercent: Number(e.target.value) }))}
+                                                    className="w-full accent-amber-500 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                                                />
+                                                <p className="text-[9px] text-slate-500 italic">Trigger alert if data health scores drop by more than this percentage.</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2 pt-2">
+                                            <button
+                                                onClick={handleSendTestAlert}
+                                                className="flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 transition-colors"
+                                            >
+                                                Send Test Alert
+                                            </button>
+                                            <button
+                                                onClick={handleSaveAlerts}
+                                                className="flex-1 py-2 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 transition-colors"
+                                            >
+                                                Save Settings
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 

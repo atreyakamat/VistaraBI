@@ -3,7 +3,7 @@
 // Module 5 — Enhanced Chart.js Chart Wrapper
 // Supports: line, area, bar, horizontal_bar, stacked_bar, pie, doughnut, radar, scatter, bubble
 
-import { useRef, useEffect, useCallback } from 'react';
+import { memo, useRef, useEffect, useCallback } from 'react';
 import { Chart, registerables } from 'chart.js';
 
 if (typeof window !== 'undefined') {
@@ -39,7 +39,7 @@ function formatValue(v: number): string {
     return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
-export function ChartJSChart({
+export const ChartJSChart = memo(function ChartJSChart({
     chartType, labels, dataValues, colorAccent, disableAnimation, kpiName, onPointClick,
 }: ChartJSChartProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -89,7 +89,7 @@ export function ChartJSChart({
             style={{ display: 'block', width: '100%', height: '100%' }}
         />
     );
-}
+});
 
 function buildConfig(
     chartType: string,

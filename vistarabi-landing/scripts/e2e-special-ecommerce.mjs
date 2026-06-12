@@ -108,12 +108,12 @@ async function runSpecialEcomm() {
         console.log(`✅ Created Project ID: ${projectId}`);
 
         // 2. Upload Data (Module 1 & 2)
-        const customFiles = ['ecommerce_dataset_1.csv', 'ecommerce_dataset_2.csv', 'ecommerce_dataset_3.csv'];
+        const customFiles = ['ecommerce_part_1.csv', 'ecommerce_part_2.csv', 'ecommerce_part_3.csv'];
         console.log(`📤 [Module 1 & 2] Ingesting & Purifying ${customFiles.join(', ')}...`);
         const formData = new FormData();
         
         for (const fName of customFiles) {
-            const csvPath = path.join(__dirname, `../somedataset/${fName}`);
+            const csvPath = path.join(__dirname, `../dummy-data/ultimate/${fName}`);
             if (!fs.existsSync(csvPath)) {
                 throw new Error(`Dataset file not found at ${csvPath}`);
             }

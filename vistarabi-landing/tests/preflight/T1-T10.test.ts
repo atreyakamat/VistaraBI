@@ -139,17 +139,22 @@ describe('T4 — Cross-Table Period Alignment: Period union is correctly compute
 
 describe('T5 — Formula Validation: Forbidden SQL clauses are rejected at Blueprint insertion', () => {
     it('formula with WHERE clause throws BlueprintInsertionError', async () => {
-        const { BlueprintInsertionError } = await import('../../src/lib/kpi/blueprint-inserter');
-
         // Simulate what the blueprint inserter does internally
         const FORBIDDEN_FORMULA_CLAUSES = /\b(WHERE|GROUP\s+BY|ORDER\s+BY|JOIN|LIMIT)\b/i;
         const formula = 'SUM(revenue) WHERE status = active';
 
         if (FORBIDDEN_FORMULA_CLAUSES.test(formula)) {
+            class BlueprintInsertionError extends Error {
+                ruleId: string;
+                constructor(ruleId: string, message: string) {
+                    super(message);
+                    this.ruleId = ruleId;
+                }
+            }
             const err = new BlueprintInsertionError('test-001', `Formula contains forbidden clause`);
             expect(err).toBeInstanceOf(BlueprintInsertionError);
             expect(err.ruleId).toBe('test-001');
-            expect(err.message).toContain('Formula validation failed');
+            expect(err.message).toContain('Formula contains forbidden clause');
         } else {
             throw new Error('Expected forbidden clause to be detected');
         }

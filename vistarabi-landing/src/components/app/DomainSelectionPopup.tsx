@@ -2,6 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+    ShoppingCart, 
+    Laptop, 
+    GraduationCap, 
+    Store, 
+    Receipt, 
+    Factory, 
+    Hospital, 
+    DollarSign
+} from 'lucide-react';
+
+const DOMAIN_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+    'shopping-cart': ShoppingCart,
+    'laptop': Laptop,
+    'graduation-cap': GraduationCap,
+    'store': Store,
+    'receipt': Receipt,
+    'factory': Factory,
+    'hospital': Hospital,
+    'dollar-sign': DollarSign,
+};
+
+const renderIcon = (iconName: string, className = "w-6 h-6") => {
+    const IconComponent = DOMAIN_ICONS[iconName];
+    return IconComponent ? <IconComponent className={className} /> : null;
+};
+
 
 interface DomainInfo {
     type: string;
@@ -192,7 +219,7 @@ export default function DomainSelectionPopup({
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-3xl">{ruleInfo.icon}</span>
+                                                <span className="text-3xl flex items-center justify-center" style={{ color: ruleInfo.color }}>{renderIcon(ruleInfo.icon, "w-8 h-8")}</span>
                                                 <div>
                                                     <div className="text-lg font-bold" style={{ color: ruleInfo.color }}>
                                                         {ruleInfo.name}
@@ -290,7 +317,7 @@ export default function DomainSelectionPopup({
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-3xl">{aiPrimaryInfo.icon}</span>
+                                                    <span className="text-3xl flex items-center justify-center" style={{ color: aiPrimaryInfo.color }}>{renderIcon(aiPrimaryInfo.icon, "w-8 h-8")}</span>
                                                     <div>
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-lg font-bold" style={{ color: aiPrimaryInfo.color }}>
@@ -324,7 +351,7 @@ export default function DomainSelectionPopup({
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-xl">{aiSecondaryInfo.icon}</span>
+                                                        <span className="text-xl flex items-center justify-center" style={{ color: aiSecondaryInfo.color }}>{renderIcon(aiSecondaryInfo.icon, "w-5 h-5")}</span>
                                                         <span className="font-medium" style={{ color: aiSecondaryInfo.color }}>
                                                             {aiSecondaryInfo.name}
                                                         </span>
@@ -412,7 +439,7 @@ export default function DomainSelectionPopup({
                                             }}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <span className="text-2xl">{domain.icon}</span>
+                                                <span className="text-2xl flex items-center justify-center" style={{ color: domain.color }}>{renderIcon(domain.icon, "w-6 h-6")}</span>
                                                 <span className="font-medium" style={{ color: domain.color }}>
                                                     {domain.name}
                                                 </span>

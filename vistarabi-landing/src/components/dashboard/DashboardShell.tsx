@@ -382,7 +382,7 @@ export function DashboardShell({
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
                             title="Data Governance & Quality"
                         >
-                            <span className="material-symbols-outlined text-base">clinical_feasibility</span>
+                            <span className="material-symbols-outlined text-base">health_and_safety</span>
                             Governance
                         </button>
                     )}
@@ -751,7 +751,7 @@ export function DashboardShell({
                             title="Data Governance Panel"
                             style={{ background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)', position: 'static' }}
                         >
-                            <span className="material-symbols-outlined text-base">clinical_feasibility</span>
+                            <span className="material-symbols-outlined text-base">health_and_safety</span>
                             Governance
                         </button>
                     </>
