@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function run() {
     console.log("--- 🏛 STARTING FULL UI STATE POPULATION ---");
-    const userEmail = 'testbatch@examples.com';
+    const userEmail = 'demo@vistarabi.com';
     const user = await prisma.user.findUnique({ where: { email: userEmail } });
 
     if (!user) {

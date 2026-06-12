@@ -181,7 +181,7 @@ function getModelConfigs(preferLocal?: boolean, routingMode?: AIRoutingMode): AI
     const cloudKey = process.env.OLLAMA_CLOUD_API_KEY || process.env.CLOUD_AI_API_KEY;
     const cloudModelEnv = process.env.OLLAMA_CLOUD_MODEL || process.env.CLOUD_AI_MODEL || 'qwen3:0.6b';
 
-        if (cloudUrl && cloudKey && !cloudUrl.includes('ollama.com')) {
+    if (cloudUrl && cloudKey && !cloudUrl.includes('ollama.com')) {
         if (cloudUrl.includes('openai') || cloudUrl.includes('groq') || cloudUrl.includes('openrouter')) {
             cloudConfigs.push({
                 provider: 'openrouter',
@@ -211,7 +211,7 @@ function getModelConfigs(preferLocal?: boolean, routingMode?: AIRoutingMode): AI
             provider: 'ollama-local',
             model: ollamaModel,
             baseUrl: ollamaUrl,
-            timeout: 90000,
+            timeout: 5000,
         });
     }
 

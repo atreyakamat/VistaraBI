@@ -285,10 +285,10 @@ export function PurificationAuditPanel({
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-slate-800">
-                    <div className="flex items-center gap-2.5">
-                        <span className="material-symbols-outlined text-amber-500 text-xl">clinical_feasibility</span>
+                    <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-amber-500 text-xl">health_and_safety</span>
                         <div>
-                            <h3 className="text-sm font-bold text-white tracking-wide uppercase">Data Governance & Quality</h3>
+                            <h2 className="text-base font-bold text-white leading-tight">Data Quality & Governance Center</h2>
                             <p className="text-[10px] text-slate-400 font-medium">Cleaning Audits & Lineage Tracker</p>
                         </div>
                     </div>

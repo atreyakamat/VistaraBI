@@ -127,7 +127,7 @@ export function Sidebar({
                             {onOpenGovernance && (
                                 <button className="sidebar-nav-item" onClick={onOpenGovernance} title="Data Governance & Quality">
                                     <div className="nav-icon-wrapper text-amber-500">
-                                        <span className="material-symbols-outlined">clinical_feasibility</span>
+                                        <span className="material-symbols-outlined">health_and_safety</span>
                                     </div>
                                 </button>
                             )}

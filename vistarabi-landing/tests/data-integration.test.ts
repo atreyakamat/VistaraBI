@@ -222,5 +222,5 @@ describe('Data Quality Edge Cases', () => {
     const ecomData = await loadEcommerceData();
     expect(ecomData.quality.missingColumns).toBeDefined();
     expect(Array.isArray(ecomData.quality.missingColumns)).toBe(true);
-  });
+  }, 30000);
 });

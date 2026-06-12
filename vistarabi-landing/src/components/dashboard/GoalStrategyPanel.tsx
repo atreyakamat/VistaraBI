@@ -230,7 +230,7 @@ function ScenarioTabs({
                         <div className="flex gap-2">
                             <button 
                                 onClick={onSimulate}
-                                className="bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-indigo-700 flex items-center gap-1 font-semibold transition-colors"
+                                className="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-emerald-700 flex items-center gap-1 font-semibold transition-colors"
                             >
                                 <span className="material-symbols-outlined text-[14px]">play_circle</span>
                                 Simulate
