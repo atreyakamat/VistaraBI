@@ -1,6 +1,24 @@
 "use client";
 
 import { motion } from 'framer-motion';
+import { ShoppingCart, Laptop, GraduationCap, Store, Receipt, Factory, Hospital, DollarSign, BarChart } from 'lucide-react';
+
+const IconMap: Record<string, React.ElementType> = {
+    'shopping-cart': ShoppingCart,
+    'laptop': Laptop,
+    'graduation-cap': GraduationCap,
+    'store': Store,
+    'receipt': Receipt,
+    'factory': Factory,
+    'hospital': Hospital,
+    'dollar-sign': DollarSign,
+    'bar-chart': BarChart
+};
+
+function renderIcon(iconName: string, size?: number) {
+    const Icon = IconMap[iconName] || BarChart;
+    return <Icon size={size || 24} />;
+}
 
 interface DomainInfo {
     type: string;
@@ -74,7 +92,7 @@ export default function DomainBadge({
                     color: info.color,
                 }}
             >
-                <span>{info.icon}</span>
+                <span>{renderIcon(info.icon, 16)}</span>
                 <span className="font-medium">{info.name}</span>
             </motion.button>
         );
@@ -92,7 +110,7 @@ export default function DomainBadge({
                 borderColor: `${info.color}30`,
             }}
         >
-            <span className="text-2xl">{info.icon}</span>
+            <span className="text-2xl">{renderIcon(info.icon, 24)}</span>
             <div className="text-left">
                 <div className="flex items-center gap-2">
                     <span className="font-semibold" style={{ color: info.color }}>

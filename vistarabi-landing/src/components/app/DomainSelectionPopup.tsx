@@ -2,6 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingCart, Laptop, GraduationCap, Store, Receipt, Factory, Hospital, DollarSign, BarChart } from 'lucide-react';
+
+const IconMap: Record<string, React.ElementType> = {
+    'shopping-cart': ShoppingCart,
+    'laptop': Laptop,
+    'graduation-cap': GraduationCap,
+    'store': Store,
+    'receipt': Receipt,
+    'factory': Factory,
+    'hospital': Hospital,
+    'dollar-sign': DollarSign,
+    'bar-chart': BarChart
+};
+
+function renderIcon(iconName: string, size?: number) {
+    const Icon = IconMap[iconName] || BarChart;
+    return <Icon size={size || 24} />;
+}
 
 interface DomainInfo {
     type: string;
@@ -192,7 +210,7 @@ export default function DomainSelectionPopup({
                                     >
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-3xl">{ruleInfo.icon}</span>
+                                                <span className="text-3xl">{renderIcon(ruleInfo.icon, 32)}</span>
                                                 <div>
                                                     <div className="text-lg font-bold" style={{ color: ruleInfo.color }}>
                                                         {ruleInfo.name}
@@ -290,7 +308,7 @@ export default function DomainSelectionPopup({
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-3xl">{aiPrimaryInfo.icon}</span>
+                                                    <span className="text-3xl">{renderIcon(aiPrimaryInfo.icon, 32)}</span>
                                                     <div>
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-lg font-bold" style={{ color: aiPrimaryInfo.color }}>
@@ -324,7 +342,7 @@ export default function DomainSelectionPopup({
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-xl">{aiSecondaryInfo.icon}</span>
+                                                        <span className="text-xl">{renderIcon(aiSecondaryInfo.icon, 20)}</span>
                                                         <span className="font-medium" style={{ color: aiSecondaryInfo.color }}>
                                                             {aiSecondaryInfo.name}
                                                         </span>
@@ -412,7 +430,7 @@ export default function DomainSelectionPopup({
                                             }}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <span className="text-2xl">{domain.icon}</span>
+                                                <span className="text-2xl">{renderIcon(domain.icon, 24)}</span>
                                                 <span className="font-medium" style={{ color: domain.color }}>
                                                     {domain.name}
                                                 </span>

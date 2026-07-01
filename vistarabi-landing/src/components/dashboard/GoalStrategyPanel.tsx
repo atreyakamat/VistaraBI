@@ -934,7 +934,7 @@ export function GoalStrategyPanel({
                             title={preferLocal ? "Using Local AI (Ollama)" : "Using Cloud AI (Groq)"}
                         >
                             <span className="material-symbols-outlined text-[14px]">
-                                {preferLocal ? 'nest_remote_iris' : 'cloud'}
+                                {preferLocal ? 'memory' : 'cloud'}
                             </span>
                             {preferLocal ? 'Local' : 'Cloud'}
                         </button>

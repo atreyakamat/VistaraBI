@@ -1,182 +1,260 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { useRef, useState } from "react";
+
+type Domain = "Retail" | "SaaS" | "Finance" | "Healthcare";
+
+const domains: Domain[] = ["Retail", "SaaS", "Finance", "Healthcare"];
+
+const dashboards: Record<Domain, {
+    kpis: { label: string; value: string; delta: string; up: boolean }[];
+    bars: number[];
+    pieSlices: { label: string; pct: number; color: string }[];
+    chartTitle: string;
+}> = {
+    Retail: {
+        kpis: [
+            { label: "Total Revenue", value: "$2.47M", delta: "+18.2%", up: true },
+            { label: "Avg Order Value", value: "$127", delta: "+4.1%", up: true },
+            { label: "Return Rate", value: "3.2%", delta: "-0.8%", up: false },
+            { label: "Inventory Turns", value: "8.4x", delta: "+1.2x", up: true },
+        ],
+        bars: [42, 55, 50, 68, 62, 79, 74, 88, 83, 95, 90, 98],
+        pieSlices: [
+            { label: "In-store", pct: 45, color: "#2563EB" },
+            { label: "Online", pct: 35, color: "#10B981" },
+            { label: "Wholesale", pct: 20, color: "#8B5CF6" },
+        ],
+        chartTitle: "Monthly Revenue",
+    },
+    SaaS: {
+        kpis: [
+            { label: "MRR", value: "$184K", delta: "+12.4%", up: true },
+            { label: "Churn Rate", value: "1.8%", delta: "-0.5%", up: false },
+            { label: "LTV/CAC", value: "4.2x", delta: "+0.8x", up: true },
+            { label: "NPS Score", value: "62", delta: "+7pts", up: true },
+        ],
+        bars: [55, 62, 58, 72, 68, 81, 77, 85, 82, 91, 88, 95],
+        pieSlices: [
+            { label: "Enterprise", pct: 52, color: "#2563EB" },
+            { label: "SMB", pct: 31, color: "#F59E0B" },
+            { label: "Starter", pct: 17, color: "#E4E4E7" },
+        ],
+        chartTitle: "MRR Growth",
+    },
+    Finance: {
+        kpis: [
+            { label: "Portfolio Return", value: "14.2%", delta: "+3.1%", up: true },
+            { label: "Sharpe Ratio", value: "1.84", delta: "+0.22", up: true },
+            { label: "VaR (95%)", value: "$42K", delta: "-$8K", up: false },
+            { label: "AUM Growth", value: "+22%", delta: "+5.4%", up: true },
+        ],
+        bars: [48, 52, 61, 55, 70, 66, 75, 72, 84, 80, 90, 87],
+        pieSlices: [
+            { label: "Equities", pct: 55, color: "#2563EB" },
+            { label: "Bonds", pct: 25, color: "#10B981" },
+            { label: "Alternatives", pct: 20, color: "#F59E0B" },
+        ],
+        chartTitle: "Portfolio Performance",
+    },
+    Healthcare: {
+        kpis: [
+            { label: "Patient Volume", value: "2,841", delta: "+8.4%", up: true },
+            { label: "Avg Wait Time", value: "12 min", delta: "-3 min", up: false },
+            { label: "Readmission", value: "4.1%", delta: "-1.2%", up: false },
+            { label: "Bed Utilisation", value: "78%", delta: "+5%", up: true },
+        ],
+        bars: [65, 70, 68, 74, 72, 80, 77, 84, 81, 88, 85, 90],
+        pieSlices: [
+            { label: "Outpatient", pct: 60, color: "#2563EB" },
+            { label: "Inpatient", pct: 28, color: "#EF4444" },
+            { label: "Emergency", pct: 12, color: "#F59E0B" },
+        ],
+        chartTitle: "Patient Volume",
+    },
+};
 
 export default function DashboardPreview() {
     const ref = useRef(null);
-    const isInView = useInView(ref, { once: true, margin: "-100px" });
+    const isInView = useInView(ref, { once: true, margin: "-80px" });
+    const [active, setActive] = useState<Domain>("Retail");
+
+    const data = dashboards[active];
 
     return (
-        <section ref={ref} className="py-24 px-6 lg:px-20 bg-[#F1F5F9] overflow-hidden">
+        <section ref={ref} className="py-24 px-6 lg:px-20 bg-[var(--background)] border-b border-[var(--border)]">
             <div className="max-w-7xl mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={isInView ? { opacity: 1, y: 0 } : {}}
                     transition={{ duration: 0.6 }}
-                    className="text-center mb-16"
+                    className="text-center mb-10"
                 >
-                    <h2 className="text-3xl md:text-4xl font-semibold text-[var(--foreground)] mb-4">
-                        Beautiful, Actionable Dashboards
+                    <p className="text-xs font-semibold tracking-widest uppercase text-[var(--accent)] mb-4">Live Preview</p>
+                    <h2 className="text-3xl md:text-4xl font-semibold text-[var(--foreground)] mb-4 tracking-tight">
+                        Dashboards built for your industry
                     </h2>
-                    <p className="text-lg text-[var(--muted)] max-w-2xl mx-auto">
-                        Auto-generated visualizations that tell your business story
+                    <p className="text-lg text-[var(--muted)] max-w-2xl mx-auto leading-relaxed">
+                        Domain-aware layouts, KPIs and charts — auto-generated from your data.
                     </p>
                 </motion.div>
 
-                {/* Dashboard Mock */}
+                {/* Domain tabs */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 40 }}
+                    initial={{ opacity: 0 }}
+                    animate={isInView ? { opacity: 1 } : {}}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="flex flex-wrap gap-2 justify-center mb-8"
+                >
+                    {domains.map((d) => (
+                        <button
+                            key={d}
+                            onClick={() => setActive(d)}
+                            className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                                active === d
+                                    ? "bg-[var(--accent)] text-white shadow-md"
+                                    : "bg-[var(--card)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--accent)]/30"
+                            }`}
+                        >
+                            {d}
+                        </button>
+                    ))}
+                </motion.div>
+
+                {/* Dashboard mock */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.97, y: 30 }}
                     animate={isInView ? { opacity: 1, scale: 1, y: 0 } : {}}
-                    transition={{ duration: 0.8, delay: 0.2 }}
+                    transition={{ duration: 0.7, delay: 0.25 }}
+                    key={active}
                     className="relative"
                 >
-                    {/* Main Dashboard */}
                     <div className="bg-[var(--card)] rounded-2xl shadow-2xl border border-[var(--border)] overflow-hidden">
-                        {/* Header Bar */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--background)]">
+                        {/* Window chrome */}
+                        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--border)] bg-[var(--background)]">
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-400" />
-                                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                                    <div className="w-3 h-3 rounded-full bg-green-400" />
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
                                 </div>
-                                <div className="flex items-center gap-2 px-4 py-1.5 bg-[var(--card)] rounded-lg border border-[var(--border)]">
-                                    <svg className="w-4 h-4 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div className="flex items-center gap-2 px-3 py-1 bg-[var(--card)] rounded-md border border-[var(--border)]">
+                                    <svg className="w-3 h-3 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
-                                    <span className="text-sm text-[var(--muted)]">Search metrics...</span>
+                                    <span className="text-xs text-[var(--muted)]">VistaraBI / {active} Dashboard</span>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <button className="px-4 py-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-                                    Export
-                                </button>
-                                <button className="px-4 py-2 text-sm font-medium bg-[var(--accent)] text-white rounded-lg hover:bg-[var(--primary)] transition-colors">
-                                    Share
-                                </button>
+                            <div className="flex items-center gap-2">
+                                <button className="px-3 py-1.5 text-xs font-medium text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">Export PDF</button>
+                                <button className="px-3 py-1.5 text-xs font-semibold bg-[var(--accent)] text-white rounded-lg">Share</button>
                             </div>
                         </div>
 
-                        {/* Dashboard Content */}
-                        <div className="p-6">
-                            {/* KPI Row */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                <div className="bg-[var(--background)] rounded-xl p-4">
-                                    <p className="text-sm text-[var(--muted)] mb-1">Total Revenue</p>
-                                    <p className="font-mono text-2xl font-bold text-[var(--foreground)]">$2.4M</p>
-                                    <p className="text-sm text-green-600 mt-1">+18.2% vs last month</p>
-                                </div>
-                                <div className="bg-[var(--background)] rounded-xl p-4">
-                                    <p className="text-sm text-[var(--muted)] mb-1">Active Users</p>
-                                    <p className="font-mono text-2xl font-bold text-[var(--foreground)]">48.2K</p>
-                                    <p className="text-sm text-green-600 mt-1">+12.5% growth</p>
-                                </div>
-                                <div className="bg-[var(--background)] rounded-xl p-4">
-                                    <p className="text-sm text-[var(--muted)] mb-1">Conversion Rate</p>
-                                    <p className="font-mono text-2xl font-bold text-[var(--foreground)]">3.4%</p>
-                                    <p className="text-sm text-green-600 mt-1">+0.8% improvement</p>
-                                </div>
-                                <div className="bg-[var(--background)] rounded-xl p-4">
-                                    <p className="text-sm text-[var(--muted)] mb-1">Avg. Order Value</p>
-                                    <p className="font-mono text-2xl font-bold text-[var(--foreground)]">$127</p>
-                                    <p className="text-sm text-yellow-600 mt-1">-2.1% decrease</p>
-                                </div>
+                        {/* Dashboard content */}
+                        <div className="p-5">
+                            {/* KPI row */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                                {data.kpis.map((kpi) => (
+                                    <div key={kpi.label} className="bg-[var(--background)] rounded-xl p-4 border border-[var(--border)]">
+                                        <p className="text-xs text-[var(--muted)] mb-1.5">{kpi.label}</p>
+                                        <p className="font-mono text-xl font-bold text-[var(--foreground)]">{kpi.value}</p>
+                                        <p className={`text-xs mt-1 font-medium ${kpi.up ? "text-emerald-600" : "text-amber-600"}`}>
+                                            {kpi.delta} {kpi.up ? "↑" : "↓"}
+                                        </p>
+                                    </div>
+                                ))}
                             </div>
 
-                            {/* Charts Row */}
-                            <div className="grid md:grid-cols-3 gap-6">
-                                {/* Main Chart */}
-                                <div className="md:col-span-2 bg-[var(--background)] rounded-xl p-6">
+                            {/* Charts row */}
+                            <div className="grid md:grid-cols-3 gap-4">
+                                {/* Bar chart */}
+                                <div className="md:col-span-2 bg-[var(--background)] rounded-xl p-5 border border-[var(--border)]">
                                     <div className="flex items-center justify-between mb-4">
-                                        <h4 className="font-semibold text-[var(--foreground)]">Revenue Trend</h4>
-                                        <div className="flex gap-2 text-sm">
-                                            <button className="px-3 py-1 bg-[var(--accent)] text-white rounded-md">Weekly</button>
-                                            <button className="px-3 py-1 text-[var(--muted)] hover:bg-[var(--card)] rounded-md transition-colors">Monthly</button>
+                                        <h4 className="text-sm font-semibold text-[var(--foreground)]">{data.chartTitle}</h4>
+                                        <div className="flex gap-1 text-xs">
+                                            <button className="px-2.5 py-1 bg-[var(--accent)] text-white rounded-md font-medium">12m</button>
+                                            <button className="px-2.5 py-1 text-[var(--muted)] hover:bg-[var(--card)] rounded-md transition-colors">6m</button>
                                         </div>
                                     </div>
-                                    <div className="h-48 flex items-end gap-3">
-                                        {[45, 62, 58, 75, 68, 82, 78, 90, 85, 95, 88, 92].map((h, i) => (
-                                            <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                                    <div className="flex items-end gap-1.5 h-36">
+                                        {data.bars.map((h, i) => (
+                                            <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
                                                 <div
-                                                    className="w-full bg-[var(--accent)] rounded-t-md opacity-80 hover:opacity-100 transition-opacity"
+                                                    className="w-full bg-[var(--accent)] rounded-t-sm opacity-75 hover:opacity-100 transition-opacity"
                                                     style={{ height: `${h}%` }}
                                                 />
-                                                <span className="text-xs text-[var(--muted)]">{["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"][i]}</span>
+                                                <span className="text-[9px] text-[var(--muted)]">{["J","F","M","A","M","J","J","A","S","O","N","D"][i]}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* Pie Chart */}
-                                <div className="bg-[var(--background)] rounded-xl p-6">
-                                    <h4 className="font-semibold text-[var(--foreground)] mb-4">Revenue by Region</h4>
-                                    <div className="relative w-32 h-32 mx-auto mb-4">
-                                        <svg viewBox="0 0 36 36" className="w-full h-full">
-                                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E2E8F0" strokeWidth="3" />
-                                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563EB" strokeWidth="3" strokeDasharray="40 60" strokeDashoffset="25" />
-                                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1E3A8A" strokeWidth="3" strokeDasharray="30 70" strokeDashoffset="85" />
-                                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#64748B" strokeWidth="3" strokeDasharray="20 80" strokeDashoffset="55" />
+                                {/* Donut / pie */}
+                                <div className="bg-[var(--background)] rounded-xl p-5 border border-[var(--border)]">
+                                    <h4 className="text-sm font-semibold text-[var(--foreground)] mb-4">Breakdown</h4>
+                                    <div className="relative w-24 h-24 mx-auto mb-4">
+                                        <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                                            {(() => {
+                                                let offset = 0;
+                                                return data.pieSlices.map((slice, i) => {
+                                                    const el = (
+                                                        <circle
+                                                            key={i}
+                                                            cx="18" cy="18" r="14"
+                                                            fill="none"
+                                                            stroke={slice.color}
+                                                            strokeWidth="4"
+                                                            strokeDasharray={`${slice.pct * 0.88} ${100 * 0.88}`}
+                                                            strokeDashoffset={-offset * 0.88}
+                                                        />
+                                                    );
+                                                    offset += slice.pct;
+                                                    return el;
+                                                });
+                                            })()}
                                         </svg>
                                     </div>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-3 h-3 rounded-full bg-[var(--accent)]" />
-                                                <span className="text-[var(--muted)]">North America</span>
+                                    <div className="space-y-1.5">
+                                        {data.pieSlices.map((slice) => (
+                                            <div key={slice.label} className="flex items-center justify-between text-xs">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: slice.color }} />
+                                                    <span className="text-[var(--muted)]">{slice.label}</span>
+                                                </div>
+                                                <span className="font-mono font-semibold text-[var(--foreground)]">{slice.pct}%</span>
                                             </div>
-                                            <span className="font-mono font-medium">40%</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-3 h-3 rounded-full bg-[var(--primary)]" />
-                                                <span className="text-[var(--muted)]">Europe</span>
-                                            </div>
-                                            <span className="font-mono font-medium">30%</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-3 h-3 rounded-full bg-[var(--muted)]" />
-                                                <span className="text-[var(--muted)]">Asia Pacific</span>
-                                            </div>
-                                            <span className="font-mono font-medium">20%</span>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Floating KPI Cards */}
+                    {/* Floating badges */}
                     <motion.div
                         animate={{ y: [0, -8, 0] }}
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -top-6 -right-6 w-48 bg-[var(--card)] rounded-xl shadow-xl border border-[var(--border)] p-4 hidden lg:block"
+                        className="absolute -top-4 -right-4 hidden lg:flex items-center gap-2 bg-[var(--card)] rounded-xl shadow-lg border border-[var(--border)] px-4 py-2.5"
                     >
-                        <div className="flex items-center gap-2 text-green-600 text-sm font-medium mb-2">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                            Trending Up
-                        </div>
-                        <p className="text-xs text-[var(--muted)]">AI detected 15% growth opportunity in Q4</p>
+                        <svg className="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                        <span className="text-xs font-medium text-[var(--foreground)]">AI detected growth opportunity</span>
                     </motion.div>
 
                     <motion.div
                         animate={{ y: [0, -10, 0] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                        className="absolute -bottom-4 -left-6 w-52 bg-[var(--card)] rounded-xl shadow-xl border border-[var(--border)] p-4 hidden lg:block"
+                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+                        className="absolute -bottom-4 -left-4 hidden lg:flex items-center gap-2 bg-[var(--card)] rounded-xl shadow-lg border border-[var(--border)] px-4 py-2.5"
                     >
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
-                                <svg className="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                </svg>
-                            </div>
-                            <span className="text-sm font-medium text-[var(--foreground)]">AI Insight</span>
+                        <div className="w-6 h-6 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-3 h-3 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
                         </div>
-                        <p className="text-xs text-[var(--muted)]">Customer churn rate is 23% lower when using premium features</p>
+                        <span className="text-xs font-medium text-[var(--foreground)]">Strategy report ready</span>
                     </motion.div>
                 </motion.div>
             </div>

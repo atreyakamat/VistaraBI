@@ -1,0 +1,4134 @@
+vistarabi-landing
+|-- .dockerignore
+|-- .env
+|-- .env.example
+|-- .env.local
+|-- .env.local.example
+|-- .gitignore
+|-- add_extra_datasets.mjs
+|-- ai-chat-manual
+|   |-- domains
+|   |   |-- ecommerce.md
+|   |   |-- edtech.md
+|   |   |-- finance.md
+|   |   |-- healthcare.md
+|   |   |-- manufacturing.md
+|   |   |-- retail.md
+|   |   |-- saas.md
+|   |   -- services.md
+|   |-- MAIN_MANUAL.md
+|   |-- module-7-guides
+|   |   |-- ecommerce.md
+|   |   |-- edtech.md
+|   |   |-- finance.md
+|   |   |-- healthcare.md
+|   |   |-- manufacturing.md
+|   |   |-- retail.md
+|   |   |-- saas.md
+|   |   -- services.md
+|   -- MODULE_7_MANUAL.md
+|-- batch_process.js
+|-- batch_process_manufacturing.js
+|-- Blinkit_Retail_Report.pdf
+|-- build_errors.txt
+|-- build_output.txt
+|-- capture-full-flow.mjs
+|-- capture-full-flow.mjs.backup
+|-- CHANGELOG.md
+|-- check-auth.mjs
+|-- datasets
+|   |-- demo
+|   |   |-- ecommerce_demo.csv
+|   |   |-- edtech_demo.csv
+|   |   |-- finance_demo.csv
+|   |   |-- generate_demo_data.mjs
+|   |   |-- healthcare_demo.csv
+|   |   |-- manufacturing_demo.csv
+|   |   |-- retail_demo.csv
+|   |   |-- saas_demo.csv
+|   |   -- services_demo.csv
+|   |-- ecommerce
+|   |   |-- archive (66)
+|   |   |   |-- 2019-Nov.csv
+|   |   |   -- 2019-Oct.csv
+|   |   |-- archive (67)
+|   |   |   |-- Online Retail.csv
+|   |   |   -- Online Retail.xlsx
+|   |   |-- archive (68)
+|   |   |   |-- 2019-Dec.csv
+|   |   |   |-- 2019-Nov.csv
+|   |   |   |-- 2019-Oct.csv
+|   |   |   |-- 2020-Feb.csv
+|   |   |   -- 2020-Jan.csv
+|   |   |-- archive (69)
+|   |   |   |-- Bakery.csv
+|   |   |   -- bakery_sales_revised.csv
+|   |   |-- archive (70)
+|   |   |   -- synthetic_online_retail_data.csv
+|   |   |-- archive (71)
+|   |   |   -- US_Regional_Sales_Data.csv
+|   |   |-- archive (72)
+|   |   |   -- amz_uk_processed_data.csv
+|   |   |-- archive (73)
+|   |   |   |-- click_stream.csv
+|   |   |   |-- customer.csv
+|   |   |   |-- product.csv
+|   |   |   -- transactions.csv
+|   |   |-- archive (74)
+|   |   |   -- e_commerce_shopper_behaviour_and_lifestyle.csv
+|   |   |-- archive (75)
+|   |   |   -- myntra_products_catalog.csv
+|   |   |-- archive (76)
+|   |   |   -- transactions.csv
+|   |   |-- archive (77)
+|   |   |   |-- Amazon Sale Report.csv
+|   |   |   |-- Cloud Warehouse Compersion Chart.csv
+|   |   |   |-- Expense IIGF.csv
+|   |   |   |-- International sale Report.csv
+|   |   |   |-- May-2022.csv
+|   |   |   |-- P  L March 2021.csv
+|   |   |   -- Sale Report.csv
+|   |   |-- archive (78)
+|   |   |   -- user_personalized_features.csv
+|   |   |-- archive (79)
+|   |   |   -- starbucks_customer_ordering_patterns.csv
+|   |   -- archive (80)
+|   |       -- 9. Sales-Data-Analysis.csv
+|   |-- edtech
+|   |   |-- archive (81)
+|   |   |   -- online_learning_platform_usage_dataset.csv
+|   |   |-- archive (82)
+|   |   |   |-- Images
+|   |   |   |   -- Images
+|   |   |   |       |-- Picture1.png
+|   |   |   |       |-- Picture10.png
+|   |   |   |       |-- Picture11.png
+|   |   |   |       |-- Picture12.png
+|   |   |   |       |-- Picture13.png
+|   |   |   |       |-- Picture14.png
+|   |   |   |       |-- Picture15.png
+|   |   |   |       |-- Picture16.png
+|   |   |   |       |-- Picture17.png
+|   |   |   |       |-- Picture18.png
+|   |   |   |       |-- Picture19.png
+|   |   |   |       |-- Picture2.png
+|   |   |   |       |-- Picture20.png
+|   |   |   |       |-- Picture21.png
+|   |   |   |       |-- Picture22.png
+|   |   |   |       |-- Picture23.png
+|   |   |   |       |-- Picture24.png
+|   |   |   |       |-- Picture25.png
+|   |   |   |       |-- Picture26.png
+|   |   |   |       |-- Picture27.png
+|   |   |   |       |-- Picture28.png
+|   |   |   |       |-- Picture29.png
+|   |   |   |       |-- Picture3.png
+|   |   |   |       |-- Picture30.png
+|   |   |   |       |-- Picture31.png
+|   |   |   |       |-- Picture32.jpg
+|   |   |   |       |-- Picture33.png
+|   |   |   |       |-- Picture34.png
+|   |   |   |       |-- Picture35.png
+|   |   |   |       |-- Picture36.png
+|   |   |   |       |-- Picture37.png
+|   |   |   |       |-- Picture38.png
+|   |   |   |       |-- Picture39.png
+|   |   |   |       |-- Picture4.png
+|   |   |   |       |-- Picture40.png
+|   |   |   |       |-- Picture41.png
+|   |   |   |       |-- Picture42.png
+|   |   |   |       |-- Picture43.png
+|   |   |   |       |-- Picture44.png
+|   |   |   |       |-- Picture45.png
+|   |   |   |       |-- Picture46.png
+|   |   |   |       |-- Picture47.png
+|   |   |   |       |-- Picture48.png
+|   |   |   |       |-- Picture49.png
+|   |   |   |       |-- Picture5.png
+|   |   |   |       |-- Picture50.png
+|   |   |   |       |-- Picture6.png
+|   |   |   |       |-- Picture7.png
+|   |   |   |       |-- Picture8.png
+|   |   |   |       -- Picture9.png
+|   |   |   -- sstudent_engagement_dataset.csv
+|   |   |-- archive (83)
+|   |   |   -- Course_Completion_Prediction.csv
+|   |   |-- archive (84)
+|   |   |   |-- anonymiseddata
+|   |   |   |   |-- assessments.csv
+|   |   |   |   |-- courses.csv
+|   |   |   |   |-- studentAssessment.csv
+|   |   |   |   |-- studentInfo.csv
+|   |   |   |   |-- studentRegistration.csv
+|   |   |   |   |-- studentVle.csv
+|   |   |   |   -- vle.csv
+|   |   |   |-- assessments.csv
+|   |   |   |-- courses.csv
+|   |   |   |-- studentAssessment.csv
+|   |   |   |-- studentInfo.csv
+|   |   |   |-- studentRegistration.csv
+|   |   |   |-- studentVle.csv
+|   |   |   -- vle.csv
+|   |   |-- archive (85)
+|   |   |   -- xAPI-Edu-Data.csv
+|   |   |-- archive (86)
+|   |   |   -- VR_College_Teaching_Dataset.csv
+|   |   |-- archive (87)
+|   |   |   -- Online_Learning_Behavior_Dataset_Worldwide.csv
+|   |   |-- archive (88)
+|   |   |   -- Survey_AI.csv
+|   |   |-- archive (89)
+|   |   |   -- online_learning_engagement_dropout_risk.csv
+|   |   |-- archive (90)
+|   |   |   -- online_courses_uses.csv
+|   |   |-- archive (91)
+|   |   |   -- Final_Marks_Data.csv
+|   |   |-- archive (92)
+|   |   |   -- student_performance.csv
+|   |   |-- archive (93)
+|   |   |   -- course_quality_label_dataset.csv
+|   |   |-- archive (94)
+|   |   |   -- StudentPerformanceFactors.csv
+|   |   -- archive (95)
+|   |       -- student_exam_scores.csv
+|   |-- education_enrollments.csv
+|   |-- education_exam_results.csv
+|   |-- education_fees.csv
+|   |-- finance
+|   |   |-- archive (100)
+|   |   |   -- synthetic_financial_data.csv
+|   |   |-- archive (96)
+|   |   |   -- bank_transactions.csv
+|   |   |-- archive (97)
+|   |   |   -- loan_approval.csv
+|   |   |-- archive (98)
+|   |   |   -- Credit card transactions - India - Simple.csv
+|   |   |-- archive (99)
+|   |   |   |-- cards_data.csv
+|   |   |   |-- mcc_codes.json
+|   |   |   |-- train_fraud_labels.json
+|   |   |   |-- transactions_data.csv
+|   |   |   -- users_data.csv
+|   |   |-- archive - 2026-05-02T132647.858
+|   |   |   |-- loan_applications.csv
+|   |   |   -- transactions.csv
+|   |   |-- archive - 2026-05-02T132750.719
+|   |   |   -- Financial Distress.csv
+|   |   |-- archive - 2026-05-02T133005.868
+|   |   |   -- comprehensive_mutual_funds_data.csv
+|   |   |-- archive - 2026-05-02T133116.505
+|   |   |   -- BankChurners.csv
+|   |   |-- archive - 2026-05-02T133207.297
+|   |   |   -- Churn_Modelling.csv
+|   |   |-- archive - 2026-05-02T133307.474
+|   |   |   -- bank_transactions_data_2.csv
+|   |   |-- archive - 2026-05-02T133414.805
+|   |   |   -- data.csv
+|   |   |-- archive - 2026-05-02T133509.638
+|   |   |   -- transaction_data.csv
+|   |   |-- archive - 2026-05-02T133858.467
+|   |   |   -- Credit Risk Benchmark Dataset.csv
+|   |   -- archive - 2026-05-02T133946.480
+|   |       -- Default_Fin.csv
+|   |-- financial_loans.csv
+|   |-- financial_portfolio.csv
+|   |-- financial_transactions.csv
+|   |-- healthcare
+|   |   |-- archive - 2026-05-05T112520.983
+|   |   |   -- healthcare_dataset.csv
+|   |   |-- archive - 2026-05-05T112801.845
+|   |   |   |-- appointments.csv
+|   |   |   |-- billing.csv
+|   |   |   |-- doctors.csv
+|   |   |   |-- patients.csv
+|   |   |   -- treatments.csv
+|   |   |-- archive - 2026-05-05T112912.549
+|   |   |   -- medical_cost.csv
+|   |   |-- archive - 2026-05-05T112957.190
+|   |   |   -- patient_segmentation_dataset.csv
+|   |   |-- archive - 2026-05-05T113136.955
+|   |   |   -- hospital_readmission_dataset.csv
+|   |   |-- archive - 2026-05-05T113232.364
+|   |   |   -- covid_dataset.csv
+|   |   |-- archive - 2026-05-05T113642.058
+|   |   |   -- hospital-inpatient-discharges-sparcs-de-identified-2010-1.csv
+|   |   |-- archive - 2026-05-05T113936.985
+|   |   |   -- mental_health_diagnosis_treatment_.csv
+|   |   |-- archive - 2026-05-05T114036.893
+|   |   |   |-- cleaned_merged_heart_dataset.csv
+|   |   |   -- raw_merged_heart_dataset.csv
+|   |   |-- archive - 2026-05-05T114126.601
+|   |   |   -- medical_insurance.csv
+|   |   |-- archive - 2026-05-05T114232.339
+|   |   |   -- Hospital General Information.csv
+|   |   |-- archive - 2026-05-05T114351.992
+|   |   |   -- ocd_patient_dataset.csv
+|   |   |-- archive - 2026-05-05T114457.482
+|   |   |   -- parkinsons_disease_progression_500.csv
+|   |   |-- archive - 2026-05-05T114547.886
+|   |   |   -- insurance.csv
+|   |   -- archive - 2026-05-05T114937.888
+|   |       -- healthcare_disease_prediction_dataset.csv
+|   |-- healthcare_appointments.csv
+|   |-- healthcare_patients.csv
+|   |-- healthcare_prescriptions.csv
+|   |-- hospitality_bookings.csv
+|   |-- hospitality_guests.csv
+|   |-- hospitality_services.csv
+|   |-- manufacturing
+|   |   |-- archive (51)
+|   |   |   -- data.csv
+|   |   |-- archive (52)
+|   |   |   -- synthetic_personal_finance_dataset.csv
+|   |   |-- archive (53)
+|   |   |   -- Insurance claims data.csv
+|   |   |-- archive (54)
+|   |   |   |-- cards_data.csv
+|   |   |   |-- mcc_codes.json
+|   |   |   |-- train_fraud_labels.json
+|   |   |   |-- transactions_data.csv
+|   |   |   -- users_data.csv
+|   |   |-- archive (55)
+|   |   |   -- Loan Eligibility Prediction.csv
+|   |   |-- archive (56)
+|   |   |   -- creditcard_2023.csv
+|   |   |-- archive (57)
+|   |   |   |-- application_record.csv
+|   |   |   -- credit_record.csv
+|   |   |-- archive (58)
+|   |   |   -- combined_financial_data_idx.csv
+|   |   |-- archive (59)
+|   |   |   -- data.csv
+|   |   |-- archive (60)
+|   |   |   -- UCI_Credit_Card.csv
+|   |   |-- archive (61)
+|   |   |   -- SAML-D.csv
+|   |   |-- archive (62)
+|   |   |   |-- Dow_Jones.csv
+|   |   |   |-- NASDAQ .csv
+|   |   |   |-- Portfolio.csv
+|   |   |   |-- Portfolio_prices.csv
+|   |   |   -- SP500.csv
+|   |   |-- archive (63)
+|   |   |   -- student_spending (1).csv
+|   |   |-- archive (64)
+|   |   |   |-- loan-test.csv
+|   |   |   -- loan-train.csv
+|   |   -- archive (65)
+|   |       -- credit_risk_dataset.csv
+|   |-- manufacturing_maintenance.csv
+|   |-- manufacturing_production.csv
+|   |-- manufacturing_quality_control.csv
+|   |-- real_estate_listings.csv
+|   |-- real_estate_rentals.csv
+|   |-- real_estate_transactions.csv
+|   |-- retail
+|   |   |-- archive (1)
+|   |   |   -- Chocolate Sales.csv
+|   |   |-- archive (10)
+|   |   |   -- Supermarket Sales.csv
+|   |   |-- archive (11)
+|   |   |   -- vgsales.csv
+|   |   |-- archive (12)
+|   |   |   -- supermarket_sales.csv
+|   |   |-- archive (13)
+|   |   |   -- POWER BI SUPER MARKET.pbix
+|   |   |-- archive (2)
+|   |   |   -- OnlineRetail.csv
+|   |   |-- archive (3)
+|   |   |   |-- Avaliacoes.csv
+|   |   |   |-- Campanhas.csv
+|   |   |   |-- Clientes.csv
+|   |   |   |-- Colaboradores.csv
+|   |   |   |-- Custos_Operacionais.csv
+|   |   |   |-- Devolucoes.csv
+|   |   |   |-- Fornecedores.csv
+|   |   |   |-- Historico_Vendas.csv
+|   |   |   |-- Lojas.csv
+|   |   |   |-- Pedidos_Compra.csv
+|   |   |   |-- Produtos.csv
+|   |   |   |-- Satisfacao.csv
+|   |   |   |-- Stock.csv
+|   |   |   -- Vendas.csv
+|   |   |-- archive (4)
+|   |   |   |-- Competitor Price Analysis.xlsx
+|   |   |   |-- Executive Overview of Business Performance.jpg
+|   |   |   |-- KPI Donut Chart Dashboard.jpg
+|   |   |   |-- Monthly Inventory Optimization Analysis.png
+|   |   |   |-- Product or Service Segmentation.jpg
+|   |   |   |-- Repair Service.png
+|   |   |   |-- Retail Monthly KPI Monitor Chart.jpg
+|   |   |   |-- Sales Forecast Dashboard.jpg
+|   |   |   |-- Sales Performance Net Earnings Daily performance.jpg
+|   |   |   |-- Segment Analysis.jpg
+|   |   |   |-- Segment Profit Contribution and Matrix Analysis.jpg
+|   |   |   |-- Software Service.jpg
+|   |   |   |-- Supplier Analysis.jpg
+|   |   |   |-- Tech Accessories.jpg
+|   |   |   -- Wireless Service Corp Business Performance.xlsx
+|   |   |-- archive (5)
+|   |   |   -- Retail and wherehouse Sale.csv
+|   |   |-- archive (6)
+|   |   |   |-- blinkit_customers.csv
+|   |   |   |-- blinkit_customer_feedback.csv
+|   |   |   |-- blinkit_delivery_performance.csv
+|   |   |   |-- blinkit_inventory.csv
+|   |   |   |-- blinkit_inventoryNew.csv
+|   |   |   |-- blinkit_marketing_performance.csv
+|   |   |   |-- blinkit_orders.csv
+|   |   |   |-- blinkit_order_items.csv
+|   |   |   |-- blinkit_products.csv
+|   |   |   |-- Category_Icons.xlsx
+|   |   |   -- Rating_Icon.xlsx
+|   |   |-- archive (7)
+|   |   |   -- Master Data
+|   |   |       |-- features.csv
+|   |   |       |-- sampleSubmission.csv
+|   |   |       |-- stores.csv
+|   |   |       |-- test.csv
+|   |   |       -- train.csv
+|   |   |-- archive (8)
+|   |   |   -- superstore_data.csv
+|   |   |-- archive (9)
+|   |   |   |-- Branches.csv
+|   |   |   |-- Branches_ENG.csv
+|   |   |   |-- Categories.csv
+|   |   |   |-- Categories_ENG.csv
+|   |   |   |-- Customers.csv
+|   |   |   |-- Customers_ENG.csv
+|   |   |   |-- Orders.csv
+|   |   |   -- Order_Details.csv
+|   |   -- retail-feature-catalog.json
+|   |-- retail_customers.csv
+|   |-- retail_inventory.csv
+|   |-- retail_orders.csv
+|   |-- saas
+|   |   |-- archive (1)
+|   |   |   -- shipments.csv
+|   |   |-- archive (2)
+|   |   |   -- shipments.csv
+|   |   |-- archive (3)
+|   |   |   -- shipments.csv
+|   |   |-- archive (4)
+|   |   |   -- shipments.csv
+|   |   |-- archive (5)
+|   |   |   -- shipments.csv
+|   |   |-- log1
+|   |   |   -- supply_chain_data.csv
+|   |   |-- log10
+|   |   |   -- smart_logistics_dataset.csv
+|   |   |-- log11
+|   |   |   -- supply_chain_data.csv
+|   |   |-- log12
+|   |   |   -- Food_Delivery_Route_Efficiency_Dataset.csv
+|   |   |-- log13
+|   |   |   -- logistics_shipments_dataset.csv
+|   |   |-- log14
+|   |   |   -- supply_chain_order_fulfillment_delay_risk.csv
+|   |   |-- log15
+|   |   |   -- freight_transportation_ukraine_1995_2020.csv
+|   |   |-- log2
+|   |   |   -- Train.csv
+|   |   |-- log3
+|   |   |   -- Delivery_Logistics.csv
+|   |   |-- log4
+|   |   |   -- amazon_delivery.csv
+|   |   |-- log5
+|   |   |   |-- Final_Transportation.csv
+|   |   |   -- Transport.csv
+|   |   |-- log6
+|   |   |   -- talabat_enhanced_orders.csv
+|   |   |-- log7
+|   |   |   -- Dataset_Generator_for_DTDC.csv
+|   |   |-- log8
+|   |   |   -- airline_route_profitability.csv
+|   |   -- log9
+|   |       -- Warehouse_and_Retail_Sales.csv
+|   |-- services
+|   |   |-- archive (1)
+|   |   |   -- properties.csv
+|   |   |-- archive (2)
+|   |   |   -- properties.csv
+|   |   |-- archive (3)
+|   |   |   -- properties.csv
+|   |   |-- archive (4)
+|   |   |   -- properties.csv
+|   |   |-- archive (5)
+|   |   |   -- properties.csv
+|   |   |-- re1
+|   |   |   |-- Cleaned_data_for_model.csv
+|   |   |   |-- For_EDA_dataset.csv
+|   |   |   -- House_Price_dataset.csv
+|   |   |-- re10
+|   |   |   -- usa_housing_kaggle.csv
+|   |   |-- re11
+|   |   |   |-- df_test.csv
+|   |   |   -- df_train.csv
+|   |   |-- re12
+|   |   |   -- apartment_cost_list.csv
+|   |   |-- re13
+|   |   |   -- Housing.csv
+|   |   |-- re14
+|   |   |   -- RealEstateAU_1000_Samples.csv
+|   |   |-- re15
+|   |   |   |-- apartments_for_rent_classified_100K
+|   |   |   |   -- apartments_for_rent_classified_100K.csv
+|   |   |   -- apartments_for_rent_classified_10K
+|   |   |       -- apartments_for_rent_classified_10K.csv
+|   |   |-- re2
+|   |   |   -- nyc-rolling-sales.csv
+|   |   |-- re3
+|   |   |   -- London Property Listings Dataset.csv
+|   |   |-- re4
+|   |   |   -- Melbourne_housing_FULL.csv
+|   |   |-- re5
+|   |   |   -- world_real_estate_data(147k).csv
+|   |   |-- re6
+|   |   |   -- data.csv
+|   |   |-- re7
+|   |   |   |-- Indian_housing_Delhi_data.csv
+|   |   |   |-- Indian_housing_Mumbai_data.csv
+|   |   |   -- Indian_housing_Pune_data.csv
+|   |   |-- re8
+|   |   |   -- HPI_master.csv
+|   |   -- re9
+|   |       -- V3.csv
+|   |-- transportation_fleet.csv
+|   |-- transportation_routes.csv
+|   -- transportation_shipments.csv
+|-- debug-demo.js
+|-- debug-demo2.js
+|-- debug-demo3.js
+|-- debug-saas-list.js
+|-- debug-saas.js
+|-- DEMO_GUIDE.md
+|-- DEPLOYMENT_GUIDE.md
+|-- docker-compose.yml
+|-- docker-entrypoint.sh
+|-- Dockerfile
+|-- DOMAIN_KPI_BLUEPRINTS.json
+|-- dummy-data
+|   |-- synthetic_saas_data.csv
+|   |-- synthetic_services_data.csv
+|   -- ultimate
+|       |-- ecommerce_part_1.csv
+|       |-- ecommerce_part_2.csv
+|       |-- ecommerce_part_3.csv
+|       |-- edtech_part_1.csv
+|       |-- edtech_part_2.csv
+|       |-- edtech_part_3.csv
+|       |-- finance_part_1.csv
+|       |-- finance_part_2.csv
+|       |-- finance_part_3.csv
+|       |-- healthcare_part_1.csv
+|       |-- healthcare_part_2.csv
+|       |-- healthcare_part_3.csv
+|       |-- manufacturing_part_1.csv
+|       |-- manufacturing_part_2.csv
+|       |-- manufacturing_part_3.csv
+|       |-- retail_part_1.csv
+|       |-- retail_part_2.csv
+|       |-- retail_part_3.csv
+|       |-- saas_part_1.csv
+|       |-- saas_part_2.csv
+|       |-- saas_part_3.csv
+|       |-- services_part_1.csv
+|       |-- services_part_2.csv
+|       -- services_part_3.csv
+|-- e2e_reports
+|   |-- ECOMMERCE_archive__67__Online_Retail_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__68__2019_Dec_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__68__2019_Oct_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__68__2020_Feb_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__68__2020_Jan_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__69__Bakery_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__69__bakery_sales_revised_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__70__synthetic_online_retail_data_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__71__US_Regional_Sales_Data_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__73__customer_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__73__product_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__73__transactions_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__74__e_commerce_shopper_behaviour_and_lifestyle_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__75__myntra_products_catalog_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__76__transactions_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__77__Amazon_Sale_Report_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__77__Expense_IIGF_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__77__International_sale_Report_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__77__May_2022_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__77__P__L_March_2021_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__77__Sale_Report_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__78__user_personalized_features_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__79__starbucks_customer_ordering_patterns_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_archive__80__9__Sales_Data_Analysis_csv_Executive_Report.pdf
+|   |-- ECOMMERCE_Strategic_Report.pdf
+|   |-- ECOMMERCE_Ultimate_E2E_Report.pdf
+|   |-- MANUFACTURING_archive__51__data_csv_Report.pdf
+|   |-- MANUFACTURING_archive__52__synthetic_personal_finance_dataset_csv_Report.pdf
+|   |-- MANUFACTURING_archive__53__Insurance_claims_data_csv_Report.pdf
+|   |-- MANUFACTURING_archive__54__cards_data_csv_Report.pdf
+|   |-- MANUFACTURING_archive__54__users_data_csv_Report.pdf
+|   |-- MANUFACTURING_archive__55__Loan_Eligibility_Prediction_csv_Report.pdf
+|   |-- MANUFACTURING_archive__56__creditcard_2023_csv_Report.pdf
+|   |-- MANUFACTURING_archive__57__application_record_csv_Report.pdf
+|   |-- MANUFACTURING_archive__57__credit_record_csv_Report.pdf
+|   |-- MANUFACTURING_archive__58__combined_financial_data_idx_csv_Report.pdf
+|   |-- MANUFACTURING_archive__59__data_csv_Report.pdf
+|   |-- MANUFACTURING_archive__60__UCI_Credit_Card_csv_Report.pdf
+|   |-- MANUFACTURING_archive__62__Dow_Jones_csv_Report.pdf
+|   |-- MANUFACTURING_archive__62__NASDAQ__csv_Report.pdf
+|   |-- MANUFACTURING_archive__62__Portfolio_csv_Report.pdf
+|   |-- MANUFACTURING_archive__62__Portfolio_prices_csv_Report.pdf
+|   |-- MANUFACTURING_archive__62__SP500_csv_Report.pdf
+|   |-- MANUFACTURING_archive__63__student_spending__1__csv_Report.pdf
+|   |-- MANUFACTURING_archive__64__loan_test_csv_Report.pdf
+|   |-- MANUFACTURING_archive__64__loan_train_csv_Report.pdf
+|   |-- MANUFACTURING_archive__65__credit_risk_dataset_csv_Report.pdf
+|   |-- MANUFACTURING_Strategic_Report.pdf
+|   |-- MANUFACTURING_Ultimate_E2E_Report.pdf
+|   |-- RETAIL_archive__10__Supermarket_Sales_csv_Executive_Report.pdf
+|   |-- RETAIL_archive__12__supermarket_sales_csv_Executive_Report.pdf
+|   |-- RETAIL_archive__1__Chocolate_Sales_csv_Executive_Report.pdf
+|   |-- RETAIL_archive__2__OnlineRetail_csv_Executive_Report.pdf
+|   |-- RETAIL_archive__3__Avaliacoes_csv_Executive_Report.pdf
+|   |-- RETAIL_Strategic_Report.pdf
+|   |-- RETAIL_Ultimate_E2E_Report.pdf
+|   |-- SAAS_dummy_data_synthetic_saas_data_csv_Executive_Report.pdf
+|   |-- SAAS_Ultimate_E2E_Report.pdf
+|   -- SERVICES_Ultimate_E2E_Report.pdf
+|-- ecommerce_qa_results.json
+|-- edits.md
+|-- eslint-report.json
+|-- eslint.config.mjs
+|-- eslint.json
+|-- eslint_audit.txt
+|-- eslint_errors.txt
+|-- eslint_output.txt
+|-- FINAL_EXECUTIVE_SUMMARY.md
+|-- fix-api-errors.mjs
+|-- fix-auth.mjs
+|-- fix-dashboards.js
+|-- fix-db-import.mjs
+|-- fix-imports.mjs
+|-- fix-message-errors.mjs
+|-- fix-prompt.mjs
+|-- fix-route.mjs
+|-- fix_ai_client.mjs
+|-- fix_charts.js
+|-- future-ideation.md
+|-- generate-final-report.mjs
+|-- generate-reports.mjs
+|-- generate_pdfs.js
+|-- improvement.md
+|-- lint-output.txt
+|-- migrate.js
+|-- modelfiles
+|   |-- Modelfile.analytics
+|   |-- Modelfile.analytics.ecommerce
+|   |-- Modelfile.analytics.edtech
+|   |-- Modelfile.analytics.finance
+|   |-- Modelfile.analytics.healthcare
+|   |-- Modelfile.analytics.manufacturing
+|   |-- Modelfile.analytics.retail
+|   |-- Modelfile.analytics.saas
+|   |-- Modelfile.analytics.services
+|   |-- Modelfile.coder
+|   |-- Modelfile.report
+|   |-- Modelfile.strategy
+|   -- README.md
+|-- module-7-test-output.txt
+|-- module1.log
+|-- MODULE_3_COMPLETE.md
+|-- MODULE_3_PHASE_3A_COMPLETE.md
+|-- MODULE_3_PHASE_3C_COMPLETE.md
+|-- MODULE_4DA_COMPLETE.md
+|-- MODULE_4DB_COMPLETE.md
+|-- MODULE_4_PHASE_4C_COMPLETE.md
+|-- MODULE_4_PHASE_4D_COMPLETE.md
+|-- MODULE_6_7_8_INTEGRATION_PLAN.md
+|-- MODULE_7_ARCHITECTURE.md
+|-- MODULE_8_STRATEGY_FORECASTING.md
+|-- MODULE_9_ARCHITECTURE.md
+|-- MODULE_9_IMPLEMENTATION.md
+|-- MODULE_IMPLEMENTATION_STATUS.md
+|-- MODULE_LOGIC_TESTING_REPORT.md
+|-- next-env.d.ts
+|-- next-frontiers.md
+|-- next.config.ts
+|-- out.log
+|-- package-lock.json
+|-- package.json
+|-- populate_ui_state.mjs
+|-- postcss.config.mjs
+|-- prisma
+|   |-- create-dashboard-tables.sql
+|   |-- fix-missing-columns.sql
+|   |-- materialize-mock.ts
+|   |-- migrate-blueprint.ts
+|   |-- migrations
+|   |   |-- 20260224001737_relational_kpi_blueprint
+|   |   |   -- migration.sql
+|   |   |-- 20260312071843_init
+|   |   |   -- migration.sql
+|   |   |-- 20260325000000_add_user_gdpr_fields
+|   |   |   -- migration.sql
+|   |   |-- 20260508101126_add_password_reset_token
+|   |   |   -- migration.sql
+|   |   |-- 20260518093000_add_user_preferences_and_indices
+|   |   |   -- migration.sql
+|   |   -- migration_lock.toml
+|   |-- schema.prisma
+|   |-- seed-demo.mjs
+|   |-- test-cols.ts
+|   -- test-table.ts
+|-- public
+|   |-- file.svg
+|   |-- globe.svg
+|   |-- manifest.json
+|   |-- next.svg
+|   |-- openapi.yaml
+|   |-- robots.txt
+|   |-- vercel.svg
+|   -- window.svg
+|-- README.md
+|-- README_PROPHET_FIXES.md
+|-- real_batch_ingest.mjs
+|-- referenceconclusion.md
+|-- referenceResults.md
+|-- render.yaml
+|-- reports
+|   |-- archive-complete
+|   |   |-- ARCHIVE_REPORT_INFO.txt
+|   |   -- retail-archive-(1)-complete.pdf
+|   |-- archive__1_.json
+|   |-- archive__1__STRATEGIC_REPORT.pdf
+|   |-- BATCH_REPORT_REGISTRY.json
+|   |-- COMPREHENSIVE_PDF_SUMMARY.md
+|   |-- comprehensive_test_report.json
+|   |-- ecommerce-batch-001-report.html
+|   |-- ecommerce-batch-001-report.json
+|   |-- ecommerce-batch-001-report.pdf
+|   |-- ecommerce-batch-002-report.html
+|   |-- ecommerce-batch-002-report.json
+|   |-- ecommerce-batch-002-report.pdf
+|   |-- ecommerce-batch-003-report.html
+|   |-- ecommerce-batch-003-report.json
+|   |-- ecommerce-batch-003-report.pdf
+|   |-- ecommerce-batch-004-report.html
+|   |-- ecommerce-batch-004-report.json
+|   |-- ecommerce-batch-004-report.pdf
+|   |-- ecommerce-batch-005-report.html
+|   |-- ecommerce-batch-005-report.json
+|   |-- ecommerce-batch-005-report.pdf
+|   |-- ecommerce-batch-006-report.html
+|   |-- ecommerce-batch-006-report.json
+|   |-- ecommerce-batch-006-report.pdf
+|   |-- ecommerce-batch-007-report.html
+|   |-- ecommerce-batch-007-report.json
+|   |-- ecommerce-batch-007-report.pdf
+|   |-- ecommerce-batch-008-report.html
+|   |-- ecommerce-batch-008-report.json
+|   |-- ecommerce-batch-008-report.pdf
+|   |-- ecommerce-batch-009-report.html
+|   |-- ecommerce-batch-009-report.json
+|   |-- ecommerce-batch-009-report.pdf
+|   |-- ecommerce-batch-010-report.html
+|   |-- ecommerce-batch-010-report.json
+|   |-- ecommerce-batch-010-report.pdf
+|   |-- ecommerce-batch-011-report.html
+|   |-- ecommerce-batch-011-report.json
+|   |-- ecommerce-batch-011-report.pdf
+|   |-- ecommerce-batch-012-report.html
+|   |-- ecommerce-batch-012-report.json
+|   |-- ecommerce-batch-012-report.pdf
+|   |-- ecommerce-batch-013-report.html
+|   |-- ecommerce-batch-013-report.json
+|   |-- ecommerce-batch-013-report.pdf
+|   |-- ecommerce-batch-014-report.html
+|   |-- ecommerce-batch-014-report.json
+|   |-- ecommerce-batch-014-report.pdf
+|   |-- ecommerce-batch-015-report.html
+|   |-- ecommerce-batch-015-report.json
+|   |-- ecommerce-batch-015-report.pdf
+|   |-- ecommerce-batch-016-report.html
+|   |-- ecommerce-batch-016-report.json
+|   |-- ecommerce-batch-016-report.pdf
+|   |-- ecommerce-batch-017-report.html
+|   |-- ecommerce-batch-017-report.json
+|   |-- ecommerce-batch-017-report.pdf
+|   |-- ecommerce-batch-018-report.html
+|   |-- ecommerce-batch-018-report.json
+|   |-- ecommerce-batch-018-report.pdf
+|   |-- ecommerce-batch-019-report.html
+|   |-- ecommerce-batch-019-report.json
+|   |-- ecommerce-batch-019-report.pdf
+|   |-- ecommerce-batch-020-report.html
+|   |-- ecommerce-batch-020-report.json
+|   |-- ecommerce-batch-020-report.pdf
+|   |-- ecommerce-batch-021-report.html
+|   |-- ecommerce-batch-021-report.json
+|   |-- ecommerce-batch-021-report.pdf
+|   |-- ecommerce-batch-022-report.html
+|   |-- ecommerce-batch-022-report.json
+|   |-- ecommerce-batch-022-report.pdf
+|   |-- ecommerce-batch-023-report.html
+|   |-- ecommerce-batch-023-report.json
+|   |-- ecommerce-batch-023-report.pdf
+|   |-- ecommerce-batch-024-report.html
+|   |-- ecommerce-batch-024-report.json
+|   |-- ecommerce-batch-024-report.pdf
+|   |-- ecommerce-batch-025-report.html
+|   |-- ecommerce-batch-025-report.json
+|   |-- ecommerce-batch-025-report.pdf
+|   |-- ecommerce-batch-026-report.html
+|   |-- ecommerce-batch-026-report.json
+|   |-- ecommerce-batch-026-report.pdf
+|   |-- ecommerce-batch-027-report.html
+|   |-- ecommerce-batch-027-report.json
+|   |-- ecommerce-batch-027-report.pdf
+|   |-- ecommerce-batch-028-report.html
+|   |-- ecommerce-batch-028-report.json
+|   |-- ecommerce-batch-028-report.pdf
+|   |-- ecommerce-batch-029-report.html
+|   |-- ecommerce-batch-029-report.json
+|   |-- ecommerce-batch-029-report.pdf
+|   |-- ecommerce-batch-030-report.html
+|   |-- ecommerce-batch-030-report.json
+|   |-- ecommerce-batch-030-report.pdf
+|   |-- ecommerce-comprehensive-final-report.pdf
+|   |-- ecommerce_report.json
+|   |-- FINAL_CREDENTIALS.txt
+|   |-- finance_report.json
+|   |-- index.html
+|   |-- manufacturing-batch-001-report.html
+|   |-- manufacturing-batch-001-report.json
+|   |-- manufacturing-batch-001-report.pdf
+|   |-- manufacturing-batch-002-report.html
+|   |-- manufacturing-batch-002-report.json
+|   |-- manufacturing-batch-002-report.pdf
+|   |-- manufacturing-batch-003-report.html
+|   |-- manufacturing-batch-003-report.json
+|   |-- manufacturing-batch-003-report.pdf
+|   |-- manufacturing-batch-004-report.html
+|   |-- manufacturing-batch-004-report.json
+|   |-- manufacturing-batch-004-report.pdf
+|   |-- manufacturing-batch-005-report.html
+|   |-- manufacturing-batch-005-report.json
+|   |-- manufacturing-batch-005-report.pdf
+|   |-- manufacturing-batch-006-report.html
+|   |-- manufacturing-batch-006-report.json
+|   |-- manufacturing-batch-006-report.pdf
+|   |-- manufacturing-batch-007-report.html
+|   |-- manufacturing-batch-007-report.json
+|   |-- manufacturing-batch-007-report.pdf
+|   |-- manufacturing-batch-008-report.html
+|   |-- manufacturing-batch-008-report.json
+|   |-- manufacturing-batch-008-report.pdf
+|   |-- manufacturing-batch-009-report.html
+|   |-- manufacturing-batch-009-report.json
+|   |-- manufacturing-batch-009-report.pdf
+|   |-- manufacturing-batch-010-report.html
+|   |-- manufacturing-batch-010-report.json
+|   |-- manufacturing-batch-010-report.pdf
+|   |-- manufacturing-batch-011-report.html
+|   |-- manufacturing-batch-011-report.json
+|   |-- manufacturing-batch-011-report.pdf
+|   |-- manufacturing-batch-012-report.html
+|   |-- manufacturing-batch-012-report.json
+|   |-- manufacturing-batch-012-report.pdf
+|   |-- manufacturing-batch-013-report.html
+|   |-- manufacturing-batch-013-report.json
+|   |-- manufacturing-batch-013-report.pdf
+|   |-- manufacturing-batch-014-report.html
+|   |-- manufacturing-batch-014-report.json
+|   |-- manufacturing-batch-014-report.pdf
+|   |-- manufacturing-batch-015-report.html
+|   |-- manufacturing-batch-015-report.json
+|   |-- manufacturing-batch-015-report.pdf
+|   |-- manufacturing-comprehensive-final-report.pdf
+|   |-- professional-archive
+|   |   |-- PROFESSIONAL_ARCHIVE_CREDENTIALS.txt
+|   |   |-- PROFESSIONAL_ARCHIVE_README.md
+|   |   -- retail-archive-(1)-report.pdf
+|   |-- retail-batch-001-report.html
+|   |-- retail-batch-001-report.json
+|   |-- retail-batch-001-report.pdf
+|   |-- retail-batch-002-report.html
+|   |-- retail-batch-002-report.json
+|   |-- retail-batch-002-report.pdf
+|   |-- retail-batch-003-report.html
+|   |-- retail-batch-003-report.json
+|   |-- retail-batch-003-report.pdf
+|   |-- retail-batch-004-report.html
+|   |-- retail-batch-004-report.json
+|   |-- retail-batch-004-report.pdf
+|   |-- retail-batch-005-report.html
+|   |-- retail-batch-005-report.json
+|   |-- retail-batch-005-report.pdf
+|   |-- retail-batch-006-report.html
+|   |-- retail-batch-006-report.json
+|   |-- retail-batch-006-report.pdf
+|   |-- retail-batch-007-report.html
+|   |-- retail-batch-007-report.json
+|   |-- retail-batch-007-report.pdf
+|   |-- retail-batch-008-report.html
+|   |-- retail-batch-008-report.json
+|   |-- retail-batch-008-report.pdf
+|   |-- retail-batch-009-report.html
+|   |-- retail-batch-009-report.json
+|   |-- retail-batch-009-report.pdf
+|   |-- retail-batch-010-report.html
+|   |-- retail-batch-010-report.json
+|   |-- retail-batch-010-report.pdf
+|   |-- retail-batch-011-report.html
+|   |-- retail-batch-011-report.json
+|   |-- retail-batch-011-report.pdf
+|   |-- retail-batch-012-report.html
+|   |-- retail-batch-012-report.json
+|   |-- retail-batch-012-report.pdf
+|   |-- retail-batch-013-report.html
+|   |-- retail-batch-013-report.json
+|   |-- retail-batch-013-report.pdf
+|   |-- retail-batch-014-report.html
+|   |-- retail-batch-014-report.json
+|   |-- retail-batch-014-report.pdf
+|   |-- retail-batch-015-report.html
+|   |-- retail-batch-015-report.json
+|   |-- retail-batch-015-report.pdf
+|   |-- retail-comprehensive-final-report.pdf
+|   |-- TEST_CREDENTIALS.txt
+|   -- validation_summary.json
+|-- REPORT_GENERATION_GUIDE.md
+|-- run-all-captures.mjs
+|-- sam
+|   |-- .claude
+|   |   -- commands
+|   |       -- sam
+|   |           |-- core
+|   |           |   |-- agents
+|   |           |   |   -- sam.md
+|   |           |   -- workflows
+|   |           |       -- autonomous-tdd.md
+|   |           -- sam
+|   |               -- agents
+|   |                   |-- argus.md
+|   |                   |-- atlas.md
+|   |                   |-- dyna.md
+|   |                   |-- iris.md
+|   |                   |-- sage.md
+|   |                   -- titan.md
+|   |-- .github
+|   |   -- workflows
+|   |       -- publish.yml
+|   |-- .gitignore
+|   |-- AGENTS.md
+|   |-- bin
+|   |   -- cli.js
+|   |-- CONTRIBUTING.md
+|   |-- COPILOT_INTEGRATION.md
+|   |-- COPILOT_RELEASE_NOTES.md
+|   |-- LICENSE
+|   |-- package-lock.json
+|   |-- package.json
+|   |-- README.md
+|   |-- scripts
+|   |   |-- module-workflow-audit.js
+|   |   |-- test-output
+|   |   |   -- module-workflow-audit
+|   |   |       |-- 2026-04-29T21-07-15-925Z
+|   |   |       |   |-- all-modules-e2e-smoke.log
+|   |   |       |   |-- build.log
+|   |   |       |   |-- cross-module-5-8-integration.log
+|   |   |       |   |-- module-1-2-e2e-smoke.log
+|   |   |       |   |-- module-1-2-tests.log
+|   |   |       |   |-- module-3-tests.log
+|   |   |       |   |-- module-4-tests.log
+|   |   |       |   |-- module-5-integration.log
+|   |   |       |   |-- module-5a-tests.log
+|   |   |       |   |-- module-5b-tests.log
+|   |   |       |   |-- module-5c-tests.log
+|   |   |       |   |-- module-6-tests.log
+|   |   |       |   |-- module-7-tests.log
+|   |   |       |   |-- module-8-tests.log
+|   |   |       |   |-- module-9-tests.log
+|   |   |       |   |-- module-workflow-audit.json
+|   |   |       |   -- module-workflow-audit.md
+|   |   |       -- 2026-05-02T15-11-18-281Z
+|   |   |           |-- all-modules-e2e-smoke.log
+|   |   |           |-- build.log
+|   |   |           |-- cross-module-5-8-integration.log
+|   |   |           |-- module-1-2-e2e-smoke.log
+|   |   |           |-- module-1-2-tests.log
+|   |   |           |-- module-3-tests.log
+|   |   |           |-- module-4-tests.log
+|   |   |           |-- module-5-integration.log
+|   |   |           |-- module-5a-tests.log
+|   |   |           |-- module-5b-tests.log
+|   |   |           |-- module-5c-tests.log
+|   |   |           |-- module-6-tests.log
+|   |   |           |-- module-7-tests.log
+|   |   |           |-- module-8-tests.log
+|   |   |           |-- module-9-tests.log
+|   |   |           |-- module-workflow-audit.json
+|   |   |           -- module-workflow-audit.md
+|   |   -- verify-gemini.js
+|   |-- templates
+|   |   |-- .claude
+|   |   |   -- commands
+|   |   |       -- sam
+|   |   |           |-- core
+|   |   |           |   |-- agents
+|   |   |           |   |   -- sam.md
+|   |   |           |   -- workflows
+|   |   |           |       -- autonomous-tdd.md
+|   |   |           -- sam
+|   |   |               -- agents
+|   |   |                   |-- argus.md
+|   |   |                   |-- atlas.md
+|   |   |                   |-- cosmo.md
+|   |   |                   |-- dyna.md
+|   |   |                   |-- iris.md
+|   |   |                   |-- sage.md
+|   |   |                   -- titan.md
+|   |   -- _sam
+|   |       |-- agents
+|   |       |   |-- a11y-expert.md
+|   |       |   |-- ai-engineer.md
+|   |       |   |-- api-designer.md
+|   |       |   |-- architect.md
+|   |       |   |-- cloud-architect.md
+|   |       |   |-- css-reviewer.md
+|   |       |   |-- db-architect.md
+|   |       |   |-- dev.md
+|   |       |   |-- devops-engineer.md
+|   |       |   |-- e2e-specialist.md
+|   |       |   |-- go-specialist.md
+|   |       |   |-- i18n-expert.md
+|   |       |   |-- mobile-architect.md
+|   |       |   |-- next-architect.md
+|   |       |   |-- perf-analyst.md
+|   |       |   |-- python-expert.md
+|   |       |   |-- react-expert.md
+|   |       |   |-- reviewer.md
+|   |       |   |-- rust-engineer.md
+|   |       |   |-- security-auditor.md
+|   |       |   |-- serverless-specialist.md
+|   |       |   |-- styling-virtuoso.md
+|   |       |   |-- tech-writer.md
+|   |       |   |-- test.md
+|   |       |   -- ux-designer.md
+|   |       |-- core
+|   |       |   |-- agents
+|   |       |   |   -- sam-master.md
+|   |       |   |-- config.yaml
+|   |       |   |-- resources
+|   |       |   |   -- default-design-standards.md
+|   |       |   -- workflows
+|   |       |       -- autonomous-tdd
+|   |       |           |-- steps
+|   |       |           |   |-- step-01-validate-prd.md
+|   |       |           |   |-- step-02-generate-stories.md
+|   |       |           |   |-- step-03-tdd-loop.md
+|   |       |           |   |-- step-03-tdd-single-story.md
+|   |       |           |   -- step-04-complete.md
+|   |       |           |-- templates
+|   |       |           |   -- pipeline-status.yaml
+|   |       |           -- workflow.md
+|   |       |-- docs
+|   |       |   |-- GEMINI.md
+|   |       |   |-- SAM_COPILOT_GUIDE.md
+|   |       |   |-- SAM_COPILOT_USAGE.md
+|   |       |   |-- SAM_DEPLOYMENT_GUIDE.md
+|   |       |   |-- SAM_GEMINI_GUIDE.md
+|   |       |   -- SAM_GEMINI_USAGE.md
+|   |       -- _config
+|   |           |-- agent-manifest.csv
+|   |           |-- agents
+|   |           |   |-- sam-architect.customize.yaml
+|   |           |   |-- sam-dev.customize.yaml
+|   |           |   |-- sam-reviewer.customize.yaml
+|   |           |   |-- sam-sam.customize.yaml
+|   |           |   |-- sam-tech-writer.customize.yaml
+|   |           |   |-- sam-test.customize.yaml
+|   |           |   -- sam-ux-designer.customize.yaml
+|   |           |-- ides
+|   |           |   -- claude-code.yaml
+|   |           |-- manifest.yaml
+|   |           -- workflow-manifest.csv
+|   -- _sam
+|       |-- agents
+|       |   |-- architect.md
+|       |   |-- css-reviewer.md
+|       |   |-- dev.md
+|       |   |-- reviewer.md
+|       |   |-- tech-writer.md
+|       |   |-- test.md
+|       |   -- ux-designer.md
+|       |-- core
+|       |   |-- agents
+|       |   |   -- sam-master.md
+|       |   |-- config.yaml
+|       |   |-- resources
+|       |   |   -- default-design-standards.md
+|       |   -- workflows
+|       |       -- autonomous-tdd
+|       |           |-- steps
+|       |           |   |-- step-01-validate-prd.md
+|       |           |   |-- step-02-generate-stories.md
+|       |           |   |-- step-03-tdd-loop.md
+|       |           |   -- step-04-complete.md
+|       |           |-- templates
+|       |           |   -- pipeline-status.yaml
+|       |           -- workflow.md
+|       -- _config
+|           |-- agent-manifest.csv
+|           |-- agents
+|           |   |-- sam-architect.customize.yaml
+|           |   |-- sam-dev.customize.yaml
+|           |   |-- sam-reviewer.customize.yaml
+|           |   |-- sam-sam.customize.yaml
+|           |   |-- sam-tech-writer.customize.yaml
+|           |   |-- sam-test.customize.yaml
+|           |   -- sam-ux-designer.customize.yaml
+|           |-- ides
+|           |   -- claude-code.yaml
+|           |-- manifest.yaml
+|           -- workflow-manifest.csv
+|-- SAM_MODULE_1_TO_9_AUDIT_REPORT.md
+|-- schema.sql
+|-- scripts
+|   |-- add-units.mjs
+|   |-- ai-data-cli.ts
+|   |-- archive-report-generator.js
+|   |-- batch-report-generator.js
+|   |-- bulk-e2e-audit.mjs
+|   |-- comprehensive-pdf-generator.js
+|   |-- data-brain.ts
+|   |-- domain-generators
+|   |   -- generate_all.ts
+|   |-- e2e-bulk-domains.mjs
+|   |-- e2e-demo.mjs
+|   |-- e2e-special-ecommerce.mjs
+|   |-- final-comprehensive-pdf-generator.js
+|   |-- fix-kpi-columns.ts
+|   |-- forecast_bridge.py
+|   |-- generate-domain-manuals.mjs
+|   |-- generate-dummy-data.mjs
+|   |-- generate-integration-report.ts
+|   |-- generate-large-test-data.mjs
+|   |-- generate-ultimate-datasets.ts
+|   |-- ingest-and-tune.ts
+|   |-- lib
+|   |   -- dataset-feature-catalog.ts
+|   |-- master-e2e-audit.mjs
+|   |-- migrate-password-reset.js
+|   |-- professional-archive-pdf.js
+|   |-- profile-domain-datasets.ts
+|   |-- register-modelfiles.ps1
+|   |-- resilient-master-audit.mjs
+|   |-- run-e2e-workflow.mjs
+|   |-- setup-batch-pdfs.js
+|   |-- setup-ultimate-projects.ts
+|   |-- test-batch-3-domains.mjs
+|   |-- test-dashboard-config.ts
+|   |-- test-datasets-e2e.mjs
+|   |-- test-db-write.ts
+|   |-- test-domain-pipeline.ts
+|   |-- test-m7-pipeline.ts
+|   |-- test-prophet-ecommerce.ts
+|   |-- ultimate-master-e2e.mjs
+|   |-- validate-data-loading.ts
+|   -- verify-db.ts
+|-- sdocs
+|   -- prds
+|       -- domain-generator-prd.md
+|-- seed_demo.mjs
+|-- seed_user.mjs
+|-- somedataset
+|   |-- ecommerce_combined_60k.csv
+|   |-- ecommerce_dataset_1.csv
+|   |-- ecommerce_dataset_2.csv
+|   -- ecommerce_dataset_3.csv
+|-- src
+|   |-- app
+|   |   |-- (auth)
+|   |   |   |-- forgot-password
+|   |   |   |   -- page.tsx
+|   |   |   |-- layout.tsx
+|   |   |   |-- login
+|   |   |   |   -- page.tsx
+|   |   |   |-- register
+|   |   |   |   -- page.tsx
+|   |   |   -- reset-password
+|   |   |       -- page.tsx
+|   |   |-- api
+|   |   |   |-- ai
+|   |   |   |   -- filter
+|   |   |   |       -- route.ts
+|   |   |   |-- auth
+|   |   |   |   |-- change-password
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- forgot-password
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- login
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- logout
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- me
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- register
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- reset-password
+|   |   |   |   |   -- route.ts
+|   |   |   |   -- verify-email
+|   |   |   |       -- route.ts
+|   |   |   |-- data
+|   |   |   |   |-- ecommerce
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- edtech
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- finance
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- healthcare
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- manufacturing
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- retail
+|   |   |   |   |   -- route.ts
+|   |   |   |   |-- saas
+|   |   |   |   |   -- route.ts
+|   |   |   |   -- services
+|   |   |   |       -- route.ts
+|   |   |   |-- health
+|   |   |   |   -- route.ts
+|   |   |   |-- notifications
+|   |   |   |   -- route.ts
+|   |   |   |-- projects
+|   |   |   |   |-- route.ts
+|   |   |   |   -- [id]
+|   |   |   |       |-- ai-kpi-discovery
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- ai-kpis
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- ai-reasoning
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- alerts
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- ask-ai
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- dashboard
+|   |   |   |       |   |-- data
+|   |   |   |       |   |   -- route.ts
+|   |   |   |       |   |-- explanations
+|   |   |   |       |   |   -- route.ts
+|   |   |   |       |   |-- insights
+|   |   |   |       |   |   -- route.ts
+|   |   |   |       |   |-- invalidate
+|   |   |   |       |   |   -- route.ts
+|   |   |   |       |   |-- kpi
+|   |   |   |       |   |   -- [kpiId]
+|   |   |   |       |   |       -- route.ts
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- dashboard-intelligence
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- dashboard-state
+|   |   |   |       |   |-- drill-down
+|   |   |   |       |   |   -- route.ts
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- data-lineage
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- detect-domain
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- domain
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- entity-graph
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- export
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- goals
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- governance
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- insights
+|   |   |   |       |   |-- route.ts
+|   |   |   |       |   -- [kpiId]
+|   |   |   |       |       -- route.ts
+|   |   |   |       |-- kpi-blueprint
+|   |   |   |       |   |-- finalize
+|   |   |   |       |   |   -- route.ts
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- kpi-eligibility
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- kpi-lineage
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- kpis
+|   |   |   |       |   |-- route.ts
+|   |   |   |       |   |-- support-status
+|   |   |   |       |   |   -- route.ts
+|   |   |   |       |   -- [kpiId]
+|   |   |   |       |       -- explain
+|   |   |   |       |           -- route.ts
+|   |   |   |       |-- module6
+|   |   |   |       |   -- ask
+|   |   |   |       |       -- route.ts
+|   |   |   |       |-- relationship-registry
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- relationships
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- route.ts
+|   |   |   |       |-- share
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- sources
+|   |   |   |       |   -- route.ts
+|   |   |   |       -- visualization
+|   |   |   |           |-- filter
+|   |   |   |           |   -- route.ts
+|   |   |   |           |-- kpi
+|   |   |   |           |   -- [kpiId]
+|   |   |   |           |       -- route.ts
+|   |   |   |           -- route.ts
+|   |   |   |-- share
+|   |   |   |   -- [token]
+|   |   |   |       -- route.ts
+|   |   |   |-- sources
+|   |   |   |   -- [id]
+|   |   |   |       |-- audit-log
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- clean
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- cleaned
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- cleaning-summary
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- column-health
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- intelligence
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- outliers
+|   |   |   |       |   -- route.ts
+|   |   |   |       |-- quality
+|   |   |   |       |   -- route.ts
+|   |   |   |       -- route.ts
+|   |   |   |-- templates
+|   |   |   |   -- [domain]
+|   |   |   |       -- route.ts
+|   |   |   |-- user
+|   |   |   |   |-- data
+|   |   |   |   |   |-- delete
+|   |   |   |   |   |   -- route.ts
+|   |   |   |   |   -- export
+|   |   |   |   |       -- route.ts
+|   |   |   |   -- preferences
+|   |   |   |       -- route.ts
+|   |   |   -- v1
+|   |   |       |-- action
+|   |   |       |   -- execute
+|   |   |       |       -- route.ts
+|   |   |       |-- ai
+|   |   |       |   |-- health
+|   |   |       |   |   -- route.ts
+|   |   |       |   -- test
+|   |   |       |       -- route.ts
+|   |   |       |-- debug
+|   |   |       |   -- pipeline
+|   |   |       |       -- route.ts
+|   |   |       |-- forecast
+|   |   |       |   -- validate
+|   |   |       |       -- route.ts
+|   |   |       |-- module-8
+|   |   |       |   -- chat
+|   |   |       |       -- route.ts
+|   |   |       -- report
+|   |   |           -- generate
+|   |   |               -- route.tsx
+|   |   |-- app
+|   |   |   |-- error.tsx
+|   |   |   |-- layout.tsx
+|   |   |   |-- loading.tsx
+|   |   |   |-- page.tsx
+|   |   |   |-- projects
+|   |   |   |   |-- loading.tsx
+|   |   |   |   |-- page.tsx
+|   |   |   |   -- [id]
+|   |   |   |       |-- dashboard
+|   |   |   |       |   |-- loading.tsx
+|   |   |   |       |   -- page.tsx
+|   |   |   |       |-- kpis
+|   |   |   |       |   -- page.tsx
+|   |   |   |       -- page.tsx
+|   |   |   |-- settings
+|   |   |   |   |-- billing
+|   |   |   |   |   -- page.tsx
+|   |   |   |   -- page.tsx
+|   |   |   -- status
+|   |   |       -- page.tsx
+|   |   |-- demo
+|   |   |   |-- ecommerce
+|   |   |   |   -- page.tsx
+|   |   |   |-- edtech
+|   |   |   |   -- page.tsx
+|   |   |   |-- error.tsx
+|   |   |   |-- finance
+|   |   |   |   -- page.tsx
+|   |   |   |-- healthcare
+|   |   |   |   -- page.tsx
+|   |   |   |-- layout.tsx
+|   |   |   |-- manufacturing
+|   |   |   |   -- page.tsx
+|   |   |   |-- manufacturing-live
+|   |   |   |   -- page.tsx
+|   |   |   |-- page.tsx
+|   |   |   |-- retail
+|   |   |   |   -- page.tsx
+|   |   |   |-- retail-live
+|   |   |   |   -- page.tsx
+|   |   |   |-- saas
+|   |   |   |   -- page.tsx
+|   |   |   -- services
+|   |   |       -- page.tsx
+|   |   |-- error.tsx
+|   |   |-- favicon.ico
+|   |   |-- globals.css
+|   |   |-- layout.tsx
+|   |   |-- loading.tsx
+|   |   |-- not-found.tsx
+|   |   |-- opengraph-image.tsx
+|   |   |-- page.tsx
+|   |   |-- share
+|   |   |   -- [token]
+|   |   |       -- page.tsx
+|   |   |-- sitemap.ts
+|   |   |-- test
+|   |   |   -- module-8
+|   |   |       -- page.tsx
+|   |   -- verify-email
+|   |       -- page.tsx
+|   |-- components
+|   |   |-- app
+|   |   |   |-- AIGuidedSelection.tsx
+|   |   |   |-- CleaningSummary.tsx
+|   |   |   |-- DataPreview.tsx
+|   |   |   |-- DomainBadge.tsx
+|   |   |   |-- DomainExplanation.tsx
+|   |   |   |-- DomainSelection.tsx
+|   |   |   |-- DomainSelectionPopup.tsx
+|   |   |   |-- IngestionProgress.tsx
+|   |   |   |-- InviteButton.tsx
+|   |   |   |-- KPIDiscoveryPanel.tsx
+|   |   |   |-- QualityDashboard.tsx
+|   |   |   |-- RelationshipGraph.tsx
+|   |   |   |-- SourceCard.tsx
+|   |   |   -- UploadZone.tsx
+|   |   |-- auth
+|   |   |   -- SessionGuard.tsx
+|   |   |-- dashboard
+|   |   |   |-- AIFilter.tsx
+|   |   |   |-- AskAIPanel.tsx
+|   |   |   |-- ChartContainer.tsx
+|   |   |   |-- ChartGrid.tsx
+|   |   |   |-- ChartJSChart.tsx
+|   |   |   |-- ChartRenderer.tsx
+|   |   |   |-- dashboard.css
+|   |   |   |-- DashboardErrorBoundary.tsx
+|   |   |   |-- DashboardShell.tsx
+|   |   |   |-- ExportButton.tsx
+|   |   |   |-- FilterBar.tsx
+|   |   |   |-- ForecastPanel.tsx
+|   |   |   |-- GoalStrategyPanel.tsx
+|   |   |   |-- Header.tsx
+|   |   |   |-- InsightPanel.tsx
+|   |   |   |-- KPICardBack.tsx
+|   |   |   |-- KPIMetricCard.tsx
+|   |   |   |-- KPIMetricStrip.tsx
+|   |   |   |-- OllamaHealthBanner.tsx
+|   |   |   |-- PlotlyChart.tsx
+|   |   |   |-- PurificationAuditPanel.tsx
+|   |   |   |-- SharePanel.tsx
+|   |   |   |-- Sidebar.tsx
+|   |   |   |-- SkeletonLoader.tsx
+|   |   |   |-- SmartAlertBanner.tsx
+|   |   |   -- types.ts
+|   |   |-- demo
+|   |   |   -- DemoCTABanner.tsx
+|   |   |-- domains
+|   |   |   |-- EcommerceDashboard.tsx
+|   |   |   |-- EcommerceDashboardLive.tsx
+|   |   |   |-- EdTechDashboard.tsx
+|   |   |   |-- EdTechDashboardLive.tsx
+|   |   |   |-- FinanceDashboard.tsx
+|   |   |   |-- FinanceDashboardLive.tsx
+|   |   |   |-- HealthcareDashboard.tsx
+|   |   |   |-- HealthcareDashboardLive.tsx
+|   |   |   |-- ManufacturingDashboard.tsx
+|   |   |   |-- ManufacturingDashboardLive.tsx
+|   |   |   |-- RetailDashboard.tsx
+|   |   |   |-- RetailDashboardLive.tsx
+|   |   |   |-- SaaSDashboard.tsx
+|   |   |   |-- SaaSDashboardLive.tsx
+|   |   |   |-- ServicesDashboard.tsx
+|   |   |   -- ServicesDashboardLive.tsx
+|   |   |-- landing
+|   |   |   |-- AISection.tsx
+|   |   |   |-- CoreEngine.tsx
+|   |   |   |-- DashboardPreview.tsx
+|   |   |   |-- FeatureGrid.tsx
+|   |   |   |-- FinalCTA.tsx
+|   |   |   |-- Footer.tsx
+|   |   |   |-- Hero.tsx
+|   |   |   |-- index.ts
+|   |   |   |-- Navbar.tsx
+|   |   |   |-- ProblemSolution.tsx
+|   |   |   |-- Security.tsx
+|   |   |   -- SocialProof.tsx
+|   |   |-- module-8
+|   |   |   |-- AIChatPanel.tsx
+|   |   |   -- StrategyCanvas.tsx
+|   |   -- ui
+|   |       |-- HelpTooltip.tsx
+|   |       |-- OnboardingGuide.tsx
+|   |       -- skeleton.tsx
+|   |-- lib
+|   |   |-- ai
+|   |   |   |-- ai-mode.ts
+|   |   |   |-- context-compressor.ts
+|   |   |   |-- domain-reasoning.ts
+|   |   |   |-- domain-skills.ts
+|   |   |   |-- index.ts
+|   |   |   |-- master-agent.ts
+|   |   |   |-- ollama-client.ts
+|   |   |   |-- request-ai-mode.ts
+|   |   |   |-- unified-ai-client.ts
+|   |   |   -- use-ai-mode.ts
+|   |   |-- alerts
+|   |   |   -- dispatcher.ts
+|   |   |-- api
+|   |   |   -- client.ts
+|   |   |-- api-response.ts
+|   |   |-- auth.ts
+|   |   |-- color
+|   |   |   -- color-parser-safe.ts
+|   |   |-- dashboard
+|   |   |   |-- chart-inferrer.ts
+|   |   |   |-- index.ts
+|   |   |   |-- kpi-explainer.ts
+|   |   |   |-- schemas.ts
+|   |   |   |-- section-builder.ts
+|   |   |   |-- sidebar-builder.ts
+|   |   |   -- types.ts
+|   |   |-- dashboard-state
+|   |   |   |-- anomaly-detector.ts
+|   |   |   |-- drill-down-orchestrator.ts
+|   |   |   |-- filter-interpreter.ts
+|   |   |   |-- filter-propagation.ts
+|   |   |   |-- kpi-summary-engine.ts
+|   |   |   |-- module-5-5.ts
+|   |   |   |-- state-engine.ts
+|   |   |   -- types.ts
+|   |   |-- data-lineage
+|   |   |   |-- ai-relationship-validator.ts
+|   |   |   |-- explanation-generator.ts
+|   |   |   |-- index.ts
+|   |   |   |-- kpi-lineage-registry.ts
+|   |   |   |-- kpi-lineage.ts
+|   |   |   |-- relationship-detector.ts
+|   |   |   |-- relationship-graph.ts
+|   |   |   -- relationship-registry.ts
+|   |   |-- demo
+|   |   |   |-- data-loaders.ts
+|   |   |   |-- ecommerce-processor.ts
+|   |   |   |-- edtech-processor.ts
+|   |   |   |-- finance-processor.ts
+|   |   |   |-- healthcare-processor.ts
+|   |   |   |-- manufacturing-processor.ts
+|   |   |   |-- retail-demo-data.ts
+|   |   |   |-- retail-processor.ts
+|   |   |   |-- saas-processor.ts
+|   |   |   -- services-processor.ts
+|   |   |-- domain
+|   |   |   |-- column-scanner.ts
+|   |   |   |-- domain-classifier.ts
+|   |   |   |-- domain-keywords.ts
+|   |   |   |-- domain-kpis.ts
+|   |   |   |-- domain-scorer.ts
+|   |   |   |-- governance.ts
+|   |   |   -- index.ts
+|   |   |-- email.ts
+|   |   |-- env.ts
+|   |   |-- errors.ts
+|   |   |-- execution
+|   |   |   |-- cache.ts
+|   |   |   |-- data-materializer.ts
+|   |   |   |-- data-profiler.ts
+|   |   |   |-- explanation-cache.ts
+|   |   |   |-- index.ts
+|   |   |   |-- kpi-executor.ts
+|   |   |   |-- pool.ts
+|   |   |   |-- schemas.ts
+|   |   |   |-- sql-compiler.ts
+|   |   |   |-- statistics-core.ts
+|   |   |   |-- time-alignment.ts
+|   |   |   -- types.ts
+|   |   |-- hooks
+|   |   |   |-- use-api.ts
+|   |   |   -- use-real-data.ts
+|   |   |-- insights
+|   |   |   |-- anomaly-detector.ts
+|   |   |   |-- change-attribution.ts
+|   |   |   |-- explanation-renderer.ts
+|   |   |   |-- index.ts
+|   |   |   |-- insight-generator.ts
+|   |   |   |-- trend-analyzer.ts
+|   |   |   -- types.ts
+|   |   |-- intelligence
+|   |   |   |-- columns.ts
+|   |   |   |-- index.ts
+|   |   |   -- relationships.ts
+|   |   |-- kpi
+|   |   |   |-- ai-kpi-discovery.ts
+|   |   |   |-- blueprint-inserter.ts
+|   |   |   |-- blueprint-loader.ts
+|   |   |   |-- derived-kpi-library.ts
+|   |   |   |-- domain-metadata.ts
+|   |   |   |-- index.ts
+|   |   |   |-- kpi-eligibility-engine.ts
+|   |   |   |-- kpi-library.ts
+|   |   |   |-- kpi-matcher.ts
+|   |   |   |-- kpi-rule-registry.ts
+|   |   |   |-- module-4-5.ts
+|   |   |   |-- semantic-column-aliases.ts
+|   |   |   |-- semantic-resolver.ts
+|   |   |   -- semantic-types.ts
+|   |   |-- module-6
+|   |   |   |-- audit-log.ts
+|   |   |   |-- command-schema.ts
+|   |   |   |-- context-builder.ts
+|   |   |   |-- correlations
+|   |   |   |   |-- correlation-packet.ts
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- kpi-pair-validator.ts
+|   |   |   |   |-- lag-engine.ts
+|   |   |   |   |-- llm-correlation-client.ts
+|   |   |   |   |-- numeric-guard.ts
+|   |   |   |   |-- period-aligner.ts
+|   |   |   |   |-- statistics-gate.ts
+|   |   |   |   |-- trend-confounder.ts
+|   |   |   |   -- types.ts
+|   |   |   |-- events
+|   |   |   |   |-- event-engine.ts
+|   |   |   |   |-- evidence-packet.ts
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- llm-event-client.ts
+|   |   |   |   |-- numeric-guard.ts
+|   |   |   |   -- types.ts
+|   |   |   |-- execution-bridge.ts
+|   |   |   |-- idempotency.ts
+|   |   |   |-- index.ts
+|   |   |   |-- infrastructure
+|   |   |   |   |-- audit-logger.ts
+|   |   |   |   |-- cloud-adapter.ts
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- local-adapter.ts
+|   |   |   |   |-- model-router.ts
+|   |   |   |   |-- numeric-guard.ts
+|   |   |   |   |-- prompt-builder.ts
+|   |   |   |   |-- task-classifier.ts
+|   |   |   |   -- types.ts
+|   |   |   |-- llm-client.ts
+|   |   |   |-- orchestration
+|   |   |   |   -- orchestrator.ts
+|   |   |   |-- shared
+|   |   |   |   -- numeric-guard.ts
+|   |   |   |-- synthesis
+|   |   |   |   |-- causation-guard.ts
+|   |   |   |   |-- conflict-detector.ts
+|   |   |   |   |-- cross-packet-numeric-guard.ts
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- packet-governance.ts
+|   |   |   |   |-- packet-loader.ts
+|   |   |   |   |-- synthesis-audit-logger.ts
+|   |   |   |   |-- synthesis-classifier.ts
+|   |   |   |   |-- synthesis-prompt-builder.ts
+|   |   |   |   -- types.ts
+|   |   |   |-- types.ts
+|   |   |   -- validation-pipeline.ts
+|   |   |-- module-7
+|   |   |   |-- action-generator.ts
+|   |   |   |-- action-ranker.ts
+|   |   |   |-- goal-decomposer.ts
+|   |   |   |-- goal-engine.ts
+|   |   |   |-- goal-parser.ts
+|   |   |   |-- index.ts
+|   |   |   |-- location-extractor.ts
+|   |   |   |-- location-splitter.ts
+|   |   |   -- scenario-builder.ts
+|   |   |-- module-8
+|   |   |   |-- impact-model.ts
+|   |   |   |-- kpi-history-resolver.ts
+|   |   |   |-- monte-carlo.ts
+|   |   |   |-- prophet-bridge.ts
+|   |   |   |-- strategy-validator.ts
+|   |   |   |-- types.ts
+|   |   |   -- validator.ts
+|   |   |-- module-9
+|   |   |   -- ReportTemplate.tsx
+|   |   |-- notifications.ts
+|   |   |-- parsers
+|   |   |   |-- csv.ts
+|   |   |   |-- index.ts
+|   |   |   |-- json.ts
+|   |   |   |-- xlsx.ts
+|   |   |   -- xml.ts
+|   |   |-- plan-limits.ts
+|   |   |-- prisma
+|   |   |   |-- json-input.ts
+|   |   |   -- json-schemas.ts
+|   |   |-- prisma.ts
+|   |   |-- purification
+|   |   |   |-- currency-normalizer.ts
+|   |   |   |-- date-normalizer.ts
+|   |   |   |-- duplicate-detector.ts
+|   |   |   |-- index.ts
+|   |   |   |-- null-handler.ts
+|   |   |   -- text-standardizer.ts
+|   |   |-- quality
+|   |   |   |-- column-health-grader.ts
+|   |   |   |-- completeness-scorer.ts
+|   |   |   |-- consistency-scorer.ts
+|   |   |   |-- dataset-quality-grader.ts
+|   |   |   |-- index.ts
+|   |   |   -- outlier-detector.ts
+|   |   |-- security
+|   |   |   |-- file-validator.ts
+|   |   |   -- rate-limiter.ts
+|   |   -- visualization
+|   |       |-- data-loader.ts
+|   |       |-- filter-engine.ts
+|   |       |-- index.ts
+|   |       |-- kpi-computer.ts
+|   |       -- types.ts
+|   |-- proxy.ts
+|   -- types
+|       -- plotly.d.ts
+|-- test-ask-ai.mjs
+|-- test-blinkit-e2e.tsx
+|-- test-cloud-ai.ts
+|-- test-dashboard-direct.mjs
+|-- test-dashboard-http.mjs
+|-- test-dashboard.mjs
+|-- test-groq.ts
+|-- test-kpi.ts
+|-- test-m12.json
+|-- test-module8.ts
+|-- test-retail-flow.ts
+|-- testout.txt
+|-- tests
+|   |-- color
+|   |   -- color-parser.test.ts
+|   |-- data
+|   |   -- test-data-generator.ts
+|   |-- data-integration.test.ts
+|   |-- e2e-all-modules.test.ts
+|   |-- integration
+|   |   -- modules-5-to-8.test.ts
+|   |-- integration.e2e.ts
+|   |-- manual-validation.test.ts
+|   |-- MANUAL_TESTING_GUIDE.md
+|   |-- module-1-2
+|   |   -- parsers-purification.test.ts
+|   |-- module-3
+|   |   -- domain-classification.test.ts
+|   |-- module-4-5
+|   |   |-- eligibility.test.ts
+|   |   -- semantic-resolver.test.ts
+|   |-- module-4d
+|   |   |-- edge-cases.test.ts
+|   |   |-- integration.test.ts
+|   |   |-- kpi-lineage.test.ts
+|   |   |-- relationship-detection.test.ts
+|   |   -- test-datasets.ts
+|   |-- module-5
+|   |   |-- data-quality-endpoints.test.ts
+|   |   -- integration.test.ts
+|   |-- module-5-5
+|   |   |-- anomaly.test.ts
+|   |   |-- filter-interpreter.test.ts
+|   |   |-- kpi-summary.test.ts
+|   |   -- state-engine.test.ts
+|   |-- module-5a
+|   |   -- dashboard-layout.test.ts
+|   |-- module-5b
+|   |   |-- chart-selection.test.ts
+|   |   |-- execution.test.ts
+|   |   |-- executor.test.ts
+|   |   |-- explanation-cache.test.ts
+|   |   |-- performance.test.ts
+|   |   -- visualization.test.ts
+|   |-- module-5c
+|   |   -- insights.test.ts
+|   |-- module-6
+|   |   |-- ask-ai-route.test.ts
+|   |   |-- audit-logger.test.ts
+|   |   |-- causation-guard.test.ts
+|   |   |-- conflict-detector.test.ts
+|   |   |-- correlation-packet.test.ts
+|   |   |-- cross-packet-numeric-guard.test.ts
+|   |   |-- dco-validation.test.ts
+|   |   |-- event-engine.test.ts
+|   |   |-- evidence-packet.test.ts
+|   |   |-- execution-bridge.test.ts
+|   |   |-- idempotency.test.ts
+|   |   |-- kpi-pair-validator.test.ts
+|   |   |-- lag-engine.test.ts
+|   |   |-- llm-guard.test.ts
+|   |   |-- local-adapter.test.ts
+|   |   |-- model-router.test.ts
+|   |   |-- numeric-guard.test.ts
+|   |   |-- packet-governance.test.ts
+|   |   |-- parse.test.ts
+|   |   |-- period-aligner.test.ts
+|   |   |-- pipeline.test.ts
+|   |   |-- prompt-builder.test.ts
+|   |   |-- schema.test.ts
+|   |   |-- security.test.ts
+|   |   |-- statistics-gate.test.ts
+|   |   |-- synthesis-classifier.test.ts
+|   |   |-- synthesis-prompt-builder.test.ts
+|   |   |-- task-classifier.test.ts
+|   |   -- trend-confounder.test.ts
+|   |-- module-7
+|   |   |-- location-extractor.test.ts
+|   |   |-- ollama-integration.test.ts
+|   |   -- pipeline.test.ts
+|   |-- module-7-integration.test.ts
+|   |-- module-8
+|   |   |-- canvas-payload.test.ts
+|   |   |-- forecast-api.test.ts
+|   |   |-- hybrid-prophet-montecarlo.test.ts
+|   |   |-- kpi-history-resolver.test.ts
+|   |   |-- module-7-to-8-bridge.test.ts
+|   |   |-- rate-limiter.test.ts
+|   |   |-- strategy-validator.test.ts
+|   |   -- writeback-gateway.test.ts
+|   |-- module-9
+|   |   -- report-engine.test.ts
+|   |-- module1.e2e.ts
+|   |-- module2.e2e.ts
+|   |-- package-lock.json
+|   |-- package.json
+|   |-- preflight
+|   |   -- T1-T10.test.ts
+|   |-- README.md
+|   |-- run-tests.js
+|   |-- test-ai-direct.ts
+|   |-- test-domain-skills.ts
+|   -- TESTING_FRAMEWORK_SUMMARY.md
+|-- test_ecomm_questions.mjs
+|-- test_errors.log
+|-- tmp-smoke
+|   |-- chrome-e2e-1779094540830
+|   |   |-- component_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- Crashpad
+|   |   |   -- settings.dat
+|   |   |-- Default
+|   |   |   |-- Account Web Data
+|   |   |   |-- Account Web Data-journal
+|   |   |   |-- Affiliation Database
+|   |   |   |-- Affiliation Database-journal
+|   |   |   |-- AutofillAiModelCache
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- AutofillStrikeDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- BookmarkMergedSurfaceOrdering
+|   |   |   |-- BrowsingTopicsSiteData
+|   |   |   |-- BrowsingTopicsSiteData-journal
+|   |   |   |-- BrowsingTopicsState
+|   |   |   |-- BudgetDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Cache
+|   |   |   |   |-- Cache_Data
+|   |   |   |   |   |-- index
+|   |   |   |   |   |-- sqldb0
+|   |   |   |   |   |-- sqldb0-wal
+|   |   |   |   |   |-- sqldb1
+|   |   |   |   |   |-- sqldb1-wal
+|   |   |   |   |   |-- sqldb2
+|   |   |   |   |   -- sqldb2-wal
+|   |   |   |   -- No_Vary_Search
+|   |   |   |       |-- journal.baj
+|   |   |   |       -- snapshot.baf
+|   |   |   |-- chrome_cart_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- ClientCertificates
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Code Cache
+|   |   |   |   -- pc
+|   |   |   |       |-- 5bb[`6`2`29@0-95@ab`2.db
+|   |   |   |       -- 5bb[`6`2`29@0-95@ab`2.journal
+|   |   |   |-- Collaboration
+|   |   |   |   |-- MessageDB
+|   |   |   |   -- MessageDB-journal
+|   |   |   |-- commerce_subscription_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- DataSharing
+|   |   |   |   |-- DataSharingDB
+|   |   |   |   -- DataSharingDB-journal
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DawnWebGPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DIPS
+|   |   |   |-- DIPS-wal
+|   |   |   |-- discounts_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- discount_infos_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Extension Rules
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension Scripts
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension State
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extensions
+|   |   |   |   -- ljglajjnnkapghbckkcmodicjhacbfhk
+|   |   |   |       -- 2.68.0.34_0
+|   |   |   |           |-- background.js
+|   |   |   |           |-- manifest.json
+|   |   |   |           |-- PAD-ico_128.png
+|   |   |   |           |-- PAD-ico_32.png
+|   |   |   |           |-- PAD-ico_48.png
+|   |   |   |           |-- PAD-ico_56.png
+|   |   |   |           |-- PAD-ico_64.png
+|   |   |   |           |-- scripts
+|   |   |   |           |   |-- api.v1.js
+|   |   |   |           |   |-- api.v2.js
+|   |   |   |           |   |-- api.v3.js
+|   |   |   |           |   |-- api.v4.js
+|   |   |   |           |   |-- content.v1.js
+|   |   |   |           |   -- content.v2.js
+|   |   |   |           |-- _locales
+|   |   |   |           |   |-- bg
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ca
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- cs
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- da
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- de
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- el
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- en
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- es
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- et
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- eu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- gl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- id
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- it
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ja
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- kk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ko
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lt
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ms
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb-NO
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nn
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- no
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-BR
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-PT
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ro
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ru
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Cyrl-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Latn-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- th
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- tr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- uk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- vi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- zh-Hans
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   -- zh-Hant
+|   |   |   |           |       -- messages.json
+|   |   |   |           -- _metadata
+|   |   |   |               -- verified_contents.json
+|   |   |   |-- Favicons
+|   |   |   |-- Favicons-journal
+|   |   |   |-- GCM Store
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- Encryption
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- GPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- heavy_ad_intervention_opt_out.db
+|   |   |   |-- heavy_ad_intervention_opt_out.db-journal
+|   |   |   |-- History
+|   |   |   |-- History-shm
+|   |   |   |-- History-wal
+|   |   |   |-- Local Storage
+|   |   |   |   -- leveldb
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- LOCK
+|   |   |   |-- LOG
+|   |   |   |-- Login Data
+|   |   |   |-- Login Data For Account
+|   |   |   |-- Login Data For Account-journal
+|   |   |   |-- Login Data-journal
+|   |   |   |-- Network
+|   |   |   |   |-- Cookies
+|   |   |   |   |-- Cookies-journal
+|   |   |   |   |-- Device Bound Sessions
+|   |   |   |   |-- Device Bound Sessions-journal
+|   |   |   |   |-- Network Persistent State
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Reporting and NEL
+|   |   |   |   |-- Reporting and NEL-journal
+|   |   |   |   |-- SCT Auditing Pending Reports
+|   |   |   |   |-- Trust Tokens
+|   |   |   |   -- Trust Tokens-journal
+|   |   |   |-- Network Action Predictor
+|   |   |   |-- Network Action Predictor-journal
+|   |   |   |-- optimization_guide_hint_cache_store
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- parcel_tracking_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- PersistentOriginTrials
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Preferences
+|   |   |   |-- PreferredApps
+|   |   |   |-- README
+|   |   |   |-- Safe Browsing Network
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Safe Browsing Cookies
+|   |   |   |   -- Safe Browsing Cookies-journal
+|   |   |   |-- Secure Preferences
+|   |   |   |-- Segmentation Platform
+|   |   |   |   |-- SegmentInfoDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   |-- SignalDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   -- SignalStorageConfigDB
+|   |   |   |       |-- LOCK
+|   |   |   |       -- LOG
+|   |   |   |-- ServerCertificate
+|   |   |   |-- ServerCertificate-journal
+|   |   |   |-- Service Worker
+|   |   |   |   |-- Database
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   -- ScriptCache
+|   |   |   |       |-- 2cc80dabc69f58b6_0
+|   |   |   |       |-- 2cc80dabc69f58b6_1
+|   |   |   |       |-- index
+|   |   |   |       -- index-dir
+|   |   |   |           -- the-real-index
+|   |   |   |-- Session Storage
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sessions
+|   |   |   |   -- Session_13423568143713317
+|   |   |   |-- Shared Dictionary
+|   |   |   |   |-- cache
+|   |   |   |   |   |-- index
+|   |   |   |   |   -- index-dir
+|   |   |   |   |       -- the-real-index
+|   |   |   |   |-- db
+|   |   |   |   -- db-journal
+|   |   |   |-- shared_proto_db
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   |-- MANIFEST-000001
+|   |   |   |   -- metadata
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Shortcuts
+|   |   |   |-- Shortcuts-journal
+|   |   |   |-- Site Characteristics Database
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sync Data
+|   |   |   |   -- LevelDB
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Top Sites
+|   |   |   |-- Top Sites-journal
+|   |   |   |-- trusted_vault.pb
+|   |   |   |-- Web Data
+|   |   |   |-- Web Data-journal
+|   |   |   -- WebStorage
+|   |   |       |-- QuotaManager
+|   |   |       -- QuotaManager-journal
+|   |   |-- extensions_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- first_party_sets.db
+|   |   |-- first_party_sets.db-journal
+|   |   |-- GPUPersistentCache
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   -- L3TUJFZJ6BQEHD7KXSZN3CW62OV36GSR
+|   |   |   |       |-- cache.db
+|   |   |   |       |-- cache.db-wal
+|   |   |   |       -- cache.journal
+|   |   |   -- GPUCache
+|   |   |       -- KEKVTFUW5VSNRTCSERJ3GD6SQKFOGHXC
+|   |   |           |-- cache.db
+|   |   |           |-- cache.db-wal
+|   |   |           -- cache.journal
+|   |   |-- Last Browser
+|   |   |-- Last Version
+|   |   |-- Local State
+|   |   |-- segmentation_platform
+|   |   |   |-- ukm_db
+|   |   |   -- ukm_db-wal
+|   |   -- Variations
+|   |-- chrome-e2e-1779094663798
+|   |   |-- component_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- Crashpad
+|   |   |   -- settings.dat
+|   |   |-- Default
+|   |   |   |-- Account Web Data
+|   |   |   |-- Account Web Data-journal
+|   |   |   |-- Affiliation Database
+|   |   |   |-- Affiliation Database-journal
+|   |   |   |-- AutofillAiModelCache
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- AutofillStrikeDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- BookmarkMergedSurfaceOrdering
+|   |   |   |-- BrowsingTopicsSiteData
+|   |   |   |-- BrowsingTopicsSiteData-journal
+|   |   |   |-- BrowsingTopicsState
+|   |   |   |-- BudgetDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Cache
+|   |   |   |   |-- Cache_Data
+|   |   |   |   |   |-- index
+|   |   |   |   |   |-- sqldb0
+|   |   |   |   |   |-- sqldb0-wal
+|   |   |   |   |   |-- sqldb1
+|   |   |   |   |   |-- sqldb1-wal
+|   |   |   |   |   |-- sqldb2
+|   |   |   |   |   -- sqldb2-wal
+|   |   |   |   -- No_Vary_Search
+|   |   |   |       |-- journal.baj
+|   |   |   |       -- snapshot.baf
+|   |   |   |-- chrome_cart_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- ClientCertificates
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Code Cache
+|   |   |   |   -- pc
+|   |   |   |       |-- 5bb[`6`2`29@0-95@ab`2.db
+|   |   |   |       -- 5bb[`6`2`29@0-95@ab`2.journal
+|   |   |   |-- Collaboration
+|   |   |   |   |-- MessageDB
+|   |   |   |   -- MessageDB-journal
+|   |   |   |-- commerce_subscription_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- DataSharing
+|   |   |   |   |-- DataSharingDB
+|   |   |   |   -- DataSharingDB-journal
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DawnWebGPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DIPS
+|   |   |   |-- DIPS-wal
+|   |   |   |-- discounts_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- discount_infos_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Extension Rules
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension Scripts
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension State
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extensions
+|   |   |   |   -- ljglajjnnkapghbckkcmodicjhacbfhk
+|   |   |   |       -- 2.68.0.34_0
+|   |   |   |           |-- background.js
+|   |   |   |           |-- manifest.json
+|   |   |   |           |-- PAD-ico_128.png
+|   |   |   |           |-- PAD-ico_32.png
+|   |   |   |           |-- PAD-ico_48.png
+|   |   |   |           |-- PAD-ico_56.png
+|   |   |   |           |-- PAD-ico_64.png
+|   |   |   |           |-- scripts
+|   |   |   |           |   |-- api.v1.js
+|   |   |   |           |   |-- api.v2.js
+|   |   |   |           |   |-- api.v3.js
+|   |   |   |           |   |-- api.v4.js
+|   |   |   |           |   |-- content.v1.js
+|   |   |   |           |   -- content.v2.js
+|   |   |   |           |-- _locales
+|   |   |   |           |   |-- bg
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ca
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- cs
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- da
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- de
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- el
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- en
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- es
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- et
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- eu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- gl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- id
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- it
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ja
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- kk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ko
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lt
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ms
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb-NO
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nn
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- no
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-BR
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-PT
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ro
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ru
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Cyrl-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Latn-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- th
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- tr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- uk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- vi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- zh-Hans
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   -- zh-Hant
+|   |   |   |           |       -- messages.json
+|   |   |   |           -- _metadata
+|   |   |   |               -- verified_contents.json
+|   |   |   |-- Favicons
+|   |   |   |-- Favicons-journal
+|   |   |   |-- GCM Store
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- Encryption
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- GPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- heavy_ad_intervention_opt_out.db
+|   |   |   |-- heavy_ad_intervention_opt_out.db-journal
+|   |   |   |-- History
+|   |   |   |-- History-shm
+|   |   |   |-- History-wal
+|   |   |   |-- Local Storage
+|   |   |   |   -- leveldb
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- LOCK
+|   |   |   |-- LOG
+|   |   |   |-- Login Data
+|   |   |   |-- Login Data For Account
+|   |   |   |-- Login Data For Account-journal
+|   |   |   |-- Login Data-journal
+|   |   |   |-- Network
+|   |   |   |   |-- Cookies
+|   |   |   |   |-- Cookies-journal
+|   |   |   |   |-- Device Bound Sessions
+|   |   |   |   |-- Device Bound Sessions-journal
+|   |   |   |   |-- Network Persistent State
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Reporting and NEL
+|   |   |   |   |-- Reporting and NEL-journal
+|   |   |   |   |-- SCT Auditing Pending Reports
+|   |   |   |   |-- Trust Tokens
+|   |   |   |   -- Trust Tokens-journal
+|   |   |   |-- Network Action Predictor
+|   |   |   |-- Network Action Predictor-journal
+|   |   |   |-- optimization_guide_hint_cache_store
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- parcel_tracking_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- PersistentOriginTrials
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Preferences
+|   |   |   |-- PreferredApps
+|   |   |   |-- README
+|   |   |   |-- Safe Browsing Network
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Safe Browsing Cookies
+|   |   |   |   -- Safe Browsing Cookies-journal
+|   |   |   |-- Secure Preferences
+|   |   |   |-- Segmentation Platform
+|   |   |   |   |-- SegmentInfoDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   |-- SignalDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   -- SignalStorageConfigDB
+|   |   |   |       |-- LOCK
+|   |   |   |       -- LOG
+|   |   |   |-- ServerCertificate
+|   |   |   |-- ServerCertificate-journal
+|   |   |   |-- Service Worker
+|   |   |   |   |-- Database
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   -- ScriptCache
+|   |   |   |       |-- 2cc80dabc69f58b6_0
+|   |   |   |       |-- 2cc80dabc69f58b6_1
+|   |   |   |       |-- index
+|   |   |   |       -- index-dir
+|   |   |   |           -- the-real-index
+|   |   |   |-- Session Storage
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sessions
+|   |   |   |   -- Session_13423568266490879
+|   |   |   |-- Shared Dictionary
+|   |   |   |   |-- cache
+|   |   |   |   |   |-- index
+|   |   |   |   |   -- index-dir
+|   |   |   |   |       -- the-real-index
+|   |   |   |   |-- db
+|   |   |   |   -- db-journal
+|   |   |   |-- shared_proto_db
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   |-- MANIFEST-000001
+|   |   |   |   -- metadata
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Shortcuts
+|   |   |   |-- Shortcuts-journal
+|   |   |   |-- Site Characteristics Database
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sync Data
+|   |   |   |   -- LevelDB
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Top Sites
+|   |   |   |-- Top Sites-journal
+|   |   |   |-- trusted_vault.pb
+|   |   |   |-- Web Data
+|   |   |   |-- Web Data-journal
+|   |   |   -- WebStorage
+|   |   |       |-- QuotaManager
+|   |   |       -- QuotaManager-journal
+|   |   |-- extensions_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- first_party_sets.db
+|   |   |-- first_party_sets.db-journal
+|   |   |-- GPUPersistentCache
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   -- L3TUJFZJ6BQEHD7KXSZN3CW62OV36GSR
+|   |   |   |       |-- cache.db
+|   |   |   |       |-- cache.db-wal
+|   |   |   |       -- cache.journal
+|   |   |   -- GPUCache
+|   |   |       -- KEKVTFUW5VSNRTCSERJ3GD6SQKFOGHXC
+|   |   |           |-- cache.db
+|   |   |           |-- cache.db-wal
+|   |   |           -- cache.journal
+|   |   |-- Last Browser
+|   |   |-- Last Version
+|   |   |-- Local State
+|   |   |-- segmentation_platform
+|   |   |   |-- ukm_db
+|   |   |   -- ukm_db-wal
+|   |   -- Variations
+|   |-- chrome-e2e-1779094863337
+|   |   |-- component_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- Crashpad
+|   |   |   -- settings.dat
+|   |   |-- Default
+|   |   |   |-- Account Web Data
+|   |   |   |-- Account Web Data-journal
+|   |   |   |-- Affiliation Database
+|   |   |   |-- Affiliation Database-journal
+|   |   |   |-- AutofillAiModelCache
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- AutofillStrikeDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- BookmarkMergedSurfaceOrdering
+|   |   |   |-- BrowsingTopicsSiteData
+|   |   |   |-- BrowsingTopicsSiteData-journal
+|   |   |   |-- BrowsingTopicsState
+|   |   |   |-- BudgetDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Cache
+|   |   |   |   |-- Cache_Data
+|   |   |   |   |   |-- index
+|   |   |   |   |   |-- sqldb0
+|   |   |   |   |   |-- sqldb0-wal
+|   |   |   |   |   |-- sqldb1
+|   |   |   |   |   |-- sqldb1-wal
+|   |   |   |   |   |-- sqldb2
+|   |   |   |   |   -- sqldb2-wal
+|   |   |   |   -- No_Vary_Search
+|   |   |   |       |-- journal.baj
+|   |   |   |       -- snapshot.baf
+|   |   |   |-- chrome_cart_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- ClientCertificates
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Code Cache
+|   |   |   |   -- pc
+|   |   |   |       |-- 5bb[`6`2`29@0-95@ab`2.db
+|   |   |   |       -- 5bb[`6`2`29@0-95@ab`2.journal
+|   |   |   |-- Collaboration
+|   |   |   |   |-- MessageDB
+|   |   |   |   -- MessageDB-journal
+|   |   |   |-- commerce_subscription_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- DataSharing
+|   |   |   |   |-- DataSharingDB
+|   |   |   |   -- DataSharingDB-journal
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DawnWebGPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DIPS
+|   |   |   |-- DIPS-wal
+|   |   |   |-- discounts_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- discount_infos_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Extension Rules
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension Scripts
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension State
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extensions
+|   |   |   |   -- ljglajjnnkapghbckkcmodicjhacbfhk
+|   |   |   |       -- 2.68.0.34_0
+|   |   |   |           |-- background.js
+|   |   |   |           |-- manifest.json
+|   |   |   |           |-- PAD-ico_128.png
+|   |   |   |           |-- PAD-ico_32.png
+|   |   |   |           |-- PAD-ico_48.png
+|   |   |   |           |-- PAD-ico_56.png
+|   |   |   |           |-- PAD-ico_64.png
+|   |   |   |           |-- scripts
+|   |   |   |           |   |-- api.v1.js
+|   |   |   |           |   |-- api.v2.js
+|   |   |   |           |   |-- api.v3.js
+|   |   |   |           |   |-- api.v4.js
+|   |   |   |           |   |-- content.v1.js
+|   |   |   |           |   -- content.v2.js
+|   |   |   |           |-- _locales
+|   |   |   |           |   |-- bg
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ca
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- cs
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- da
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- de
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- el
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- en
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- es
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- et
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- eu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- gl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- id
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- it
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ja
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- kk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ko
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lt
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ms
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb-NO
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nn
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- no
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-BR
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-PT
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ro
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ru
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Cyrl-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Latn-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- th
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- tr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- uk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- vi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- zh-Hans
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   -- zh-Hant
+|   |   |   |           |       -- messages.json
+|   |   |   |           -- _metadata
+|   |   |   |               -- verified_contents.json
+|   |   |   |-- Favicons
+|   |   |   |-- Favicons-journal
+|   |   |   |-- GCM Store
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- Encryption
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- GPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- heavy_ad_intervention_opt_out.db
+|   |   |   |-- heavy_ad_intervention_opt_out.db-journal
+|   |   |   |-- History
+|   |   |   |-- History-shm
+|   |   |   |-- History-wal
+|   |   |   |-- Local Storage
+|   |   |   |   -- leveldb
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- LOCK
+|   |   |   |-- LOG
+|   |   |   |-- Login Data
+|   |   |   |-- Login Data For Account
+|   |   |   |-- Login Data For Account-journal
+|   |   |   |-- Login Data-journal
+|   |   |   |-- Network
+|   |   |   |   |-- Cookies
+|   |   |   |   |-- Cookies-journal
+|   |   |   |   |-- Device Bound Sessions
+|   |   |   |   |-- Device Bound Sessions-journal
+|   |   |   |   |-- Network Persistent State
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Reporting and NEL
+|   |   |   |   |-- Reporting and NEL-journal
+|   |   |   |   |-- SCT Auditing Pending Reports
+|   |   |   |   |-- Trust Tokens
+|   |   |   |   -- Trust Tokens-journal
+|   |   |   |-- Network Action Predictor
+|   |   |   |-- Network Action Predictor-journal
+|   |   |   |-- optimization_guide_hint_cache_store
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- parcel_tracking_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- PersistentOriginTrials
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Preferences
+|   |   |   |-- PreferredApps
+|   |   |   |-- README
+|   |   |   |-- Safe Browsing Network
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Safe Browsing Cookies
+|   |   |   |   -- Safe Browsing Cookies-journal
+|   |   |   |-- Secure Preferences
+|   |   |   |-- Segmentation Platform
+|   |   |   |   |-- SegmentInfoDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   |-- SignalDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   -- SignalStorageConfigDB
+|   |   |   |       |-- LOCK
+|   |   |   |       -- LOG
+|   |   |   |-- ServerCertificate
+|   |   |   |-- ServerCertificate-journal
+|   |   |   |-- Service Worker
+|   |   |   |   |-- Database
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   -- ScriptCache
+|   |   |   |       |-- 2cc80dabc69f58b6_0
+|   |   |   |       |-- 2cc80dabc69f58b6_1
+|   |   |   |       |-- index
+|   |   |   |       -- index-dir
+|   |   |   |           -- the-real-index
+|   |   |   |-- Session Storage
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sessions
+|   |   |   |   -- Session_13423568466109084
+|   |   |   |-- Shared Dictionary
+|   |   |   |   |-- cache
+|   |   |   |   |   |-- index
+|   |   |   |   |   -- index-dir
+|   |   |   |   |       -- the-real-index
+|   |   |   |   |-- db
+|   |   |   |   -- db-journal
+|   |   |   |-- shared_proto_db
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   |-- MANIFEST-000001
+|   |   |   |   -- metadata
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Shortcuts
+|   |   |   |-- Shortcuts-journal
+|   |   |   |-- Site Characteristics Database
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sync Data
+|   |   |   |   -- LevelDB
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Top Sites
+|   |   |   |-- Top Sites-journal
+|   |   |   |-- trusted_vault.pb
+|   |   |   |-- Web Data
+|   |   |   |-- Web Data-journal
+|   |   |   -- WebStorage
+|   |   |       |-- QuotaManager
+|   |   |       -- QuotaManager-journal
+|   |   |-- extensions_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- first_party_sets.db
+|   |   |-- first_party_sets.db-journal
+|   |   |-- GPUPersistentCache
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   -- L3TUJFZJ6BQEHD7KXSZN3CW62OV36GSR
+|   |   |   |       |-- cache.db
+|   |   |   |       |-- cache.db-wal
+|   |   |   |       -- cache.journal
+|   |   |   -- GPUCache
+|   |   |       -- KEKVTFUW5VSNRTCSERJ3GD6SQKFOGHXC
+|   |   |           |-- cache.db
+|   |   |           |-- cache.db-wal
+|   |   |           -- cache.journal
+|   |   |-- Last Browser
+|   |   |-- Last Version
+|   |   |-- Local State
+|   |   |-- segmentation_platform
+|   |   |   |-- ukm_db
+|   |   |   -- ukm_db-wal
+|   |   -- Variations
+|   |-- chrome-e2e-1779094999678
+|   |   |-- component_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- Crashpad
+|   |   |   -- settings.dat
+|   |   |-- Default
+|   |   |   |-- Account Web Data
+|   |   |   |-- Account Web Data-journal
+|   |   |   |-- Affiliation Database
+|   |   |   |-- Affiliation Database-journal
+|   |   |   |-- AutofillAiModelCache
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- AutofillStrikeDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- BookmarkMergedSurfaceOrdering
+|   |   |   |-- BrowsingTopicsSiteData
+|   |   |   |-- BrowsingTopicsSiteData-journal
+|   |   |   |-- BrowsingTopicsState
+|   |   |   |-- BudgetDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Cache
+|   |   |   |   |-- Cache_Data
+|   |   |   |   |   |-- index
+|   |   |   |   |   |-- sqldb0
+|   |   |   |   |   |-- sqldb0-wal
+|   |   |   |   |   |-- sqldb1
+|   |   |   |   |   |-- sqldb1-wal
+|   |   |   |   |   |-- sqldb2
+|   |   |   |   |   -- sqldb2-wal
+|   |   |   |   -- No_Vary_Search
+|   |   |   |       |-- journal.baj
+|   |   |   |       -- snapshot.baf
+|   |   |   |-- chrome_cart_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- ClientCertificates
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Code Cache
+|   |   |   |   -- pc
+|   |   |   |       |-- 5bb[`6`2`29@0-95@ab`2.db
+|   |   |   |       -- 5bb[`6`2`29@0-95@ab`2.journal
+|   |   |   |-- Collaboration
+|   |   |   |   |-- MessageDB
+|   |   |   |   -- MessageDB-journal
+|   |   |   |-- commerce_subscription_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- DataSharing
+|   |   |   |   |-- DataSharingDB
+|   |   |   |   -- DataSharingDB-journal
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DawnWebGPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DIPS
+|   |   |   |-- DIPS-wal
+|   |   |   |-- discounts_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- discount_infos_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Extension Rules
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension Scripts
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension State
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extensions
+|   |   |   |   -- ljglajjnnkapghbckkcmodicjhacbfhk
+|   |   |   |       -- 2.68.0.34_0
+|   |   |   |           |-- background.js
+|   |   |   |           |-- manifest.json
+|   |   |   |           |-- PAD-ico_128.png
+|   |   |   |           |-- PAD-ico_32.png
+|   |   |   |           |-- PAD-ico_48.png
+|   |   |   |           |-- PAD-ico_56.png
+|   |   |   |           |-- PAD-ico_64.png
+|   |   |   |           |-- scripts
+|   |   |   |           |   |-- api.v1.js
+|   |   |   |           |   |-- api.v2.js
+|   |   |   |           |   |-- api.v3.js
+|   |   |   |           |   |-- api.v4.js
+|   |   |   |           |   |-- content.v1.js
+|   |   |   |           |   -- content.v2.js
+|   |   |   |           |-- _locales
+|   |   |   |           |   |-- bg
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ca
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- cs
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- da
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- de
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- el
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- en
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- es
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- et
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- eu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- gl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- id
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- it
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ja
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- kk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ko
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lt
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ms
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb-NO
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nn
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- no
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-BR
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-PT
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ro
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ru
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Cyrl-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Latn-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- th
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- tr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- uk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- vi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- zh-Hans
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   -- zh-Hant
+|   |   |   |           |       -- messages.json
+|   |   |   |           -- _metadata
+|   |   |   |               -- verified_contents.json
+|   |   |   |-- Favicons
+|   |   |   |-- Favicons-journal
+|   |   |   |-- GCM Store
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- Encryption
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- GPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- heavy_ad_intervention_opt_out.db
+|   |   |   |-- heavy_ad_intervention_opt_out.db-journal
+|   |   |   |-- History
+|   |   |   |-- History-shm
+|   |   |   |-- History-wal
+|   |   |   |-- Local Storage
+|   |   |   |   -- leveldb
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- LOCK
+|   |   |   |-- LOG
+|   |   |   |-- Login Data
+|   |   |   |-- Login Data For Account
+|   |   |   |-- Login Data For Account-journal
+|   |   |   |-- Login Data-journal
+|   |   |   |-- Network
+|   |   |   |   |-- Cookies
+|   |   |   |   |-- Cookies-journal
+|   |   |   |   |-- Device Bound Sessions
+|   |   |   |   |-- Device Bound Sessions-journal
+|   |   |   |   |-- Network Persistent State
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Reporting and NEL
+|   |   |   |   |-- Reporting and NEL-journal
+|   |   |   |   |-- SCT Auditing Pending Reports
+|   |   |   |   |-- Trust Tokens
+|   |   |   |   -- Trust Tokens-journal
+|   |   |   |-- Network Action Predictor
+|   |   |   |-- Network Action Predictor-journal
+|   |   |   |-- optimization_guide_hint_cache_store
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- parcel_tracking_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- PersistentOriginTrials
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Preferences
+|   |   |   |-- PreferredApps
+|   |   |   |-- README
+|   |   |   |-- Safe Browsing Network
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Safe Browsing Cookies
+|   |   |   |   -- Safe Browsing Cookies-journal
+|   |   |   |-- Secure Preferences
+|   |   |   |-- Segmentation Platform
+|   |   |   |   |-- SegmentInfoDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   |-- SignalDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   -- SignalStorageConfigDB
+|   |   |   |       |-- LOCK
+|   |   |   |       -- LOG
+|   |   |   |-- ServerCertificate
+|   |   |   |-- ServerCertificate-journal
+|   |   |   |-- Service Worker
+|   |   |   |   |-- Database
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   -- ScriptCache
+|   |   |   |       |-- 2cc80dabc69f58b6_0
+|   |   |   |       |-- 2cc80dabc69f58b6_1
+|   |   |   |       |-- index
+|   |   |   |       -- index-dir
+|   |   |   |           -- the-real-index
+|   |   |   |-- Session Storage
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sessions
+|   |   |   |   -- Session_13423568602401291
+|   |   |   |-- Shared Dictionary
+|   |   |   |   |-- cache
+|   |   |   |   |   |-- index
+|   |   |   |   |   -- index-dir
+|   |   |   |   |       -- the-real-index
+|   |   |   |   |-- db
+|   |   |   |   -- db-journal
+|   |   |   |-- shared_proto_db
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   |-- MANIFEST-000001
+|   |   |   |   -- metadata
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Shortcuts
+|   |   |   |-- Shortcuts-journal
+|   |   |   |-- Site Characteristics Database
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sync Data
+|   |   |   |   -- LevelDB
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Top Sites
+|   |   |   |-- Top Sites-journal
+|   |   |   |-- trusted_vault.pb
+|   |   |   |-- Web Data
+|   |   |   |-- Web Data-journal
+|   |   |   -- WebStorage
+|   |   |       |-- QuotaManager
+|   |   |       -- QuotaManager-journal
+|   |   |-- extensions_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- first_party_sets.db
+|   |   |-- first_party_sets.db-journal
+|   |   |-- GPUPersistentCache
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   -- L3TUJFZJ6BQEHD7KXSZN3CW62OV36GSR
+|   |   |   |       |-- cache.db
+|   |   |   |       |-- cache.db-wal
+|   |   |   |       -- cache.journal
+|   |   |   -- GPUCache
+|   |   |       -- KEKVTFUW5VSNRTCSERJ3GD6SQKFOGHXC
+|   |   |           |-- cache.db
+|   |   |           |-- cache.db-wal
+|   |   |           -- cache.journal
+|   |   |-- Last Browser
+|   |   |-- Last Version
+|   |   |-- Local State
+|   |   |-- segmentation_platform
+|   |   |   |-- ukm_db
+|   |   |   -- ukm_db-wal
+|   |   -- Variations
+|   |-- chrome-e2e-1779095183738
+|   |   |-- component_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- Crashpad
+|   |   |   -- settings.dat
+|   |   |-- Default
+|   |   |   |-- Account Web Data
+|   |   |   |-- Account Web Data-journal
+|   |   |   |-- Affiliation Database
+|   |   |   |-- Affiliation Database-journal
+|   |   |   |-- AutofillAiModelCache
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- AutofillStrikeDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- BookmarkMergedSurfaceOrdering
+|   |   |   |-- BrowsingTopicsSiteData
+|   |   |   |-- BrowsingTopicsSiteData-journal
+|   |   |   |-- BrowsingTopicsState
+|   |   |   |-- BudgetDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Cache
+|   |   |   |   |-- Cache_Data
+|   |   |   |   |   |-- index
+|   |   |   |   |   |-- sqldb0
+|   |   |   |   |   |-- sqldb0-wal
+|   |   |   |   |   |-- sqldb1
+|   |   |   |   |   |-- sqldb1-wal
+|   |   |   |   |   |-- sqldb2
+|   |   |   |   |   -- sqldb2-wal
+|   |   |   |   -- No_Vary_Search
+|   |   |   |       |-- journal.baj
+|   |   |   |       -- snapshot.baf
+|   |   |   |-- chrome_cart_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- ClientCertificates
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Code Cache
+|   |   |   |   -- pc
+|   |   |   |       |-- 5bb[`6`2`29@0-95@ab`2.db
+|   |   |   |       -- 5bb[`6`2`29@0-95@ab`2.journal
+|   |   |   |-- Collaboration
+|   |   |   |   |-- MessageDB
+|   |   |   |   -- MessageDB-journal
+|   |   |   |-- commerce_subscription_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- DataSharing
+|   |   |   |   |-- DataSharingDB
+|   |   |   |   -- DataSharingDB-journal
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DawnWebGPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DIPS
+|   |   |   |-- DIPS-wal
+|   |   |   |-- discounts_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- discount_infos_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Extension Rules
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension Scripts
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension State
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extensions
+|   |   |   |   -- ljglajjnnkapghbckkcmodicjhacbfhk
+|   |   |   |       -- 2.68.0.34_0
+|   |   |   |           |-- background.js
+|   |   |   |           |-- manifest.json
+|   |   |   |           |-- PAD-ico_128.png
+|   |   |   |           |-- PAD-ico_32.png
+|   |   |   |           |-- PAD-ico_48.png
+|   |   |   |           |-- PAD-ico_56.png
+|   |   |   |           |-- PAD-ico_64.png
+|   |   |   |           |-- scripts
+|   |   |   |           |   |-- api.v1.js
+|   |   |   |           |   |-- api.v2.js
+|   |   |   |           |   |-- api.v3.js
+|   |   |   |           |   |-- api.v4.js
+|   |   |   |           |   |-- content.v1.js
+|   |   |   |           |   -- content.v2.js
+|   |   |   |           |-- _locales
+|   |   |   |           |   |-- bg
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ca
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- cs
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- da
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- de
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- el
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- en
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- es
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- et
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- eu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- gl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- id
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- it
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ja
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- kk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ko
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lt
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ms
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb-NO
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nn
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- no
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-BR
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-PT
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ro
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ru
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Cyrl-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Latn-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- th
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- tr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- uk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- vi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- zh-Hans
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   -- zh-Hant
+|   |   |   |           |       -- messages.json
+|   |   |   |           -- _metadata
+|   |   |   |               -- verified_contents.json
+|   |   |   |-- Favicons
+|   |   |   |-- Favicons-journal
+|   |   |   |-- GCM Store
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- Encryption
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- GPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- heavy_ad_intervention_opt_out.db
+|   |   |   |-- heavy_ad_intervention_opt_out.db-journal
+|   |   |   |-- History
+|   |   |   |-- History-shm
+|   |   |   |-- History-wal
+|   |   |   |-- Local Storage
+|   |   |   |   -- leveldb
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- LOCK
+|   |   |   |-- LOG
+|   |   |   |-- Login Data
+|   |   |   |-- Login Data For Account
+|   |   |   |-- Login Data For Account-journal
+|   |   |   |-- Login Data-journal
+|   |   |   |-- Network
+|   |   |   |   |-- Cookies
+|   |   |   |   |-- Cookies-journal
+|   |   |   |   |-- Device Bound Sessions
+|   |   |   |   |-- Device Bound Sessions-journal
+|   |   |   |   |-- Network Persistent State
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Reporting and NEL
+|   |   |   |   |-- Reporting and NEL-journal
+|   |   |   |   |-- SCT Auditing Pending Reports
+|   |   |   |   |-- Trust Tokens
+|   |   |   |   -- Trust Tokens-journal
+|   |   |   |-- Network Action Predictor
+|   |   |   |-- Network Action Predictor-journal
+|   |   |   |-- optimization_guide_hint_cache_store
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- parcel_tracking_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- PersistentOriginTrials
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Preferences
+|   |   |   |-- PreferredApps
+|   |   |   |-- README
+|   |   |   |-- Safe Browsing Network
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Safe Browsing Cookies
+|   |   |   |   -- Safe Browsing Cookies-journal
+|   |   |   |-- Secure Preferences
+|   |   |   |-- Segmentation Platform
+|   |   |   |   |-- SegmentInfoDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   |-- SignalDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   -- SignalStorageConfigDB
+|   |   |   |       |-- LOCK
+|   |   |   |       -- LOG
+|   |   |   |-- ServerCertificate
+|   |   |   |-- ServerCertificate-journal
+|   |   |   |-- Service Worker
+|   |   |   |   |-- Database
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   -- ScriptCache
+|   |   |   |       |-- 2cc80dabc69f58b6_0
+|   |   |   |       |-- 2cc80dabc69f58b6_1
+|   |   |   |       |-- index
+|   |   |   |       -- index-dir
+|   |   |   |           -- the-real-index
+|   |   |   |-- Session Storage
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sessions
+|   |   |   |   -- Session_13423568786479887
+|   |   |   |-- Shared Dictionary
+|   |   |   |   |-- cache
+|   |   |   |   |   |-- index
+|   |   |   |   |   -- index-dir
+|   |   |   |   |       -- the-real-index
+|   |   |   |   |-- db
+|   |   |   |   -- db-journal
+|   |   |   |-- shared_proto_db
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   |-- MANIFEST-000001
+|   |   |   |   -- metadata
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Shortcuts
+|   |   |   |-- Shortcuts-journal
+|   |   |   |-- Site Characteristics Database
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sync Data
+|   |   |   |   -- LevelDB
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Top Sites
+|   |   |   |-- Top Sites-journal
+|   |   |   |-- trusted_vault.pb
+|   |   |   |-- Web Data
+|   |   |   |-- Web Data-journal
+|   |   |   -- WebStorage
+|   |   |       |-- QuotaManager
+|   |   |       -- QuotaManager-journal
+|   |   |-- extensions_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- first_party_sets.db
+|   |   |-- first_party_sets.db-journal
+|   |   |-- GPUPersistentCache
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   -- L3TUJFZJ6BQEHD7KXSZN3CW62OV36GSR
+|   |   |   |       |-- cache.db
+|   |   |   |       |-- cache.db-wal
+|   |   |   |       -- cache.journal
+|   |   |   -- GPUCache
+|   |   |       -- KEKVTFUW5VSNRTCSERJ3GD6SQKFOGHXC
+|   |   |           |-- cache.db
+|   |   |           |-- cache.db-wal
+|   |   |           -- cache.journal
+|   |   |-- Last Browser
+|   |   |-- Last Version
+|   |   |-- Local State
+|   |   |-- segmentation_platform
+|   |   |   |-- ukm_db
+|   |   |   -- ukm_db-wal
+|   |   -- Variations
+|   |-- chrome-e2e-1779095477478
+|   |   |-- component_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- Crashpad
+|   |   |   -- settings.dat
+|   |   |-- Default
+|   |   |   |-- Account Web Data
+|   |   |   |-- Account Web Data-journal
+|   |   |   |-- Affiliation Database
+|   |   |   |-- Affiliation Database-journal
+|   |   |   |-- AutofillAiModelCache
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- AutofillStrikeDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- BookmarkMergedSurfaceOrdering
+|   |   |   |-- BrowsingTopicsSiteData
+|   |   |   |-- BrowsingTopicsSiteData-journal
+|   |   |   |-- BrowsingTopicsState
+|   |   |   |-- BudgetDatabase
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Cache
+|   |   |   |   |-- Cache_Data
+|   |   |   |   |   |-- index
+|   |   |   |   |   |-- sqldb0
+|   |   |   |   |   |-- sqldb0-wal
+|   |   |   |   |   |-- sqldb1
+|   |   |   |   |   |-- sqldb1-wal
+|   |   |   |   |   |-- sqldb2
+|   |   |   |   |   -- sqldb2-wal
+|   |   |   |   -- No_Vary_Search
+|   |   |   |       |-- journal.baj
+|   |   |   |       -- snapshot.baf
+|   |   |   |-- chrome_cart_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- ClientCertificates
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Code Cache
+|   |   |   |   -- pc
+|   |   |   |       |-- 5bb[`6`2`29@0-95@ab`2.db
+|   |   |   |       -- 5bb[`6`2`29@0-95@ab`2.journal
+|   |   |   |-- Collaboration
+|   |   |   |   |-- MessageDB
+|   |   |   |   -- MessageDB-journal
+|   |   |   |-- commerce_subscription_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- DataSharing
+|   |   |   |   |-- DataSharingDB
+|   |   |   |   -- DataSharingDB-journal
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DawnWebGPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- DIPS
+|   |   |   |-- DIPS-wal
+|   |   |   |-- discounts_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- discount_infos_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Extension Rules
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension Scripts
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extension State
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Extensions
+|   |   |   |   -- ljglajjnnkapghbckkcmodicjhacbfhk
+|   |   |   |       -- 2.68.0.34_0
+|   |   |   |           |-- background.js
+|   |   |   |           |-- manifest.json
+|   |   |   |           |-- PAD-ico_128.png
+|   |   |   |           |-- PAD-ico_32.png
+|   |   |   |           |-- PAD-ico_48.png
+|   |   |   |           |-- PAD-ico_56.png
+|   |   |   |           |-- PAD-ico_64.png
+|   |   |   |           |-- scripts
+|   |   |   |           |   |-- api.v1.js
+|   |   |   |           |   |-- api.v2.js
+|   |   |   |           |   |-- api.v3.js
+|   |   |   |           |   |-- api.v4.js
+|   |   |   |           |   |-- content.v1.js
+|   |   |   |           |   -- content.v2.js
+|   |   |   |           |-- _locales
+|   |   |   |           |   |-- bg
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ca
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- cs
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- da
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- de
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- el
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- en
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- es
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- et
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- eu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- fr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- gl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- hu
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- id
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- it
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ja
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- kk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ko
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lt
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- lv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ms
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nb-NO
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- nn
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- no
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-BR
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- pt-PT
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ro
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- ru
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sl
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Cyrl-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sr-Latn-RS
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- sv
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- th
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- tr
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- uk
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- vi
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   |-- zh-Hans
+|   |   |   |           |   |   -- messages.json
+|   |   |   |           |   -- zh-Hant
+|   |   |   |           |       -- messages.json
+|   |   |   |           -- _metadata
+|   |   |   |               -- verified_contents.json
+|   |   |   |-- Favicons
+|   |   |   |-- Favicons-journal
+|   |   |   |-- GCM Store
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- Encryption
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- GPUCache
+|   |   |   |   |-- data_0
+|   |   |   |   |-- data_1
+|   |   |   |   |-- data_2
+|   |   |   |   |-- data_3
+|   |   |   |   -- index
+|   |   |   |-- heavy_ad_intervention_opt_out.db
+|   |   |   |-- heavy_ad_intervention_opt_out.db-journal
+|   |   |   |-- History
+|   |   |   |-- History-shm
+|   |   |   |-- History-wal
+|   |   |   |-- Local Storage
+|   |   |   |   -- leveldb
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- LOCK
+|   |   |   |-- LOG
+|   |   |   |-- Login Data
+|   |   |   |-- Login Data For Account
+|   |   |   |-- Login Data For Account-journal
+|   |   |   |-- Login Data-journal
+|   |   |   |-- Network
+|   |   |   |   |-- Cookies
+|   |   |   |   |-- Cookies-journal
+|   |   |   |   |-- Device Bound Sessions
+|   |   |   |   |-- Device Bound Sessions-journal
+|   |   |   |   |-- Network Persistent State
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Reporting and NEL
+|   |   |   |   |-- Reporting and NEL-journal
+|   |   |   |   |-- SCT Auditing Pending Reports
+|   |   |   |   |-- Trust Tokens
+|   |   |   |   -- Trust Tokens-journal
+|   |   |   |-- Network Action Predictor
+|   |   |   |-- Network Action Predictor-journal
+|   |   |   |-- optimization_guide_hint_cache_store
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- parcel_tracking_db
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- PersistentOriginTrials
+|   |   |   |   |-- LOCK
+|   |   |   |   -- LOG
+|   |   |   |-- Preferences
+|   |   |   |-- PreferredApps
+|   |   |   |-- README
+|   |   |   |-- Safe Browsing Network
+|   |   |   |   |-- NetworkDataMigrated
+|   |   |   |   |-- Safe Browsing Cookies
+|   |   |   |   -- Safe Browsing Cookies-journal
+|   |   |   |-- Secure Preferences
+|   |   |   |-- Segmentation Platform
+|   |   |   |   |-- SegmentInfoDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   |-- SignalDB
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   -- LOG
+|   |   |   |   -- SignalStorageConfigDB
+|   |   |   |       |-- LOCK
+|   |   |   |       -- LOG
+|   |   |   |-- ServerCertificate
+|   |   |   |-- ServerCertificate-journal
+|   |   |   |-- Service Worker
+|   |   |   |   |-- Database
+|   |   |   |   |   |-- 000003.log
+|   |   |   |   |   |-- CURRENT
+|   |   |   |   |   |-- LOCK
+|   |   |   |   |   |-- LOG
+|   |   |   |   |   -- MANIFEST-000001
+|   |   |   |   -- ScriptCache
+|   |   |   |       |-- 2cc80dabc69f58b6_0
+|   |   |   |       |-- 2cc80dabc69f58b6_1
+|   |   |   |       |-- index
+|   |   |   |       -- index-dir
+|   |   |   |           -- the-real-index
+|   |   |   |-- Session Storage
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sessions
+|   |   |   |   -- Session_13423569080247119
+|   |   |   |-- Shared Dictionary
+|   |   |   |   |-- cache
+|   |   |   |   |   |-- index
+|   |   |   |   |   -- index-dir
+|   |   |   |   |       -- the-real-index
+|   |   |   |   |-- db
+|   |   |   |   -- db-journal
+|   |   |   |-- shared_proto_db
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   |-- MANIFEST-000001
+|   |   |   |   -- metadata
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Shortcuts
+|   |   |   |-- Shortcuts-journal
+|   |   |   |-- Site Characteristics Database
+|   |   |   |   |-- 000003.log
+|   |   |   |   |-- CURRENT
+|   |   |   |   |-- LOCK
+|   |   |   |   |-- LOG
+|   |   |   |   -- MANIFEST-000001
+|   |   |   |-- Sync Data
+|   |   |   |   -- LevelDB
+|   |   |   |       |-- 000003.log
+|   |   |   |       |-- CURRENT
+|   |   |   |       |-- LOCK
+|   |   |   |       |-- LOG
+|   |   |   |       -- MANIFEST-000001
+|   |   |   |-- Top Sites
+|   |   |   |-- Top Sites-journal
+|   |   |   |-- trusted_vault.pb
+|   |   |   |-- Web Data
+|   |   |   |-- Web Data-journal
+|   |   |   -- WebStorage
+|   |   |       |-- QuotaManager
+|   |   |       -- QuotaManager-journal
+|   |   |-- extensions_crx_cache
+|   |   |   -- metadata.json
+|   |   |-- first_party_sets.db
+|   |   |-- first_party_sets.db-journal
+|   |   |-- GPUPersistentCache
+|   |   |   |-- DawnGraphiteCache
+|   |   |   |   -- L3TUJFZJ6BQEHD7KXSZN3CW62OV36GSR
+|   |   |   |       |-- cache.db
+|   |   |   |       |-- cache.db-wal
+|   |   |   |       -- cache.journal
+|   |   |   -- GPUCache
+|   |   |       -- KEKVTFUW5VSNRTCSERJ3GD6SQKFOGHXC
+|   |   |           |-- cache.db
+|   |   |           |-- cache.db-wal
+|   |   |           -- cache.journal
+|   |   |-- Last Browser
+|   |   |-- Last Version
+|   |   |-- Local State
+|   |   |-- segmentation_platform
+|   |   |   |-- ukm_db
+|   |   |   -- ukm_db-wal
+|   |   -- Variations
+|   |-- demo-ecommerce-loaded.png
+|   |-- demo-saas-loaded.png
+|   |-- demo-saas.png
+|   |-- module-8-failure.png
+|   |-- module-8-open-final.png
+|   |-- module-8-open-fixed-chart.png
+|   |-- module-8-open-waited.png
+|   |-- module-8-open.png
+|   -- module-8.png
+|-- tsconfig.json
+|-- tsconfig.tsbuildinfo
+|-- tsc_errors.txt
+|-- USER_GUIDE.md
+|-- validate-api.mjs
+|-- verify.mjs
+|-- vistarabi-conclusion.md
+|-- vistarabi-results.md
+|-- vistarabi_continuation_prompt.md
+|-- VistaraBI_ECOMMERCE_SPECIAL_Strategic_Report.pdf
+|-- VistaraBI_ECOMMERCE_Strategic_Report.pdf
+|-- VistaraBI_EDTECH_Strategic_Report.pdf
+|-- VistaraBI_FINANCE_Strategic_Report.pdf
+|-- VistaraBI_HEALTHCARE_Strategic_Report.pdf
+|-- VistaraBI_MANUFACTURING_Strategic_Report.pdf
+|-- VistaraBI_RETAIL_Strategic_Report.pdf
+|-- VistaraBI_SaaS_Strategic_Report.pdf
+|-- VistaraBI_SERVICES_Strategic_Report.pdf
+|-- vitest-anomaly.json
+|-- vitest-err.log
+|-- vitest-errors.log
+|-- vitest-log.txt
+|-- vitest-output.txt
+|-- vitest-run-output.json
+|-- vitest-state.json
+|-- vitest.config.ts
+-- _sam
+    |-- agents
+    |   |-- a11y-expert.md
+    |   |-- ai-engineer.md
+    |   |-- api-designer.md
+    |   |-- architect.md
+    |   |-- cloud-architect.md
+    |   |-- css-reviewer.md
+    |   |-- db-architect.md
+    |   |-- dev.md
+    |   |-- devops-engineer.md
+    |   |-- e2e-specialist.md
+    |   |-- go-specialist.md
+    |   |-- i18n-expert.md
+    |   |-- mobile-architect.md
+    |   |-- next-architect.md
+    |   |-- perf-analyst.md
+    |   |-- python-expert.md
+    |   |-- react-expert.md
+    |   |-- reviewer.md
+    |   |-- rust-engineer.md
+    |   |-- security-auditor.md
+    |   |-- serverless-specialist.md
+    |   |-- styling-virtuoso.md
+    |   |-- tech-writer.md
+    |   |-- test.md
+    |   -- ux-designer.md
+    |-- core
+    |   |-- agents
+    |   |   -- sam-master.md
+    |   |-- config.yaml
+    |   |-- resources
+    |   |   -- default-design-standards.md
+    |   -- workflows
+    |       -- autonomous-tdd
+    |           |-- steps
+    |           |   |-- step-01-validate-prd.md
+    |           |   |-- step-02-generate-stories.md
+    |           |   |-- step-03-tdd-loop.md
+    |           |   |-- step-03-tdd-single-story.md
+    |           |   -- step-04-complete.md
+    |           |-- templates
+    |           |   -- pipeline-status.yaml
+    |           -- workflow.md
+    |-- docs
+    |   |-- GEMINI.md
+    |   |-- SAM_COPILOT_GUIDE.md
+    |   |-- SAM_COPILOT_USAGE.md
+    |   |-- SAM_DEPLOYMENT_GUIDE.md
+    |   |-- SAM_GEMINI_GUIDE.md
+    |   -- SAM_GEMINI_USAGE.md
+    -- _config
+        |-- agent-manifest.csv
+        |-- agents
+        |   |-- sam-architect.customize.yaml
+        |   |-- sam-dev.customize.yaml
+        |   |-- sam-reviewer.customize.yaml
+        |   |-- sam-sam.customize.yaml
+        |   |-- sam-tech-writer.customize.yaml
+        |   |-- sam-test.customize.yaml
+        |   -- sam-ux-designer.customize.yaml
+        |-- ides
+        |   -- claude-code.yaml
+        |-- manifest.yaml
+        -- workflow-manifest.csv
