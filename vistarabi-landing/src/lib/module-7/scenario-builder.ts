@@ -93,10 +93,18 @@ export async function buildScenarios(
     preferLocal?: boolean,
     routingMode?: AIRoutingMode
 ): Promise<ActionWithScenarios[]> {
-    const results: ActionWithScenarios[] = [];
+    const promises = actions.map(async (action) => {
+        const prompt = `For the business strategy "${action.actionName}":
+Create a 3-tier execution plan with LEAN, BALANCED, and PREMIUM levels.
+Return EXACTLY a JSON array of 3 objects, each having the following keys:
+- level (string: "LEAN", "BALANCED", or "PREMIUM")
+- estimatedCost (string, e.g. "< $500")
+- executionPlan (array of 3 distinct action step strings)
+- timeline (string, e.g. "2-4 weeks")
+- expectedKpiLift (string, e.g. "5%")
+- monitoringMetrics (array of 2 metric strings)
 
-    for (const action of actions) {
-        const prompt = `For the business strategy "${action.actionName}":...`;
+Do not include markdown blocks, just return the raw JSON array.`;
 
         try {
             const response = await generateCompletion({ 
@@ -109,21 +117,22 @@ export async function buildScenarios(
             const scenarios = extractJsonArray(response);
             if (!scenarios || scenarios.length === 0) throw new Error('No valid scenarios returned');
 
-            results.push({
+            return {
                 ...action,
-                scenarios: scenarios.slice(0, 3).map((s, i) => ({
+                scenarios: scenarios.slice(0, 3).map((s) => ({
                     ...s,
                     label: LEVEL_META[s.level as ScenarioLevel]?.label ?? s.level,
                 })),
-            });
+            };
         } catch (error) {
             console.error(`[ScenarioBuilder] AI failed for "${action.actionName}", using fallback.`, error);
-            results.push({
+            return {
                 ...action,
                 scenarios: buildFallbackScenarios(action.actionName),
-            });
+            };
         }
-    }
+    });
 
+    const results = await Promise.all(promises);
     return results;
 }

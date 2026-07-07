@@ -91,16 +91,25 @@ export default function AISection() {
                         </ul>
 
                         {/* AI model attribution */}
-                        <div className="flex flex-wrap gap-2 pt-2">
-                            {["Gemini", "Claude", "Groq (Llama)", "Local Ollama"].map((m) => (
-                                <span
-                                    key={m}
-                                    className="px-3 py-1 text-xs font-medium bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--muted)]"
-                                >
-                                    {m}
+                        <div className="space-y-2 pt-2">
+                            <p className="text-xs font-semibold tracking-widest uppercase text-[var(--muted)]">Powered by</p>
+                            <div className="flex flex-wrap gap-2">
+                                <span className="px-3 py-1.5 text-xs font-semibold bg-[#76b900]/10 border border-[#76b900]/30 text-[#4a7800] rounded-full flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#76b900] inline-block" />
+                                    NVIDIA NIM
                                 </span>
-                            ))}
-                            <span className="px-3 py-1 text-xs font-medium text-[var(--muted)] italic">+ bring your own key</span>
+                                {["Groq (Llama 3.3)", "Claude", "Gemini", "Local Ollama"].map((m) => (
+                                    <span
+                                        key={m}
+                                        className="px-3 py-1.5 text-xs font-medium bg-[var(--background)] border border-[var(--border)] rounded-full text-[var(--muted)]"
+                                    >
+                                        {m}
+                                    </span>
+                                ))}
+                                <span className="px-3 py-1.5 text-xs font-medium text-[var(--muted)] italic">
+                                    + bring your own key
+                                </span>
+                            </div>
                         </div>
                     </motion.div>
 

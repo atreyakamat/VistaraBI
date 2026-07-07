@@ -67,19 +67,28 @@ export function validateEnv(): void {
 // AI provider status
 export function getAIConfig() {
     return {
+        // NVIDIA NIM (top priority)
+        nimApiKey: process.env.NVIDIA_NIM_API_KEY,
+        nimModel: process.env.NVIDIA_NIM_MODEL || 'meta/llama-3.3-70b-instruct',
+        nimBaseUrl: process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+        hasNvidiaNIM: !!process.env.NVIDIA_NIM_API_KEY,
+        // Groq
+        groqApiKey: process.env.GROQ_API_KEY,
+        groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        groqBaseUrl: process.env.GROQ_BASE_URL,
+        hasGroq: !!process.env.GROQ_API_KEY,
+        // OpenRouter
+        openRouterKey: process.env.OPENROUTER_API_KEY,
+        hasOpenRouter: !!(process.env.OPENROUTER_API_KEY),
+        // Ollama / Cloud
         ollamaUrl: process.env.OLLAMA_URL || 'http://localhost:11434',
         ollamaModel: process.env.OLLAMA_MODEL || 'qwen3:0.6b',
         cloudUrl: process.env.CLOUD_AI_BASE_URL,
         cloudModel: process.env.CLOUD_AI_MODEL,
-        openRouterKey: process.env.OPENROUTER_API_KEY,
-        groqApiKey: process.env.GROQ_API_KEY,
-        groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-        groqBaseUrl: process.env.GROQ_BASE_URL,
-        preferLocal: process.env.PREFER_LOCAL === 'true',
-        forceGroq: process.env.FORCE_GROQ === 'true',
         hasLocalAI: !!(process.env.OLLAMA_URL || process.env.OLLAMA_MODEL),
         hasCloudAI: !!(process.env.CLOUD_AI_BASE_URL),
-        hasOpenRouter: !!(process.env.OPENROUTER_API_KEY),
-        hasGroq: !!process.env.GROQ_API_KEY,
+        // Routing
+        preferLocal: process.env.PREFER_LOCAL === 'true',
+        forceGroq: process.env.FORCE_GROQ === 'true',
     };
 }

@@ -274,6 +274,8 @@
 
 .sidebar-nav-item.active .nav-icon-wrapper {
     background: var(--color-primary-light);
+    box-shadow: 0 0 16px -2px var(--color-primary-glow);
+    border: 1px solid rgba(19, 91, 236, 0.15);
 }
 
 /* Sidebar Footer */

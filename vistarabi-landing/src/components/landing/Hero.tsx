@@ -57,9 +57,10 @@ export default function Hero() {
                     >
                         <Link
                             href="/register"
-                            className="px-6 py-3 bg-[var(--foreground)] text-[var(--card)] font-semibold rounded-xl shadow-lg hover:opacity-85 hover:-translate-y-0.5 transition-all duration-200 active:scale-95 text-sm"
+                            className="relative group px-6 py-3 font-semibold rounded-xl text-[var(--card)] bg-[var(--foreground)] overflow-hidden shadow-[0_0_0_0_rgba(37,99,235,0)] hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 transition-all duration-300 active:scale-95 text-sm flex items-center justify-center"
                         >
-                            Start for free
+                            <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+                            <span className="relative z-10">Start for free</span>
                         </Link>
                         <Link
                             href="/demo"

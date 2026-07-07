@@ -1,7 +1,8 @@
 // Unified AI Client with Fallback Chain & Streaming Support
-// Priority: OpenRouter (cloud) -> Ollama Cloud -> Ollama Local
+// Priority: NVIDIA NIM → Groq → OpenRouter → Ollama Cloud → Ollama Local
 // Supports agent-based reasoning with role specialization
 // Streaming: Uses SSE for cloud providers, non-streaming for local
+// NVIDIA NIM: OpenAI-compatible API at https://integrate.api.nvidia.com/v1
 
 import { getDomainSkill, formatSkillForSystemPrompt } from './domain-skills';
 import type { AIRoutingMode } from './ai-mode';
@@ -12,11 +13,17 @@ export interface AIMessage {
 }
 
 export interface AIModelConfig {
-    provider: 'ollama-local' | 'ollama-cloud' | 'openrouter' | 'groq';
+    provider: 'ollama-local' | 'ollama-cloud' | 'openrouter' | 'groq' | 'nvidia-nim';
     model: string;
     baseUrl?: string;
     apiKey?: string;
     timeout: number;
+    /** NIM-specific thinking-model options (Nemotron, etc.) */
+    nimOptions?: {
+        enableThinking: boolean;
+        reasoningBudget: number;
+        topP: number;
+    };
 }
 
 export interface AIGenerateOptions {
@@ -43,6 +50,8 @@ export interface AIGenerateOptions {
 
 export interface AIResponse {
     content: string;
+    /** Chain-of-thought from NIM thinking models (reasoning_content). Strip before showing to end-users. */
+    reasoning?: string;
     provider: string;
     model: string;
     tokensUsed?: {
@@ -154,14 +163,34 @@ function getModelConfigs(preferLocal?: boolean, routingMode?: AIRoutingMode): AI
     const localConfigs: AIModelConfig[] = [];
     const cloudConfigs: AIModelConfig[] = [];
 
-    // 0. Groq (Highest Priority — Groq exposes an OpenAI-compatible API)
+    // 0a. NVIDIA NIM (Highest Priority — OpenAI-compatible, enterprise-grade inference)
+    // Nemotron-3-Ultra-550B is a thinking model: streams reasoning_content + content.
+    // Uses temperature=1, top_p=0.95, reasoning_budget=16384 per NVIDIA's recommendation.
+    if (process.env.NVIDIA_NIM_API_KEY) {
+        const nimModel = process.env.NVIDIA_NIM_MODEL || 'nvidia/nemotron-3-ultra-550b-a55b';
+        const isThinkingModel = nimModel.includes('nemotron') || nimModel.includes('thinking');
+        cloudConfigs.push({
+            provider: 'nvidia-nim',
+            model: nimModel,
+            baseUrl: process.env.NVIDIA_NIM_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+            apiKey: process.env.NVIDIA_NIM_API_KEY,
+            timeout: 300000, // Thinking models can take longer — 5 min
+            nimOptions: isThinkingModel ? {
+                enableThinking: true,
+                reasoningBudget: 16384,
+                topP: 0.95,
+            } : undefined,
+        });
+    }
+
+    // 0b. Groq (Fast cloud inference — OpenAI-compatible)
     if (process.env.GROQ_API_KEY) {
         cloudConfigs.push({
-            provider: 'groq', // handled via OpenAI-compatible call path (callOpenRouter)
+            provider: 'groq',
             model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
             baseUrl: process.env.GROQ_BASE_URL || 'https://api.groq.com/openai/v1',
             apiKey: process.env.GROQ_API_KEY,
-            timeout: 30000, // Groq is fast — 30s is generous
+            timeout: 30000,
         });
     }
 
@@ -246,8 +275,8 @@ async function callProvider(
     try {
         console.log(`[AI] Attempting ${config.provider} with model ${config.model}`);
 
-        if (config.provider === 'openrouter' || config.provider === 'groq') {
-            // OpenRouter/Groq expose OpenAI-compatible endpoints — use the same handler
+        if (config.provider === 'openrouter' || config.provider === 'groq' || config.provider === 'nvidia-nim') {
+            // OpenRouter / Groq / NVIDIA NIM all expose OpenAI-compatible endpoints
             return await callOpenRouter(config, options, startTime);
         }
         if (config.provider === 'ollama-local' || config.provider === 'ollama-cloud') {
@@ -382,7 +411,7 @@ async function callOllama(
     }
 }
 
-// Call OpenRouter API (OpenAI-compatible) — uses streaming for faster TTFB
+// Call OpenRouter / Groq / NVIDIA NIM (all OpenAI-compatible) — streams SSE
 async function callOpenRouter(
     config: AIModelConfig,
     options: AIGenerateOptions,
@@ -390,9 +419,30 @@ async function callOpenRouter(
 ): Promise<AIResponse> {
     const url = `${config.baseUrl}/chat/completions`;
     const useStreaming = options.stream !== false;
+    const isNIM = config.provider === 'nvidia-nim';
+    const nimOpts = isNIM ? config.nimOptions : undefined;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), config.timeout);
+
+    // NIM thinking models use temperature=1 and top_p per NVIDIA's guidance.
+    // Other providers use our analytics default of 0.2.
+    const effectiveTemperature = nimOpts ? 1 : (options.temperature ?? 0.2);
+    const effectiveMaxTokens = nimOpts ? 16384 : (options.maxTokens ?? 1024);
+
+    const requestBody: Record<string, unknown> = {
+        model: config.model,
+        messages: options.messages,
+        temperature: effectiveTemperature,
+        max_tokens: effectiveMaxTokens,
+        stream: useStreaming,
+        ...(useStreaming && { stream_options: { include_usage: true } }),
+        ...(nimOpts && {
+            top_p: nimOpts.topP,
+            chat_template_kwargs: { enable_thinking: nimOpts.enableThinking },
+            reasoning_budget: nimOpts.reasoningBudget,
+        }),
+    };
 
     try {
         const response = await fetch(url, {
@@ -403,14 +453,7 @@ async function callOpenRouter(
                 'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://vistarabi.com',
                 'X-Title': 'VistaraBI',
             },
-                        body: JSON.stringify({
-                model: config.model,
-                messages: options.messages,
-                temperature: options.temperature ?? 0.2,
-                max_tokens: options.maxTokens ?? 1024,
-                stream: useStreaming,
-                ...(useStreaming && { stream_options: { include_usage: true } }),
-            }),
+            body: JSON.stringify(requestBody),
             signal: controller.signal,
         });
 
@@ -418,15 +461,19 @@ async function callOpenRouter(
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`OpenRouter API error ${response.status}: ${errorText}`);
+            const providerName = config.provider === 'nvidia-nim' ? 'NVIDIA NIM'
+                : config.provider === 'groq' ? 'Groq'
+                : 'OpenRouter';
+            throw new Error(`${providerName} API error ${response.status}: ${errorText}`);
         }
 
         let content: string;
+        let reasoning = '';
         let inputTokens = 0;
         let outputTokens = 0;
 
         if (useStreaming && response.body) {
-            // SSE streaming: accumulate delta chunks
+            // SSE streaming — accumulate both reasoning_content and content deltas
             content = '';
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
@@ -444,10 +491,17 @@ async function callOpenRouter(
 
                     try {
                         const parsed = JSON.parse(data);
-                        const delta = parsed.choices?.[0]?.delta?.content;
-                        if (delta) content += delta;
+                        const delta = parsed.choices?.[0]?.delta;
 
-                        // Capture usage from the final chunk
+                        // NIM thinking models stream reasoning_content separately
+                        if (delta?.reasoning_content) {
+                            reasoning += delta.reasoning_content;
+                        }
+                        if (delta?.content) {
+                            content += delta.content;
+                        }
+
+                        // Capture usage from final chunk
                         if (parsed.usage) {
                             inputTokens = parsed.usage.prompt_tokens || 0;
                             outputTokens = parsed.usage.completion_tokens || 0;
@@ -460,17 +514,27 @@ async function callOpenRouter(
         } else {
             // Non-streaming fallback
             const data = await response.json();
-            content = data.choices?.[0]?.message?.content?.trim() || '';
+            const msg = data.choices?.[0]?.message;
+            content = msg?.content?.trim() || '';
+            reasoning = msg?.reasoning_content?.trim() || '';
             inputTokens = data.usage?.prompt_tokens || 0;
             outputTokens = data.usage?.completion_tokens || 0;
         }
 
         if (!content) {
-            throw new Error('Empty response from OpenRouter');
+            const providerLabel = config.provider === 'nvidia-nim' ? 'NVIDIA NIM'
+                : config.provider === 'groq' ? 'Groq'
+                : 'OpenRouter';
+            throw new Error(`Empty response from ${providerLabel}`);
+        }
+
+        if (reasoning) {
+            console.log(`[AI] ${config.provider} thinking tokens: ${reasoning.split(' ').length} words`);
         }
 
         return {
             content,
+            ...(reasoning && { reasoning }),
             provider: config.provider,
             model: config.model,
             tokensUsed: { input: inputTokens, output: outputTokens },
@@ -480,7 +544,10 @@ async function callOpenRouter(
     } catch (error: unknown) {
         clearTimeout(timeoutId);
         if (isAbortError(error)) {
-            throw new Error(`OpenRouter request timed out after ${config.timeout}ms`);
+            const providerLabel = config.provider === 'nvidia-nim' ? 'NVIDIA NIM'
+                : config.provider === 'groq' ? 'Groq'
+                : 'OpenRouter';
+            throw new Error(`${providerLabel} request timed out after ${config.timeout}ms`);
         }
         throw error;
     }
