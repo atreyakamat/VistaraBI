@@ -100,7 +100,11 @@ export async function POST(
             );
         }
 
-        // 4. Persist the result in Database
+        // 4. Sanitize to prevent Postgres WIN1252 encoding crashes on Windows
+        const sanitizedPlanText = JSON.stringify(parsedGeneratedPlan.data).replace(/[^\x00-\x7F]/g, "-");
+        const sanitizedPlan = JSON.parse(sanitizedPlanText);
+
+        // 5. Persist the result in Database
         const goalEntry = await prisma.projectGoal.create({
             data: {
                 projectId,
@@ -108,7 +112,7 @@ export async function POST(
                 targetKpiId: canvas.goal.kpiId,
                 targetValue: canvas.goal.targetValue,
                 timeframe: canvas.goal.timeframe,
-                generatedPlan: toPrismaJsonField(parsedGeneratedPlan.data),
+                generatedPlan: toPrismaJsonField(sanitizedPlan),
                 status: 'ACTIVE'
             }
         });

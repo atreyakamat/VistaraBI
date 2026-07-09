@@ -105,7 +105,7 @@ export async function POST(
             // Handle body size limit errors
             if (message.includes('Request body exceeded') ||
                 message.includes('Failed to parse')) {
-                return apiError('FILE_TOO_LARGE', 'File upload too large. Maximum size is 50MB.', 413, {
+                return apiError('FILE_TOO_LARGE', 'File upload too large. Maximum size is 2000MB.', 413, {
                     hint: 'Please reduce file size or split into smaller batches.'
                 });
             }

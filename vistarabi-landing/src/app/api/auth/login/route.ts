@@ -52,13 +52,13 @@ export async function POST(request: NextRequest) {
             return apiError('UNAUTHORIZED', 'Invalid email or password');
         }
 
-        // Check if email is verified
-        if (!user.emailVerified) {
-            return apiError('UNAUTHORIZED', 'Please verify your email before logging in. Check your inbox for a verification link.', 403, {
-                requiresVerification: true,
-                email: user.email,
-            });
-        }
+        // Check if email is verified (Disabled for local testing)
+        // if (!user.emailVerified) {
+        //     return apiError('UNAUTHORIZED', 'Please verify your email before logging in. Check your inbox for a verification link.', 403, {
+        //         requiresVerification: true,
+        //         email: user.email,
+        //     });
+        // }
 
         // Create JWT and set cookie
         const token = signToken({ userId: user.id, email: user.email });

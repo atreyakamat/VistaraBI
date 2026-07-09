@@ -5,7 +5,7 @@
 
 import crypto from 'crypto';
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500 MB
 
 /** Magic bytes for allowed file formats */
 const MAGIC_BYTES: Record<string, { bytes: number[]; offset: number }[]> = {

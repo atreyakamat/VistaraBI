@@ -9,7 +9,10 @@ const nextConfig: NextConfig = {
   // ── File Upload Configuration ──
   experimental: {
     esmExternals: true,
-    proxyClientMaxBodySize: '500mb',
+    proxyClientMaxBodySize: '2000mb',
+    serverActions: {
+      bodySizeLimit: '2000mb',
+    },
   },
 
   // ── Turbopack Aliases (Next.js 16 default bundler) ──
