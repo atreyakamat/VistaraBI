@@ -5,7 +5,7 @@ import { parseFile } from '../src/lib/parsers';
 import { runFullAnalysis } from '../src/lib/intelligence';
 import { purifyDataset } from '../src/lib/purification';
 import { discoverKPIs } from '../src/lib/kpi';
-import { insertKPIBlueprints } from '../src/lib/kpi/blueprint-inserter';
+
 import { runDashboardIntelligence } from '../src/lib/dashboard-state/module-5-5';
 import { executeGoalPipeline } from '../src/lib/module-7/goal-engine';
 
@@ -133,8 +133,8 @@ async function main() {
         console.log(`\n⏳ [MODULE 7: AI INSIGHTS] Generating Dashboard Intelligence...`);
         try {
             const insights = await runDashboardIntelligence(project.id, { skipCache: true });
-            console.log(`   - Generated ${insights.state.kpis.length} KPIs with AI analysis`);
-            console.log(`   - Anomalies detected: ${insights.state.insightFeed?.length || 0}`);
+            console.log(`   - Generated ${insights.kpis.length} KPIs with AI analysis`);
+            console.log(`   - Anomalies detected: ${insights.metadata.anomalyCount}`);
             console.log(`✅ [MODULE 7] Complete`);
         } catch (e: any) {
             console.log(`⚠️ [MODULE 7] Note: AI Insights might fail if Ollama is not running: ${e.message}`);
@@ -144,7 +144,7 @@ async function main() {
         console.log(`\n⏳ [MODULE 8: STRATEGY ENGINE] Generating Strategy Canvas...`);
         try {
             const canvas = await executeGoalPipeline("Increase revenue by 15%", "RETAIL", ["Global"]);
-            console.log(`   - Generated Strategy: ${canvas.goal.title}`);
+            console.log(`   - Generated Strategy: ${canvas.goal.targetMetric} to ${canvas.goal.targetValue}`);
             console.log(`   - Scenarios: ${canvas.scenarios.length}`);
             console.log(`✅ [MODULE 8] Complete`);
         } catch (e: any) {

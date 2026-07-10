@@ -159,15 +159,19 @@ export function DashboardShell({
             const fallbackProb = strategyContextToUse?.probabilityOfSuccess || savedForecastData?.probabilityOfSuccess || 0.85;
             let targetVal = 75000;
             if (canvasToUse) {
-                const parsed = parseFloat(canvasToUse.goal?.targetValue?.replace(/[^0-9.]/g, ''));
+                const parsed = parseFloat(String(canvasToUse.goal?.targetValue || '').replace(/[^0-9.]/g, ''));
                 if (!isNaN(parsed)) targetVal = parsed;
             }
+
+            const baselineData = strategyContextToUse?.scenarios?.baseline || [];
+            const lastYhat = baselineData.length > 0 ? baselineData[baselineData.length - 1].yhat : (targetVal - 5000);
+            const gap = Math.max(0, targetVal - lastYhat);
 
             const payload = {
                 domain: domainName,
                 metrics: {
                     probability: fallbackProb,
-                    gap: strategyContextToUse ? Math.max(0, targetVal - strategyContextToUse.scenarios.baseline[strategyContextToUse.scenarios.baseline.length - 1].yhat) : 5000,
+                    gap: gap,
                     target: targetVal
                 },
                 chartImage: chartImageBase64 || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
@@ -181,7 +185,9 @@ export function DashboardShell({
                     kpi: savedForecastData.kpi || topKpis[0]?.kpiName || 'Primary Metric',
                     trend: savedForecastData.probabilityOfSuccess > 0.6 ? 'Positive' : 'At Risk',
                     confidence: '95%'
-                } : undefined
+                } : undefined,
+                forecastScenarios: savedForecastData?.scenarios || strategyContextToUse?.scenarios,
+                kpiHistory: savedForecastData?.history || []
             };
 
             const response = await fetch('/api/v1/report/generate', {

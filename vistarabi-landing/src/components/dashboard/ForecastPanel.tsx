@@ -216,7 +216,7 @@ export function ForecastPanel({ projectId, isOpen, onClose, activeKPIs, domainMo
                             className="w-full p-4 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-slate-50"
                         >
                             {activeKPIs.map((kpi, idx) => (
-                                <option key={kpi.id || idx} value={kpi.name}>{kpi.name.replace(/_/g, ' ')}</option>
+                                <option key={kpi.name || idx} value={kpi.name}>{kpi.name.replace(/_/g, ' ')}</option>
                             ))}
                         </select>
 
@@ -319,6 +319,8 @@ export function ForecastPanel({ projectId, isOpen, onClose, activeKPIs, domainMo
                                                 kpi: selectedKPI,
                                                 probabilityOfSuccess: simulationContext?.probabilityOfSuccess || 0.85,
                                                 reliabilityScore: simulationContext?.reliabilityScore || 80,
+                                                scenarios: simulationContext?.scenarios,
+                                                history: kpiHistory
                                             };
                                             localStorage.setItem('vistara_saved_forecast', JSON.stringify(forecastData));
                                             toast.success(`${selectedKPI.replace(/_/g, ' ')} baseline forecast added to Report Cart!`);
