@@ -35,15 +35,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  // Rate limit: enforce AI profile for expensive simulation endpoint
-  const rl = checkRateLimit(getIdentifier(request, user.userId, 'forecast'), RATE_LIMITS.FORECAST);
-  const rlHeaders = buildRateLimitHeaders(rl);
-  if (!rl.success) {
-    return NextResponse.json(
-      { error: 'Forecast rate limit exceeded. Please wait before running more simulations.' },
-      { status: 429, headers: rlHeaders }
-    );
-  }
 
   try {
     const body = await request.json();
@@ -51,12 +42,12 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: 'Invalid forecast request payload', details: parsed.error.issues },
-        { status: 400, headers: rlHeaders }
+        { status: 400 }
       );
     }
 
     const result = await validateStrategy(parsed.data as ForecastRequest);
-    return NextResponse.json(result, { headers: rlHeaders });
+    return NextResponse.json(result);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Internal server error';
     console.error('Forecast API Error:', error);

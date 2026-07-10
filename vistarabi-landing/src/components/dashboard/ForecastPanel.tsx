@@ -8,6 +8,7 @@ import StrategyCanvas from '@/components/module-8/StrategyCanvas';
 import { resolveForecastHistory, type DashboardKpiExecutionItem } from '@/lib/module-8/kpi-history-resolver';
 import { LineChart, X, Download, Bot } from 'lucide-react';
 import { DashboardErrorBoundary } from './DashboardErrorBoundary';
+import AIChatPanel from '@/components/module-8/AIChatPanel';
 
 interface ForecastPanelProps {
     projectId: string;
@@ -24,6 +25,7 @@ export function ForecastPanel({ projectId, isOpen, onClose, activeKPIs, domainMo
     const [error, setError] = useState<string | null>(null);
     const [showCanvas, setShowCanvas] = useState(false);
     const [exporting, setExporting] = useState(false);
+    const [simulationContext, setSimulationContext] = useState<any>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
 
     const handleExportChart = async () => {
@@ -44,6 +46,75 @@ export function ForecastPanel({ projectId, isOpen, onClose, activeKPIs, domainMo
             console.error('Export failed:', e);
         } finally {
             setExporting(false);
+        }
+    };
+
+    const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+    const handleGenerateReport = async () => {
+        if (!simulationContext) return;
+        setIsGeneratingReport(true);
+        try {
+          let chartImageBase64 = null;
+          try {
+            const chartElement = document.getElementById('strategy-canvas-container');
+            if (chartElement) {
+                const { default: html2canvas } = await import('html2canvas');
+                const canvasEl = await html2canvas(chartElement, { scale: 2 });
+                chartImageBase64 = canvasEl.toDataURL('image/png');
+            }
+          } catch (e) {
+            console.warn("UI capture failed.", e);
+          }
+          
+          const targetGoalVal = Math.round(kpiHistory[kpiHistory.length - 1]?.value * 1.1 || 100);
+          const payload = {
+            chartImage: chartImageBase64,
+            dashboardImage: null,
+            domain: "Predictive Analytics",
+            selectedKPIs: activeKPIs,
+            uploadedDatasets: [],
+            cleaningSummary: "Predictive baseline forecast generated for KPI.",
+            actions: [{ title: "Baseline AI Projection", impact: "MEDIUM" }],
+            forecastData: {
+                kpi: selectedKPI,
+                trend: simulationContext.probabilityOfSuccess > 0.5 ? 'Upward trajectory' : 'Stagnant or downward trajectory',
+                confidence: simulationContext.reliabilityScore > 80 ? 'High' : 'Moderate'
+            },
+            metrics: {
+              probability: simulationContext.probabilityOfSuccess,
+              reliability: simulationContext.reliabilityScore,
+              gap: 0,
+              target: targetGoalVal
+            },
+            chatSummary: `Baseline projection generated for ${selectedKPI.replace(/_/g, ' ')}. No simulated actions applied.`,
+            globalChatSummary: 'No recent exploratory questions logged.',
+            module6Question: "",
+            module6Answer: "",
+            kpiHistory: kpiHistory,
+            forecastScenarios: simulationContext?.scenarios,
+            strategyCanvas: { goal: { targetMetric: selectedKPI, timeframe: "180 days", targetValue: String(targetGoalVal) } },
+            module6ChatHistory: []
+          };
+    
+          const response = await fetch('/api/v1/report/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+    
+          if (!response.ok) throw new Error("Failed to generate report");
+    
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `VistaraBI_Forecast_${selectedKPI.replace(/_/g, '-')}.pdf`;
+          a.click();
+        } catch (error) {
+          console.error("Report generation failed", error);
+          alert("Failed to generate PDF Report.");
+        } finally {
+          setIsGeneratingReport(false);
         }
     };
 
@@ -191,72 +262,53 @@ export function ForecastPanel({ projectId, isOpen, onClose, activeKPIs, domainMo
                                             uplift: 0,
                                             metricName: selectedKPI
                                         }}
+                                        onSimulationComplete={setSimulationContext}
                                     />
                                 </DashboardErrorBoundary>
                             </div>
                         </div>
 
-                        {/* Forecast Sidebar / Insights */}
-                        <div className="xl:col-span-1 w-full bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col p-6 gap-6">
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-800">Forecast Insights</h3>
-                                <p className="text-xs text-slate-400">Statistical properties of {selectedKPI.replace(/_/g, ' ')}</p>
+                        {/* Forecast Sidebar / Insights + Chat */}
+                        <div className="xl:col-span-1 w-full bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col h-[700px]">
+                            <div className="p-6 shrink-0 flex flex-col gap-4">
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-800">Forecast Insights</h3>
+                                    <p className="text-xs text-slate-400">Statistical properties of {selectedKPI.replace(/_/g, ' ')}</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Last Value</span>
+                                        <span className="text-xl font-extrabold text-slate-900">
+                                            {kpiHistory[kpiHistory.length - 1]?.value?.toLocaleString(undefined, { maximumFractionDigits: 1 }) ?? 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Growth Trend</span>
+                                        <span className="text-xl font-extrabold text-emerald-600 flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-base">trending_up</span>
+                                            +10%
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex-1 min-h-0 border-t border-slate-100 bg-slate-50">
+                                <AIChatPanel simulationContext={simulationContext} />
                             </div>
 
-                            {/* Volatility & Trend Quick Stats */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Last Value</span>
-                                    <span className="text-xl font-extrabold text-slate-900">
-                                        {kpiHistory[kpiHistory.length - 1]?.value?.toLocaleString(undefined, { maximumFractionDigits: 1 }) ?? 'N/A'}
-                                    </span>
-                                </div>
-                                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex flex-col">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Growth Trend</span>
-                                    <span className="text-xl font-extrabold text-emerald-600 flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-base">trending_up</span>
-                                        +10%
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Detailed description */}
-                            <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100/50 text-sm text-indigo-950 flex flex-col gap-2">
-                                <div className="flex items-center gap-1.5 font-semibold text-indigo-800">
-                                    <span className="material-symbols-outlined text-lg">insights</span>
-                                    AI Model Insight
-                                </div>
-                                <p className="text-slate-700 leading-relaxed text-xs">
-                                    Based on the historical {kpiHistory.length} data points, the system has detected seasonal business cycles.
-                                    The baseline trend projects an upward trajectory with a moderate level of volatility.
-                                </p>
-                            </div>
-
-                            {/* Monte Carlo Info */}
-                            <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100/50 text-sm text-emerald-950 flex flex-col gap-2">
-                                <div className="flex items-center gap-1.5 font-semibold text-emerald-800">
-                                    <span className="material-symbols-outlined text-lg">query_stats</span>
-                                    Monte Carlo Bounds
-                                </div>
-                                <p className="text-slate-700 leading-relaxed text-xs">
-                                    Optimistic and Conservative scenarios are calculated using 1,000 random walk permutations. 
-                                    This defines the 95% confidence band for risk modeling.
-                                </p>
-                            </div>
-
-                            {/* Actions List */}
-                            <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3">
+                            <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-2 shrink-0">
                                 <button
                                     onClick={handleExportChart}
                                     disabled={exporting}
-                                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all flex justify-center items-center gap-2 text-sm"
+                                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all flex justify-center items-center gap-2 text-sm"
                                 >
                                     <Download className="w-4 h-4" />
                                     {exporting ? 'Exporting PNG...' : 'Export Forecast PNG'}
                                 </button>
                                 <button 
                                     onClick={() => setShowCanvas(false)}
-                                    className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all text-center text-sm"
+                                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all text-center text-sm"
                                 >
                                     Select Another KPI
                                 </button>

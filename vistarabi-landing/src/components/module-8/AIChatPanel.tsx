@@ -137,10 +137,21 @@ export default function AIChatPanel({ simulationContext, onMessagesChange }: AIC
       setMessages(prev => [...prev, { role: 'ai', text: data.reply, isStreamingCompleted: false }]);
     } catch (err: any) {
       console.error(err);
-      setError("The AI Engine is currently offline or unreachable. Please check your Ollama connection.");
+      
+      let errorMsg = "The AI Engine is currently offline or unreachable.";
+      if (err instanceof Error) {
+          try {
+              const parsed = JSON.parse(err.message);
+              errorMsg = parsed.error || err.message;
+          } catch {
+              errorMsg = err.message;
+          }
+      }
+      
+      setError(errorMsg);
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        text: "I'm having trouble connecting to my cognitive backend right now. Ensure the Ollama service is running.",
+        text: `Error: ${errorMsg}. Please try again.`,
         isStreamingCompleted: true
       }]);
     } finally {

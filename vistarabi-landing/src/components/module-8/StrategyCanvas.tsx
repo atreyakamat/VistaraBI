@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Area, ComposedChart, ReferenceLine
+  ResponsiveContainer, Area, ComposedChart, ReferenceLine,
+  Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend
 } from 'recharts';
 import { Activity, AlertTriangle, TrendingUp, CheckCircle, SlidersHorizontal } from 'lucide-react';
 import { ForecastRequest, StrategyCanvasResult } from '@/lib/module-8/types';
@@ -47,8 +47,9 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
     const isCurrency = /(revenue|sales|mrr|arr|cost|price|value)/i.test(name);
     const isPercent = /(rate|percent|margin|roi)/i.test(name);
     
-    let formatted = isAxis ? (v/1000).toFixed(0) + 'k' : v.toFixed(0);
-    if (v < 1000 && isAxis) formatted = v.toFixed(0);
+    let formatted = isAxis 
+        ? (Math.abs(v) >= 1000000 ? (v/1000000).toFixed(1) + 'M' : Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'k' : v.toFixed(0))
+        : Math.round(v).toLocaleString();
     
     if (isCurrency) return `$${formatted}`;
     if (isPercent) return `${formatted}%`;
@@ -344,22 +345,27 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
                     axisLine={false}
                   />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: unknown, name: unknown) => [
-                      <span key={String(name)} className="font-bold text-slate-700">{formatValue(Number(value))}</span>, 
-                      <span key={String(name)+"_label"} className="text-slate-500">{String(name)}</span>
-                    ]}
-                    labelFormatter={(label) => <span className="font-bold text-slate-900 mb-2 block">Day {label}</span>}
+                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
+                    itemStyle={{ padding: '2px 0' }}
+                    formatter={(value: unknown, name: unknown, props: any) => {
+                      const color = props?.color || (name === 'Upper Bound' || name === 'Lower Bound' ? '#94a3b8' : '#334155');
+                      return [
+                        <span key={String(name)} className="font-bold" style={{ color }}>{formatValue(Number(value))}</span>, 
+                        <span key={String(name)+"_label"} className="text-slate-600 font-medium ml-1">{String(name)}</span>
+                      ];
+                    }}
+                    labelFormatter={(label) => <span className="font-bold text-slate-900 mb-3 block border-b border-slate-100 pb-2">Day {label} <span className="text-slate-400 font-normal mx-2">|</span> <span className="text-slate-600">{initialContext?.metricName || 'Metric Value'}</span></span>}
                   />
+                  <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: '12px', fontWeight: 600, color: '#475569' }} />
                   
                   {/* Confidence Interval Background */}
-                  <Area type="monotone" dataKey="ConfidenceUpper" stroke="none" fill="#e2e8f0" fillOpacity={0.4} isAnimationActive={false} />
-                  <Area type="monotone" dataKey="ConfidenceLower" stroke="none" fill="#ffffff" fillOpacity={1} isAnimationActive={false} />
+                  <Area name="Upper Bound" type="monotone" dataKey="ConfidenceUpper" stroke="none" fill="#e2e8f0" fillOpacity={0.4} isAnimationActive={false} legendType="none" />
+                  <Area name="Lower Bound" type="monotone" dataKey="ConfidenceLower" stroke="none" fill="#ffffff" fillOpacity={1} isAnimationActive={false} legendType="none" />
                   
                   {/* The 3 Scenario Lines */}
-                  <Line type="monotone" dataKey="Conservative" stroke="#ef4444" strokeWidth={2} strokeDasharray="6 6" dot={false} activeDot={{ r: 6, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
-                  <Line type="monotone" dataKey="Baseline" stroke="#3b82f6" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
-                  <Line type="monotone" dataKey="Optimistic" stroke="#22c55e" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
+                  <Line name="Conservative" type="monotone" dataKey="Conservative" stroke="#ef4444" strokeWidth={2} strokeDasharray="6 6" dot={false} activeDot={{ r: 6, fill: '#ef4444', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
+                  <Line name="Baseline" type="monotone" dataKey="Baseline" stroke="#3b82f6" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
+                  <Line name="Optimistic" type="monotone" dataKey="Optimistic" stroke="#22c55e" strokeWidth={3} dot={false} activeDot={{ r: 6, fill: '#22c55e', stroke: '#fff', strokeWidth: 2 }} isAnimationActive={false} />
                   
                   {/* Target Goal Line */}
                   <ReferenceLine 

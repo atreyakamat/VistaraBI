@@ -16,14 +16,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const rl = checkRateLimit(getIdentifier(request, user.userId, 'module8-chat'), RATE_LIMITS.AI);
-  const rlHeaders = buildRateLimitHeaders(rl);
-  if (!rl.success) {
-    return NextResponse.json(
-      { error: 'AI chat rate limit exceeded. Please wait before sending another prompt.' },
-      { status: 429, headers: rlHeaders }
-    );
-  }
+
 
   try {
     const body = await request.json();
@@ -31,7 +24,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: 'Invalid chat request payload', details: parsed.error.issues },
-        { status: 400, headers: rlHeaders }
+        { status: 400 }
       );
     }
 
@@ -57,7 +50,7 @@ CRITICAL INSTRUCTIONS:
     // Temperature 0.3 for a mix of creativity and analytical precision
     const response = await callLocalModel(systemPrompt, userMessage, 0.3, undefined, preferLocal);
 
-    return NextResponse.json({ reply: response.text }, { headers: rlHeaders });
+    return NextResponse.json({ reply: response.text });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to communicate with AI';
     console.error('[Module 8 Chat] Error calling AI:', error);
