@@ -887,7 +887,7 @@ export function GoalStrategyPanel({
                             className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 rounded-lg transition-colors shadow-sm"
                         >
                             <FileText className="w-4 h-4" />
-                            {isGeneratingReport ? 'Generating PDF...' : 'Export Executive Report'}
+                            {isGeneratingReport ? 'Generating PDF...' : 'Save Goal & Export PDF'}
                         </button>
                         <div className="w-px h-8 bg-slate-200 mx-2"></div>
                         <button 

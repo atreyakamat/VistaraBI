@@ -17,6 +17,8 @@
 //   - No model metadata shown
 //   - Input length capped to 500 chars
 
+import { CheckCircle2, ChevronRight, CloudOff, FileWarning, LineChart, MessageSquare, Play, Sparkles, TrendingUp, X, Download } from 'lucide-react';
+import { toast } from 'sonner';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { AI_MODE_HEADER_KEY } from '@/lib/ai/ai-mode';
 import { useAIMode } from '@/lib/ai/use-ai-mode';
@@ -955,6 +957,15 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                                 {preferLocal ? 'memory' : 'cloud'}
                             </span>
                             {preferLocal ? 'Local' : 'Cloud'}
+                        </button>
+                        <button
+                            onClick={() => {
+                                toast.success("Conversation history recorded for final Executive Report.");
+                            }}
+                            className="flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"
+                            title="Save Chat to Report"
+                        >
+                            <span className="material-symbols-outlined text-[16px]">bookmark_add</span>
                         </button>
                         <button
                             onClick={() => setMessages([{

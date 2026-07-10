@@ -13,7 +13,9 @@ interface ChatMessage {
 
 interface AIChatPanelProps {
   simulationContext: StrategyCanvasResult | null;
-  onMessagesChange?: (messages: { role: string, text: string }[]) => void;
+  onMessagesChange?: (msgs: ChatMessage[]) => void;
+  isTyping?: boolean;
+  onSaveToReport?: () => void;
 }
 
 function TypewriterText({ text, speed = 10, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
@@ -56,7 +58,7 @@ function TypewriterText({ text, speed = 10, onComplete }: { text: string; speed?
   );
 }
 
-export default function AIChatPanel({ simulationContext, onMessagesChange }: AIChatPanelProps) {
+export default function AIChatPanel({ simulationContext, onMessagesChange, isTyping: propIsTyping, onSaveToReport }: AIChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { 
       role: 'ai', 
@@ -167,9 +169,21 @@ export default function AIChatPanel({ simulationContext, onMessagesChange }: AIC
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       {/* Header */}
       <div className="bg-slate-900 p-4 text-white flex flex-col">
-        <div className="flex items-center gap-2 mb-2">
-          <Bot className="w-5 h-5 text-indigo-400" />
-          <h3 className="font-bold">AI Strategy Governance</h3>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <BrainCircuit className="w-5 h-5 text-indigo-400" />
+            <h3 className="font-bold text-white">Vistara AI Strategist</h3>
+          </div>
+          {onSaveToReport && (
+            <button 
+              onClick={onSaveToReport}
+              className="text-xs flex items-center gap-1 bg-slate-800 text-indigo-300 hover:bg-slate-700 px-2 py-1.5 rounded-md font-medium transition-colors border border-slate-700"
+              title="Save this conversation to your Executive Report"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Save Chat
+            </button>
+          )}
         </div>
         
         {/* Live Context Pill */}

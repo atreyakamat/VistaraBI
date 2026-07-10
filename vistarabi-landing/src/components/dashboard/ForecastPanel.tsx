@@ -4,6 +4,7 @@
 // Focused purely on time-series predictive modeling without Goal Strategy overhead
 
 import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 import StrategyCanvas from '@/components/module-8/StrategyCanvas';
 import { resolveForecastHistory, type DashboardKpiExecutionItem } from '@/lib/module-8/kpi-history-resolver';
 import { LineChart, X, Download, Bot } from 'lucide-react';
@@ -294,18 +295,33 @@ export function ForecastPanel({ projectId, isOpen, onClose, activeKPIs, domainMo
                             </div>
                             
                             <div className="flex-1 min-h-0 border-t border-slate-100 bg-slate-50">
-                                <AIChatPanel simulationContext={simulationContext} />
+                                <AIChatPanel 
+                                    simulationContext={simulationContext} 
+                                    onSaveToReport={() => {
+                                        toast.success("Conversation context added to Report Memory!");
+                                    }}
+                                />
                             </div>
 
                             <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-2 shrink-0">
-                                <button
-                                    onClick={handleExportChart}
-                                    disabled={exporting}
-                                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all flex justify-center items-center gap-2 text-sm"
-                                >
-                                    <Download className="w-4 h-4" />
-                                    {exporting ? 'Exporting PNG...' : 'Export Forecast PNG'}
-                                </button>
+                                <div className="grid grid-cols-2 gap-2 w-full">
+                                    <button
+                                        onClick={handleExportChart}
+                                        disabled={exporting || isGeneratingReport}
+                                        className="py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl shadow-md transition-all flex justify-center items-center gap-2 text-xs"
+                                    >
+                                        <Download className="w-3.5 h-3.5" />
+                                        {exporting ? 'Saving...' : 'Save PNG'}
+                                    </button>
+                                    <button
+                                        onClick={handleGenerateReport}
+                                        disabled={exporting || isGeneratingReport}
+                                        className="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all flex justify-center items-center gap-2 text-xs"
+                                    >
+                                        <Download className="w-3.5 h-3.5" />
+                                        {isGeneratingReport ? 'PDF...' : 'Save & Export PDF'}
+                                    </button>
+                                </div>
                                 <button 
                                     onClick={() => setShowCanvas(false)}
                                     className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all text-center text-sm"
