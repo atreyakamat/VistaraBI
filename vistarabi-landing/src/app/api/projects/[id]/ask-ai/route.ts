@@ -87,31 +87,32 @@ function fuzzyMatchKPI(query: string, kpiName: string): number {
 type QueryRoute = '6A' | '6B' | '6C' | '6E' | '7A' | 'UNSUPPORTED';
 
 const COMMAND_PATTERNS = [
-    /\b(show|add|create|remove|delete|update|build|make|put|new|generate)\b.*\b(card|chart|kpi|metric)\b/i,
-    /\b(display|plot|graph|draw)\b.*\b(by|over|per)\b/i,
-    /\b(give me|i want|can i have)\b.*\b(card|chart|kpi|metric)\b/i,
+    /\b(show|add|create|remove|delete|update|build|make|put|new|generate).*\b(card|chart|kpi|metric|dashboard)/i,
+    /\b(display|plot|graph|draw|break down|breakdown|segment).*\b(by|over|per|region|channel|category)/i,
+    /\b(give me|i want|can i have).*\b(card|chart|kpi|metric|breakdown)/i,
+    /\b(top|bottom).*\b(by)/i,
 ];
 
 const CORRELATION_PATTERNS = [
-    /\b(correlat|relat|connection|link|association|between)\b/i,
-    /\b(how does)\b.*\b(affect|impact|change)\b/i,
-    /\b(impact of)\b.*\b(on)\b/i,
+    /\b(correlat|relat|connection|link|association|between)/i,
+    /\b(how does).*\b(affect|impact|change)/i,
+    /\b(impact of).*\b(on)/i,
 ];
 
 const COMPARISON_PATTERNS = [
-    /\b(compar[a-z]*|vs\.?|versus|against)\b/i,
+    /\b(compar|vs\.?|versus|against)/i,
 ];
 
 const EVENT_PATTERNS = [
-    /\b(why|explain|what happened|spike|drop|loss|profit|anomaly|anomalous|anomalies|change)\b/i,
-    /\b(went up|went down|increased|decreased|surge|fell|jumped|tanked)\b/i,
-    /\b(tell me|how is|performance of|what's going on with|status of|how much|what is|what are|value of|current)\b/i,
+    /\b(why|explain|what happened|spike|drop|loss|profit|anomaly|anomalous|anomalies|change)/i,
+    /\b(went up|went down|increased|decreased|surge|fell|jumped|tanked)/i,
+    /\b(tell me|how is|performance of|what's going on with|status of|how much|what is|what are|value of|current)/i,
 ];
 
 const SYNTHESIS_PATTERNS = [
-    /\b(overview|summary|synthesis|synthesize|overall|pattern|signal|insight)\b/i,
-    /\b(risk|volatile|exposure)\b/i,
-    /\b(how are we doing|general update|big picture|tl;?dr|what should i know)\b/i,
+    /\b(overview|summary|synthesis|synthesize|overall|pattern|signal|insight)/i,
+    /\b(risk|volatile|exposure)/i,
+    /\b(how are we doing|general update|big picture|tl;?dr|what should i know)/i,
 ];
 
 const TREND_PATTERNS = [
@@ -234,7 +235,7 @@ async function extractKpiPair(message: string, projectId: string): Promise<{ kpi
             return { kpiAId: matches[0].id, kpiBId: matches[1].id };
         }
 
-        return { kpiAId: kpis[0].id, kpiBId: kpis[1].id };
+        return null;
     } catch {
         return null;
     }
@@ -341,6 +342,53 @@ async function extractSingleKpi(message: string, projectId: string) {
 }
 
 // ─── Main Handler ─────────────────────────────────────────────────────────────
+
+async function runTrendAnalysis(query: string, projectId: string, sessionId: string) {
+    const { kpi, candidates } = await extractSingleKpi(query, projectId);
+    
+    if (!kpi && candidates.length > 0) {
+        return {
+            status: 'clarification_required',
+            route: 'TREND_ANALYSIS',
+            message: "Which metric would you like to see the trend for?",
+            options: candidates.map(c => ({ id: c.id, name: c.name }))
+        };
+    }
+    
+    if (!kpi) {
+        return {
+            status: 'rejected',
+            route: 'TREND_ANALYSIS',
+            message: "Could not identify the metric for trend analysis."
+        };
+    }
+
+    const { executeKPI } = await import('@/lib/execution/kpi-executor');
+    const execResult = await executeKPI(projectId, kpi.id, {});
+
+    const vIndex = execResult.profiling?.volatilityIndex || 0;
+    let vLabel = 'low volatility';
+    if (vIndex > 0.4) vLabel = 'high volatility';
+    else if (vIndex > 0.2) vLabel = 'moderate volatility';
+
+    updateSessionMemory(sessionId, {
+        lastKpiId: kpi.id,
+        lastKpiName: kpi.name,
+        lastIntent: 'trend_analysis'
+    });
+
+    return {
+        status: 'success',
+        route: 'TREND_ANALYSIS',
+        kpiName: kpi.name,
+        dataset: execResult.dataset?.slice(-12) || [],
+        trendDirection: execResult.deltaDirection || 'flat',
+        deltaPercent: execResult.deltaPercent || 0,
+        volatilityIndex: vIndex,
+        summarySentence: `${kpi.name} trended ${execResult.deltaDirection || 'flat'} over the period, shifting by ${Math.abs(execResult.deltaPercent || 0).toFixed(1)}% with ${vLabel}.`,
+        confidence: 'deterministic'
+    };
+}
 
 export async function POST(
     request: NextRequest,
@@ -485,7 +533,12 @@ export async function POST(
                     const eventRes = await handleEventQuery(projectId, activeQuery);
 
                     if (eventRes.status !== 'success' || !eventRes.evidence) {
-                        result = eventRes as unknown as Record<string, unknown>;
+                        const fallbackRes = await runTrendAnalysis(sanitized, projectId, sessionId);
+                        if (fallbackRes.status === 'success') {
+                            result = fallbackRes as Record<string, unknown>;
+                        } else {
+                            result = eventRes as unknown as Record<string, unknown>;
+                        }
                     } else {
                         // Found primary event. Now scan for correlations involving this KPI to add depth.
                         const { handleSynthesisQuery } = await import('@/lib/module-6/synthesis');
@@ -529,6 +582,12 @@ export async function POST(
                     const { getLatestEvidencePackets } = await import('@/lib/module-6/synthesis/packet-loader');
                     const { events, correlations } = await getLatestEvidencePackets(projectId);
                     result = (await handleSynthesisQuery(projectId, events, correlations, sanitized)) as unknown as Record<string, unknown>;
+                    if (result.status !== 'success') {
+                        const fallbackRes = await runTrendAnalysis(sanitized, projectId, sessionId);
+                        if (fallbackRes.status === 'success') {
+                            result = fallbackRes as Record<string, unknown>;
+                        }
+                    }
                     break;
                 }
                 case '7A': {
@@ -545,63 +604,24 @@ export async function POST(
                     break;
                 }
                 case 'TREND_ANALYSIS': {
-                    const { kpi, candidates } = await extractSingleKpi(sanitized, projectId);
-
-                    if (!kpi && candidates.length > 0) {
-                        return NextResponse.json({
-                            status: 'clarification_required',
-                            route: 'TREND_ANALYSIS',
-                            message: "Which metric would you like to see the trend for?",
-                            options: candidates.map(c => ({ id: c.id, name: c.name }))
-                        });
-                    }
-
-                    if (!kpi) {
-                        return NextResponse.json({
-                            status: 'rejected',
-                            route: 'TREND_ANALYSIS',
-                            message: "Could not identify the metric for trend analysis."
-                        });
-                    }
-
-                    const { executeKPI } = await import('@/lib/execution/kpi-executor');
-                    // Execute with a standard length for trend analysis, Module 5.5 will auto-calculate volatility
-                    const execResult = await executeKPI(projectId, kpi.id, {});
-
-                    const vIndex = execResult.profiling?.volatilityIndex || 0;
-                    let vLabel = 'low volatility';
-                    if (vIndex > 0.4) vLabel = 'high volatility';
-                    else if (vIndex > 0.2) vLabel = 'moderate volatility';
-
-                    result = {
-                        status: 'success',
-                        route: 'TREND_ANALYSIS',
-                        kpiName: kpi.name,
-                        dataset: execResult.dataset?.slice(-12) || [], // Return last 12 points for mini-chart
-                        trendDirection: execResult.deltaDirection || 'flat',
-                        deltaPercent: execResult.deltaPercent || 0,
-                        volatilityIndex: vIndex,
-                        summarySentence: `${kpi.name} trended ${execResult.deltaDirection || 'flat'} over the period, shifting by ${Math.abs(execResult.deltaPercent || 0).toFixed(1)}% with ${vLabel}.`,
-                        confidence: 'deterministic'
-                    };
-
-                    updateSessionMemory(sessionId, {
-                        lastKpiId: kpi.id,
-                        lastKpiName: kpi.name,
-                        lastIntent: 'trend_analysis'
-                    });
-
+                    result = (await runTrendAnalysis(sanitized, projectId, sessionId)) as Record<string, unknown>;
                     break;
                 }
                 case 'COMPARISON_ANALYSIS': {
                     const extractedQuery = injectContext(activeQuery, mem);
                     const pair = await extractKpiPair(extractedQuery, projectId);
                     if (!pair) {
-                        return NextResponse.json({
-                            status: 'rejected',
-                            route: 'COMPARISON_ANALYSIS',
-                            message: "Could not identify two metrics to compare. Please specify both metrics."
-                        });
+                        const fallbackRes = await runTrendAnalysis(sanitized, projectId, sessionId);
+                        if (fallbackRes.status === 'success') {
+                            result = fallbackRes as Record<string, unknown>;
+                        } else {
+                            result = {
+                                status: 'rejected',
+                                route: 'COMPARISON_ANALYSIS',
+                                message: "Could not identify metrics to compare or trend. Please specify the metrics."
+                            };
+                        }
+                        break;
                     }
 
                     const { executeKPI } = await import('@/lib/execution/kpi-executor');
@@ -636,7 +656,7 @@ export async function POST(
                         unitA: unitA,
                         unitB: unitB,
                         ratio: ratio,
-                        summarySentence: `${nameA} is currently ${valA.toLocaleString()} (${ratio > 1 ? (ratio).toFixed(1) + 'x higher' : (ratio).toFixed(2) + 'x relative'}) compared to ${nameB}.`,
+                        summarySentence: `I have compared the metrics for **${nameA}** and **${nameB}**. Currently, ${nameA} stands at ${valA.toLocaleString()}, which is roughly ${ratio > 1 ? (ratio).toFixed(1) + ' times higher than' : (ratio * 100).toFixed(1) + '% of'} ${nameB} (${valB.toLocaleString()}).`,
                         confidence: 'deterministic'
                     };
 
@@ -664,7 +684,7 @@ export async function POST(
                     }
                     if (suggestions.length === 0) {
                         suggestions.push(
-                            'What is our revenue this month?',
+                            'Recommend a KPI that synthesizes continuous data points',
                             'Why did our top KPI change last week?',
                             'Compare revenue vs expenses',
                             'Show me an overview of all KPIs'
@@ -723,18 +743,19 @@ For any strategy-related questions, reference these numbers directly in your ans
 --- END CONTEXT ---`;
                 }
 
-                const systemPrompt = `You are VistaraBI, an evidence-governed BI copilot.
-Write a 1-sentence, natural, conversational response summarizing the data payload for the user. Do not just say "Response received" or similar generic acknowledgments. Actually state the metric value, trend, or finding from the payload.
+                const systemPrompt = `You are VistaraBI, an advanced BI intelligence copilot.
+Write a concise, natural, conversational response analyzing the data payload for the user. 
+If the user asks "why" or wants to understand a trend, perform deep domain-level causal reasoning on the raw dataset provided. Use your domain knowledge (e.g. seasonality, market factors) to explain the data.
 RULES:
-1. DO NOT hallucinate numbers. Use only the numbers provided.
-2. DO NOT use words like "because", "due to", or infer causation unless explicitly in the payload.
-3. Keep it extremely brief and friendly. No markdown. If the payload is 'clarification_required', ask the user to clarify.${strategyContextBlock}`;
+1. DO NOT hallucinate numbers. Base your analysis only on the numbers in the dataset.
+2. Synthesize deep insights! If you spot a trend, explain *why* it likely happened based on domain logic.
+3. Keep it conversational but highly analytical. No markdown. If the payload is 'clarification_required', ask the user to clarify.${strategyContextBlock}`;
 
                 const userPrompt = `The user said: "${activeQuery}"
-The underlying analytical engines (6A-6E) produced this structured payload:
-${JSON.stringify({ ...safeResult, dataset: undefined })} // Intentionally omitting dataset arrays from prompt to save context length`;
+The underlying analytical engines (6A-6E) produced this structured payload with raw data arrays:
+${JSON.stringify(safeResult)}`;
 
-                const response = await callLocalModel(systemPrompt, userPrompt, 0.3, undefined, preferLocal, routingMode);
+                const response = await callLocalModel(systemPrompt, userPrompt, 0.6, undefined, preferLocal, routingMode);
                 conversationalPreamble = response.text || '';
             } catch (err) {
                 console.warn('[ask-ai] Failed to generate conversational wrapper:', err);

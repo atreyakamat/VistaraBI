@@ -94,6 +94,7 @@ interface AskAIPanelProps {
     strategyContext?: import('@/lib/module-8/types').StrategyCanvasResult; // M6 to M8 State Injection
     onMessagesChange?: (msgs: { role: string; text: string }[]) => void; // Added for Report Generation
     isOpen: boolean;
+    targetKpi?: string;
     onClose: () => void;
 }
 
@@ -722,7 +723,7 @@ function MessageBubble({ msg, onRetry, onClarify, onStreamComplete }: {
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
-export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, strategyContext, onMessagesChange, isOpen, onClose }: AskAIPanelProps) {
+export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, strategyContext, onMessagesChange, isOpen, targetKpi, onClose }: AskAIPanelProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: genId(),
@@ -767,9 +768,29 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
         if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
     }, [isOpen]);
 
-    // If AI providers are unavailable, show canned suggestions and a friendly banner
+    // If AI providers are unavailable, or if targetKpi is set, show canned/targeted suggestions
     useEffect(() => {
         if (!isOpen) return;
+
+        if (targetKpi) {
+            setSuggestions([
+                `Why did ${targetKpi} change recently?`,
+                `What factors are driving ${targetKpi}?`,
+                `Forecast the future trend of ${targetKpi}`
+            ]);
+            setMessages(prev => {
+                if (prev.length <= 1) {
+                    return [{
+                        id: genId(), role: 'assistant', timestamp: new Date(),
+                        content: { type: 'text', text: `I'm ready to perform deep causal analysis on ${targetKpi}. What would you like to know?` } as ChatContent,
+                        isStreamingCompleted: true
+                    }];
+                }
+                return prev;
+            });
+            return;
+        }
+
         (async () => {
             try {
                 const res = await fetch('/api/v1/ai/health', { cache: 'no-store' });
@@ -813,8 +834,10 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
         setSuggestions([]); // Clear suggestions when user sends new message
         setIsLoading(true);
 
-        // 3-second client-side timeout sentinel
+        // 60-second client-side timeout sentinel with AbortController
+        const controller = new AbortController();
         const clientTimeout = setTimeout(() => {
+            controller.abort();
             setMessages(prev => [...prev, {
                 id: genId(),
                 role: 'assistant' as const,
@@ -823,11 +846,12 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                 isStreamingCompleted: true,
             }]);
             setIsLoading(false);
-        }, 3000);
+        }, 60000);
 
         try {
             const res = await fetch(`/api/projects/${projectId}/ask-ai`, {
                 method: 'POST',
+                signal: controller.signal,
                 headers: {
                     'Content-Type': 'application/json',
                     [AI_MODE_HEADER_KEY]: preferLocal ? 'local' : 'cloud',

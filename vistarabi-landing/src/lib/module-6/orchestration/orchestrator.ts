@@ -166,8 +166,8 @@ export function getFollowUpSuggestions(memory: ConversationMemory): string[] {
             suggestions.push(`Add ${kpi} to dashboard`);
             break;
         default:
+            suggestions.push("Recommend a KPI that synthesizes continuous data points");
             suggestions.push("What is total revenue?");
-            suggestions.push("Show me customer trends");
             suggestions.push("Analyze correlation between Revenue and Profit");
     }
 

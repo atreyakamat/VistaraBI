@@ -63,6 +63,8 @@ export function PlotlyChart({ chartType, labels, dataValues, colorAccent, kpiNam
 
     return (
         <Plot
+            className="outline-none focus:outline-none"
+            style={{ width: '100%', height: '100%', outline: 'none' }}
             data={data}
             layout={baseLayout}
             config={{

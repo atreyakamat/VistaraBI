@@ -86,7 +86,8 @@ export function ChartJSChart({
             ref={canvasRef}
             role="img"
             aria-label={kpiName ? `${kpiName} chart` : 'Chart'}
-            style={{ display: 'block', width: '100%', height: '100%' }}
+            className="outline-none focus:outline-none"
+            style={{ display: 'block', width: '100%', height: '100%', outline: 'none' }}
         />
     );
 }

@@ -72,6 +72,7 @@ export function DashboardShell({
     const [activeSection, setActiveSection] = useState<string | undefined>();
     const [insightPanelOpen, setInsightPanelOpen] = useState(false);
     const [askAiOpen, setAskAiOpen] = useState(false);
+    const [askAiTargetKpi, setAskAiTargetKpi] = useState<string | undefined>();
     const [goalPanelOpen, setGoalPanelOpen] = useState(false);
     const [forecastPanelOpen, setForecastPanelOpen] = useState(false);
     const [goalQuery, setGoalQuery] = useState('');
@@ -469,6 +470,10 @@ export function DashboardShell({
                                         key={kpi.kpiId}
                                         data={kpi}
                                         explanation={explanations[kpi.kpiId]}
+                                        onAskAI={(kpiName) => {
+                                            setAskAiTargetKpi(kpiName);
+                                            setAskAiOpen(true);
+                                        }}
                                     />
                                 ))}
                             </div>

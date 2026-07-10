@@ -17,9 +17,10 @@ if (typeof window !== 'undefined') {
 interface KPIMetricCardProps {
     data: KPICardData;
     explanation?: KPIExplanationData;
+    onAskAI?: (kpiName: string) => void;
 }
 
-export function KPIMetricCard({ data, explanation }: KPIMetricCardProps) {
+export function KPIMetricCard({ data, explanation, onAskAI }: KPIMetricCardProps) {
     const [flipped, setFlipped] = useState(false);
     const sparkRef = useRef<HTMLCanvasElement>(null);
 
@@ -133,18 +134,30 @@ export function KPIMetricCard({ data, explanation }: KPIMetricCardProps) {
                             </h3>
                         </div>
 
-                        {/* Trend Badge */}
-                        {data.trendPercent !== undefined && (
-                            <div className="flex items-center gap-1">
-                                <div
-                                    className={`kpi-trend-badge ${data.trend || 'flat'}`}
-                                >
-                                    <span className="material-symbols-outlined text-xs">{trend.icon}</span>
-                                    {trend.label}{Math.abs(data.trendPercent).toFixed(1)}%
+                        {/* Ask AI & Trend Badge */}
+                        <div className="flex flex-col items-end gap-2">
+                            {data.trendPercent !== undefined && (
+                                <div className="flex items-center gap-1">
+                                    <div
+                                        className={`kpi-trend-badge ${data.trend || 'flat'}`}
+                                    >
+                                        <span className="material-symbols-outlined text-xs">{trend.icon}</span>
+                                        {trend.label}{Math.abs(data.trendPercent).toFixed(1)}%
+                                    </div>
+                                    <HelpTooltip content={DASHBOARD_TOOLTIPS.trend} side="top" />
                                 </div>
-                                <HelpTooltip content={DASHBOARD_TOOLTIPS.trend} side="top" />
-                            </div>
-                        )}
+                            )}
+                            {onAskAI && (
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); onAskAI(data.kpiName.replace(/_/g, ' ')); }}
+                                    className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-100"
+                                    title={`Ask AI about ${data.kpiName.replace(/_/g, ' ')}`}
+                                >
+                                    <span className="material-symbols-outlined text-[12px]">auto_awesome</span>
+                                    Ask AI
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Sparkline Area */}

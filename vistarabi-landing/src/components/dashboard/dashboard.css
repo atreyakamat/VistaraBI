@@ -2184,9 +2184,12 @@
     z-index: 160;
     display: flex;
     flex-direction: column;
-    background: var(--color-surface);
-    box-shadow: -8px 0 40px rgba(15, 23, 42, 0.12);
-    animation: slideInRight 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-left: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: -12px 0 48px rgba(15, 23, 42, 0.15);
+    animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: var(--font-display);
 }
 
@@ -2249,6 +2252,7 @@
 /* User Bubble */
 .ask-ai-user-bubble {
     background: linear-gradient(135deg, #135bec 0%, #6366f1 100%);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
     color: #fff;
     padding: 0.625rem 0.875rem;
     border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
