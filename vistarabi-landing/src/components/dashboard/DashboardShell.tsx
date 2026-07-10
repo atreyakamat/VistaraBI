@@ -130,39 +130,56 @@ export function DashboardShell({
                 console.warn("UI capture failed for report", e);
             }
 
-            const targetVal = 75000;
-            
+
+            const savedChatM6Raw = localStorage.getItem('vistara_saved_chat_m6');
+            const savedChatM6 = savedChatM6Raw ? JSON.parse(savedChatM6Raw) : [];
             const chatHistoryPairs = [];
-            for (let i = 0; i < askAiMessages.length; i++) {
-                if (askAiMessages[i].role.toLowerCase() === 'user') {
-                    const q = askAiMessages[i].text;
+            for (let i = 0; i < savedChatM6.length; i++) {
+                if (savedChatM6[i].role.toLowerCase() === 'user') {
+                    const q = savedChatM6[i].content?.text || savedChatM6[i].text || "";
                     let ans = "No response recorded.";
-                    for (let j = i + 1; j < askAiMessages.length; j++) {
-                        if (askAiMessages[j].role.toLowerCase() === 'assistant' || askAiMessages[j].role.toLowerCase() === 'system') {
-                            ans = askAiMessages[j].text;
+                    for (let j = i + 1; j < savedChatM6.length; j++) {
+                        if (savedChatM6[j].role.toLowerCase() === 'assistant' || savedChatM6[j].role.toLowerCase() === 'system') {
+                            ans = savedChatM6[j].content?.text || savedChatM6[j].content?.narrative || savedChatM6[j].text || "";
                             break;
                         }
                     }
-                    chatHistoryPairs.push({ question: q, answer: ans });
+                    if (q) chatHistoryPairs.push({ question: q, answer: ans });
                 }
+            }
+
+            const savedGoalRaw = localStorage.getItem('vistara_saved_goal');
+            const savedGoalData = savedGoalRaw ? JSON.parse(savedGoalRaw) : null;
+            const strategyContextToUse = savedGoalData?.simulationContext || null;
+            const canvasToUse = savedGoalData?.canvas || null;
+
+            const savedForecastRaw = localStorage.getItem('vistara_saved_forecast');
+            const savedForecastData = savedForecastRaw ? JSON.parse(savedForecastRaw) : null;
+
+            const fallbackProb = strategyContextToUse?.probabilityOfSuccess || savedForecastData?.probabilityOfSuccess || 0.85;
+            let targetVal = 75000;
+            if (canvasToUse) {
+                const parsed = parseFloat(canvasToUse.goal?.targetValue?.replace(/[^0-9.]/g, ''));
+                if (!isNaN(parsed)) targetVal = parsed;
             }
 
             const payload = {
                 domain: domainName,
                 metrics: {
-                    probability: activeStrategyContext?.probabilityOfSuccess || 0.85,
-                    gap: activeStrategyContext ? Math.max(0, targetVal - activeStrategyContext.scenarios.baseline[activeStrategyContext.scenarios.baseline.length - 1].yhat) : 5000,
+                    probability: fallbackProb,
+                    gap: strategyContextToUse ? Math.max(0, targetVal - strategyContextToUse.scenarios.baseline[strategyContextToUse.scenarios.baseline.length - 1].yhat) : 5000,
                     target: targetVal
                 },
                 chartImage: chartImageBase64 || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
                 dashboardImage: dashboardImageBase64,
                 selectedKPIs: topKpis.map(k => ({ name: k.kpiName, category: k.category, value: String(k.currentValue) })),
-                actions: (activeStrategyContext as any)?.topActions?.map((a: any) => ({ title: a.actionName, impact: a.tier })) || [],
-                globalChatSummary: askAiMessages.length > 0 ? askAiMessages[askAiMessages.length - 1].text : undefined,
+                actions: canvasToUse?.scenarios?.map((a: any) => ({ title: a.actionName, impact: a.tier })) || [],
+                globalChatSummary: savedChatM6.length > 0 ? (savedChatM6[savedChatM6.length - 1].content?.text || savedChatM6[savedChatM6.length - 1].text) : undefined,
                 module6ChatHistory: chatHistoryPairs,
-                forecastData: activeStrategyContext ? {
-                    kpi: topKpis[0]?.kpiName || 'Primary Metric',
-                    trend: activeStrategyContext.probabilityOfSuccess > 0.6 ? 'Positive' : 'At Risk',
+                strategyCanvas: canvasToUse,
+                forecastData: savedForecastData ? {
+                    kpi: savedForecastData.kpi || topKpis[0]?.kpiName || 'Primary Metric',
+                    trend: savedForecastData.probabilityOfSuccess > 0.6 ? 'Positive' : 'At Risk',
                     confidence: '95%'
                 } : undefined
             };

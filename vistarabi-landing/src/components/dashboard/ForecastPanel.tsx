@@ -314,12 +314,19 @@ export function ForecastPanel({ projectId, isOpen, onClose, activeKPIs, domainMo
                                         {exporting ? 'Saving...' : 'Save PNG'}
                                     </button>
                                     <button
-                                        onClick={handleGenerateReport}
-                                        disabled={exporting || isGeneratingReport}
+                                        onClick={() => {
+                                            const forecastData = {
+                                                kpi: selectedKPI,
+                                                probabilityOfSuccess: simulationContext?.probabilityOfSuccess || 0.85,
+                                                reliabilityScore: simulationContext?.reliabilityScore || 80,
+                                            };
+                                            localStorage.setItem('vistara_saved_forecast', JSON.stringify(forecastData));
+                                            toast.success(`${selectedKPI.replace(/_/g, ' ')} baseline forecast added to Report Cart!`);
+                                        }}
                                         className="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-all flex justify-center items-center gap-2 text-xs"
                                     >
                                         <Download className="w-3.5 h-3.5" />
-                                        {isGeneratingReport ? 'PDF...' : 'Save & Export PDF'}
+                                        Save to Report
                                     </button>
                                 </div>
                                 <button 

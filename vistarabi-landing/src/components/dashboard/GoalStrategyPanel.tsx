@@ -882,12 +882,17 @@ export function GoalStrategyPanel({
                     </div>
                     <div className="flex items-center gap-4">
                         <button 
-                            onClick={handleGenerateReport}
-                            disabled={!simulationContext || isGeneratingReport}
+                            onClick={() => {
+                                if (canvas && simulationContext) {
+                                    localStorage.setItem('vistara_saved_goal', JSON.stringify({ canvas, simulationContext }));
+                                    import('sonner').then(mod => mod.toast.success("Strategic goal and execution to-dos added to Report Cart!"));
+                                }
+                            }}
+                            disabled={!simulationContext}
                             className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 rounded-lg transition-colors shadow-sm"
                         >
                             <FileText className="w-4 h-4" />
-                            {isGeneratingReport ? 'Generating PDF...' : 'Save Goal & Export PDF'}
+                            Save Goal to Report
                         </button>
                         <div className="w-px h-8 bg-slate-200 mx-2"></div>
                         <button 

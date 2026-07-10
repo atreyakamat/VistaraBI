@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Sparkles, Target, Zap, AlertCircle } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Target, Zap, AlertCircle, BrainCircuit, BookmarkPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { StrategyCanvasResult } from '@/lib/module-8/types';
 
@@ -175,12 +175,15 @@ export default function AIChatPanel({ simulationContext, onMessagesChange, isTyp
             <h3 className="font-bold text-white">Vistara AI Strategist</h3>
           </div>
           {onSaveToReport && (
-            <button 
-              onClick={onSaveToReport}
-              className="text-xs flex items-center gap-1 bg-slate-800 text-indigo-300 hover:bg-slate-700 px-2 py-1.5 rounded-md font-medium transition-colors border border-slate-700"
+            <button
+              onClick={() => {
+                localStorage.setItem('vistara_saved_chat_m6', JSON.stringify(messages));
+                onSaveToReport();
+              }}
+              className="text-xs flex items-center gap-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-md font-bold transition-colors"
               title="Save this conversation to your Executive Report"
             >
-              <Download className="w-3.5 h-3.5" />
+              <BookmarkPlus className="w-3.5 h-3.5" />
               Save Chat
             </button>
           )}

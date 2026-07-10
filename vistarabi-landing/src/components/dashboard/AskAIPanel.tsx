@@ -960,6 +960,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                         </button>
                         <button
                             onClick={() => {
+                                localStorage.setItem('vistara_saved_chat_m6', JSON.stringify(messages));
                                 toast.success("Conversation history recorded for final Executive Report.");
                             }}
                             className="flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"
