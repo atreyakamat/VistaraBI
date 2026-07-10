@@ -16,6 +16,7 @@ interface StrategyCanvasProps {
     actionName: string;
     kpiHistory: { date: string, value: number }[];
     uplift: number;
+    metricName?: string;
   };
 }
 
@@ -40,6 +41,19 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
 
   // Reactive history that updates when props change
   const [history, setHistory] = useState<{ date: string, value: number }[]>([]);
+
+  const formatValue = useCallback((v: number, isAxis = false) => {
+    const name = (initialContext?.metricName || '').toLowerCase();
+    const isCurrency = /(revenue|sales|mrr|arr|cost|price|value)/i.test(name);
+    const isPercent = /(rate|percent|margin|roi)/i.test(name);
+    
+    let formatted = isAxis ? (v/1000).toFixed(0) + 'k' : v.toFixed(0);
+    if (v < 1000 && isAxis) formatted = v.toFixed(0);
+    
+    if (isCurrency) return `$${formatted}`;
+    if (isPercent) return `${formatted}%`;
+    return formatted;
+  }, [initialContext?.metricName]);
 
   useEffect(() => {
     if (initialContext?.kpiHistory && initialContext.kpiHistory.length > 0) {
@@ -172,7 +186,9 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
           <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Target KPI</label>
             <div className="flex items-center">
-              <span className="text-slate-400 font-medium mr-2">$</span>
+              {/(revenue|sales|mrr|arr|cost|price|value)/i.test(initialContext?.metricName || '') && (
+                <span className="text-slate-400 font-medium mr-2">$</span>
+              )}
               <input 
                 type="number" 
                 value={goalValue} 
@@ -292,7 +308,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase">Strategy Gap</p>
               <div className="text-xl font-bold text-slate-900 line-clamp-1">
-                {data ? `$${Math.max(0, goalValue - data.scenarios.baseline[data.scenarios.baseline.length - 1].yhat).toLocaleString(undefined, {maximumFractionDigits: 0})}` : '--'}
+                {data ? formatValue(Math.max(0, goalValue - data.scenarios.baseline[data.scenarios.baseline.length - 1].yhat)) : '--'}
               </div>
             </div>
           </div>
@@ -322,7 +338,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
                   />
                   <YAxis 
                     domain={['auto', 'auto']} 
-                    tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} 
+                    tickFormatter={(v) => formatValue(v, true)} 
                     tick={{ fill: '#64748b', fontSize: 12 }}
                     tickLine={false}
                     axisLine={false}
@@ -330,7 +346,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                     formatter={(value: unknown, name: unknown) => [
-                      <span key={String(name)} className="font-bold text-slate-700">${Number(value).toFixed(0)}</span>, 
+                      <span key={String(name)} className="font-bold text-slate-700">{formatValue(Number(value))}</span>, 
                       <span key={String(name)+"_label"} className="text-slate-500">{String(name)}</span>
                     ]}
                     labelFormatter={(label) => <span className="font-bold text-slate-900 mb-2 block">Day {label}</span>}

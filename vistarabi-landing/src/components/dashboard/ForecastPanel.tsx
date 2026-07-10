@@ -143,8 +143,8 @@ export function ForecastPanel({ projectId, isOpen, onClose, activeKPIs, domainMo
                             onChange={e => setSelectedKPI(e.target.value)}
                             className="w-full p-4 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-slate-50"
                         >
-                            {activeKPIs.map(kpi => (
-                                <option key={kpi.name} value={kpi.name}>{kpi.name.replace(/_/g, ' ')}</option>
+                            {activeKPIs.map((kpi, idx) => (
+                                <option key={kpi.id || idx} value={kpi.name}>{kpi.name.replace(/_/g, ' ')}</option>
                             ))}
                         </select>
 
@@ -185,10 +185,11 @@ export function ForecastPanel({ projectId, isOpen, onClose, activeKPIs, domainMo
                                 <DashboardErrorBoundary label="Forecast Canvas">
                                     <StrategyCanvas 
                                         initialContext={{
-                                            goalValue: kpiHistory[kpiHistory.length - 1]?.value * 1.1 || 100,
+                                            goalValue: Math.round(kpiHistory[kpiHistory.length - 1]?.value * 1.1 || 100),
                                             actionName: "Baseline AI Projection",
                                             kpiHistory,
-                                            uplift: 0
+                                            uplift: 0,
+                                            metricName: selectedKPI
                                         }}
                                     />
                                 </DashboardErrorBoundary>

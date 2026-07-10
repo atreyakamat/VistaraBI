@@ -838,8 +838,20 @@ export function GoalStrategyPanel({
     // OVERLAY FOR SIMULATOR
     if (simulatingAction && canvas) {
         let parsedTargetValue = 75000;
-        const rawTarget = parseFloat(canvas.goal.targetValue.replace(/[^0-9.]/g, ''));
-        if (!isNaN(rawTarget)) parsedTargetValue = rawTarget;
+        const rawTargetStr = canvas.goal.targetValue || '';
+        const rawTarget = parseFloat(rawTargetStr.replace(/[^0-9.]/g, ''));
+        
+        if (!isNaN(rawTarget)) {
+            parsedTargetValue = rawTarget;
+            if (rawTargetStr.toLowerCase().includes('m')) parsedTargetValue *= 1000000;
+            else if (rawTargetStr.toLowerCase().includes('k')) parsedTargetValue *= 1000;
+            else if (rawTargetStr.includes('%') && realHistory.length > 0) {
+                const latestVal = realHistory[realHistory.length - 1].value;
+                parsedTargetValue = latestVal * (1 + (rawTarget / 100));
+            }
+        } else if (realHistory.length > 0) {
+            parsedTargetValue = realHistory[realHistory.length - 1].value * 1.1;
+        }
 
         const balancedScenario = simulatingAction.scenarios.find(s => s.level === 'BALANCED');
         const fallbackScenario = simulatingAction.scenarios[0];
@@ -852,7 +864,8 @@ export function GoalStrategyPanel({
             goalValue: parsedTargetValue,
             actionName: simulatingAction.actionName,
             kpiHistory: realHistory,
-            uplift: upliftPercent
+            uplift: upliftPercent,
+            metricName: canvas.goal.targetMetric
         };
 
         return (
