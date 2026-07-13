@@ -351,6 +351,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
                     <div className="flex items-center gap-4">
                         <button
+                            suppressHydrationWarning
                             onClick={() => setPreferLocal(!preferLocal)}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${
                                 preferLocal 
@@ -359,10 +360,10 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                             }`}
                             title={preferLocal ? "Using Local AI (Ollama)" : "Using Cloud AI (Groq)"}
                         >
-                            <span className="material-symbols-outlined text-[14px]">
+                            <span suppressHydrationWarning className="material-symbols-outlined text-[14px]">
                                 {preferLocal ? 'memory' : 'cloud'}
                             </span>
-                            {preferLocal ? 'Local' : 'Cloud'}
+                            <span suppressHydrationWarning>{preferLocal ? 'Local' : 'Cloud'}</span>
                         </button>
                         <div className="hidden md:flex items-center gap-3">
                             {sources.length > 0 && (
@@ -634,6 +635,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
                 <AnimatePresence>
                     {previewSource && (
                         <DataPreview
+                            key="data-preview"
                             source={previewSource}
                             columnMeta={previewColumnMeta}
                             onClose={() => {
@@ -647,6 +649,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
                     {cleaningSummary && (
                         <CleaningSummary
+                            key="cleaning-summary"
                             summary={cleaningSummary}
                             onClose={() => setCleaningSummary(null)}
                             onReClean={handleReClean}
@@ -655,6 +658,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
                     {qualityDashboard && (
                         <QualityDashboard
+                            key="quality-dashboard"
                             quality={qualityDashboard.quality}
                             columnHealths={qualityDashboard.columnHealths}
                             outliers={qualityDashboard.outliers}
@@ -665,6 +669,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
                     {showDomainPopup && (
                         <DomainSelectionPopup
+                            key="domain-popup"
                             projectId={id}
                             currentDomain={domainData?.detectedDomain || null}
                             currentConfidence={domainData?.confidence || 0}

@@ -189,7 +189,7 @@ export async function POST(
                         rowCount: parseResult.rowCount,
                         colCount: parseResult.colCount,
                         columns: parseResult.columns,
-                        data: parseResult.data as Prisma.InputJsonValue,
+                        data: JSON.parse(JSON.stringify(parseResult.data).replace(/[^\x00-\x7F]/g, '')) as Prisma.InputJsonValue,
                     },
                 }))!;
 
@@ -230,12 +230,16 @@ export async function POST(
                     cleaningStats,
                 });
             } catch (error) {
+                console.error("Upload sources error:", error);
+                const rawErrorMsg = error instanceof Error ? error.message : 'Unknown error';
+                const cleanErrorMsg = rawErrorMsg.replace(/[^\x00-\x7F]/g, '');
+                
                 // Update source with error
                 source = (await db.source.update({
                     where: { id: source.id },
                     data: {
                         status: 'FAILED',
-                        error: error instanceof Error ? error.message : 'Unknown error',
+                        error: cleanErrorMsg,
                     },
                 }))!;
 
