@@ -113,7 +113,11 @@ export default function DashboardPage() {
             //   { projectId, kpis: KPIExecutionResult[], metadata, ... }
             // Each KPIExecutionResult has: primaryValue, previousValue, dataset[],
             //   deltaPercent, deltaDirection, recommendedChartType, recommendedChartLibrary
-            const dataRes = await fetch(`/api/projects/${projectId}/dashboard/data${isRefresh ? '?skipCache=true' : ''}`);
+            // Always request monthly granularity on initial load so the executor runs
+            // the time-series SQL path and returns a dataset of datapoints, not a single scalar.
+            const dataParams = new URLSearchParams({ granularity: 'monthly' });
+            if (isRefresh) dataParams.set('skipCache', 'true');
+            const dataRes = await fetch(`/api/projects/${projectId}/dashboard/data?${dataParams}`);
             const kpiDataMap: Record<string, KPIExecutionResult> = {};
 
             if (!dataRes.ok) {
@@ -134,11 +138,11 @@ export default function DashboardPage() {
                 for (const card of section.cards || []) {
                     const exec = kpiDataMap[card.kpiId];
 
-                    // Map dataset (KPIDataPoint[]) to the chart-friendly { label, value } format
-                    // KPIDataPoint already has label and value, so just normalize it
-                    const dataPoints: Array<{ label: string; value: number }> = (exec?.dataset || []).map((dp) => ({
-                        label: dp.label || 'N/A',
-                        value: typeof dp.value === 'number' ? dp.value : 0,
+                    // Map dataset to chart-friendly { label, value }.
+                    // Prefer dp.date (ISO date from time-series) over dp.label for the x-axis.
+                    const dataPoints: Array<{ label: string; value: number }> = (exec?.dataset || []).map((dp: any) => ({
+                        label: (dp.date && String(dp.date) !== 'Total') ? String(dp.date) : (dp.label && String(dp.label) !== 'Total') ? String(dp.label) : 'N/A',
+                        value: typeof dp.value === 'number' ? dp.value : Number(dp.value) || 0,
                     }));
 
                     const kpiData: KPICardData = {
