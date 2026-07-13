@@ -60,18 +60,8 @@ function fuzzyMatchKPI(query: string, kpiName: string): number {
 
     if (!qTokens.length || !kTokens.length) return 0;
 
-    // Filter out generic modifiers that dilute scores
-    const genericModifiers = new Set([
-        'total', 'average', 'avg', 'rate', 'monthly', 'weekly', 'daily', 'yearly', 
-        'annual', 'overall', 'mean', 'ratio', 'percentage', 'index', 'score', 
-        'count', 'sum', 'value', 'trend', 'number', 'qty', 'quantity'
-    ]);
-
-    const kTokensFiltered = kTokens.filter(t => !genericModifiers.has(t));
-    const targetTokens = kTokensFiltered.length > 0 ? kTokensFiltered : kTokens;
-
     let score = 0;
-    for (const kt of targetTokens) {
+    for (const kt of kTokens) {
         let bestTokenScore = 0;
         for (const qt of qTokens) {
             const sim = computeSimilarity(qt, kt);
@@ -79,7 +69,7 @@ function fuzzyMatchKPI(query: string, kpiName: string): number {
         }
         score += bestTokenScore;
     }
-    return score / targetTokens.length;
+    return score / kTokens.length;
 }
 
 // ─── Intent Classification ────────────────────────────────────────────────────
@@ -176,49 +166,25 @@ async function extractKpiPair(message: string, projectId: string): Promise<{ kpi
         if (kpis.length < 2) return null;
 
         const msgLower = message.toLowerCase();
-        
-        const genericModifiers = new Set([
-            'total', 'average', 'avg', 'rate', 'monthly', 'weekly', 'daily', 'yearly', 
-            'annual', 'overall', 'mean', 'ratio', 'percentage', 'index', 'score', 
-            'count', 'sum', 'value', 'trend', 'number', 'qty', 'quantity'
-        ]);
-
         const matches: Array<{ id: string; score: number; index: number }> = [];
 
         for (const kpi of kpis) {
-            let score = 0;
             const kpiNorm = kpi.name.toLowerCase().replace(/_/g, ' ');
+            let score = 0;
             
             if (msgLower.includes(kpiNorm)) {
                 score = 1.0;
             } else {
-                const kTokens = kpiNorm.split(/[^a-z0-9]+/).filter(Boolean);
-                const kTokensFiltered = kTokens.filter(t => !genericModifiers.has(t));
-                const targetTokens = kTokensFiltered.length > 0 ? kTokensFiltered : kTokens;
-                
-                const msgTokens = msgLower.split(/[^a-z0-9]+/).filter(Boolean);
-                const allMatched = targetTokens.every(kt => 
-                    msgTokens.some(qt => qt.includes(kt) || kt.includes(qt))
-                );
-                
-                if (allMatched) {
-                    score = 0.95;
-                } else {
-                    score = fuzzyMatchKPI(message, kpi.name);
-                }
+                score = fuzzyMatchKPI(message, kpi.name);
             }
 
             if (score > 0.65) {
-                const kNorm = kpi.name.toLowerCase().replace(/_/g, ' ');
-                const kTokens = kNorm.split(/[^a-z0-9]+/).filter(t => t && !genericModifiers.has(t));
-                const kTarget = kTokens.length > 0 ? kTokens : kNorm.split(/[^a-z0-9]+/);
-
+                const kTarget = kpiNorm.split(/[^a-z0-9]+/);
                 let firstIdx = msgLower.length;
                 for (const kw of kTarget) {
                     const idx = msgLower.indexOf(kw);
                     if (idx !== -1 && idx < firstIdx) firstIdx = idx;
                 }
-                
                 matches.push({ id: kpi.id, score, index: firstIdx });
             }
         }
@@ -258,61 +224,6 @@ async function extractSingleKpi(message: string, projectId: string) {
         if (msgLower.includes(kpiNorm)) {
             return { kpi, candidates: [] };
         }
-    }
-
-    // Pass 1.5: Distinct keyword substring match (ignoring generic modifiers)
-    const genericModifiers = new Set([
-        'total', 'average', 'avg', 'rate', 'monthly', 'weekly', 'daily', 'yearly', 
-        'annual', 'overall', 'mean', 'ratio', 'percentage', 'index', 'score', 
-        'count', 'sum', 'value', 'trend', 'number', 'qty', 'quantity'
-    ]);
-
-    const matchedKpis: typeof kpis = [];
-    for (const kpi of kpis) {
-        const kpiNorm = kpi.name.toLowerCase().replace(/_/g, ' ');
-        const kTokens = kpiNorm.split(/[^a-z0-9]+/).filter(Boolean);
-        const kTokensFiltered = kTokens.filter(t => !genericModifiers.has(t));
-        const targetTokens = kTokensFiltered.length > 0 ? kTokensFiltered : kTokens;
-        
-        const msgTokens = msgLower.split(/[^a-z0-9]+/).filter(Boolean);
-        // Check if every targetToken has a matching token in the message (either as substring or stem)
-        const allMatched = targetTokens.every(kt => 
-            msgTokens.some(qt => qt.includes(kt) || kt.includes(qt))
-        );
-        if (allMatched) {
-            matchedKpis.push(kpi);
-        }
-    }
-
-    if (matchedKpis.length === 1) {
-        return { kpi: matchedKpis[0], candidates: [] };
-    } else if (matchedKpis.length > 1) {
-        // Sort matched KPIs by where they first appear in the message
-        matchedKpis.sort((a, b) => {
-            const aNorm = a.name.toLowerCase().replace(/_/g, ' ');
-            const aTokens = aNorm.split(/[^a-z0-9]+/).filter(t => t && !genericModifiers.has(t));
-            const aTarget = aTokens.length > 0 ? aTokens : aNorm.split(/[^a-z0-9]+/);
-            
-            const bNorm = b.name.toLowerCase().replace(/_/g, ' ');
-            const bTokens = bNorm.split(/[^a-z0-9]+/).filter(t => t && !genericModifiers.has(t));
-            const bTarget = bTokens.length > 0 ? bTokens : bNorm.split(/[^a-z0-9]+/);
-
-            let aIndex = msgLower.length;
-            for (const kw of aTarget) {
-                const idx = msgLower.indexOf(kw);
-                if (idx !== -1 && idx < aIndex) aIndex = idx;
-            }
-            
-            let bIndex = msgLower.length;
-            for (const kw of bTarget) {
-                const idx = msgLower.indexOf(kw);
-                if (idx !== -1 && idx < bIndex) bIndex = idx;
-            }
-            
-            return aIndex - bIndex;
-        });
-        
-        return { kpi: matchedKpis[0], candidates: [] };
     }
 
     // Pass 2: Fuzzy match and collect candidates > 0.65 for clarification

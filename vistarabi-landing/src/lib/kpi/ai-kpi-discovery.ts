@@ -386,7 +386,7 @@ async function storeProposals(projectId: string, proposals: AIKPIProposal[]): Pr
                 projectId: proposal.projectId,
                 kpiName: proposal.kpiName,
                 formula: proposal.formula,
-                rationale: proposal.businessMeaning + '\n\n' + proposal.whyItMatters,
+                rationale: `${proposal.businessMeaning || ''}\n\n${proposal.whyItMatters || ''}`,
                 confidenceScore: proposal.confidenceScore,
                 proposedAt: proposal.createdAt || new Date(),
                 status: proposal.status,

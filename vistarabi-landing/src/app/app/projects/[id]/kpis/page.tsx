@@ -127,6 +127,7 @@ export default function KPIWorkspacePage() {
                     isDerived: p.isDerived,
                     sourceType: p.sourceType,
                     businessMeaning: p.businessMeaning,
+                    aggregations: p.aggregations,
                 }));
                 setAiKPIs(aiProposals);
             } else {

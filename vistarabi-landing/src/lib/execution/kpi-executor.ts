@@ -248,6 +248,10 @@ export async function executeKPI(
                 console.warn(`[Executor] Column "${resolved}" not found in table for KPI "${kpi.name}". Falling back to COUNT(${bestNumeric}).`);
                 agg.column = bestNumeric;
                 agg.function = 'COUNT' as typeof agg.function;
+            } else if (actualCols.length > 0) {
+                console.warn(`[Executor] Column "${resolved}" not found in table for KPI "${kpi.name}" and no numeric columns found. Falling back to COUNT(${actualCols[0]}).`);
+                agg.column = actualCols[0];
+                agg.function = 'COUNT' as typeof agg.function;
             }
         }
 
@@ -276,7 +280,11 @@ export async function executeKPI(
     });
 
     for (const gb of kpi.groupBys) {
-        gb.column = resolveColumn(gb.column);
+        let resolved = resolveColumn(gb.column);
+        if (!actualCols.includes(resolved) && actualCols.length > 0) {
+            resolved = actualCols.find(c => CATEGORICAL_TYPES.includes(colTypes[c])) || actualCols[0];
+        }
+        gb.column = resolved;
     }
     if (kpi.lineage?.formula) {
         let f = kpi.lineage.formula;
@@ -288,14 +296,33 @@ export async function executeKPI(
         }
         // ACTION 1: Wrap any remaining SUM/AVG calls in the formula with ::NUMERIC casts.
         // This bulletproofs formula strings like 'SUM(revenue) / NULLIF(COUNT(order_id),0)'
-        // that may have been partially resolved to TEXT columns.
-        f = f.replace(/\b(SUM|AVG)\("?([\w]+)"?\)/gi, (_match, fn, col) => {
-            const physCol = col.toLowerCase();
-            const colType = colTypes[physCol];
-            if (colType && !NUMERIC_TYPES.includes(colType)) {
-                return `${fn}("${physCol}"::NUMERIC)`;
+        // that may have been partially resolved to TEXT columns, and gracefully handles missing columns.
+        f = f.replace(/\b(SUM|AVG|MIN|MAX|COUNT)\s*\(\s*(?:DISTINCT\s+)?"?([\w_]+)"?\s*\)/gi, (match, fn, col) => {
+            let physCol = col.toLowerCase();
+            
+            if (!actualCols.includes(physCol)) {
+                const resolved = resolveColumn(physCol);
+                if (actualCols.includes(resolved)) {
+                    physCol = resolved;
+                } else {
+                    const bestNumeric = actualCols.find(c => NUMERIC_TYPES.includes(colTypes[c]));
+                    if (bestNumeric) {
+                        return `COUNT("${bestNumeric}")`;
+                    } else {
+                        return `0`;
+                    }
+                }
             }
-            return `${fn}("${physCol}")`;
+
+            const isDistinct = match.toUpperCase().includes('DISTINCT');
+            const prefix = isDistinct ? 'DISTINCT ' : '';
+            
+            const colType = colTypes[physCol];
+            const upFn = fn.toUpperCase();
+            if (colType && !NUMERIC_TYPES.includes(colType) && (upFn === 'SUM' || upFn === 'AVG' || upFn === 'MIN' || upFn === 'MAX')) {
+                return `${upFn}(${prefix}"${physCol}"::NUMERIC)`;
+            }
+            return `${upFn}(${prefix}"${physCol}")`;
         });
         kpi.lineage.formula = f;
     }
@@ -324,9 +351,9 @@ export async function executeKPI(
         if (!dc) {
             // 3. Ultimate fallback to first matching date column
             const generalKeywords = ['date', 'time', 'created', 'updated', 'timestamp', 'day', 'month', 'year'];
-            dc = actualCols.find(c => generalKeywords.some(gk => c.includes(gk))) || 'date';
+            dc = actualCols.find(c => generalKeywords.some(gk => c.includes(gk)));
         }
-        possibleDateColumn = dc;
+        possibleDateColumn = (dc && actualCols.includes(dc)) ? dc : undefined;
     }
 
     // Map filters to ExecutionFilters
