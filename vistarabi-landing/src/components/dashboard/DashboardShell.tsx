@@ -140,7 +140,8 @@ export function DashboardShell({
                     let ans = "No response recorded.";
                     for (let j = i + 1; j < savedChatM6.length; j++) {
                         if (savedChatM6[j].role.toLowerCase() === 'assistant' || savedChatM6[j].role.toLowerCase() === 'system') {
-                            ans = savedChatM6[j].content?.text || savedChatM6[j].content?.narrative || savedChatM6[j].text || "";
+                            const c = savedChatM6[j].content;
+                            ans = c?.conversationalPreamble || c?.text || c?.narrative || savedChatM6[j].text || (c?.type ? `[${c.type.toUpperCase()} Response]` : "No text returned.");
                             break;
                         }
                     }

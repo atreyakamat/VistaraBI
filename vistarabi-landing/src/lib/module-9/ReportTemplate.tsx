@@ -503,7 +503,7 @@ export const ExecutiveReport = ({
             {(!selectedKPIs || selectedKPIs.length === 0) ? (
               <Text style={styles.bodyText}>Operational metrics loaded stochastically based on active blueprint.</Text>
             ) : (
-              selectedKPIs.slice(0, 4).map((kpi, i) => {
+              selectedKPIs.map((kpi, i) => {
                 const isString = typeof kpi === 'string';
                 const kName = isString ? kpi : (kpi?.name || 'Metric');
                 const kValue = isString ? '$45k' : (kpi?.value || 'Active');
