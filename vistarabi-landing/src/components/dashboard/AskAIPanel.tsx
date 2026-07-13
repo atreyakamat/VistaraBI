@@ -599,6 +599,7 @@ function TypewriterText({ text, speed = 10, onComplete }: { text: string; speed?
     useEffect(() => {
         textRef.current = text;
         indexRef.current = 0;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDisplayedText('');
 
         const interval = setInterval(() => {
@@ -647,6 +648,7 @@ function MessageBubble({ msg, onRetry, onClarify, onStreamComplete }: {
     useEffect(() => {
         if (msg.isStreamingCompleted) return;
         if (!hasPreamble && !hasText) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setPreambleDone(true);
             onStreamComplete?.(msg.id);
         }
@@ -751,6 +753,26 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
 
+    // Load chat history from DB
+    useEffect(() => {
+        if (!projectId) return;
+        fetch(`/api/projects/${projectId}/chat`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.messages && data.messages.length > 0) {
+                    const loadedMessages: ChatMessage[] = data.messages.map((m: any) => ({
+                        id: m.id,
+                        role: m.role as 'user' | 'assistant',
+                        timestamp: new Date(m.createdAt),
+                        content: m.content,
+                        isStreamingCompleted: true,
+                    }));
+                    setMessages(loadedMessages);
+                }
+            })
+            .catch(err => console.error('Failed to load chat history', err));
+    }, [projectId]);
+
     // Lift message state up for global reporting
     useEffect(() => {
         if (onMessagesChange) {
@@ -836,7 +858,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
         setSuggestions([]); // Clear suggestions when user sends new message
         setIsLoading(true);
 
-        // 60-second client-side timeout sentinel with AbortController
+        // 5-minute client-side timeout sentinel with AbortController for slow local models
         const controller = new AbortController();
         const clientTimeout = setTimeout(() => {
             controller.abort();
@@ -844,11 +866,11 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
                 id: genId(),
                 role: 'assistant' as const,
                 timestamp: new Date(),
-                content: { type: 'error', message: 'AI response timed out. Please try again.', recoverable: true },
+                content: { type: 'error', message: 'AI response timed out (took longer than 5 minutes). Please try again.', recoverable: true },
                 isStreamingCompleted: true,
             }]);
             setIsLoading(false);
-        }, 60000);
+        }, 300000); // Increased from 60s to 5m
 
         try {
             const res = await fetch(`/api/projects/${projectId}/ask-ai`, {
@@ -869,15 +891,42 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
 
             clearTimeout(clientTimeout);
 
-            const data = await res.json();
-            const content = parseResponse(data);
 
+            let data;
+            const contentType = res.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                data = await res.json();
+            } else {
+                const text = await res.text();
+                console.error('[AskAI] Non-JSON response received:', text.substring(0, 500));
+                throw new Error(`Server returned unexpected format (${res.status})`);
+            }
+
+            if (!res.ok) {
+                // If the backend explicitly returned a JSON error (e.g. 500 or 429)
+                console.error('[AskAI] API Error:', data);
+                const isTimeout = (data.error || '').toLowerCase().includes('timeout');
+                setMessages(prev => [...prev, {
+                    id: genId(),
+                    role: 'assistant' as const,
+                    timestamp: new Date(),
+                    content: { 
+                        type: 'error', 
+                        message: data.error || 'The server encountered an issue processing that query. Please try again.', 
+                        recoverable: isTimeout || res.status === 429
+                    },
+                    isStreamingCompleted: true,
+                }]);
+                return;
+            }
+
+            const parsedMsg = parseResponse(data);
             setMessages(prev => [...prev, {
                 id: genId(),
                 role: 'assistant' as const,
                 timestamp: new Date(),
-                content,
-                isStreamingCompleted: false,
+                content: parsedMsg,
+                isStreamingCompleted: true,
             }]);
 
             // Add suggestions if present
@@ -886,25 +935,31 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
             }
 
             // Trigger dashboard refresh on successful 6A command
-            if (content.type === 'command' && content.requiresRefresh) {
+            if (parsedMsg.type === 'command' && parsedMsg.requiresRefresh) {
                 onCommandSuccess?.();
             }
 
             // Trigger goal engine on 7A directive
-            if (content.type === 'directive' && content.directive === 'OPEN_GOAL_ENGINE') {
+            if (parsedMsg.type === 'directive' && parsedMsg.directive === 'OPEN_GOAL_ENGINE') {
                 if (onOpenGoalEngine) {
                     setTimeout(() => onOpenGoalEngine(messageText.trim()), 800); // slight delay for better UX
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             clearTimeout(clientTimeout);
             console.error('AskAI Error:', error);
+            
+            if (error.name === 'AbortError') {
+                // The timeout already pushed a message, don't push another one.
+                return;
+            }
+
             // Graceful fallback for offline / demo mode
             setMessages(prev => [...prev, {
                 id: genId(),
                 role: 'assistant' as const,
                 timestamp: new Date(),
-                content: { type: 'text' as const, text: 'AI is currently offline or operating in demo mode. Please ensure Ollama is running locally for live chat features, or check the dashboard for pre-calculated insights.' },
+                content: { type: 'error' as const, message: `AI connection failed: ${error.message || 'Server is offline or unreachable.'}`, recoverable: true },
                 isStreamingCompleted: true,
             }]);
         } finally {

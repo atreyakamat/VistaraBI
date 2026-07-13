@@ -33,7 +33,7 @@ export function PlotlyChart({ chartType, labels, dataValues, colorAccent, kpiNam
     const primary = colorAccent || '#2563EB';
     const { data, layout } = buildConfig(chartType, labels, dataValues, primary);
 
-    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+     
     const handleClick = (event: Readonly<{ points: any[] }>) => {
         if (!onPointClick || !event?.points?.length) return;
         const pt = event.points[0];

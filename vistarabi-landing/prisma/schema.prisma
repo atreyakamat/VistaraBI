@@ -64,9 +64,23 @@ model Project {
   relationships         Relationship[]
   relationshipRegistry  RelationshipRegistry?
   sources               Source[]
+  projectChatMessages   ProjectChatMessage[]
 
   @@index([userId])
   @@index([shareToken])
+}
+
+model ProjectChatMessage {
+  id        String   @id @default(uuid())
+  projectId String
+  role      String   // 'user' | 'assistant'
+  content   Json     // structured chat content
+  module    String   @default("module-6")
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, module])
+  @@index([createdAt])
 }
 
 model Source {
@@ -419,6 +433,7 @@ model DashboardState {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   cards         DashboardCard[]
+  auditLogs     AuditLog[]
   project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
@@ -450,19 +465,23 @@ model DashboardCard {
 }
 
 model AuditLog {
-  id                     String   @id @default(uuid())
+  id                     String          @id @default(uuid())
   sessionId              String
   userId                 String?
-  intentId               String   @unique
+  intentId               String          @unique
   rawUserQuery           String
   normalizedUserQuery    String
   llmRawOutput           String?
-  validationStagesPassed Int      @default(0)
+  validationStagesPassed Int             @default(0)
   validationFailedAt     String?
   structuredCommand      Json?
   executionStatus        String
   errorCode              String?
-  createdAt              DateTime @default(now())
+  dashboardStateId       String?
+  stateVersion           Int?
+  createdAt              DateTime        @default(now())
+  dashboardState         DashboardState? @relation(fields: [dashboardStateId], references: [id])
+
 
   @@index([sessionId])
   @@index([sessionId, createdAt])

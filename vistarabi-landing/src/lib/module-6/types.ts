@@ -126,6 +126,8 @@ export interface AuditRecord {
     structuredCommand?: Module6Command;
     executionStatus: Module6Status;
     errorCode?: string;
+    dashboardStateId?: string;
+    stateVersion?: number;
 }
 
 // ─── Error codes ──────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-﻿// Module 6A — Main Entry Point
+// Module 6A — Main Entry Point
 // handleAskAI() orchestrates the full NL -> Validated JSON Command -> Execution pipeline.
 // This is the ONLY function that should be called from the API route.
 
@@ -180,6 +180,8 @@ export async function handleAskAI(
             structuredCommand: undefined,
             executionStatus: 'rejected',
             errorCode: code,
+            dashboardStateId: sessionCtx?.stateId,
+            stateVersion: sessionCtx?.stateVersion,
         };
         await writeAuditRecord(auditRecord);
 
@@ -204,6 +206,8 @@ export async function handleAskAI(
             structuredCommand: undefined,
             executionStatus: 'rejected',
             errorCode: pipeline.errorCode,
+            dashboardStateId: sessionCtx.stateId,
+            stateVersion: sessionCtx.stateVersion,
         };
         await writeAuditRecord(auditRecord);
 
@@ -235,6 +239,8 @@ export async function handleAskAI(
         structuredCommand: pipeline.command,
         executionStatus,
         errorCode: execution.error?.code,
+        dashboardStateId: sessionCtx.stateId,
+        stateVersion: (execution.data as any)?.stateVersion ?? sessionCtx.stateVersion,
     };
     await writeAuditRecord(auditRecord);
 

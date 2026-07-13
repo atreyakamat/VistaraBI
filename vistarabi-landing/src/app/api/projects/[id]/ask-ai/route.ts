@@ -322,7 +322,10 @@ export async function POST(
 
         const { id: projectId } = await params;
 
-        const project = await db.project.findUnique({ where: { id: projectId } });
+        const project = await db.project.findUnique({ 
+            where: { id: projectId },
+            include: { domainGovernance: true }
+        });
         if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         if (project.userId !== user.userId) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
 
@@ -654,13 +657,37 @@ For any strategy-related questions, reference these numbers directly in your ans
 --- END CONTEXT ---`;
                 }
 
+                const domain = (project as any).domainGovernance?.activeDomain || 'GENERAL';
+                const domainContextBlock = domain !== 'GENERAL' ? `
+--- DOMAIN CONTEXT ---
+The user's project operates in the ${domain} domain.
+Frame your deep causal reasoning specifically within this industry context.
+--- END DOMAIN CONTEXT ---` : '';
+
+                let visualContext = '';
+                if (finalRoute === 'TREND_ANALYSIS') {
+                    visualContext = 'This data will be plotted on the dashboard as a visual Trend Line Chart over time.';
+                } else if (finalRoute === 'KPI_VALUE_QUERY') {
+                    visualContext = 'This data will be displayed on the dashboard as a single prominent Metric Value Card.';
+                } else if (finalRoute === 'COMPARISON_ANALYSIS') {
+                    visualContext = 'This data will be displayed on the dashboard as a Comparison Card showing the ratio between the two metrics.';
+                } else if (finalRoute === 'CONTEXTUAL_EXPLANATION' || finalRoute === '6B') {
+                    visualContext = 'This explanation will be presented alongside an Insight/Anomaly Card on the dashboard.';
+                }
+
+                const visualContextBlock = visualContext ? `
+--- VISUALIZATION CONTEXT ---
+${visualContext}
+You may gracefully refer to this visual format in your response (e.g., "As you can see in the trend chart...", "The metric card shows..."). This helps connect the math to the visual UI.
+--- END VISUALIZATION CONTEXT ---` : '';
+
                 const systemPrompt = `You are VistaraBI, an advanced BI intelligence copilot.
 Write a concise, natural, conversational response analyzing the data payload for the user. 
-If the user asks "why" or wants to understand a trend, perform deep domain-level causal reasoning on the raw dataset provided. Use your domain knowledge (e.g. seasonality, market factors) to explain the data.
+If the user asks "why" or wants to understand a trend, perform deep domain-level causal reasoning on the raw dataset provided. Use your domain knowledge to explain the data.
 RULES:
 1. DO NOT hallucinate numbers. Base your analysis only on the numbers in the dataset.
 2. Synthesize deep insights! If you spot a trend, explain *why* it likely happened based on domain logic.
-3. Keep it conversational but highly analytical. No markdown. If the payload is 'clarification_required', ask the user to clarify.${strategyContextBlock}`;
+3. Keep it conversational but highly analytical. No markdown. If the payload is 'clarification_required', ask the user to clarify.${strategyContextBlock}${domainContextBlock}${visualContextBlock}`;
 
                 const userPrompt = `The user said: "${activeQuery}"
 The underlying analytical engines (6A-6E) produced this structured payload with raw data arrays:
@@ -674,7 +701,21 @@ ${JSON.stringify(safeResult)}`;
             }
         }
 
-        return NextResponse.json({ route: finalRoute, ...safeResult, conversationalPreamble, suggestions });
+        const finalPayload = { route: finalRoute, ...safeResult, conversationalPreamble, suggestions };
+
+        // --- 7. Save to Chat Persistence (Module 6) ---
+        try {
+            await db.projectChatMessage.create({
+                data: { projectId, role: 'user', content: { type: 'text', text: activeQuery } }
+            });
+            await db.projectChatMessage.create({
+                data: { projectId, role: 'assistant', content: finalPayload }
+            });
+        } catch (dbErr) {
+            console.error('[ask-ai] Failed to persist chat history:', dbErr);
+        }
+
+        return NextResponse.json(finalPayload);
 
     } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);

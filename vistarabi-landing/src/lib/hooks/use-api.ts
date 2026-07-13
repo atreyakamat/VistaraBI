@@ -57,6 +57,7 @@ export function useApi<T>(
 
   useEffect(() => {
     if (options.immediate) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       execute(undefined, undefined);
     }
   }, [options.immediate, execute]);

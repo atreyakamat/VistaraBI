@@ -108,7 +108,8 @@ export async function generateActions(
     decomposedGoal: DecomposedGoal,
     domain: string,
     preferLocal?: boolean,
-    routingMode?: AIRoutingMode
+    routingMode?: AIRoutingMode,
+    chatHistory?: string
 ): Promise<GeneratedAction[]> {
     const factorList = decomposedGoal.factors
         .map(f => `- ${f.metric}: ${f.requiredChange} (${f.description})`)
@@ -116,11 +117,16 @@ export async function generateActions(
 
     const humanGoal = `${decomposedGoal.changeDirection} ${decomposedGoal.primaryMetric} to ${decomposedGoal.targetValue}`;
 
+    let chatContext = '';
+    if (chatHistory) {
+        chatContext = `\nContext from recent conversation:\n${chatHistory}\nUse this context to bias your brainstormed actions towards the user's specific concerns or ideas.\n`;
+    }
+
 const prompt = `You are a strategic business analyst for the ${domain} industry.
 The user wants to achieve this goal: "${humanGoal}"
 To achieve this, the following key metrics must be improved:
 ${factorList}
-
+${chatContext}
 Brainstorm 4 to 6 strategic actions that the business can take to achieve these metric changes.
 The actions MUST be highly specific to the ${domain} industry. Use domain-specific terminology and realistic operational levers.
 

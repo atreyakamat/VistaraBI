@@ -47,7 +47,7 @@ export default function StrategyCanvas({ onSimulationComplete, initialContext }:
     const isCurrency = /(revenue|sales|mrr|arr|cost|price|value)/i.test(name);
     const isPercent = /(rate|percent|margin|roi)/i.test(name);
     
-    let formatted = isAxis 
+    const formatted = isAxis 
         ? (Math.abs(v) >= 1000000 ? (v/1000000).toFixed(1) + 'M' : Math.abs(v) >= 1000 ? (v/1000).toFixed(0) + 'k' : v.toFixed(0))
         : Math.round(v).toLocaleString();
     

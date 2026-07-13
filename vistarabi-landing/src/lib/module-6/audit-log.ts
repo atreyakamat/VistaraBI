@@ -34,6 +34,8 @@ export async function writeAuditRecord(record: AuditRecord): Promise<void> {
                     : null,
                 executionStatus: record.executionStatus,
                 errorCode: record.errorCode ?? null,
+                dashboardStateId: record.dashboardStateId ?? null,
+                stateVersion: record.stateVersion ?? null,
             },
         });
     } catch (err: any) {

@@ -46,7 +46,8 @@ export async function executeGoalPipeline(
     locations: string[] = [],
     onStageChange?: StageCallback,
     preferLocal?: boolean,
-    routingMode?: AIRoutingMode
+    routingMode?: AIRoutingMode,
+    chatHistory?: string
 ): Promise<StrategyCanvas> {
     const start = Date.now();
 
@@ -63,7 +64,7 @@ export async function executeGoalPipeline(
 
     // Stage 4: Generate creative actions using AI
     onStageChange?.('GENERATING');
-    const actions = await generateActions(decomposed, domain, preferLocal, routingMode);
+    const actions = await generateActions(decomposed, domain, preferLocal, routingMode, chatHistory);
 
     // Stage 5: Rank and select top 3 actions
     onStageChange?.('RANKING');

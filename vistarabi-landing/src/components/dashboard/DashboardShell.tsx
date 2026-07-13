@@ -106,6 +106,21 @@ export function DashboardShell({
         }
     }, [anomalyCount, isReadOnly]);
 
+    // Filter KPIs by search query (client-side, instant)
+    const filteredKpis = kpiSearchQuery.trim()
+        ? kpis.filter(k => k.kpiName.toLowerCase().includes(kpiSearchQuery.toLowerCase()))
+        : kpis;
+    // Get top 4 KPIs for the main grid (respects search filter and prioritizes anomalies/high-variance trends)
+    const topKpis = [...filteredKpis].sort((a, b) => {
+        const aCrit = a.anomalySeverity === 'critical' ? 2 : a.anomalySeverity === 'warning' ? 1 : 0;
+        const bCrit = b.anomalySeverity === 'critical' ? 2 : b.anomalySeverity === 'warning' ? 1 : 0;
+        if (aCrit !== bCrit) return bCrit - aCrit;
+
+        const aTrend = Math.abs(a.trendPercent || 0);
+        const bTrend = Math.abs(b.trendPercent || 0);
+        return bTrend - aTrend;
+    }).slice(0, 4);
+
     const handleExportPDF = async () => {
         setIsGeneratingReport(true);
         try {
@@ -130,9 +145,25 @@ export function DashboardShell({
                 console.warn("UI capture failed for report", e);
             }
 
+            let savedChatM6 = [];
+            try {
+                const chatRes = await fetch(`/api/projects/${projectId}/chat`);
+                if (chatRes.ok) {
+                    const data = await chatRes.json();
+                    if (data.messages && data.messages.length > 0) {
+                        savedChatM6 = data.messages;
+                    }
+                }
+            } catch (err) {
+                console.warn('Failed to fetch chat history for report', err);
+            }
 
-            const savedChatM6Raw = localStorage.getItem('vistara_saved_chat_m6');
-            const savedChatM6 = savedChatM6Raw ? JSON.parse(savedChatM6Raw) : [];
+            // Fallback to local storage if DB is empty or fails
+            if (savedChatM6.length === 0) {
+                const savedChatM6Raw = localStorage.getItem('vistara_saved_chat_m6');
+                savedChatM6 = savedChatM6Raw ? JSON.parse(savedChatM6Raw) : [];
+            }
+
             const chatHistoryPairs = [];
             for (let i = 0; i < savedChatM6.length; i++) {
                 if (savedChatM6[i].role.toLowerCase() === 'user') {
@@ -177,7 +208,7 @@ export function DashboardShell({
                 },
                 chartImage: chartImageBase64 || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
                 dashboardImage: dashboardImageBase64,
-                selectedKPIs: topKpis.map(k => ({ name: k.kpiName, category: k.category, value: String(k.currentValue) })),
+                selectedKPIs: (selectedKpis.size > 0 ? kpis.filter(k => selectedKpis.has(k.kpiId)) : topKpis).map(k => ({ name: k.kpiName, category: k.category, value: String(k.currentValue) })),
                 actions: canvasToUse?.scenarios?.map((a: any) => ({ title: a.actionName, impact: a.tier })) || [],
                 globalChatSummary: savedChatM6.length > 0 ? (savedChatM6[savedChatM6.length - 1].content?.text || savedChatM6[savedChatM6.length - 1].text) : undefined,
                 module6ChatHistory: chatHistoryPairs,
@@ -243,20 +274,7 @@ export function DashboardShell({
 
     const kpiMap = new Map(kpis.map(k => [k.kpiId, k]));
 
-    // Filter KPIs by search query (client-side, instant)
-    const filteredKpis = kpiSearchQuery.trim()
-        ? kpis.filter(k => k.kpiName.toLowerCase().includes(kpiSearchQuery.toLowerCase()))
-        : kpis;
-    // Get top 4 KPIs for the main grid (respects search filter and prioritizes anomalies/high-variance trends)
-    const topKpis = [...filteredKpis].sort((a, b) => {
-        const aCrit = a.anomalySeverity === 'critical' ? 2 : a.anomalySeverity === 'warning' ? 1 : 0;
-        const bCrit = b.anomalySeverity === 'critical' ? 2 : b.anomalySeverity === 'warning' ? 1 : 0;
-        if (aCrit !== bCrit) return bCrit - aCrit;
 
-        const aTrend = Math.abs(a.trendPercent || 0);
-        const bTrend = Math.abs(b.trendPercent || 0);
-        return bTrend - aTrend;
-    }).slice(0, 4);
 
     // ── Filter Change ──────────────────────────────────────────────
     const handleFilterChange = useCallback((f: DashboardFilters) => {
@@ -779,7 +797,7 @@ export function DashboardShell({
                         projectId={projectId}
                         isOpen={forecastPanelOpen}
                         onClose={() => setForecastPanelOpen(false)}
-                        activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
+                        activeKPIs={(selectedKpis.size > 0 ? kpis.filter(k => selectedKpis.has(k.kpiId)) : topKpis).map(k => ({ name: k.kpiName, category: k.category || 'Metric', value: String(k.currentValue) }))}
                         domainModel={domainModel}
                     />
                 </DashboardErrorBoundary>
@@ -795,7 +813,7 @@ export function DashboardShell({
                         initialQuery={goalQuery}
                         onSimulationComplete={handleGoalSimulationComplete}
                         domainName={domainName}
-                        activeKPIs={kpis.map(k => ({ name: k.kpiName, category: k.category || 'Metric' }))}
+                        activeKPIs={(selectedKpis.size > 0 ? kpis.filter(k => selectedKpis.has(k.kpiId)) : topKpis).map(k => ({ name: k.kpiName, category: k.category || 'Metric', value: String(k.currentValue) }))}
                         askAiMessages={askAiMessages}
                     />
                 </DashboardErrorBoundary>

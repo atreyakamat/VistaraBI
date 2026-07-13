@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
     // 2. Perform Mock Mutating Action depending on external API type
     const startTime = Date.now();
-    let externalStatus = 'SUCCESS';
+    const externalStatus = 'SUCCESS';
     let detailedMessage = '';
 
     switch (system.toUpperCase()) {

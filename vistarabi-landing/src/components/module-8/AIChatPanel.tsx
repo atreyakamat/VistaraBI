@@ -26,6 +26,7 @@ function TypewriterText({ text, speed = 10, onComplete }: { text: string; speed?
   useEffect(() => {
     textRef.current = text;
     indexRef.current = 0;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisplayedText('');
 
     const interval = setInterval(() => {

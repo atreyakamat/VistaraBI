@@ -542,7 +542,7 @@ export const ExecutiveReport = ({
           
           <View style={styles.chatLogContainer}>
             {module6ChatHistory && module6ChatHistory.length > 0 ? (
-              module6ChatHistory.slice(0, 10).map((chat, i) => (
+              module6ChatHistory.map((chat, i) => (
                 <View key={i} style={styles.qaBox}>
                   <Text style={styles.qaLabel}>Query {i+1}: {chat.question}</Text>
                   <Text style={styles.qaText}>AI Response: {chat.answer}</Text>

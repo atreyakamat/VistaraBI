@@ -86,9 +86,21 @@ export async function POST(
             ? inferredLocations
             : fallbackLocationsForDomain(domain);
 
+        // 2b. Fetch recent chat history to enrich the goal context
+        const recentChats = await prisma.projectChatMessage.findMany({
+            where: { projectId, module: 'module-6' },
+            orderBy: { createdAt: 'desc' },
+            take: 5
+        });
+        
+        let chatHistory: string | undefined;
+        if (recentChats.length > 0) {
+            chatHistory = recentChats.reverse().map(c => `${c.role.toUpperCase()}: ${typeof c.content === 'object' && c.content !== null ? JSON.stringify(c.content) : c.content}`).join('\n');
+        }
+
         // 3. Execute the 7-stage Goal Pipeline
         console.log(`[Module 7] Executing Goal Engine for Project ${projectId}: "${rawQuery}" (aiMode: ${aiMode})`);
-        const canvas = await executeGoalPipeline(rawQuery, domain, locations, undefined, preferLocal, routingMode);
+        const canvas = await executeGoalPipeline(rawQuery, domain, locations, undefined, preferLocal, routingMode, chatHistory);
         const parsedGeneratedPlan = safeParseGeneratedPlan(canvas);
         if (!parsedGeneratedPlan.success) {
             return NextResponse.json(

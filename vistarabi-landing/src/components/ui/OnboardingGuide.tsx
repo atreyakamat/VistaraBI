@@ -45,6 +45,7 @@ export function OnboardingGuide({ userName, projectCount, onDismiss }: Onboardin
   useEffect(() => {
     const wasDismissed = localStorage.getItem('vistarabi-onboarding-dismissed');
     if (wasDismissed === 'true' || projectCount > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDismissed(true);
     }
   }, [projectCount]);

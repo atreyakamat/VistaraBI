@@ -196,24 +196,20 @@ export default function DashboardPreview() {
                                     <h4 className="text-sm font-semibold text-[var(--foreground)] mb-4">Breakdown</h4>
                                     <div className="relative w-24 h-24 mx-auto mb-4">
                                         <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                                            {(() => {
-                                                let offset = 0;
-                                                return data.pieSlices.map((slice, i) => {
-                                                    const el = (
-                                                        <circle
-                                                            key={i}
-                                                            cx="18" cy="18" r="14"
-                                                            fill="none"
-                                                            stroke={slice.color}
-                                                            strokeWidth="4"
-                                                            strokeDasharray={`${slice.pct * 0.88} ${100 * 0.88}`}
-                                                            strokeDashoffset={-offset * 0.88}
-                                                        />
-                                                    );
-                                                    offset += slice.pct;
-                                                    return el;
-                                                });
-                                            })()}
+                                            {data.pieSlices.map((slice, i) => {
+                                                const offset = data.pieSlices.slice(0, i).reduce((acc, s) => acc + s.pct, 0);
+                                                return (
+                                                    <circle
+                                                        key={i}
+                                                        cx="18" cy="18" r="14"
+                                                        fill="none"
+                                                        stroke={slice.color}
+                                                        strokeWidth="4"
+                                                        strokeDasharray={`${slice.pct * 0.88} ${100 * 0.88}`}
+                                                        strokeDashoffset={-offset * 0.88}
+                                                    />
+                                                );
+                                            })}
                                         </svg>
                                     </div>
                                     <div className="space-y-1.5">
