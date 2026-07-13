@@ -18,10 +18,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         }
 
+        const url = new URL(req.url);
+        const moduleFilter = url.searchParams.get('module');
+        const whereClause: any = { projectId };
+        if (moduleFilter) {
+            whereClause.module = moduleFilter;
+        }
+
         const messages = await db.projectChatMessage.findMany({
-            where: { projectId, module: 'module-6' },
+            where: whereClause,
             orderBy: { createdAt: 'asc' },
-            take: 100, // Fetch last 100 messages
+            take: 200, // Increased limit to accommodate both chats
         });
 
         return NextResponse.json({ messages });

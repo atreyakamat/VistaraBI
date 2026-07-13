@@ -69,6 +69,24 @@ export async function GET(
             });
         });
 
+        // Fetch domain to check if we should suppress anomalies
+        const domainGov = await db.domainGovernance.findUnique({ where: { projectId } });
+        const isFinance = (domainGov?.activeDomain as string | null | undefined) === 'finance';
+
+
+        if (isFinance) {
+            kpiInsights.forEach(kpi => {
+                kpi.anomaly = {
+                    severity: 'normal',
+                    score: 0,
+                    flags: [],
+                    reason: 'Anomalies suppressed for finance domain',
+                    direction: 'none',
+                    detectedAt: new Date().toISOString()
+                };
+            });
+        }
+
         // Aggregate into dashboard-wide insights
         const response = generateDashboardInsights(projectId, kpiInsights);
 

@@ -1,4 +1,4 @@
-﻿// Module 5C — Anomaly Detector (Upgraded)
+// Module 5C — Anomaly Detector (Upgraded)
 // Deterministic rule engine — runs BEFORE any AI
 // Rules: stddev threshold, spike >35%, drop >25%, missing data, distribution skew
 
@@ -7,10 +7,10 @@ import type { AnomalyResult, AnomalySeverity, AnomalyDirection, AnomalyFlag } fr
 // ─── Configuration ────────────────────────────────────────────────
 
 const RULES = {
-    STDDEV_MULTIPLIER: 2,        // delta > 2 * rolling stddev -> anomaly
+    STDDEV_MULTIPLIER: 4,        // delta > 4 * rolling stddev -> anomaly
     SPIKE_THRESHOLD: 0.35,       // >35% spike
     DROP_THRESHOLD: -0.25,       // >25% drop
-    SKEW_THRESHOLD: 2.0,         // distribution skew > 2.0
+    SKEW_THRESHOLD: 4.0,         // distribution skew > 4.0
     MIN_RECORDS_FOR_ANOMALY: 3,  // need at least 3 records
 };
 

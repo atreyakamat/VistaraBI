@@ -16,6 +16,7 @@ interface AIChatPanelProps {
   onMessagesChange?: (msgs: ChatMessage[]) => void;
   isTyping?: boolean;
   onSaveToReport?: () => void;
+  projectId?: string;
 }
 
 function TypewriterText({ text, speed = 10, onComplete }: { text: string; speed?: number; onComplete?: () => void }) {
@@ -59,7 +60,7 @@ function TypewriterText({ text, speed = 10, onComplete }: { text: string; speed?
   );
 }
 
-export default function AIChatPanel({ simulationContext, onMessagesChange, isTyping: propIsTyping, onSaveToReport }: AIChatPanelProps) {
+export default function AIChatPanel({ simulationContext, onMessagesChange, isTyping: propIsTyping, onSaveToReport, projectId }: AIChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { 
       role: 'ai', 
@@ -74,6 +75,24 @@ export default function AIChatPanel({ simulationContext, onMessagesChange, isTyp
       onMessagesChange(messages.map(m => ({ role: m.role, text: m.text })));
     }
   }, [messages, onMessagesChange]);
+
+  // Load chat history from DB
+  useEffect(() => {
+    if (!projectId) return;
+    fetch(`/api/projects/${projectId}/chat?module=module-8`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.messages && data.messages.length > 0) {
+          const loadedMessages: ChatMessage[] = data.messages.map((m: any) => ({
+            role: m.role === 'assistant' ? 'ai' : 'user',
+            text: m.content.text || '',
+            isStreamingCompleted: true,
+          }));
+          setMessages(loadedMessages);
+        }
+      })
+      .catch(err => console.error('Failed to load module-8 chat history', err));
+  }, [projectId]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,7 +147,8 @@ export default function AIChatPanel({ simulationContext, onMessagesChange, isTyp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userText,
-          context: simulationContext
+          context: simulationContext,
+          projectId: projectId
         })
       });
 

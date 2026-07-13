@@ -3,11 +3,13 @@ import { callLocalModel } from '@/lib/module-6/infrastructure/local-adapter';
 import { getCurrentUser } from '@/lib/auth';
 import { checkRateLimit, getIdentifier, buildRateLimitHeaders, RATE_LIMITS } from '@/lib/security/rate-limiter';
 import { z } from 'zod';
+import db from '@/lib/prisma';
 
 const module8ChatRequestSchema = z.object({
   message: z.string().trim().min(1),
   context: z.unknown().optional(),
   preferLocal: z.boolean().optional(),
+  projectId: z.string().uuid().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -15,8 +17,6 @@ export async function POST(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
-
-
 
   try {
     const body = await request.json();
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { message, context, preferLocal } = parsed.data;
+    const { message, context, preferLocal, projectId } = parsed.data;
 
     const systemPrompt = `You are the VistaraBI AI Strategist, an expert business analyst and data scientist.
 You are currently helping the user evaluate their goal strategy and Module 8 Monte Carlo forecasting results.
@@ -49,6 +49,19 @@ CRITICAL INSTRUCTIONS:
     // Call the local Ollama adapter (same one used by Module 6)
     // Temperature 0.3 for a mix of creativity and analytical precision
     const response = await callLocalModel(systemPrompt, userMessage, 0.3, undefined, preferLocal);
+
+    if (projectId) {
+       try {
+           await db.projectChatMessage.create({
+               data: { projectId, role: 'user', content: { type: 'text', text: message }, module: 'module-8' }
+           });
+           await db.projectChatMessage.create({
+               data: { projectId, role: 'assistant', content: { type: 'text', text: response.text }, module: 'module-8' }
+           });
+       } catch (dbErr) {
+           console.error('[Module 8 Chat] Failed to persist chat:', dbErr);
+       }
+    }
 
     return NextResponse.json({ reply: response.text });
   } catch (error: unknown) {

@@ -3,72 +3,45 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+const HEADERS = [
+    'timestamp', 'record_id', 'entity_id', 'entity_segment', 'entity_region', 
+    'target_id', 'target_category', 'target_subcategory', 'event_style', 'event_channel', 
+    'status', 'metric_1_value', 'metric_2_time_ms', 'metric_3_rate', 'metric_4_physical', 
+    'metric_5_financial', 'flag_1_active', 'flag_2_priority', 'context_1', 'context_2', 
+    'tag_1', 'tag_2', 'version_code', 'coord_x', 'coord_y'
+];
+
 const TEMPLATES: Record<string, { headers: string[]; sample: string[][] }> = {
-    retail: {
-        headers: ['date', 'store_id', 'product_id', 'product_name', 'category', 'quantity_sold', 'unit_price', 'revenue', 'cost', 'gross_profit', 'customer_id', 'region'],
-        sample: [
-            ['2024-01-15', 'STR-001', 'PRD-101', 'Wireless Earbuds', 'Electronics', '12', '89.99', '1079.88', '540.00', '539.88', 'CST-4521', 'North'],
-            ['2024-01-15', 'STR-002', 'PRD-205', 'Running Shoes', 'Footwear', '5', '129.99', '649.95', '325.00', '324.95', 'CST-7832', 'South'],
-            ['2024-01-16', 'STR-001', 'PRD-310', 'Coffee Maker', 'Appliances', '3', '74.99', '224.97', '112.50', '112.47', 'CST-2341', 'North'],
-        ],
-    },
-    saas: {
-        headers: ['date', 'customer_id', 'company_name', 'plan', 'mrr', 'arr', 'status', 'churn_date', 'acquisition_channel', 'cac', 'seats', 'nps_score'],
-        sample: [
-            ['2024-01-01', 'CUS-001', 'Acme Corp', 'Pro', '499', '5988', 'active', '', 'Google Ads', '320', '10', '8'],
-            ['2024-01-01', 'CUS-002', 'Beta Ltd', 'Starter', '49', '588', 'active', '', 'Organic', '0', '2', '9'],
-            ['2024-01-15', 'CUS-003', 'Gamma Inc', 'Business', '1499', '17988', 'churned', '2024-02-01', 'Referral', '850', '25', '4'],
-        ],
-    },
-    healthcare: {
-        headers: ['date', 'patient_id', 'department', 'diagnosis_code', 'procedure_code', 'provider_id', 'visit_type', 'length_of_stay', 'total_charges', 'insurance_paid', 'patient_paid', 'readmission'],
-        sample: [
-            ['2024-01-10', 'PAT-10021', 'Cardiology', 'I21.9', 'CPT-99213', 'DR-445', 'Outpatient', '0', '450.00', '360.00', '90.00', 'No'],
-            ['2024-01-11', 'PAT-10022', 'Orthopedics', 'M79.3', 'CPT-27447', 'DR-221', 'Inpatient', '3', '28500.00', '22800.00', '5700.00', 'No'],
-            ['2024-01-12', 'PAT-10023', 'Emergency', 'S06.0', 'CPT-99285', 'DR-118', 'Emergency', '1', '3200.00', '2560.00', '640.00', 'Yes'],
-        ],
-    },
-    finance: {
-        headers: ['date', 'account_id', 'transaction_id', 'type', 'category', 'amount', 'balance', 'currency', 'merchant', 'channel', 'status', 'region'],
-        sample: [
-            ['2024-01-05', 'ACC-8821', 'TXN-001', 'Debit', 'Payroll', '85000.00', '142500.00', 'USD', 'Internal', 'Bank Transfer', 'Completed', 'US-East'],
-            ['2024-01-06', 'ACC-8821', 'TXN-002', 'Credit', 'Office Supplies', '1250.50', '141249.50', 'USD', 'Staples', 'Card', 'Completed', 'US-East'],
-            ['2024-01-07', 'ACC-4432', 'TXN-003', 'Credit', 'Software Licenses', '4800.00', '98200.00', 'USD', 'Adobe', 'ACH', 'Completed', 'US-West'],
-        ],
-    },
-    manufacturing: {
-        headers: ['date', 'plant_id', 'machine_id', 'product_sku', 'units_produced', 'units_defective', 'downtime_hours', 'oee_percent', 'raw_material_cost', 'labor_cost', 'energy_cost', 'shift'],
-        sample: [
-            ['2024-01-08', 'PLT-A', 'MCH-101', 'SKU-5521', '1200', '12', '0.5', '88.5', '4800.00', '2400.00', '960.00', 'Morning'],
-            ['2024-01-08', 'PLT-A', 'MCH-102', 'SKU-5522', '850', '5', '1.2', '82.3', '3400.00', '2400.00', '680.00', 'Morning'],
-            ['2024-01-08', 'PLT-B', 'MCH-201', 'SKU-8831', '2100', '21', '0.0', '95.2', '8400.00', '2400.00', '1680.00', 'Night'],
-        ],
-    },
     ecommerce: {
-        headers: ['date', 'order_id', 'customer_id', 'product_id', 'product_name', 'category', 'quantity', 'unit_price', 'discount_pct', 'shipping_cost', 'total_revenue', 'fulfillment_status', 'return_flag'],
+        headers: HEADERS,
         sample: [
-            ['2024-01-10', 'ORD-88201', 'CST-4521', 'PRD-221', 'Yoga Mat', 'Sports', '1', '49.99', '10', '4.99', '49.99', 'Delivered', 'No'],
-            ['2024-01-10', 'ORD-88202', 'CST-7823', 'PRD-445', 'Desk Lamp', 'Home Office', '2', '34.99', '0', '0.00', '69.98', 'Shipped', 'No'],
-            ['2024-01-11', 'ORD-88203', 'CST-1102', 'PRD-881', 'Blender', 'Kitchen', '1', '89.99', '15', '6.99', '83.49', 'Delivered', 'Yes'],
+            ['2026-07-01T12:00:00.000Z', 'REC_1001', 'ENT_001', 'Premium', 'North', 'TGT_882', 'Category_A', 'Sub_1', 'purchase', 'Web', 'Success', '150.50', '1250', '0.85', '22.5', '120.00', 'true', 'true', 'CTX_1', 'CTX_A', 'TagA', 'Group1', 'v1.0', '40.7128', '-74.0060'],
+            ['2026-07-01T12:05:00.000Z', 'REC_1002', 'ENT_002', 'Basic', 'South', 'TGT_332', 'Category_B', 'Sub_2', 'add_to_cart', 'Mobile_App', 'Pending', '0', '450', '0.00', '21.0', '0.00', 'true', 'false', 'CTX_2', 'CTX_B', 'TagB', 'Group2', 'v1.1', '34.0522', '-118.2437'],
         ],
     },
     edtech: {
-        headers: ['date', 'student_id', 'course_id', 'course_name', 'instructor_id', 'enrollment_date', 'completion_date', 'completion_rate', 'quiz_avg_score', 'video_watch_time_hrs', 'certificate_issued', 'revenue'],
+        headers: HEADERS,
         sample: [
-            ['2024-01-05', 'STU-10021', 'CRS-441', 'Python for Data Science', 'INS-55', '2024-01-05', '2024-02-10', '100', '87', '24.5', 'Yes', '199.00'],
-            ['2024-01-06', 'STU-10022', 'CRS-552', 'UI/UX Design Fundamentals', 'INS-32', '2024-01-06', '', '45', '72', '8.2', 'No', '149.00'],
-            ['2024-01-07', 'STU-10023', 'CRS-441', 'Python for Data Science', 'INS-55', '2024-01-07', '', '20', '65', '5.0', 'No', '199.00'],
+            ['2026-07-01T09:00:00.000Z', 'REC_2001', 'ENT_901', 'Student', 'East', 'TGT_112', 'Tech', 'Programming', 'video_play', 'Web', 'Success', '100', '360000', '0.99', '25.0', '0.00', 'true', 'false', 'CTX_3', 'CTX_C', 'TagC', 'Group1', 'v2.0', '51.5074', '-0.1278'],
+            ['2026-07-01T10:15:00.000Z', 'REC_2002', 'ENT_902', 'Professional', 'West', 'TGT_222', 'Business', 'Finance', 'quiz_submit', 'Mobile_App', 'Success', '85.5', '1200000', '1.00', '26.0', '0.00', 'true', 'true', 'CTX_4', 'CTX_D', 'TagA', 'Group3', 'v2.1', '48.8566', '2.3522'],
         ],
     },
-    services: {
-        headers: ['date', 'client_id', 'project_id', 'service_type', 'consultant_id', 'hours_billed', 'hourly_rate', 'revenue', 'project_status', 'satisfaction_score', 'contract_value', 'region'],
-        sample: [
-            ['2024-01-08', 'CLT-221', 'PRJ-5501', 'Strategy Consulting', 'CON-12', '40', '250', '10000.00', 'In Progress', '4.8', '120000.00', 'APAC'],
-            ['2024-01-09', 'CLT-334', 'PRJ-5502', 'IT Implementation', 'CON-28', '60', '175', '10500.00', 'Completed', '4.5', '65000.00', 'EMEA'],
-            ['2024-01-10', 'CLT-112', 'PRJ-5503', 'Market Research', 'CON-07', '25', '200', '5000.00', 'In Progress', '5.0', '30000.00', 'Americas'],
-        ],
-    },
+    retail: { headers: HEADERS, sample: [] },
+    saas: { headers: HEADERS, sample: [] },
+    healthcare: { headers: HEADERS, sample: [] },
+    finance: { headers: HEADERS, sample: [] },
+    manufacturing: { headers: HEADERS, sample: [] },
+    services: { headers: HEADERS, sample: [] }
 };
+
+// Auto-fill empty samples with generic data for robustness
+Object.keys(TEMPLATES).forEach(key => {
+    if (TEMPLATES[key].sample.length === 0) {
+        TEMPLATES[key].sample = [
+            ['2026-07-01T12:00:00.000Z', 'REC_0001', 'ENT_001', 'Standard', 'Central', 'TGT_001', 'Category_A', 'Sub_1', 'view', 'Web', 'Success', '50.00', '2000', '0.50', '20.0', '50.00', 'true', 'false', 'CTX_1', 'CTX_2', 'Tag1', 'Group1', 'v1.0', '0', '0']
+        ];
+    }
+});
 
 export async function GET(
     request: NextRequest,

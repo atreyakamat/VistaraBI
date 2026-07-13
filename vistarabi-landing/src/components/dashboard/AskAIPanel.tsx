@@ -756,7 +756,7 @@ export function AskAIPanel({ projectId, onCommandSuccess, onOpenGoalEngine, stra
     // Load chat history from DB
     useEffect(() => {
         if (!projectId) return;
-        fetch(`/api/projects/${projectId}/chat`)
+        fetch(`/api/projects/${projectId}/chat?module=module-6`)
             .then(res => res.json())
             .then(data => {
                 if (data.messages && data.messages.length > 0) {
