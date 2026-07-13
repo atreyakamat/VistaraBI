@@ -74,7 +74,13 @@ export async function callLocalModel(
         };
     } catch (err: any) {
         const msg = (err.message || '').toLowerCase();
-        if (msg.includes('timeout') || msg.includes('timed out')) {
+        const errName = (err?.name || '').toLowerCase();
+        if (
+            errName === 'aborterror' ||
+            msg.includes('timeout') ||
+            msg.includes('timed out') ||
+            msg.includes('aborted')
+        ) {
             throw new ModelCallError(
                 'LOCAL_TIMEOUT',
                 `AI request timed out: ${err.message}`,

@@ -105,8 +105,10 @@ function compileSelectClause(
     // We also cast the dateColumn to TIMESTAMP to ensure it's the right type for DATE_TRUNC
     if (granularity && dateColumn) {
         const trunc = GRANULARITY_MAP[granularity] || 'month';
-        // Ensure interval is cast to TEXT and column to TIMESTAMP
-        parts.push(`DATE_TRUNC('${trunc}'::TEXT, ${qi(dateColumn)}::TIMESTAMP)::DATE AS "period"`);
+        // Cast to DATE first, then DATE_TRUNC. Using ::DATE avoids the timezone offset bug
+        // where casting a plain date string to ::TIMESTAMP causes midnight UTC to shift to
+        // the previous day in IST (UTC+5:30), producing wrong period labels.
+        parts.push(`DATE_TRUNC('${trunc}'::TEXT, ${qi(dateColumn)}::DATE)::DATE AS "period"`);
     }
 
     // GroupBy columns in SELECT
@@ -279,7 +281,7 @@ function compileGroupByClause(
     // Ensure explicit casts for date_trunc to avoid 'unknown' type errors.
     if (granularity && dateColumn) {
         const trunc = GRANULARITY_MAP[granularity] || 'month';
-        parts.push(`DATE_TRUNC('${trunc}'::TEXT, ${qi(dateColumn)}::TIMESTAMP)::DATE`);
+        parts.push(`DATE_TRUNC('${trunc}'::TEXT, ${qi(dateColumn)}::DATE)::DATE`);
     }
 
     // Defined group-bys

@@ -593,6 +593,7 @@ export async function generateWithFallback(
 
     const optionsWithRole = { ...options, messages };
     let lastError: Error | null = null;
+    let timeoutError: Error | null = null;
     const skippedProviders: string[] = [];
 
     // Try each provider in order
@@ -609,14 +610,21 @@ export async function generateWithFallback(
             return response;
         } catch (error: unknown) {
             lastError = error instanceof Error ? error : new Error(String(error));
+            if (!timeoutError) {
+                const message = getErrorMessage(error).toLowerCase();
+                if (message.includes('timed out') || message.includes('timeout')) {
+                    timeoutError = lastError;
+                }
+            }
             console.warn(`[AI] × Failed with ${config.provider}:`, getErrorMessage(error));
             // Continue to next provider
         }
     }
 
     // All providers failed
+    const primaryError = timeoutError ?? lastError;
     throw new Error(
-        `All AI providers failed. Last error: ${lastError?.message || 'Unknown error'}. ` +
+        `All AI providers failed. Last error: ${primaryError?.message || 'Unknown error'}. ` +
         `Tried (in rotation): ${configs.filter(c => !skippedProviders.includes(c.provider)).map(c => `${c.provider} (${c.model})`).join(', ')}`
     );
 }

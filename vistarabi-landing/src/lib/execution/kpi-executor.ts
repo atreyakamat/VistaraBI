@@ -236,7 +236,20 @@ export async function executeKPI(
 
     // Rewrite metric and dimension columns dynamically based on physical table
     for (const agg of kpi.aggregations) {
-        agg.column = resolveColumn(agg.column);
+        const resolved = resolveColumn(agg.column);
+        agg.column = resolved;
+
+        // If the resolved column STILL doesn't exist in the physical table, it means the KPI
+        // targets a column from a different source file that wasn't merged. 
+        // Fall back to the first available numeric column so we return real data instead of 0.
+        if (!actualCols.includes(resolved)) {
+            const bestNumeric = actualCols.find(c => NUMERIC_TYPES.includes(colTypes[c]));
+            if (bestNumeric) {
+                console.warn(`[Executor] Column "${resolved}" not found in table for KPI "${kpi.name}". Falling back to COUNT(${bestNumeric}).`);
+                agg.column = bestNumeric;
+                agg.function = 'COUNT' as typeof agg.function;
+            }
+        }
 
         // Safety Fallback: If SUM/AVG is requested on a clearly categorical column, fall back to COUNT.
         // For 'text' columns that contain numbers, the ::NUMERIC cast in sql-compiler.ts handles it safely.
@@ -375,16 +388,19 @@ export async function executeKPI(
     const formattedDataset = primaryDataPoints.map(row => {
         // ── Time-series row: DATE_TRUNC returns a "period" column ──
         if (row.period != null) {
-            // R1 FIX: sql-compiler now emits DATE_TRUNC(...)::DATE so PostgreSQL returns
-            // a plain DATE value. pg driver serialises a DATE column as a JS Date object
-            // but we read it via toISOString().slice(0,10) ONLY as a safety net.
-            // Because the DB value is already a local calendar date (no time zone),
-            // toISOString() on a midnight-UTC Date still gives the correct YYYY-MM-DD.
-            // We deliberately do NOT rely on timezone arithmetic here.
             const rawPeriod = row.period;
-            const dateStr = rawPeriod instanceof Date
-                ? rawPeriod.toISOString().slice(0, 10)
-                : String(rawPeriod).slice(0, 10);   // YYYY-MM-DD already from ::DATE cast
+            let dateStr: string;
+            if (rawPeriod instanceof Date) {
+                // Use local calendar fields to avoid UTC midnight shifting back to previous day in IST.
+                // e.g. 2024-01-01T00:00:00+05:30 stored as UTC 2023-12-31T18:30:00Z
+                // toISOString() → "2023-12-31" (WRONG). Local fields → "2024-01-01" (CORRECT).
+                const y = rawPeriod.getFullYear();
+                const m = String(rawPeriod.getMonth() + 1).padStart(2, '0');
+                const d = String(rawPeriod.getDate()).padStart(2, '0');
+                dateStr = `${y}-${m}-${d}`;
+            } else {
+                dateStr = String(rawPeriod).slice(0, 10);
+            }
             const val = typeof row.value === 'number' ? row.value
                 : typeof row.value === 'string' ? parseFloat(row.value)
                     : typeof row[aggAlias] === 'number' ? row[aggAlias]
