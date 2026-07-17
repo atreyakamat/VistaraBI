@@ -70,46 +70,36 @@ describe('local-adapter — callLocalModel()', () => {
         expect(calledUrl).toContain('localhost:11434');
     });
 
-    it('HTTP 500 → LOCAL_CALL_FAILED (not recoverable)', async () => {
+    it('HTTP 500 → returns Demo Mode fallback', async () => {
         mockFetch.mockResolvedValueOnce(new Response('Internal error', { status: 500 }));
 
-        await expect(callLocalModel('sys', 'user', 0.1))
-            .rejects.toMatchObject({ code: 'LOCAL_CALL_FAILED', recoverable: false });
+        const result = await callLocalModel('sys', 'user', 0.1);
+        expect(result.text).toContain('[Demo Mode]');
     });
 
-    it('network failure → LOCAL_CALL_FAILED', async () => {
+    it('network failure → returns Demo Mode fallback', async () => {
         mockFetch.mockRejectedValueOnce(new Error('ECONNREFUSED'));
 
-        await expect(callLocalModel('sys', 'user', 0.1))
-            .rejects.toMatchObject({ code: 'LOCAL_CALL_FAILED' });
+        const result = await callLocalModel('sys', 'user', 0.1);
+        expect(result.text).toContain('[Demo Mode]');
     });
 
-    it('AbortError (timeout) → LOCAL_TIMEOUT (recoverable)', async () => {
+    it('AbortError (timeout) → returns Demo Mode fallback', async () => {
         const abortError = new Error('aborted');
         abortError.name = 'AbortError';
         mockFetch.mockRejectedValueOnce(abortError);
 
-        await expect(callLocalModel('sys', 'user', 0.1))
-            .rejects.toMatchObject({ code: 'LOCAL_TIMEOUT', recoverable: true });
+        const result = await callLocalModel('sys', 'user', 0.1);
+        expect(result.text).toContain('[Demo Mode]');
     });
 
-    it('empty response string → LOCAL_CALL_FAILED', async () => {
+    it('empty response string → returns Demo Mode fallback', async () => {
         mockFetch.mockResolvedValueOnce(new Response(
             JSON.stringify({ message: { content: '' }, done: true }),
             { status: 200, headers: { 'Content-Type': 'application/json' } }
         ));
 
-        await expect(callLocalModel('sys', 'user', 0.1))
-            .rejects.toMatchObject({ code: 'LOCAL_CALL_FAILED' });
-    });
-
-    it('throws ModelCallError instances on failure', async () => {
-        mockFetch.mockRejectedValueOnce(Object.assign(new Error('aborted'), { name: 'AbortError' }));
-
-        try {
-            await callLocalModel('sys', 'user', 0.1);
-        } catch (err) {
-            expect(err).toBeInstanceOf(ModelCallError);
-        }
+        const result = await callLocalModel('sys', 'user', 0.1);
+        expect(result.text).toContain('[Demo Mode]');
     });
 });

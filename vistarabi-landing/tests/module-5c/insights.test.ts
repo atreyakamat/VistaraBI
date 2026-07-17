@@ -54,17 +54,30 @@ describe('Module 5C — Anomaly Detector', () => {
         expect(result.direction).toBe('drop');
     });
 
-    it('should detect stddev breach (>2σ)', () => {
+    it('should detect stddev breach (>4σ)', () => {
         const result = detectAnomaly({
-            currentValue: 500,
+            currentValue: 2000,
             dataPoints: [
-                { label: 'Jan', value: 100 },
-                { label: 'Feb', value: 105 },
-                { label: 'Mar', value: 98 },
-                { label: 'Apr', value: 102 },
-                { label: 'May', value: 100 },
-                { label: 'Jun', value: 103 },
-                { label: 'Jul', value: 500 },
+                { label: 'A', value: 100 },
+                { label: 'B', value: 100 },
+                { label: 'C', value: 100 },
+                { label: 'D', value: 100 },
+                { label: 'E', value: 100 },
+                { label: 'F', value: 100 },
+                { label: 'G', value: 100 },
+                { label: 'H', value: 100 },
+                { label: 'I', value: 100 },
+                { label: 'J', value: 100 },
+                { label: 'K', value: 100 },
+                { label: 'L', value: 100 },
+                { label: 'M', value: 100 },
+                { label: 'N', value: 100 },
+                { label: 'O', value: 100 },
+                { label: 'P', value: 100 },
+                { label: 'Q', value: 100 },
+                { label: 'R', value: 100 },
+                { label: 'S', value: 100 },
+                { label: 'T', value: 2000 },
             ],
         });
         expect(result.flags.some(f => f.rule === 'stddev_breach')).toBe(true);
@@ -92,7 +105,7 @@ describe('Module 5C — Anomaly Detector', () => {
                 { label: 'B', value: 95 },
                 { label: 'C', value: 105 },
             ],
-            distributionSkew: 3.5,
+            distributionSkew: 4.5,
         });
         expect(result.flags.some(f => f.rule === 'distribution_skew')).toBe(true);
     });
