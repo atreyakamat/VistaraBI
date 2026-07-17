@@ -155,11 +155,28 @@ export async function generateDashboardConfig(projectId: string): Promise<Dashbo
     };
 
     // 10. Persist to database
+    const sanitizeForPostgres = (obj: any): any => {
+        try {
+            if (!obj) return obj;
+            const str = JSON.stringify(obj);
+            const cleanStr = str
+                .replace(/\u2011/g, '-')
+                .replace(/[\u2018\u2019]/g, "'")
+                .replace(/[\u201C\u201D]/g, '"')
+                .replace(/\u2013/g, '-')
+                .replace(/\u2014/g, '--')
+                .replace(/[^\x00-\x7F]/g, '');
+            return JSON.parse(cleanStr);
+        } catch (e) {
+            return obj;
+        }
+    };
+
     const dbData = {
         projectId,
-        sections: sections as any,
-        sidebarConfig: sidebarConfig as any,
-        metadata: metadata as any,
+        sections: sanitizeForPostgres(sections),
+        sidebarConfig: sanitizeForPostgres(sidebarConfig),
+        metadata: sanitizeForPostgres(metadata),
         version,
     };
 
