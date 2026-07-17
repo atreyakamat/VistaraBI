@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AI_MODE_HEADER_KEY } from '@/lib/ai/ai-mode';
 import { useAIMode } from '@/lib/ai/use-ai-mode';
+import { DomainBadge, renderIcon } from './DomainBadge';
 
 interface DomainInfo {
     type: string;
@@ -130,12 +131,12 @@ export default function AIGuidedSelection({
                     {/* Phase 3A Detection */}
                     <div className="p-4 rounded-xl border border-[var(--border)] bg-[var(--background)]">
                         <div className="flex items-center gap-2 mb-2 text-sm font-medium text-[var(--muted)]">
-                            <span>bar-chart</span>
+                            <span className="material-symbols-outlined text-[16px]">bar_chart</span>
                             <span>Rule-Based Detection (Phase 3A)</span>
                         </div>
                         {phase3AInfo ? (
                             <div className="flex items-center gap-3">
-                                <span className="text-2xl">{phase3AInfo.icon}</span>
+                                <span>{renderIcon(phase3AInfo.icon, 24)}</span>
                                 <span className="text-lg font-bold" style={{ color: phase3AInfo.color }}>
                                     {phase3AInfo.name}
                                 </span>

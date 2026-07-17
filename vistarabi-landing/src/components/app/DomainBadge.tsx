@@ -15,7 +15,7 @@ const IconMap: Record<string, React.ElementType> = {
     'bar-chart': BarChart
 };
 
-function renderIcon(iconName: string, size?: number) {
+export function renderIcon(iconName: string, size?: number) {
     const Icon = IconMap[iconName] || BarChart;
     return <Icon size={size || 24} />;
 }

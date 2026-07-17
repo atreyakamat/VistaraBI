@@ -1,11 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { preferLocalToMode, readClientAIMode, type AIMode, writeClientAIMode } from './ai-mode';
+import { preferLocalToMode, readClientAIMode, type AIMode, writeClientAIMode, getDefaultAIMode, normalizeAIMode, AI_MODE_STORAGE_KEY } from './ai-mode';
 
 export function useAIMode() {
-    const [mode, setModeState] = useState<AIMode>(readClientAIMode);
+    const [mode, setModeState] = useState<AIMode>(getDefaultAIMode());
     const [loadedFromProfile, setLoadedFromProfile] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const fromStorage = normalizeAIMode(window.localStorage.getItem(AI_MODE_STORAGE_KEY));
+            if (fromStorage) setModeState(fromStorage);
+        }
+    }, []);
 
     useEffect(() => {
         writeClientAIMode(mode);

@@ -22,7 +22,7 @@ export interface SynthesisAuditPayload {
 export async function writeSynthesisAuditRecord(payload: SynthesisAuditPayload): Promise<void> {
     const record: AuditRecord = {
         sessionId: payload.projectId,
-        intentId: `6e-${payload.metadata.reasoningTier}-${Date.now()}`,
+        intentId: `6e-${payload.metadata.reasoningTier}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         rawUserQuery: payload.userQuery.slice(0, 2000),
         normalizedUserQuery: payload.sanitizedQuery.slice(0, 2000),
         llmRawOutput: undefined,

@@ -24,6 +24,20 @@ interface SidebarProps {
 
 // Map section icons to Material Symbols (fallback to emoji)
 const MATERIAL_ICONS: Record<string, string> = {
+    'dollar-sign': 'payments',
+    'users': 'group',
+    'settings': 'settings',
+    'trending-up': 'trending_up',
+    'package': 'inventory_2',
+    'check-circle': 'check_circle',
+    'bar-chart': 'bar_chart',
+    'folder': 'folder',
+    'search': 'search',
+    'link': 'link',
+    'brain': 'psychology',
+    'message-circle': 'chat',
+    'clipboard': 'content_paste',
+    'general': 'analytics',
     '📊': 'grid_view',
     '💰': 'payments',
     '👥': 'group',
@@ -38,7 +52,7 @@ const MATERIAL_ICONS: Record<string, string> = {
     '🎓': 'school',
 };
 
-function getMaterialIcon(emoji: string): string {
+export function getMaterialIcon(emoji: string): string {
     return MATERIAL_ICONS[emoji] || 'analytics';
 }
 

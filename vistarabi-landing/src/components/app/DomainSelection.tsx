@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { renderIcon } from './DomainBadge';
 import type { DomainType } from '@/lib/domain/domain-keywords';
 import { getKPIsForDomain, type KPI } from '@/lib/domain/domain-kpis';
 
@@ -78,7 +79,9 @@ export default function DomainSelection({
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-2xl">
-                                {step === 'domain' ? 'crosshair' : 'bar-chart'}
+                                <span className="material-symbols-outlined text-3xl text-white">
+                                    {step === 'domain' ? 'track_changes' : 'bar_chart'}
+                                </span>
                             </div>
                             <div>
                                 <h2 className="text-2xl font-bold text-[var(--foreground)]">
@@ -151,7 +154,7 @@ export default function DomainSelection({
                                             }}
                                         >
                                             <div className="flex items-center gap-3 mb-2">
-                                                <span className="text-3xl">{info.icon}</span>
+                                                <span className="text-3xl">{renderIcon(info.icon, 32)}</span>
                                                 <span className="text-xl font-bold" style={{ color: info.color }}>
                                                     {info.name}
                                                 </span>
@@ -173,7 +176,7 @@ export default function DomainSelection({
                                 {/* Selected Domain */}
                                 <div className="p-4 rounded-xl border-2" style={{ borderColor: domainInfo.color, backgroundColor: `${domainInfo.color}10` }}>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-3xl">{domainInfo.icon}</span>
+                                        <span className="text-3xl">{renderIcon(domainInfo.icon, 32)}</span>
                                         <div>
                                             <div className="text-xl font-bold" style={{ color: domainInfo.color }}>
                                                 {domainInfo.name}

@@ -33,7 +33,7 @@ interface ReasoningAuditPayload {
 export async function writeReasoningAuditRecord(payload: ReasoningAuditPayload): Promise<void> {
     const record: AuditRecord = {
         sessionId: payload.projectId,
-        intentId: `6d-${payload.taskType}-${Date.now()}`,
+        intentId: `6d-${payload.taskType}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         rawUserQuery: payload.userQuery.slice(0, 2000),
         normalizedUserQuery: payload.sanitizedQuery.slice(0, 2000),
         llmRawOutput: undefined,

@@ -4,7 +4,7 @@
 // 2×2 KPI grid, AI Insights section, Active Streams, FilterBar, drill-down breadcrumb
 
 import { useState, useCallback, useEffect } from 'react';
-import { Sidebar } from './Sidebar';
+import { Sidebar, getMaterialIcon } from './Sidebar';
 import { Header } from './Header';
 import { KPIMetricCard } from './KPIMetricCard';
 import { ChartGrid } from './ChartGrid';
@@ -611,7 +611,9 @@ export function DashboardShell({
                                 return (
                                     <div key={section.id} id={`section-${section.id}`} className="mt-8">
                                         <div className="flex items-center gap-2 mb-4">
-                                            <span className="text-lg">{section.icon}</span>
+                                            <span className="material-symbols-outlined text-[20px]" style={{ color: domainColor }}>
+                                                {getMaterialIcon(section.icon)}
+                                            </span>
                                             <div>
                                                 <h2 className="section-title">{section.title}</h2>
                                                 <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>

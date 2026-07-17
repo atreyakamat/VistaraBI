@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       data: {
         sessionId: projectId,
         userId: targetUserId,
-        intentId: `action-${actionId || Math.random().toString(36).substr(2, 9)}`,
+        intentId: `action-${actionId || 'adhoc'}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         rawUserQuery: `EXECUTE_ACTION_${system}_${actionId || 'default'}`,
         normalizedUserQuery: `Write-back execution for ${system} endpoint: ${endpoint || '/mutate'}`,
         llmRawOutput: JSON.stringify({ payload, justification, detailedMessage }),
