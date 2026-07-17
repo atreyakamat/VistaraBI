@@ -208,7 +208,16 @@ export function DashboardShell({
                 },
                 chartImage: chartImageBase64 || "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
                 dashboardImage: dashboardImageBase64,
-                selectedKPIs: (selectedKpis.size > 0 ? kpis.filter(k => selectedKpis.has(k.kpiId)) : topKpis).map(k => ({ name: k.kpiName, category: k.category, value: String(k.currentValue) })),
+                selectedKPIs: (selectedKpis.size > 0 ? kpis.filter(k => selectedKpis.has(k.kpiId)) : topKpis).map(k => {
+                    const formatVal = (val: number) => {
+                        if (Math.abs(val) >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
+                        if (Math.abs(val) >= 1_000) return `$${(val / 1_000).toFixed(1)}K`;
+                        if (val % 1 !== 0 && Math.abs(val) < 100) return `${val.toFixed(2)}%`;
+                        return val.toFixed(0);
+                    };
+                    const trendStr = (k.trend === 'up' ? '+' : k.trend === 'down' ? '-' : '') + (k.trendPercent ? k.trendPercent.toFixed(1) + '%' : 'Stable');
+                    return { name: k.kpiName, category: k.category, value: formatVal(k.currentValue), trend: trendStr };
+                }),
                 actions: canvasToUse?.scenarios?.map((a: any) => ({ title: a.actionName, impact: a.tier })) || [],
                 globalChatSummary: savedChatM6.length > 0 ? (savedChatM6[savedChatM6.length - 1].content?.text || savedChatM6[savedChatM6.length - 1].text) : undefined,
                 module6ChatHistory: chatHistoryPairs,
